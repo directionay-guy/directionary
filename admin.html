@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Directionary - Word Management Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            padding: 60px 40px;
+            text-align: center;
+            display: block;
+        }
+
+        .login-screen.hidden {
+            display: none;
+        }
+
+        .login-title {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            line-height: 1;
+        }
+        
+        .login-title-text {
+            font-family: Georgia, 'Times New Roman', serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .login-title-arrow {
+            font-size: 0.9em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .login-title-arrow-left {
+            transform: translateY(2px);
+        }
+        
+        .login-title-arrow-right {
+            transform: translateY(3px);
+        }
+
+        .login-screen h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .login-screen p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .login-form input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-form button {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .login-form button:hover {
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+        }
+
+        .dashboard-title {
+            font-size: 2em;
+            margin-bottom: 15px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            line-height: 1;
+        }
+        
+        .dashboard-title-text {
+            font-family: Georgia, 'Times New Roman', serif;
+            color: white;
+        }
+        
+        .dashboard-title-arrow {
+            font-size: 0.9em;
+            color: white;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .dashboard-title-arrow-left {
+            transform: translateY(2px);
+        }
+        
+        .dashboard-title-arrow-right {
+            transform: translateY(3px);
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .dashboard-header p {
+            opacity: 0.9;
+            font-size: 0.95em;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            float: right;
+            margin-top: -40px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .dashboard-content {
+            padding: 40px;
+        }
+
+        /* Sections */
+        .section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section h2::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        /* Settings Grid */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .setting-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .setting-card label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .setting-card input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .setting-card .value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .setting-card button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .setting-card button:hover {
+            background: #5568d3;
+        }
+
+        /* Word Preview Table */
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .controls input,
+        .controls select {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95em;
+        }
+
+        .controls button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .controls button:hover {
+            background: #5568d3;
+        }
+
+        .word-table-container {
+            overflow-x: auto;
+        }
+
+        .word-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .word-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .word-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .word-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .word-cell {
+            cursor: pointer;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.2s;
+        }
+
+        .word-cell:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .word-cell.overridden {
+            background: #fff3cd;
+            padding: 5px 10px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        .date-cell {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .game-number {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        /* Blacklist */
+        .blacklist-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .blacklist-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            text-transform: uppercase;
+        }
+
+        .blacklist-input button {
+            padding: 12px 24px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .blacklist-input button:hover {
+            background: #c82333;
+        }
+
+        .blacklist-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .blacklist-tag {
+            background: #dc3545;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .blacklist-tag button {
+            background: rgba(255,255,255,0.3);
+            border: none;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.8em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .blacklist-tag button:hover {
+            background: rgba(255,255,255,0.5);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        /* Edit Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-content h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .modal-content p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-card .label {
+            color: #666;
+            font-size: 0.85em;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-content {
+                padding: 20px;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .controls input,
+            .controls select,
+            .controls button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="container">
+        <div class="login-screen" id="loginScreen">
+            <div class="login-title">
+                <span class="login-title-arrow login-title-arrow-left">◄</span>
+                <span class="login-title-arrow">●</span>
+                <span class="login-title-text">Directionary</span>
+                <span class="login-title-arrow">●</span>
+                <span class="login-title-arrow login-title-arrow-right">►</span>
+            </div>
+            <h1>🔒 Word Management Dashboard</h1>
+            <p>Enter the dev password to access the admin panel</p>
+            <div class="login-form">
+                <input type="password" id="passwordInput" placeholder="Dev Password" autocomplete="off">
+                <button onclick="login()">Access Dashboard</button>
+                <div class="error-message" id="loginError"></div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="dashboard" id="dashboard">
+            <div class="dashboard-header">
+                <button class="logout-btn" onclick="logout()">Logout</button>
+                <div class="dashboard-title">
+                    <span class="dashboard-title-arrow dashboard-title-arrow-left">◄</span>
+                    <span class="dashboard-title-arrow">●</span>
+                    <span class="dashboard-title-text">Directionary</span>
+                    <span class="dashboard-title-arrow">●</span>
+                    <span class="dashboard-title-arrow dashboard-title-arrow-right">►</span>
+                </div>
+                <h1>📋 Word Management Dashboard</h1>
+                <p>Curate upcoming daily words and manage game settings</p>
+            </div>
+
+            <div class="dashboard-content">
+                <!-- Game Settings -->
+                <div class="section">
+                    <h2>⚙️ Game Settings</h2>
+                    <div class="settings-grid">
+                        <div class="setting-card">
+                            <label>Launch Date</label>
+                            <input type="date" id="launchDate" onchange="updateLaunchDate()">
+                            <small style="color: #666; font-size: 0.85em; display: block; margin-top: 5px;">Sets Game #1 = this date</small>
+                        </div>
+                        <div class="setting-card">
+                            <label>Current Game Number</label>
+                            <div class="value" id="currentGameNumber">—</div>
+                            <small style="color: #666; font-size: 0.85em; display: block; margin-top: 5px;">Auto-calculated from launch date</small>
+                        </div>
+                        <div class="setting-card">
+                            <label>Days Preview</label>
+                            <input type="number" id="daysPreview" value="30" min="5" max="90" onchange="updatePreview()">
+                            <small style="color: #666; font-size: 0.85em; display: block; margin-top: 5px;">How many days to show below</small>
+                        </div>
+                        <div class="setting-card">
+                            <label>Beta Mode</label>
+                            <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
+                                <input type="checkbox" id="betaModeToggle" onchange="toggleBetaMode()" style="width: 20px; height: 20px; cursor: pointer;">
+                                <span id="betaModeStatus" style="color: #999;">Off</span>
+                            </div>
+                            <small style="color: #666; font-size: 0.85em; display: block; margin-top: 5px;">Shows "BETA" banner on game</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div class="section">
+                    <h2>📊 Override Statistics</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="label">Word Source</div>
+                            <div class="value" id="wordSource" style="font-size: 0.8em;">Loading...</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">Answer Words</div>
+                            <div class="value" id="wordPoolSize">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">Overridden Days</div>
+                            <div class="value" id="overriddenCount">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">Blacklisted Words</div>
+                            <div class="value" id="blacklistedCount">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">Days Until Next</div>
+                            <div class="value" id="daysUntilNext">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Word Preview -->
+                <div class="section">
+                    <h2>📅 Upcoming Daily Words</h2>
+                    <p style="color: #666; margin-bottom: 15px;">Click any word to change it. Yellow highlight = manually overridden.</p>
+                    
+                    <div class="controls">
+                        <input type="date" id="startDate" onchange="updatePreview()">
+                        <select id="roundFilter" onchange="updatePreview()">
+                            <option value="all">All Rounds</option>
+                            <option value="1">Round 1 Only</option>
+                            <option value="2">Round 2 Only</option>
+                            <option value="3">Round 3 Only</option>
+                        </select>
+                        <button onclick="updatePreview()">Refresh</button>
+                        <button onclick="clearAllOverrides()">Clear All Overrides</button>
+                    </div>
+
+                    <div class="word-table-container">
+                        <table class="word-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Game #</th>
+                                    <th>Round 1</th>
+                                    <th>Round 2</th>
+                                    <th>Round 3</th>
+                                </tr>
+                            </thead>
+                            <tbody id="wordTableBody">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Word Management -->
+                <div class="section">
+                    <h2>📝 Word Management</h2>
+                    <p style="color: #666; margin-bottom: 15px;">Add words to the answer pool or search existing words. New words are stored locally and merged with words.json.</p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div>
+                            <h3 style="font-size: 1.1em; margin-bottom: 10px; color: #333;">Search Words</h3>
+                            <input type="text" id="wordSearchInput" placeholder="Search for a word (e.g., LOSER)" maxlength="5" oninput="searchWord()" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; text-transform: uppercase; font-size: 1em;">
+                            <div id="searchResult" style="margin-top: 10px; padding: 10px; background: white; border-radius: 8px; min-height: 60px;"></div>
+                        </div>
+                        
+                        <div>
+                            <h3 style="font-size: 1.1em; margin-bottom: 10px; color: #333;">Add New Word</h3>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="newWordInput" placeholder="Enter word to add" maxlength="5" oninput="this.value = this.value.toUpperCase()" style="flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em;">
+                                <button onclick="addNewWord()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Add Word</button>
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9em; color: #666;">
+                                    <input type="checkbox" id="addToAnswers" checked>
+                                    Add to Answer pool (can be daily word)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9em; color: #666; margin-top: 5px;">
+                                    <input type="checkbox" id="addToValid" checked>
+                                    Add to Valid pool (players can guess it)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; padding: 15px; border-radius: 12px;">
+                        <h3 style="font-size: 1em; margin-bottom: 10px; color: #333;">Added Words</h3>
+                        <div id="addedWordsList" style="min-height: 40px;">
+                            <div style="color: #999; font-style: italic;">No words added yet</div>
+                        </div>
+                        <button onclick="exportWordList()" style="margin-top: 10px; padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">📥 Export Updated Word List</button>
+                        <button onclick="clearAddedWords()" style="margin-top: 10px; margin-left: 10px; padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Clear Added Words</button>
+                    </div>
+                </div>
+
+                <!-- Blacklist Management -->
+                <div class="section">
+                    <h2>🚫 Word Blacklist</h2>
+                    <p style="color: #666; margin-bottom: 15px;">Add words to never appear as daily words. Useful for obscure, offensive, or inappropriate words.</p>
+                    
+                    <div class="blacklist-input">
+                        <input type="text" id="blacklistInput" placeholder="Enter word to blacklist (e.g., ETUDE)" maxlength="5" oninput="this.value = this.value.toUpperCase()">
+                        <button onclick="addToBlacklist()">Add to Blacklist</button>
+                    </div>
+
+                    <div class="blacklist-tags" id="blacklistTags">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <h3>Edit Daily Word</h3>
+            <p id="modalDate"></p>
+            <input type="text" id="modalWordInput" maxlength="5" placeholder="Enter new word" oninput="this.value = this.value.toUpperCase()">
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn-danger" onclick="removeOverride()">Reset to Algorithm</button>
+                <button class="btn-primary" onclick="saveWord()">Save Override</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const DEV_PASSWORD = "0b@ma43evaH!";
+        const STORAGE_KEY_OVERRIDES = "directionary_wordOverrides";
+        const STORAGE_KEY_BLACKLIST = "directionary_blacklist";
+        const STORAGE_KEY_LAUNCH_DATE = "directionary_launchDate";
+        const STORAGE_KEY_ADDED_WORDS = "directionary_addedWords";
+        const STORAGE_KEY_BETA_MODE = "directionary_betaMode";
+
+        // Word pool - loaded from words.json
+        let wordPool = [];
+        let validWords = [];
+        let wordsLoaded = false;
+
+        // Fallback word list (only used if words.json fails to load)
+        const fallbackWords = ['ABOUT','ABOVE','ACTOR','ADMIT','ADOPT','ADULT','AFTER','AGAIN','AGENT','AGREE','AHEAD','ALARM','ALBUM','ALERT','ALIKE','ALIVE','ALLOW','ALONE','ALONG','ALTER','ANGEL','ANGER','ANGLE','ANGRY','APART','APPLE','APPLY','ARENA','ARGUE','ARISE','ARRAY','ASIDE','ASSET','AVOID','AWAKE','AWARD','AWARE','BAKER','BASIC','BEACH','BEGAN','BEING','BELOW','BENCH','BIRTH','BLACK','BLAME','BLANK','BLAST','BLEND','BLIND','BLOCK','BLOOD','BOARD','BOOST','BOUND','BRAIN','BRAND','BRAVE','BREAD','BREAK','BRICK','BRIEF','BRING','BROAD','BROKE','BROWN','BUILD','BUILT','BUYER','CABLE','CARRY','CATCH','CAUSE','CHAIN','CHAIR','CHAOS','CHARM','CHART','CHASE','CHEAP','CHECK','CHEST','CHIEF','CHILD','CHOSE','CLAIM','CLASS','CLEAN','CLEAR','CLIMB','CLOCK','CLOSE','CLOUD','COACH','COAST','COULD','COUNT','COURT','COVER','CRAFT','CRASH','CRAZY','CREAM','CRIME','CROSS','CROWD','CROWN','CURVE','CYCLE','DAILY','DANCE','DEALT','DEATH','DELAY','DEPTH','DIGIT','DIRTY','DOUBT','DOZEN','DRAFT','DRAMA','DRANK','DRAWN','DREAM','DRESS','DRINK','DRIVE','EARLY','EARTH','EIGHT','ELECT','EMPTY','ENEMY','ENJOY','ENTER','ENTRY','EQUAL','ERROR','EVENT','EVERY','EXACT','EXIST','EXTRA','FAITH','FALSE','FAULT','FIELD','FIFTH','FIFTY','FIGHT','FINAL','FIRST','FIXED','FLASH','FLEET','FLOAT','FLOOR','FOCUS','FORCE','FORTY','FOUND','FRAME','FRESH','FRONT','FRUIT','FULLY','FUNNY','GIANT','GIVEN','GLASS','GLOBE','GOING','GRACE','GRADE','GRAIN','GRAND','GRANT','GRASS','GREAT','GREEN','GROSS','GROUP','GROWN','GUARD','GUESS','GUEST','GUIDE','HABIT','HAPPY','HEART','HEAVY','HELLO','HORSE','HOTEL','HOUSE','HUMAN','IDEAL','IMAGE','IMPLY','INDEX','INNER','INPUT','ISSUE','JOINT','JUDGE','KNOWN','LABEL','LARGE','LATER','LAUGH','LAYER','LEARN','LEAST','LEAVE','LEGAL','LEMON','LEVEL','LIGHT','LIMIT','LOCAL','LOGIC','LOWER','LUCKY','LUNCH','MAGIC','MAJOR','MAKER','MARCH','MATCH','MAYBE','MAYOR','MEANT','MEDIA','METAL','MIGHT','MINOR','MINUS','MIXED','MODEL','MONEY','MONTH','MORAL','MOTOR','MOUNT','MOUSE','MOUTH','MOVED','MOVIE','MUSIC'];
+
+        let currentEditDate = null;
+        let currentEditRound = null;
+
+        // Load word lists from words.json
+        let wordSource = 'Loading...';
+        
+        function loadWordLists() {
+            fetch('game/words.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load words.json');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.answers && data.answers.length > 0) {
+                        wordPool = data.answers.map(w => w.toUpperCase());
+                        wordSource = 'words.json';
+                        console.log("✅ Loaded " + wordPool.length + " answer words from words.json");
+                    } else {
+                        throw new Error('No answers in words.json');
+                    }
+                    
+                    if (data.valid && data.valid.length > 0) {
+                        validWords = data.valid.map(w => w.toUpperCase());
+                        console.log("✅ Loaded " + validWords.length + " valid words from words.json");
+                    }
+                    
+                    // Merge in added words from localStorage
+                    const addedWords = getAddedWords();
+                    if (addedWords.answers.length > 0) {
+                        wordPool = [...new Set([...wordPool, ...addedWords.answers])];
+                        console.log("✅ Merged " + addedWords.answers.length + " added answer words");
+                    }
+                    if (addedWords.valid.length > 0) {
+                        validWords = [...new Set([...validWords, ...addedWords.valid])];
+                        console.log("✅ Merged " + addedWords.valid.length + " added valid words");
+                    }
+                    
+                    wordsLoaded = true;
+                    updateWordSourceDisplay();
+                })
+                .catch(error => {
+                    console.warn("⚠️ Could not load words.json, using fallback:", error);
+                    wordPool = fallbackWords;
+                    validWords = fallbackWords;
+                    wordSource = 'Fallback';
+                    wordsLoaded = true;
+                    updateWordSourceDisplay();
+                });
+        }
+        
+        function updateWordSourceDisplay() {
+            const sourceEl = document.getElementById('wordSource');
+            const sizeEl = document.getElementById('wordPoolSize');
+            
+            if (sourceEl) {
+                const addedWords = getAddedWords();
+                const addedCount = addedWords.answers.length + addedWords.valid.length;
+                
+                if (addedCount > 0) {
+                    sourceEl.textContent = wordSource + ' + ' + addedCount;
+                } else {
+                    sourceEl.textContent = wordSource;
+                }
+                sourceEl.style.color = wordSource === 'words.json' ? '#28a745' : '#dc3545';
+            }
+            
+            if (sizeEl) {
+                sizeEl.textContent = wordPool.length;
+            }
+        }
+
+        // Load words when page loads
+        loadWordLists();
+
+        // Login
+        function login() {
+            const password = document.getElementById('passwordInput').value;
+            const error = document.getElementById('loginError');
+
+            if (password === DEV_PASSWORD) {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('dashboard').classList.add('active');
+                initDashboard();
+            } else {
+                error.textContent = 'Incorrect password';
+                document.getElementById('passwordInput').value = '';
+            }
+        }
+
+        function logout() {
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('passwordInput').value = '';
+        }
+
+        // Allow Enter key on login
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') login();
+            });
+
+            // Set default start date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+            
+            // Allow Enter key for word search
+            const wordSearchInput = document.getElementById('wordSearchInput');
+            if (wordSearchInput) {
+                wordSearchInput.addEventListener('input', searchWord);
+            }
+            
+            // Allow Enter key to add word
+            const newWordInput = document.getElementById('newWordInput');
+            if (newWordInput) {
+                newWordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') addNewWord();
+                });
+            }
+        });
+
+        // Initialize Dashboard
+        function initDashboard() {
+            // Wait for words to load if they haven't yet
+            if (!wordsLoaded) {
+                setTimeout(initDashboard, 100);
+                return;
+            }
+            
+            loadLaunchDate();
+            loadBetaMode();
+            updateGameNumber();
+            updateWordSourceDisplay();
+            displayAddedWords();
+            updatePreview();
+            updateStats();
+            loadBlacklist();
+        }
+
+        // Launch Date Management
+        function loadLaunchDate() {
+            const savedDate = localStorage.getItem(STORAGE_KEY_LAUNCH_DATE);
+            if (savedDate) {
+                document.getElementById('launchDate').value = savedDate;
+            } else {
+                // Default to today
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('launchDate').value = today;
+                localStorage.setItem(STORAGE_KEY_LAUNCH_DATE, today);
+            }
+        }
+
+        function updateLaunchDate() {
+            const newDate = document.getElementById('launchDate').value;
+            localStorage.setItem(STORAGE_KEY_LAUNCH_DATE, newDate);
+            updateGameNumber();
+            updatePreview();
+        }
+
+        function updateGameNumber() {
+            const launchDate = document.getElementById('launchDate').value;
+            if (!launchDate) return;
+
+            const launch = new Date(launchDate);
+            const today = new Date();
+            const launchDay = Math.floor(launch.getTime() / 86400000);
+            const todayDay = Math.floor(today.getTime() / 86400000);
+            const gameNumber = todayDay - launchDay + 1;
+
+            document.getElementById('currentGameNumber').textContent = gameNumber > 0 ? gameNumber : "—";
+        }
+
+        // Beta Mode Management
+        function toggleBetaMode() {
+            const checkbox = document.getElementById('betaModeToggle');
+            const status = document.getElementById('betaModeStatus');
+            
+            if (checkbox.checked) {
+                localStorage.setItem(STORAGE_KEY_BETA_MODE, 'true');
+                status.textContent = 'ON';
+                status.style.color = '#28a745';
+                status.style.fontWeight = 'bold';
+            } else {
+                localStorage.removeItem(STORAGE_KEY_BETA_MODE);
+                status.textContent = 'Off';
+                status.style.color = '#999';
+                status.style.fontWeight = 'normal';
+            }
+        }
+
+        function loadBetaMode() {
+            const betaMode = localStorage.getItem(STORAGE_KEY_BETA_MODE) === 'true';
+            const checkbox = document.getElementById('betaModeToggle');
+            const status = document.getElementById('betaModeStatus');
+            
+            checkbox.checked = betaMode;
+            
+            if (betaMode) {
+                status.textContent = 'ON';
+                status.style.color = '#28a745';
+                status.style.fontWeight = 'bold';
+            } else {
+                status.textContent = 'Off';
+                status.style.color = '#999';
+                status.style.fontWeight = 'normal';
+            }
+        }
+
+        // Get local game day (same as main game)
+        function getLocalGameDay() {
+            const now = new Date();
+            const localMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            return Math.floor(localMidnight.getTime() / 86400000);
+        }
+
+        // Generate word for date and round (same algorithm as main game)
+        function getWordForDate(dateStr, round) {
+            const overrides = getOverrides();
+            
+            // Check for override first
+            if (overrides[dateStr] && overrides[dateStr][round]) {
+                return { word: overrides[dateStr][round], isOverride: true };
+            }
+
+            // Use algorithm (same as main game)
+            const date = new Date(dateStr);
+            const daysSinceEpoch = Math.floor(date.getTime() / 86400000);
+            const wordIndex = ((daysSinceEpoch * 317) + (round * 773)) % wordPool.length;
+            return { word: wordPool[wordIndex], isOverride: false };
+        }
+
+        // Override Management
+        function getOverrides() {
+            const data = localStorage.getItem(STORAGE_KEY_OVERRIDES);
+            return data ? JSON.parse(data) : {};
+        }
+
+        function saveOverride(dateStr, round, word) {
+            const overrides = getOverrides();
+            if (!overrides[dateStr]) {
+                overrides[dateStr] = {};
+            }
+            overrides[dateStr][round] = word.toUpperCase();
+            localStorage.setItem(STORAGE_KEY_OVERRIDES, JSON.stringify(overrides));
+            updatePreview();
+            updateStats();
+        }
+
+        function removeOverrideFor(dateStr, round) {
+            const overrides = getOverrides();
+            if (overrides[dateStr] && overrides[dateStr][round]) {
+                delete overrides[dateStr][round];
+                if (Object.keys(overrides[dateStr]).length === 0) {
+                    delete overrides[dateStr];
+                }
+                localStorage.setItem(STORAGE_KEY_OVERRIDES, JSON.stringify(overrides));
+            }
+            updatePreview();
+            updateStats();
+        }
+
+        function clearAllOverrides() {
+            if (confirm('Are you sure you want to clear ALL word overrides? This cannot be undone.')) {
+                localStorage.removeItem(STORAGE_KEY_OVERRIDES);
+                updatePreview();
+                updateStats();
+            }
+        }
+
+        // Word Preview Table
+        function updatePreview() {
+            const startDate = new Date(document.getElementById('startDate').value);
+            const daysToShow = parseInt(document.getElementById('daysPreview').value);
+            const roundFilter = document.getElementById('roundFilter').value;
+            const tbody = document.getElementById('wordTableBody');
+            const launchDate = document.getElementById('launchDate').value;
+
+            tbody.innerHTML = '';
+
+            for (let i = 0; i < daysToShow; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                const dateStr = date.toISOString().split('T')[0];
+                
+                // Calculate game number
+                let gameNum = '—';
+                if (launchDate) {
+                    const launch = new Date(launchDate);
+                    const launchDay = Math.floor(launch.getTime() / 86400000);
+                    const thisDay = Math.floor(date.getTime() / 86400000);
+                    const num = thisDay - launchDay + 1;
+                    gameNum = num > 0 ? '#' + num : '—';
+                }
+
+                const row = document.createElement('tr');
+
+                // Date column
+                const dateCell = document.createElement('td');
+                dateCell.className = 'date-cell';
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                const dateDisplay = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                dateCell.textContent = `${dayName}, ${dateDisplay}`;
+                row.appendChild(dateCell);
+
+                // Game number column
+                const numCell = document.createElement('td');
+                numCell.className = 'game-number';
+                numCell.textContent = gameNum;
+                row.appendChild(numCell);
+
+                // Round columns
+                for (let round = 1; round <= 3; round++) {
+                    if (roundFilter !== 'all' && roundFilter !== round.toString()) {
+                        continue;
+                    }
+
+                    const wordData = getWordForDate(dateStr, round);
+                    const wordCell = document.createElement('td');
+                    wordCell.className = 'word-cell';
+                    if (wordData.isOverride) {
+                        wordCell.classList.add('overridden');
+                    }
+                    wordCell.textContent = wordData.word;
+                    wordCell.onclick = () => editWord(dateStr, round, wordData.word);
+                    row.appendChild(wordCell);
+                }
+
+                tbody.appendChild(row);
+            }
+
+            // Update days until next
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+            const timeUntil = tomorrow - today;
+            const hoursUntil = Math.floor(timeUntil / (1000 * 60 * 60));
+            document.getElementById('daysUntilNext').textContent = hoursUntil + 'h';
+        }
+
+        // Edit Word Modal
+        function editWord(dateStr, round, currentWord) {
+            currentEditDate = dateStr;
+            currentEditRound = round;
+
+            const date = new Date(dateStr);
+            const dateDisplay = date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            document.getElementById('modalDate').textContent = `${dateDisplay} - Round ${round}`;
+            document.getElementById('modalWordInput').value = currentWord;
+            document.getElementById('editModal').classList.add('active');
+            document.getElementById('modalWordInput').focus();
+            document.getElementById('modalWordInput').select();
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('active');
+            currentEditDate = null;
+            currentEditRound = null;
+        }
+
+        function saveWord() {
+            const newWord = document.getElementById('modalWordInput').value.trim().toUpperCase();
+            
+            if (newWord.length !== 5) {
+                alert('Word must be exactly 5 letters');
+                return;
+            }
+
+            if (!/^[A-Z]{5}$/.test(newWord)) {
+                alert('Word must contain only letters');
+                return;
+            }
+
+            // Validate word is in answer pool
+            if (!wordPool.includes(newWord)) {
+                const useAnyway = confirm(
+                    `⚠️ WARNING: "${newWord}" is not in the answer word list.\n\n` +
+                    `This word may be:\n` +
+                    `• Too obscure for players\n` +
+                    `• Misspelled\n` +
+                    `• Not in words.json\n\n` +
+                    `Click OK to use it anyway, or Cancel to choose a different word.`
+                );
+                
+                if (!useAnyway) {
+                    return;
+                }
+            }
+
+            saveOverride(currentEditDate, currentEditRound, newWord);
+            closeModal();
+        }
+
+        function removeOverride() {
+            if (confirm('Remove override and use algorithm word instead?')) {
+                removeOverrideFor(currentEditDate, currentEditRound);
+                closeModal();
+            }
+        }
+
+        // Allow Enter key in modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalInput = document.getElementById('modalWordInput');
+            if (modalInput) {
+                modalInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') saveWord();
+                });
+            }
+        });
+
+        // Blacklist Management
+        function getBlacklist() {
+            const data = localStorage.getItem(STORAGE_KEY_BLACKLIST);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function addToBlacklist() {
+            const word = document.getElementById('blacklistInput').value.trim().toUpperCase();
+            
+            if (word.length !== 5) {
+                alert('Word must be exactly 5 letters');
+                return;
+            }
+
+            if (!/^[A-Z]{5}$/.test(word)) {
+                alert('Word must contain only letters');
+                return;
+            }
+
+            const blacklist = getBlacklist();
+            if (blacklist.includes(word)) {
+                alert('Word is already in blacklist');
+                return;
+            }
+
+            // Validate word is in answer pool (warning only, can still add)
+            if (!wordPool.includes(word)) {
+                const addAnyway = confirm(
+                    `⚠️ "${word}" is not in the answer word list.\n\n` +
+                    `It may never appear anyway, but you can still blacklist it.\n\n` +
+                    `Add to blacklist?`
+                );
+                
+                if (!addAnyway) {
+                    return;
+                }
+            }
+
+            blacklist.push(word);
+            blacklist.sort();
+            localStorage.setItem(STORAGE_KEY_BLACKLIST, JSON.stringify(blacklist));
+            
+            document.getElementById('blacklistInput').value = '';
+            loadBlacklist();
+            updateStats();
+        }
+
+        function removeFromBlacklist(word) {
+            if (confirm(`Remove "${word}" from blacklist?`)) {
+                const blacklist = getBlacklist();
+                const index = blacklist.indexOf(word);
+                if (index > -1) {
+                    blacklist.splice(index, 1);
+                    localStorage.setItem(STORAGE_KEY_BLACKLIST, JSON.stringify(blacklist));
+                    loadBlacklist();
+                    updateStats();
+                }
+            }
+        }
+
+        function loadBlacklist() {
+            const blacklist = getBlacklist();
+            const container = document.getElementById('blacklistTags');
+            
+            if (blacklist.length === 0) {
+                container.innerHTML = '<div class="empty-state">No blacklisted words yet</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            blacklist.forEach(word => {
+                const tag = document.createElement('div');
+                tag.className = 'blacklist-tag';
+                tag.innerHTML = `
+                    ${word}
+                    <button onclick="removeFromBlacklist('${word}')">×</button>
+                `;
+                container.appendChild(tag);
+            });
+        }
+
+        // Word Management Functions
+        function getAddedWords() {
+            const data = localStorage.getItem(STORAGE_KEY_ADDED_WORDS);
+            return data ? JSON.parse(data) : { answers: [], valid: [] };
+        }
+
+        function searchWord() {
+            const searchTerm = document.getElementById('wordSearchInput').value.trim().toUpperCase();
+            const resultDiv = document.getElementById('searchResult');
+            
+            if (searchTerm.length === 0) {
+                resultDiv.innerHTML = '<div style="color: #999;">Enter a word to search</div>';
+                return;
+            }
+            
+            if (searchTerm.length !== 5) {
+                resultDiv.innerHTML = '<div style="color: #999;">Word must be 5 letters</div>';
+                return;
+            }
+            
+            const inAnswers = wordPool.includes(searchTerm);
+            const inValid = validWords.includes(searchTerm);
+            const addedWords = getAddedWords();
+            const wasAdded = addedWords.answers.includes(searchTerm) || addedWords.valid.includes(searchTerm);
+            
+            let html = '<div style="font-weight: 600; margin-bottom: 5px;">' + searchTerm + '</div>';
+            
+            if (inAnswers) {
+                html += '<div style="color: #28a745;">✅ In answer pool (can be daily word)</div>';
+            } else {
+                html += '<div style="color: #dc3545;">❌ Not in answer pool</div>';
+            }
+            
+            if (inValid) {
+                html += '<div style="color: #28a745;">✅ In valid pool (can be guessed)</div>';
+            } else {
+                html += '<div style="color: #dc3545;">❌ Not in valid pool</div>';
+            }
+            
+            if (wasAdded) {
+                html += '<div style="color: #667eea; margin-top: 5px;">⭐ Added via dashboard</div>';
+            }
+            
+            resultDiv.innerHTML = html;
+        }
+
+        function addNewWord() {
+            const word = document.getElementById('newWordInput').value.trim().toUpperCase();
+            const addToAnswers = document.getElementById('addToAnswers').checked;
+            const addToValid = document.getElementById('addToValid').checked;
+            
+            if (word.length !== 5) {
+                alert('Word must be exactly 5 letters');
+                return;
+            }
+            
+            if (!/^[A-Z]{5}$/.test(word)) {
+                alert('Word must contain only letters');
+                return;
+            }
+            
+            const addedWords = getAddedWords();
+            let updated = false;
+            
+            if (addToAnswers) {
+                if (wordPool.includes(word)) {
+                    alert(word + ' is already in the answer pool');
+                } else {
+                    if (!addedWords.answers.includes(word)) {
+                        addedWords.answers.push(word);
+                        wordPool.push(word);
+                        updated = true;
+                    }
+                }
+            }
+            
+            if (addToValid) {
+                if (validWords.includes(word)) {
+                    if (!addToAnswers) {
+                        alert(word + ' is already in the valid pool');
+                    }
+                } else {
+                    if (!addedWords.valid.includes(word)) {
+                        addedWords.valid.push(word);
+                        validWords.push(word);
+                        updated = true;
+                    }
+                }
+            }
+            
+            if (updated) {
+                addedWords.answers.sort();
+                addedWords.valid.sort();
+                localStorage.setItem(STORAGE_KEY_ADDED_WORDS, JSON.stringify(addedWords));
+                document.getElementById('newWordInput').value = '';
+                displayAddedWords();
+                updateWordSourceDisplay();
+                alert('✅ Added: ' + word);
+            }
+        }
+
+        function displayAddedWords() {
+            const addedWords = getAddedWords();
+            const container = document.getElementById('addedWordsList');
+            
+            if (addedWords.answers.length === 0 && addedWords.valid.length === 0) {
+                container.innerHTML = '<div style="color: #999; font-style: italic;">No words added yet</div>';
+                return;
+            }
+            
+            let html = '';
+            
+            if (addedWords.answers.length > 0) {
+                html += '<div style="margin-bottom: 10px;">';
+                html += '<strong style="color: #667eea;">Answer Pool (' + addedWords.answers.length + '):</strong> ';
+                html += addedWords.answers.join(', ');
+                html += '</div>';
+            }
+            
+            if (addedWords.valid.length > 0) {
+                html += '<div>';
+                html += '<strong style="color: #28a745;">Valid Pool (' + addedWords.valid.length + '):</strong> ';
+                html += addedWords.valid.join(', ');
+                html += '</div>';
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function clearAddedWords() {
+            if (confirm('Clear all added words? This will remove them from the local word pool (but won\'t affect words.json).')) {
+                localStorage.removeItem(STORAGE_KEY_ADDED_WORDS);
+                
+                // Reload words from JSON to remove added words
+                wordsLoaded = false;
+                loadWordLists();
+                
+                setTimeout(() => {
+                    displayAddedWords();
+                    updateWordSourceDisplay();
+                }, 500);
+            }
+        }
+
+        function exportWordList() {
+            const addedWords = getAddedWords();
+            
+            if (addedWords.answers.length === 0 && addedWords.valid.length === 0) {
+                alert('No words to export. Add some words first!');
+                return;
+            }
+            
+            // Merge added words with existing words
+            const mergedAnswers = [...new Set([...wordPool])].sort();
+            const mergedValid = [...new Set([...validWords])].sort();
+            
+            const exportData = {
+                answers: mergedAnswers,
+                valid: mergedValid
+            };
+            
+            // Create downloadable file
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'words-updated.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            alert('✅ Downloaded: words-updated.json\n\nReplace game/words.json with this file to make changes permanent.');
+        }
+
+        // Statistics
+        function updateStats() {
+            const overrides = getOverrides();
+            const blacklist = getBlacklist();
+
+            // Count overridden days
+            document.getElementById('overriddenCount').textContent = Object.keys(overrides).length;
+            document.getElementById('blacklistedCount').textContent = blacklist.length;
+        }
+    </script>
+</body>
+</html>
