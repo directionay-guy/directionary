@@ -129,7 +129,7 @@
                 var banner = document.createElement('div');
                 banner.id = 'betaBanner';
                 banner.style.cssText = 'background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; text-align: center; padding: 12px; font-weight: 600; font-size: 0.95em; box-shadow: 0 2px 8px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 1000;';
-                banner.innerHTML = '🚧 BETA VERSION - Your feedback helps improve the game! 🚧';
+                banner.innerHTML = '🚧 BETA VERSION - Report issues: <a href="mailto:feedback@directionary.net" style="color: white; text-decoration: underline;">feedback@directionary.net</a> 🚧';
                 
                 // Insert at very top of body
                 document.body.insertBefore(banner, document.body.firstChild);
