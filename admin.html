@@ -889,6 +889,7 @@
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('dashboard').classList.add('active');
                 initDashboard();
+                startInactivityTimer(); // Start auto-logout timer
             } else {
                 error.textContent = 'Incorrect password';
                 document.getElementById('passwordInput').value = '';
@@ -899,6 +900,35 @@
             document.getElementById('loginScreen').classList.remove('hidden');
             document.getElementById('dashboard').classList.remove('active');
             document.getElementById('passwordInput').value = '';
+            stopInactivityTimer();
+        }
+
+        // Auto-logout after inactivity
+        let inactivityTimer;
+        const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutes in milliseconds
+        
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(function() {
+                alert('You have been logged out due to inactivity.');
+                logout();
+            }, INACTIVITY_TIMEOUT);
+        }
+        
+        function stopInactivityTimer() {
+            clearTimeout(inactivityTimer);
+        }
+        
+        function startInactivityTimer() {
+            // Reset timer on any user activity
+            document.addEventListener('mousemove', resetInactivityTimer);
+            document.addEventListener('mousedown', resetInactivityTimer);
+            document.addEventListener('keypress', resetInactivityTimer);
+            document.addEventListener('scroll', resetInactivityTimer);
+            document.addEventListener('touchstart', resetInactivityTimer);
+            
+            // Start the timer
+            resetInactivityTimer();
         }
 
         // Allow Enter key on login
@@ -907,8 +937,8 @@
                 if (e.key === 'Enter') login();
             });
 
-            // Set default start date to today
-            const today = new Date().toISOString().split('T')[0];
+            // Set default start date to today (using local time, not UTC)
+            const today = getLocalDateString(new Date());
             document.getElementById('startDate').value = today;
             
             // Allow Enter key for word search
@@ -950,8 +980,8 @@
             if (savedDate) {
                 document.getElementById('launchDate').value = savedDate;
             } else {
-                // Default to today
-                const today = new Date().toISOString().split('T')[0];
+                // Default to today (using local time, not UTC)
+                const today = getLocalDateString(new Date());
                 document.getElementById('launchDate').value = today;
                 localStorage.setItem(STORAGE_KEY_LAUNCH_DATE, today);
             }
@@ -1020,6 +1050,23 @@
             return Math.floor(localMidnight.getTime() / 86400000);
         }
 
+        // Convert Date object to YYYY-MM-DD string in LOCAL timezone (not UTC)
+        function getLocalDateString(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return year + '-' + month + '-' + day;
+        }
+
+        // Parse YYYY-MM-DD string into local Date object (not UTC)
+        function parseDateString(dateStr) {
+            const parts = dateStr.split('-');
+            const year = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1; // Months are 0-indexed
+            const day = parseInt(parts[2]);
+            return new Date(year, month, day);
+        }
+
         // Generate word for date and round (same algorithm as main game)
         function getWordForDate(dateStr, round) {
             const overrides = getOverrides();
@@ -1076,7 +1123,8 @@
 
         // Word Preview Table
         function updatePreview() {
-            const startDate = new Date(document.getElementById('startDate').value);
+            const startDateStr = document.getElementById('startDate').value;
+            const startDate = parseDateString(startDateStr); // Parse as local date
             const daysToShow = parseInt(document.getElementById('daysPreview').value);
             const roundFilter = document.getElementById('roundFilter').value;
             const tbody = document.getElementById('wordTableBody');
@@ -1087,12 +1135,12 @@
             for (let i = 0; i < daysToShow; i++) {
                 const date = new Date(startDate);
                 date.setDate(date.getDate() + i);
-                const dateStr = date.toISOString().split('T')[0];
+                const dateStr = getLocalDateString(date); // Use local date string
                 
                 // Calculate game number
                 let gameNum = '—';
                 if (launchDate) {
-                    const launch = new Date(launchDate);
+                    const launch = parseDateString(launchDate); // Parse as local date
                     const launchDay = Math.floor(launch.getTime() / 86400000);
                     const thisDay = Math.floor(date.getTime() / 86400000);
                     const num = thisDay - launchDay + 1;
