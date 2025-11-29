@@ -271,13 +271,26 @@
         
         // Auto-reload when new LOCAL day starts (like Wordle)
         function startDayChangeChecker() {
-            var currentDay = getLocalGameDay();
+            console.log("Day change checker started - will check every minute for new day");
             
             // Check every minute if day has changed
             setInterval(function() {
-                var newDay = getLocalGameDay();
-                if (newDay > currentDay) {
-                    console.log("New day detected! Reloading for fresh puzzle...");
+                var currentDay = getLocalGameDay();
+                var storedDay = localStorage.getItem('directionary_currentDay');
+                
+                // Store current day on first check
+                if (!storedDay) {
+                    localStorage.setItem('directionary_currentDay', currentDay);
+                    console.log("Stored current day:", currentDay);
+                    return;
+                }
+                
+                storedDay = parseInt(storedDay);
+                
+                if (currentDay > storedDay) {
+                    console.log("New day detected! Old day:", storedDay, "New day:", currentDay);
+                    console.log("Reloading for fresh puzzle...");
+                    localStorage.setItem('directionary_currentDay', currentDay);
                     location.reload();
                 }
             }, 60000); // Check every 60 seconds
@@ -313,8 +326,12 @@
                 console.log("Could not load word overrides:", e);
             }
             
+            // Get today's date in LOCAL timezone (not UTC) to match admin page
             var today = new Date();
-            var todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+            var year = today.getFullYear();
+            var month = String(today.getMonth() + 1).padStart(2, '0');
+            var day = String(today.getDate()).padStart(2, '0');
+            var todayStr = year + '-' + month + '-' + day; // YYYY-MM-DD in local time
             
             if (overrides[todayStr] && overrides[todayStr][currentRound]) {
                 // Use override word from admin dashboard
