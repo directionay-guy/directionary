@@ -63,7 +63,9 @@
             align-items: center;
             justify-content: center;
             gap: 12px;
-            line-height: 1;
+            line-height: 1.2;
+            overflow: visible;
+            padding: 2px 0;
         }
         
         .game-title .title-text {
@@ -71,6 +73,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            padding-bottom: 3px;
         }
         
         .game-title .title-arrow {
@@ -84,11 +87,11 @@
         }
         
         .game-title .title-arrow-left {
-            transform: translateY(2px);
+            transform: translateY(0);
         }
         
         .game-title .title-arrow-right {
-            transform: translateY(3px);
+            transform: translateY(0);
         }
         
         .tagline {
@@ -119,6 +122,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             border: none;
+            white-space: nowrap;
         }
         
         .streak-badge:hover {
@@ -138,10 +142,15 @@
             padding: 10px;
             background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
             border-radius: 12px;
+            align-items: flex-end;
         }
         
         .score-item {
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            min-height: 60px;
         }
         
         .score-label {
@@ -149,6 +158,11 @@
             color: #666;
             text-transform: uppercase;
             letter-spacing: 1px;
+            margin-bottom: 5px;
+            flex-grow: 1;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
         }
         
         .score-value {
@@ -740,23 +754,33 @@
             
             /* Make daily indicator + streak fit on one line */
             .daily-indicator {
-                font-size: 0.75em;
+                font-size: 0.7em;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                flex-wrap: wrap;
-                gap: 5px;
+                flex-wrap: nowrap;
+                gap: 3px;
+                white-space: nowrap;
             }
             
             .streak-badge {
-                padding: 5px 10px;
-                font-size: 0.75em;
-                margin-left: 5px;
-                border-radius: 15px;
+                padding: 4px 8px;
+                font-size: 0.7em;
+                margin-left: 0;
+                border-radius: 12px;
+                white-space: nowrap;
+                min-width: fit-content;
             }
             
             .streak-badge .streak-icon {
-                font-size: 1em;
+                font-size: 0.95em;
+            }
+            
+            /* Ensure streak badge handles 2-4 digit numbers gracefully */
+            .streak-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 3px;
             }
             
             /* Make instructions more compact */
@@ -813,9 +837,39 @@
                 gap: 8px;
             }
             
+            .score-item {
+                min-height: 50px;
+            }
+            
             .score-badge {
                 padding: 8px 12px;
                 font-size: 0.85em;
+            }
+        }
+
+        /* Extra small phones (iPhone SE, etc.) */
+        @media (max-width: 375px) {
+            .daily-indicator {
+                font-size: 0.65em;
+                gap: 2px;
+            }
+            
+            .streak-badge {
+                padding: 3px 6px;
+                font-size: 0.65em;
+                border-radius: 10px;
+            }
+            
+            .game-title {
+                font-size: 1.4em;
+            }
+            
+            .instructions {
+                font-size: 0.7em;
+            }
+            
+            .score-item {
+                min-height: 45px;
             }
         }
 
