@@ -737,6 +737,86 @@
                 font-size: 0.65em;
                 letter-spacing: 0.8px;
             }
+            
+            /* Make daily indicator + streak fit on one line */
+            .daily-indicator {
+                font-size: 0.75em;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+            
+            .streak-badge {
+                padding: 5px 10px;
+                font-size: 0.75em;
+                margin-left: 5px;
+                border-radius: 15px;
+            }
+            
+            .streak-badge .streak-icon {
+                font-size: 1em;
+            }
+            
+            /* Make instructions more compact */
+            .instructions {
+                font-size: 0.75em;
+                padding: 8px;
+                line-height: 1.4;
+            }
+            
+            /* Make legend boxes smaller and fit better */
+            .legend {
+                font-size: 0.85em;
+                margin: 4px 3px;
+                padding: 2px 4px;
+            }
+            
+            /* Feedback/Results display - CRITICAL FIX */
+            .feedback-line {
+                font-size: 1em;
+                padding: 8px 6px;
+                margin: 6px 0;
+            }
+            
+            .feedback-arrows {
+                width: 140px;
+                font-size: 1.1em;
+                gap: 2px;
+                letter-spacing: 0;
+            }
+            
+            .feedback-arrows span {
+                letter-spacing: 2px;
+            }
+            
+            /* Input field adjustments */
+            input {
+                font-size: 1.1em;
+                padding: 10px;
+            }
+            
+            input:not(:placeholder-shown) {
+                letter-spacing: 6px;
+            }
+            
+            /* Buttons more compact */
+            button {
+                font-size: 0.9em;
+                padding: 10px 18px;
+            }
+            
+            /* Score display more compact */
+            .score-display {
+                font-size: 0.9em;
+                gap: 8px;
+            }
+            
+            .score-badge {
+                padding: 8px 12px;
+                font-size: 0.85em;
+            }
         }
 
         /* Desktop - More breathing room at top */
