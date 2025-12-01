@@ -142,7 +142,7 @@
             padding: 10px;
             background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
             border-radius: 12px;
-            align-items: flex-end;
+            align-items: stretch;
         }
         
         .score-item {
@@ -760,23 +760,19 @@
             }
             
             .streak-badge {
-                padding: 4px 8px;
-                font-size: 0.7em;
+                padding: 6px 10px;
+                font-size: 0.75em;
                 margin-left: 0;
                 border-radius: 12px;
                 white-space: nowrap;
                 min-width: fit-content;
+                display: inline-flex;
+                align-items: center;
+                gap: 3px;
             }
             
             .streak-badge .streak-icon {
                 font-size: 0.95em;
-            }
-            
-            /* Ensure streak badge handles 2-4 digit numbers gracefully */
-            .streak-badge {
-                display: inline-flex;
-                align-items: center;
-                gap: 3px;
             }
             
             /* Make instructions more compact */
@@ -896,8 +892,8 @@
             }
             
             .streak-badge {
-                padding: 3px 6px;
-                font-size: 0.65em;
+                padding: 5px 8px;
+                font-size: 0.7em;
                 border-radius: 10px;
             }
             
