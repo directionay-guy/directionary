@@ -125,6 +125,20 @@
             white-space: nowrap;
         }
         
+        .game-over-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-right: 10px;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.35);
+            border: none;
+            white-space: nowrap;
+        }
+        
         .streak-badge:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(255, 154, 86, 0.45);
@@ -775,6 +789,13 @@
                 font-size: 0.95em;
             }
             
+            .game-over-badge {
+                padding: 6px 10px;
+                font-size: 0.75em;
+                margin-right: 3px;
+                border-radius: 12px;
+            }
+            
             /* Make instructions more compact */
             .instructions {
                 font-size: 0.75em;
@@ -894,6 +915,13 @@
             .streak-badge {
                 padding: 5px 8px;
                 font-size: 0.7em;
+                border-radius: 10px;
+            }
+            
+            .game-over-badge {
+                padding: 5px 8px;
+                font-size: 0.7em;
+                margin-right: 2px;
                 border-radius: 10px;
             }
             

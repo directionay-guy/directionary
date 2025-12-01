@@ -719,7 +719,7 @@
             // Show GAME OVER badge
             var dailyIndicator = document.getElementById("dailyIndicator");
             var streakBadge = document.getElementById("streakBadge");
-            dailyIndicator.innerHTML = '<span style="display: inline-block; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 8px 16px; border-radius: 20px; font-size: 1em; font-weight: 600;">GAME OVER</span> ' + streakBadge.outerHTML;
+            dailyIndicator.innerHTML = '<span class="game-over-badge">GAME OVER</span> ' + streakBadge.outerHTML;
             
             // Update streak display
             updateStreakDisplay();
