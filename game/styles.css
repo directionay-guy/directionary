@@ -2,7 +2,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(180deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
             margin: 0;
-            padding: 10px 0 0 0;
+            padding: 5px 0 0 0;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
@@ -53,6 +53,8 @@
             color: #4a5568;
             font-weight: 600;
             opacity: 1;
+            /* Prevent layout shift when letters become bold */
+            transform: scale(1);
         }
         
         .game-title {
@@ -97,7 +99,7 @@
         .tagline {
             font-size: 0.9em;
             color: #666;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             margin-top: -5px;
             font-style: italic;
         }
@@ -758,8 +760,13 @@
             }
             
             .alphabet-display {
-                font-size: 0.65em;
-                letter-spacing: 0.8px;
+                font-size: 0.58em;
+                letter-spacing: 0.5px;
+                font-weight: 400;
+            }
+            
+            .alphabet-display .used-letter {
+                font-weight: 500;
             }
             
             /* Make daily indicator + streak fit on one line */
@@ -790,8 +797,8 @@
             }
             
             .game-over-badge {
-                padding: 6px 10px;
-                font-size: 0.75em;
+                padding: 6px 10px !important;
+                font-size: 0.75em !important;
                 margin-right: 3px;
                 border-radius: 12px;
             }
@@ -919,8 +926,8 @@
             }
             
             .game-over-badge {
-                padding: 5px 8px;
-                font-size: 0.7em;
+                padding: 5px 8px !important;
+                font-size: 0.7em !important;
                 margin-right: 2px;
                 border-radius: 10px;
             }
