@@ -7,8 +7,7 @@
     <meta name="description" content="Directionary: A unique daily word puzzle using directional clues. Guess the 5-letter word using alphabetical arrows. Free to play, no download required.">
     <meta name="keywords" content="directionary, word game, daily puzzle, alphabetical clues, wordle alternative, logic puzzle, word definitions">
     <meta property="og:title" content="Directionary - Daily Word Puzzle Game">
-    <meta property="og:description" content="Use directional arrows to find the daily word. A unique logic puzzle that teaches alphabetical reasoning.">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta property="og:description" content="Use directional arrows to find the daily word. A unique logic puzzle that uses alphabetical reasoning.">
     <link rel="stylesheet" href="game/styles.css">
 </head>
 <body>
@@ -24,6 +23,9 @@
             🧪 TEST MODE: Random words enabled
         </div>
         
+        <div class="alphabet-display" id="alphabetDisplay">
+            <span>A</span> <span>B</span> <span>C</span> <span>D</span> <span>E</span> <span>F</span> <span>G</span> <span>H</span> <span>I</span> <span>J</span> <span>K</span> <span>L</span> <span>M</span> <span>N</span> <span>O</span> <span>P</span> <span>Q</span> <span>R</span> <span>S</span> <span>T</span> <span>U</span> <span>V</span> <span>W</span> <span>X</span> <span>Y</span> <span>Z</span>
+        </div>
         <h1 class="game-title">
             <span class="title-arrow title-arrow-left">◄</span>
             <span class="title-arrow">●</span>
@@ -63,15 +65,11 @@
             <div class="definition-credit">Powered by Free Dictionary API</div>
         </div>
         
-        <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-form-type="other">
+        <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" autocomplete="off" spellcheck="false">
         
         <div class="button-group">
             <button id="submitBtn">Submit</button>
             <button class="give-up-btn" id="giveUpBtn">Skip This Round</button>
-        </div>
-        
-        <div class="alphabet-display" id="alphabetDisplay">
-            <span>A</span> <span>B</span> <span>C</span> <span>D</span> <span>E</span> <span>F</span> <span>G</span> <span>H</span> <span>I</span> <span>J</span> <span>K</span> <span>L</span> <span>M</span> <span>N</span> <span>O</span> <span>P</span> <span>Q</span> <span>R</span> <span>S</span> <span>T</span> <span>U</span> <span>V</span> <span>W</span> <span>X</span> <span>Y</span> <span>Z</span>
         </div>
         
         <div id="errorMessage"></div>
@@ -153,13 +151,13 @@
         
         <div class="help-section">
             <h3>Contact</h3>
-            <p>Email: <a href="mailto:info@directionary.net">info@directionary.net</a></p>
+            <p>Email: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="137a7d757c53777a617670677a7c7d72616a3d7d7667">[email&#160;protected]</a></p>
         </div>
         
         <div class="help-section">
             <h3>Licensing</h3>
-            <p>Directionary is available for sale or licensing.<br>
-            Contact us at: <a href="mailto:business@directionary.net">business@directionary.net</a></p>
+            <p>Directionary is available for licensing.<br>
+            Contact us at: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8be9fef8e2e5eef8f8cbefe2f9eee8ffe2e4e5eaf9f2a5e5eeff">[email&#160;protected]</a></p>
         </div>
         
         <button class="close-panel-btn" onclick="closeInfo()">Close</button>
@@ -196,13 +194,39 @@
         </div>
         
         <div class="help-section">
+            <h3>Sharing Your Results</h3>
+            <p>When you share your results, each line shows your <strong>final guess pattern</strong> before solving (or skipping) each round:</p>
+            <div class="help-symbols">
+                <div class="help-symbol">
+                    <span>🟢</span>
+                    <span>Correct letter (green dot)</span>
+                </div>
+                <div class="help-symbol">
+                    <span>▶️</span>
+                    <span>Letter was too early in alphabet (right arrow)</span>
+                </div>
+                <div class="help-symbol">
+                    <span>◀️</span>
+                    <span>Letter was too late in alphabet (left arrow)</span>
+                </div>
+                <div class="help-symbol">
+                    <span>⚫</span>
+                    <span>Round was skipped (black dot)</span>
+                </div>
+            </div>
+            <p style="font-size: 0.9em; color: #666; margin-top: 10px;">Example:<br>
+            🟢▶️◀️🟢▶️<br>
+            This shows your last guess had: 1st letter correct, 2nd too early, 3rd too late, 4th correct, 5th too early</p>
+        </div>
+        
+        <div class="help-section">
             <h3>Example</h3>
-            <p>If the target word is HOUSE and you guess GREAT:</p>
-            <p>G ► (H comes after G in alphabet)<br>
-            R ◄ (O comes before R in alphabet)<br>
-            E ► (U comes after E in alphabet)<br>
-            A ► (S comes after A in alphabet)<br>
-            T ◄ (E comes before T in alphabet)</p>
+            <p>If the word is HOUSE and you guess GREAT:</p>
+            <p>G ► (G needs to go later to reach H)<br>
+            R ◄ (R needs to go earlier to reach O)<br>
+            E ► (E needs to go later to reach U)<br>
+            A ► (A needs to go later to reach S)<br>
+            T ◄ (T needs to go earlier to reach E)</p>
         </div>
         
         <div class="help-section">
@@ -216,17 +240,15 @@
         
         <div class="help-section">
             <h3>Game Controls</h3>
-            <p>• The "Skip This Round" button skips only the current round, not the days game<br>
-            • Skipping a round scores that round as ZERO points (no matter how many guesses you used)<br>
+            <p>• The "Skip This Round" button only skips the current round<br>
             • You can still complete the remaining rounds<br>
             • Your total score continues across all 3 rounds</p>
         </div>
         
         <div class="help-section">
             <h3>Tips</h3>
-            <p>• Valid words include common English words (like "photo" for "photograph") but exclude proper nouns, names, profanity, and specialized jargon (legal, medical, or technical terms.) Some slang terms are allowed<br>
-            • The alphabet is a guide to see your chosen letters and show which direction to seek your next choice but... <br>
-            • Darkened letters show what you've tried, but the letters may still be in the word at different positions<br>
+            <p>• The alphabet at the top stays visible as you play<br>
+            • Darkened letters show what you've tried, but they may still be in the word at different positions<br>
             • Start with words using middle alphabet letters (L-M-N-O) to eliminate half the alphabet at once<br>
             • Pay attention to the arrows - they show which direction to move through the alphabet</p>
         </div>
@@ -297,13 +319,4 @@
         <div class="success-content">
             <div class="success-title">Already Used!</div>
             <div class="success-score" style="margin: 20px 0;">
-                You already guessed that word this round.<br>
-                It won't affect your score.
-            </div>
-            <button class="success-btn" onclick="closeDuplicateModal()">Try Again</button>
-        </div>
-    </div>
-
-    <script src="game/game.js"></script>
-</body>
-</html>
+                You already guessed that word th
