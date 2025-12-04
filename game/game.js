@@ -814,26 +814,25 @@
                     giveUp();
                 }
             });
+            
+            // Make functions globally accessible
+            window.nextWord = nextWord;
+            window.confirmGiveUp = confirmGiveUp;
+            window.cancelGiveUp = cancelGiveUp;
+            window.closeDuplicateModal = closeDuplicateModal;
+            window.skipRound = skipRound;
+            window.viewResults = viewResults;
+            window.closeDailyModal = closeDailyModal;
+            window.toggleShare = toggleShare;
+            window.toggleHelp = toggleHelp;
+            window.toggleStats = toggleStats;
+            window.toggleInfo = toggleInfo;
+            window.closeShare = closeShare;
+            window.closeHelp = closeHelp;
+            window.closeStats = closeStats;
+            window.closeInfo = closeInfo;
+            window.copyToClipboard = copyToClipboard;
+            window.shareToTwitter = shareToTwitter;
+            window.shareToBluesky = shareToBluesky;
+            window.shareToFacebook = shareToFacebook;
         };
-
-        // Make functions globally accessible
-        window.nextWord = nextWord;
-        window.confirmGiveUp = confirmGiveUp;
-        window.cancelGiveUp = cancelGiveUp;
-        window.closeDuplicateModal = closeDuplicateModal;
-        window.skipRound = skipRound;
-        window.viewResults = viewResults;
-        window.closeDailyModal = closeDailyModal;
-        window.toggleShare = toggleShare;
-        window.toggleHelp = toggleHelp;
-        window.toggleStats = toggleStats;
-        window.toggleInfo = toggleInfo;
-        window.closeShare = closeShare;
-        window.closeHelp = closeHelp;
-        window.closeStats = closeStats;
-        window.closeInfo = closeInfo;
-        window.copyToClipboard = copyToClipboard;
-        window.shareToTwitter = shareToTwitter;
-        window.shareToBluesky = shareToBluesky;
-        window.shareToFacebook = shareToFacebook;
-    };
