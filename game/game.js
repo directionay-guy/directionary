@@ -538,6 +538,15 @@
             
             document.getElementById("successModal").style.display = "flex";
             
+            // Add Enter key listener for "Next Round" button
+            var successModalEnterHandler = function(e) {
+                if (e.key === 'Enter') {
+                    document.removeEventListener('keydown', successModalEnterHandler);
+                    nextWord();
+                }
+            };
+            document.addEventListener('keydown', successModalEnterHandler);
+            
             document.getElementById("guessInput").disabled = true;
             document.getElementById("submitBtn").disabled = true;
             document.getElementById("giveUpBtn").disabled = true;
