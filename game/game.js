@@ -372,14 +372,14 @@
             
             document.getElementById("successModal").style.display = "flex";
             
-            // Add Enter key listener for Next Round button
-            var enterHandler = function(e) {
+            // Add Enter key listener to advance to next round
+            var enterKeyHandler = function(e) {
                 if (e.key === 'Enter') {
-                    document.removeEventListener('keydown', enterHandler);
+                    document.removeEventListener('keydown', enterKeyHandler);
                     nextWord();
                 }
             };
-            document.addEventListener('keydown', enterHandler);
+            document.addEventListener('keydown', enterKeyHandler);
             
             document.getElementById("guessInput").disabled = true;
             document.getElementById("submitBtn").disabled = true;
@@ -814,25 +814,25 @@
                     giveUp();
                 }
             });
-            
-            // Make functions globally accessible
-            window.nextWord = nextWord;
-            window.confirmGiveUp = confirmGiveUp;
-            window.cancelGiveUp = cancelGiveUp;
-            window.closeDuplicateModal = closeDuplicateModal;
-            window.skipRound = skipRound;
-            window.viewResults = viewResults;
-            window.closeDailyModal = closeDailyModal;
-            window.toggleShare = toggleShare;
-            window.toggleHelp = toggleHelp;
-            window.toggleStats = toggleStats;
-            window.toggleInfo = toggleInfo;
-            window.closeShare = closeShare;
-            window.closeHelp = closeHelp;
-            window.closeStats = closeStats;
-            window.closeInfo = closeInfo;
-            window.copyToClipboard = copyToClipboard;
-            window.shareToTwitter = shareToTwitter;
-            window.shareToBluesky = shareToBluesky;
-            window.shareToFacebook = shareToFacebook;
         };
+
+        // Make functions globally accessible
+        window.nextWord = nextWord;
+        window.confirmGiveUp = confirmGiveUp;
+        window.cancelGiveUp = cancelGiveUp;
+        window.closeDuplicateModal = closeDuplicateModal;
+        window.skipRound = skipRound;
+        window.viewResults = viewResults;
+        window.closeDailyModal = closeDailyModal;
+        window.toggleShare = toggleShare;
+        window.toggleHelp = toggleHelp;
+        window.toggleStats = toggleStats;
+        window.toggleInfo = toggleInfo;
+        window.closeShare = closeShare;
+        window.closeHelp = closeHelp;
+        window.closeStats = closeStats;
+        window.closeInfo = closeInfo;
+        window.copyToClipboard = copyToClipboard;
+        window.shareToTwitter = shareToTwitter;
+        window.shareToBluesky = shareToBluesky;
+        window.shareToFacebook = shareToFacebook;
