@@ -267,11 +267,11 @@
                     spacedFeedback += "◀ ";
                 }
             } else if (g < t) {
-                    feedback += "Ã¢âÂº";
-                    spacedFeedback += "Ã¢âÂ¶ ";
+                    feedback += "►";
+                    spacedFeedback += "▶ ";
                 } else {
-                    feedback += "Ã¢ââ";
-                    spacedFeedback += "Ã¢ââ¬ ";
+                    feedback += "◄";
+                    spacedFeedback += "◀ ";
                 }
             }
             spacedFeedback = spacedFeedback.trim();
@@ -283,7 +283,7 @@
             
             var arrowSpans = "";
             for (var j = 0; j < feedback.length; j++) {
-                var className = feedback[j] === "Ã¢âÂ" ? " class=\"correct\"" : "";
+                var className = feedback[j] === "●" ? " class=\"correct\"" : "";
                 arrowSpans += "<span" + className + ">" + feedback[j] + "</span>";
             }
             
@@ -529,7 +529,7 @@
                     // Replace unicode symbols with emoji for sharing
                     var sharePattern = result.pattern
                         .replace(/Ã¢âÂ/g, "Ã°Å¸Å¸Â¢")
-                        .replace(/Ã¢âÂº/g, "Ã¢âÂ¶Ã¯Â¸Â")
+                        .replace(/►/g, "Ã¢âÂ¶Ã¯Â¸Â")
                         .replace(/Ã¢âÂ¶/g, "Ã¢âÂ¶Ã¯Â¸Â")
                         .replace(/Ã¢ââ/g, "Ã¢ââ¬Ã¯Â¸Â")
                         .replace(/Ã¢ââ¬/g, "Ã¢ââ¬Ã¯Â¸Â");

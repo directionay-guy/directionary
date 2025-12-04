@@ -336,9 +336,7 @@
         }
         
         .feedback-arrows span.correct {
-            background: #28a745;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #28a745;
         }
         
         .new-game-message {
