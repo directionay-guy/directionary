@@ -337,6 +337,8 @@
         
         .feedback-arrows span.correct {
             color: #28a745;
+            background: none;
+            -webkit-text-fill-color: #28a745;
         }
         
         .new-game-message {

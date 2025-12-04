@@ -726,11 +726,17 @@
         
         function viewResults() {
             document.getElementById("dailyCompleteModal").style.display = "none";
-            toggleShare();
+            setTimeout(function() {
+                toggleShare();
+            }, 100);
         }
         
         function closeDailyModal() {
             document.getElementById("dailyCompleteModal").style.display = "none";
+            // Also ensure game is disabled
+            if (!devMode && !testMode) {
+                showComeBackMessage();
+            }
         }
         
         // Stats functions
