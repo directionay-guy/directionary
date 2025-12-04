@@ -257,14 +257,14 @@
                 var t = targetWord[i];
                 
                 if (g === t) {
-                    feedback += "â—";
-                    spacedFeedback += "â— ";
+                    feedback += "●";
+                    spacedFeedback += "● ";
                 } else if (g < t) {
-                    feedback += "â–º";
-                    spacedFeedback += "â–¶ ";
+                    feedback += "►";
+                    spacedFeedback += "▶ ";
                 } else {
-                    feedback += "â—„";
-                    spacedFeedback += "â—€ ";
+                    feedback += "◄";
+                    spacedFeedback += "◀ ";
                 }
             }
             spacedFeedback = spacedFeedback.trim();
@@ -276,7 +276,7 @@
             
             var arrowSpans = "";
             for (var j = 0; j < feedback.length; j++) {
-                var className = feedback[j] === "â—" ? " class=\"correct\"" : "";
+                var className = feedback[j] === "●" ? " class=\"correct\"" : "";
                 arrowSpans += "<span" + className + ">" + feedback[j] + "</span>";
             }
             
@@ -521,11 +521,11 @@
                 if (result && result.pattern) {
                     // Replace unicode symbols with emoji for sharing
                     var sharePattern = result.pattern
-                        .replace(/â—/g, "ðŸŸ¢")
-                        .replace(/â–º/g, "â–¶ï¸")
-                        .replace(/â–¶/g, "â–¶ï¸")
-                        .replace(/â—„/g, "â—€ï¸")
-                        .replace(/â—€/g, "â—€ï¸");
+                        .replace(/●/g, "ðŸŸ¢")
+                        .replace(/►/g, "▶ï¸")
+                        .replace(/▶/g, "▶ï¸")
+                        .replace(/●„/g, "●€ï¸")
+                        .replace(/●€/g, "●€ï¸");
                     text += sharePattern + "\n";
                 }
             }
@@ -655,7 +655,7 @@
             var feedbackDiv = document.getElementById("feedback");
             var newGameLine = document.createElement("div");
             newGameLine.className = "new-game-message";
-            newGameLine.innerHTML = "â—„ â— Round " + currentRound + " of " + maxRounds + " â— â–º";
+            newGameLine.innerHTML = "●„ ● Round " + currentRound + " of " + maxRounds + " ● ►";
             feedbackDiv.appendChild(newGameLine);
             
             startNewGame();
