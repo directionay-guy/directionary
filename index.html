@@ -23,9 +23,6 @@
             🧪 TEST MODE: Random words enabled
         </div>
         
-        <div class="alphabet-display" id="alphabetDisplay">
-            <span>A</span> <span>B</span> <span>C</span> <span>D</span> <span>E</span> <span>F</span> <span>G</span> <span>H</span> <span>I</span> <span>J</span> <span>K</span> <span>L</span> <span>M</span> <span>N</span> <span>O</span> <span>P</span> <span>Q</span> <span>R</span> <span>S</span> <span>T</span> <span>U</span> <span>V</span> <span>W</span> <span>X</span> <span>Y</span> <span>Z</span>
-        </div>
         <h1 class="game-title">
             <span class="title-arrow title-arrow-left">◄</span>
             <span class="title-arrow">●</span>
@@ -34,6 +31,9 @@
             <span class="title-arrow title-arrow-right">►</span>
         </h1>
         <p class="tagline">Which Way To Words?</p>
+        <div class="instructions-brief">
+            Guess the hidden word in 10 tries using directional clues
+        </div>
         <div class="daily-indicator" id="dailyIndicator">Daily Challenge - Round <span id="roundNumber">1</span> of 3<button class="streak-badge" id="streakBadge" onclick="toggleStats()"><span class="streak-icon">🔥</span> <span id="streakDisplay">0</span> Day Streak</button></div>
         
         <div class="score-display">
@@ -51,13 +51,6 @@
             </div>
         </div>
         
-        <div class="instructions">
-            You have ten tries to guess the<br>hidden word using directional clues.<br>
-            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #28a745;">●</span> = correct</span>
-            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">◄</span> = earlier</span>
-            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">►</span> = later</span>
-        </div>
-        
         <!-- Definition box (hidden until word is solved) -->
         <div class="definition-box" id="definitionBox">
             <div class="definition-word" id="defWord"></div>
@@ -65,11 +58,26 @@
             <div class="definition-credit">Powered by Free Dictionary API</div>
         </div>
         
-        <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" autocomplete="off" spellcheck="false">
+        <div class="alphabet-display" id="alphabetDisplay">
+            <span>A</span> <span>B</span> <span>C</span> <span>D</span> <span>E</span> <span>F</span> <span>G</span> <span>H</span> <span>I</span> <span>J</span> <span>K</span> <span>L</span> <span>M</span> <span>N</span> <span>O</span> <span>P</span> <span>Q</span> <span>R</span> <span>S</span> <span>T</span> <span>U</span> <span>V</span> <span>W</span> <span>X</span> <span>Y</span> <span>Z</span>
+        </div>
+        
+        <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" 
+               autocomplete="off" 
+               autocorrect="off" 
+               autocapitalize="characters" 
+               spellcheck="false" 
+               data-form-type="other">
         
         <div class="button-group">
             <button id="submitBtn">Submit</button>
             <button class="give-up-btn" id="giveUpBtn">Skip This Round</button>
+        </div>
+        
+        <div class="legend-box">
+            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #28a745;">●</span> = correct</span>
+            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">◄</span> = earlier</span>
+            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">►</span> = later</span>
         </div>
         
         <div id="errorMessage"></div>
