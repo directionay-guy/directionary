@@ -372,15 +372,6 @@
             
             document.getElementById("successModal").style.display = "flex";
             
-            // Add Enter key listener to advance to next round
-            var enterKeyHandler = function(e) {
-                if (e.key === 'Enter') {
-                    document.removeEventListener('keydown', enterKeyHandler);
-                    nextWord();
-                }
-            };
-            document.addEventListener('keydown', enterKeyHandler);
-            
             document.getElementById("guessInput").disabled = true;
             document.getElementById("submitBtn").disabled = true;
             document.getElementById("giveUpBtn").disabled = true;
