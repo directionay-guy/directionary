@@ -11,7 +11,15 @@
         var roundResults = [];
         var guessHistory = [];
         var guessedWordsThisRound = new Set();
-        var dailyNumber = Math.floor(Date.now() / 86400000);
+        
+        // Get game day number based on LOCAL midnight (like Wordle)
+        function getLocalGameDay() {
+            var now = new Date();
+            var localMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            return Math.floor(localMidnight.getTime() / 86400000);
+        }
+        
+        var dailyNumber = getLocalGameDay();
         var usingFallbackMode = false; // Track if using fallback words for testing
         
         // Stats variables
@@ -43,11 +51,11 @@
         var urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('dev') === DEV_PASSWORD) {
             devMode = true;
-            console.log("ðŸŽ¯ DEV MODE ENABLED");
+            console.log("🎯 DEV MODE ENABLED");
         }
         if (urlParams.get('test') === TEST_PASSWORD) {
             testMode = true;
-            console.log("ðŸ§ª TEST MODE ENABLED - Using random words");
+            console.log("🧪 TEST MODE ENABLED - Using random words");
         }
         
         // Mock dictionary definitions (to be replaced with API integration later)
@@ -109,6 +117,33 @@
             }
         }
         
+        // Beta Banner Management
+        function showBetaBannerIfEnabled() {
+            var betaMode = localStorage.getItem('directionary_betaMode') === 'true';
+            
+            if (betaMode) {
+                // Check if banner already exists
+                if (document.getElementById('betaBanner')) return;
+                
+                // Create and insert beta banner at top of page
+                var banner = document.createElement('div');
+                banner.id = 'betaBanner';
+                banner.style.cssText = 'background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; text-align: center; padding: 12px; font-weight: 600; font-size: 0.95em; box-shadow: 0 2px 8px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 1000;';
+                banner.innerHTML = '🚧 BETA VERSION - Report issues: <a href="mailto:feedback@directionary.net" style="color: white; text-decoration: underline;">feedback@directionary.net</a> 🚧';
+                
+                // Insert at very top of body
+                document.body.insertBefore(banner, document.body.firstChild);
+                console.log("Beta banner displayed");
+            } else {
+                // Remove banner if it exists but beta mode is off
+                var existingBanner = document.getElementById('betaBanner');
+                if (existingBanner) {
+                    existingBanner.remove();
+                    console.log("Beta banner removed");
+                }
+            }
+        }
+        
         function loadWordList() {
             fetch('game/words.json')
                 .then(response => response.json())
@@ -121,6 +156,39 @@
                         validWords = data.valid.map(w => w.toUpperCase());
                         console.log("Loaded " + validWords.length + " valid words");
                     }
+                    
+                    // Merge words added via Word Management Dashboard (admin.html)
+                    try {
+                        var addedWordsData = localStorage.getItem('directionary_addedWords');
+                        if (addedWordsData) {
+                            var addedWords = JSON.parse(addedWordsData);
+                            
+                            if (addedWords.answers && addedWords.answers.length > 0) {
+                                // Add to answerWords if not already present
+                                addedWords.answers.forEach(function(word) {
+                                    word = word.toUpperCase();
+                                    if (!answerWords.includes(word)) {
+                                        answerWords.push(word);
+                                    }
+                                });
+                                console.log("Merged " + addedWords.answers.length + " added answer words");
+                            }
+                            
+                            if (addedWords.valid && addedWords.valid.length > 0) {
+                                // Add to validWords if not already present
+                                addedWords.valid.forEach(function(word) {
+                                    word = word.toUpperCase();
+                                    if (!validWords.includes(word)) {
+                                        validWords.push(word);
+                                    }
+                                });
+                                console.log("Merged " + addedWords.valid.length + " added valid words");
+                            }
+                        }
+                    } catch (e) {
+                        console.log("Could not load added words:", e);
+                    }
+                    
                     startNewGame();
                 })
                 .catch(error => {
@@ -129,6 +197,37 @@
                     validWords = fallbackWords;
                     usingFallbackMode = true;
                     console.log("FALLBACK MODE ENABLED - words will use rotation");
+                    
+                    // Still merge added words from admin dashboard even in fallback mode
+                    try {
+                        var addedWordsData = localStorage.getItem('directionary_addedWords');
+                        if (addedWordsData) {
+                            var addedWords = JSON.parse(addedWordsData);
+                            
+                            if (addedWords.answers && addedWords.answers.length > 0) {
+                                addedWords.answers.forEach(function(word) {
+                                    word = word.toUpperCase();
+                                    if (!answerWords.includes(word)) {
+                                        answerWords.push(word);
+                                    }
+                                });
+                                console.log("Merged " + addedWords.answers.length + " added answer words (fallback mode)");
+                            }
+                            
+                            if (addedWords.valid && addedWords.valid.length > 0) {
+                                addedWords.valid.forEach(function(word) {
+                                    word = word.toUpperCase();
+                                    if (!validWords.includes(word)) {
+                                        validWords.push(word);
+                                    }
+                                });
+                                console.log("Merged " + addedWords.valid.length + " added valid words (fallback mode)");
+                            }
+                        }
+                    } catch (e) {
+                        console.log("Could not load added words:", e);
+                    }
+                    
                     startNewGame();
                 });
         }
@@ -138,10 +237,19 @@
             document.getElementById("gameLink").href = GAME_URL;
             document.getElementById("gameLink").textContent = GAME_URL;
             
+            // Check for beta mode and show banner if enabled
+            showBetaBannerIfEnabled();
+            
+            // Start checking for day change FIRST (only in production mode)
+            // This ensures auto-reload works even when game is already completed
+            if (!devMode && !testMode) {
+                startDayChangeChecker();
+            }
+            
             // Check if already played today (only in production mode)
             if (!devMode && !testMode) {
                 var lastPlayed = localStorage.getItem('directionary_lastPlayed');
-                var today = Math.floor(Date.now() / 86400000);
+                var today = getLocalGameDay();
                 
                 if (lastPlayed == today) {
                     // Already played today - show completed message
@@ -160,6 +268,33 @@
                 document.getElementById("guessInput").focus();
             }, 100);
         }
+        
+        // Auto-reload when new LOCAL day starts (like Wordle)
+        function startDayChangeChecker() {
+            console.log("Day change checker started - will check every minute for new day");
+            
+            // Check every minute if day has changed
+            setInterval(function() {
+                var currentDay = getLocalGameDay();
+                var storedDay = localStorage.getItem('directionary_currentDay');
+                
+                // Store current day on first check
+                if (!storedDay) {
+                    localStorage.setItem('directionary_currentDay', currentDay);
+                    console.log("Stored current day:", currentDay);
+                    return;
+                }
+                
+                storedDay = parseInt(storedDay);
+                
+                if (currentDay > storedDay) {
+                    console.log("New day detected! Old day:", storedDay, "New day:", currentDay);
+                    console.log("Reloading for fresh puzzle...");
+                    localStorage.setItem('directionary_currentDay', currentDay);
+                    location.reload();
+                }
+            }, 60000); // Check every 60 seconds
+        }
 
         function startNewGame() {
             console.log("Starting round " + currentRound + "...");
@@ -168,25 +303,56 @@
             var daysSinceEpoch = Math.floor(Date.now() / 86400000);
             var wordIndex;
             
-            if (testMode || usingFallbackMode) {
-                // Test mode or Fallback mode: Use random selection
+            if (testMode || devMode || usingFallbackMode) {
+                // Test/Dev mode or Fallback mode: Use random selection
                 wordIndex = Math.floor(Math.random() * wordPool.length);
-                console.log(testMode ? "TEST MODE: Random word index:" : "FALLBACK MODE: Random word index:", wordIndex);
+                var modeLabel = testMode ? "TEST MODE" : (devMode ? "DEV MODE" : "FALLBACK MODE");
+                console.log(modeLabel + ": Random word index:", wordIndex);
             } else {
-                // JSON mode: Use day-based seed with large round offset to spread across list
-                // 90-day rotation: cycles through list every ~3 months
-                var rotationPeriod = 90;
-                wordIndex = ((daysSinceEpoch % rotationPeriod) + (currentRound * 773)) % wordPool.length;
-                console.log("JSON MODE: Day-based index:", wordIndex, "(90-day rotation)");
+                // JSON mode: Use day-based seed with prime number multiplier for variety
+                // Each day jumps to different part of word list
+                wordIndex = ((daysSinceEpoch * 317) + (currentRound * 773)) % wordPool.length;
+                console.log("JSON MODE: Day-based index:", wordIndex, "(varied selection)");
             }
             
-            targetWord = wordPool[wordIndex];
-            console.log("Target word:", targetWord, "(round", currentRound + ")");
+            // Check for manual override from Word Management Dashboard (admin.html)
+            var overrides = {};
+            try {
+                var overrideData = localStorage.getItem('directionary_wordOverrides');
+                if (overrideData) {
+                    overrides = JSON.parse(overrideData);
+                }
+            } catch (e) {
+                console.log("Could not load word overrides:", e);
+            }
+            
+            // Get today's date in LOCAL timezone (not UTC) to match admin page
+            var today = new Date();
+            var year = today.getFullYear();
+            var month = String(today.getMonth() + 1).padStart(2, '0');
+            var day = String(today.getDate()).padStart(2, '0');
+            var todayStr = year + '-' + month + '-' + day; // YYYY-MM-DD in local time
+            
+            if (overrides[todayStr] && overrides[todayStr][currentRound]) {
+                // Use override word from admin dashboard
+                targetWord = overrides[todayStr][currentRound];
+                console.log("Using OVERRIDE word for Round " + currentRound + ":", targetWord);
+            } else {
+                // Use algorithm word
+                targetWord = wordPool[wordIndex];
+            }
+            
+            // Only show target word in dev/test modes to prevent cheating
+            if (devMode || testMode) {
+                console.log("Target word:", targetWord, "(round", currentRound + ")");
+            }
             
             // Update dev mode display
             if (devMode) {
-                document.getElementById("devModeDisplay").style.display = "block";
-                document.getElementById("devTargetWord").textContent = targetWord;
+                var wordSource = answerWords.length > 0 ? "JSON words" : "Fallback list";
+                var devDisplay = document.getElementById("devModeDisplay");
+                devDisplay.style.display = "block";
+                devDisplay.innerHTML = '🎯 DEV MODE: <span id="devTargetWord">' + targetWord + '</span> <span style="color: #666; font-size: 0.9em;">(from ' + wordSource + ')</span> <button onclick="reloadDevGame()" style="margin-left: 10px; background: #667eea; color: white; border: none; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9em; font-weight: 600;">🔄 New Game</button>';
             }
             
             // Update test mode display
@@ -257,14 +423,14 @@
                 var t = targetWord[i];
                 
                 if (g === t) {
-                    feedback += "â—";
-                    spacedFeedback += "â— ";
+                    feedback += "●";
+                    spacedFeedback += "● ";
                 } else if (g < t) {
-                    feedback += "â–º";
-                    spacedFeedback += "â–¶ ";
+                    feedback += "►";
+                    spacedFeedback += "▶ ";
                 } else {
-                    feedback += "â—„";
-                    spacedFeedback += "â—€ ";
+                    feedback += "◄";
+                    spacedFeedback += "◀ ";
                 }
             }
             spacedFeedback = spacedFeedback.trim();
@@ -276,13 +442,13 @@
             
             var arrowSpans = "";
             for (var j = 0; j < feedback.length; j++) {
-                var className = feedback[j] === "â—" ? " class=\"correct\"" : "";
+                var className = feedback[j] === "●" ? " class=\"correct\"" : "";
                 arrowSpans += "<span" + className + ">" + feedback[j] + "</span>";
             }
             
             feedbackLine.innerHTML = "<span style=\"color: #bbb; margin-right: 8px;\">" + guessCount + ")</span> <span>" + guess + "</span> <div class=\"feedback-arrows\">" + arrowSpans + "</div>";
+            // Insert at the TOP so newest guess is always visible
             feedbackDiv.insertBefore(feedbackLine, feedbackDiv.firstChild);
-            feedbackDiv.scrollTop = feedbackDiv.scrollHeight;
             
             input.value = "";
             input.focus();
@@ -367,7 +533,7 @@
             if (currentRound >= maxRounds) {
                 document.querySelector("#successModal .success-btn").textContent = "View Results";
             } else {
-                document.querySelector("#successModal .success-btn").textContent = "Next Round â†’";
+                document.querySelector("#successModal .success-btn").textContent = "Next Round →";
             }
             
             document.getElementById("successModal").style.display = "flex";
@@ -382,7 +548,7 @@
             
             // Save today's completion date and state (only in production mode)
             if (!devMode && !testMode) {
-                var today = Math.floor(Date.now() / 86400000);
+                var today = getLocalGameDay();
                 localStorage.setItem('directionary_lastPlayed', today);
                 localStorage.setItem('directionary_dailyState', JSON.stringify({
                     roundResults: roundResults,
@@ -401,9 +567,9 @@
                 modalTitle.style.webkitBackgroundClip = "text";
                 modalTitle.style.webkitTextFillColor = "transparent";
             } else if (totalScore < 150) {
-                modalTitle.textContent = "Daily Puzzle Complete";
+                modalTitle.textContent = "Daily Challenge Complete";
             } else {
-                modalTitle.textContent = "ðŸ† Daily Puzzle Complete!";
+                modalTitle.textContent = "🏆 Daily Challenge Complete!";
             }
             
             // Update daily indicator to show Game Over
@@ -411,12 +577,33 @@
             var streakBadge = document.getElementById("streakBadge");
             dailyIndicator.innerHTML = '<span style="display: inline-block; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 8px 16px; border-radius: 20px; font-size: 1em; font-weight: 600;">GAME OVER</span> ' + streakBadge.outerHTML;
             
-            // Build round summary
+            // Build round summary with two-column layout and dictionary links
             var summary = "";
+            var totalGuesses = 0;
+            
             if (roundResults.length > 0) {
+                summary += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: center; max-width: 300px; margin: 0 auto;">';
+                
                 for (var i = 0; i < roundResults.length; i++) {
-                    summary += "Round " + (i + 1) + ": " + roundResults[i].word + " - " + roundResults[i].score + " points<br>";
+                    var result = roundResults[i];
+                    totalGuesses += result.guesses;
+                    
+                    // Word with dictionary link
+                    summary += '<div style="text-align: left;"><a href="https://www.dictionary.com/browse/' + result.word.toLowerCase() + '" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 600;">' + result.word + '</a></div>';
+                    
+                    // Guesses count
+                    if (result.score === 0) {
+                        summary += '<div style="text-align: right; color: #e53e3e;">Skipped</div>';
+                    } else {
+                        summary += '<div style="text-align: right; color: #666;">' + result.guesses + ' guess' + (result.guesses === 1 ? '' : 'es') + '</div>';
+                    }
                 }
+                
+                // Add total guesses row
+                summary += '<div style="text-align: left; font-weight: 700; color: #667eea; border-top: 2px solid #ddd; padding-top: 10px; margin-top: 5px;">TOTAL GUESSES</div>';
+                summary += '<div style="text-align: right; font-weight: 700; color: #667eea; border-top: 2px solid #ddd; padding-top: 10px; margin-top: 5px;">' + totalGuesses + '</div>';
+                
+                summary += '</div>';
             } else {
                 summary = "No rounds completed<br>";
             }
@@ -431,29 +618,87 @@
         
         function showComeBackMessage() {
             var instructions = document.querySelector(".instructions");
-            instructions.innerHTML = "<strong>âœ¨ You've completed today's challenge! Return after midnight for tomorrow's game.</strong>";
+            instructions.innerHTML = "<strong>✨ You've completed today's challenge! Return after midnight for tomorrow's game.</strong>";
             instructions.style.background = "linear-gradient(135deg, #667eea15 0%, #764ba215 100%)";
             
             // Hide input and buttons
             document.getElementById("guessInput").style.display = "none";
             document.querySelector(".button-group").style.display = "none";
             
-            // Add today's words display (only if we have results)
+            // Add countdown timer to feedback area - styled like digital clock radio
+            var feedbackDiv = document.getElementById("feedback");
+            feedbackDiv.innerHTML = '<div id="countdownTimer" style="text-align: center; padding: 25px 30px; font-size: 2em; color: #00ff41; font-weight: 700; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 15px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5), 0 4px 15px rgba(0,0,0,0.3); font-family: \'Courier New\', Courier, monospace; letter-spacing: 0.1em; text-shadow: 0 0 10px rgba(0,255,65,0.5), 0 0 20px rgba(0,255,65,0.3);"></div>';
+            startCountdownTimer();
+            
+            // Add today's words display with dictionary links and guess counts
             if (roundResults.length > 0) {
                 var buttonGroup = document.querySelector(".button-group");
                 var wordsDiv = document.createElement("div");
                 wordsDiv.id = "todaysWordsDisplay";
-                wordsDiv.style.cssText = "text-align: center; padding: 20px; background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 15px 0;";
+                wordsDiv.style.cssText = "text-align: center; padding: 15px 20px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 15px 0;";
                 
-                var html = '<h3 style="margin: 0 0 15px 0; color: #667eea;">Today\'s Words</h3>';
+                var html = '<h3 style="margin: 0 0 12px 0; color: #667eea; font-size: 1.1em;">Today\'s Words</h3>';
+                html += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 10px 20px; max-width: 250px; margin: 0 auto;">';
+                
                 for (var i = 0; i < roundResults.length; i++) {
-                    html += '<div style="font-size: 1.2em; font-weight: 600; margin: 8px 0; color: #333;">';
-                    html += (i + 1) + '. ' + roundResults[i].word;
-                    html += '</div>';
+                    var word = roundResults[i].word;
+                    var guesses = roundResults[i].guesses;
+                    var dictUrl = 'https://www.dictionary.com/browse/' + word.toLowerCase();
+                    
+                    // Word link (left side)
+                    html += '<div style="text-align: left;"><a href="' + dictUrl + '" target="_blank" style="text-decoration: underline; color: #667eea; font-weight: 600; font-size: 1.1em;">' + word + '</a></div>';
+                    
+                    // Guess count (right side)
+                    html += '<div style="text-align: right; color: #666; font-size: 0.95em;">' + guesses + ' guess' + (guesses !== 1 ? 'es' : '') + '</div>';
                 }
+                
+                html += '</div>';
                 wordsDiv.innerHTML = html;
                 buttonGroup.parentNode.insertBefore(wordsDiv, buttonGroup.nextSibling);
             }
+            
+            // Update the third score item to show TOTAL GUESSES
+            var totalGuesses = 0;
+            for (var i = 0; i < roundResults.length; i++) {
+                totalGuesses += roundResults[i].guesses;
+            }
+            
+            // Update the guessCount element and its label
+            var guessCountElement = document.getElementById("guessCount");
+            if (guessCountElement && guessCountElement.previousElementSibling) {
+                guessCountElement.previousElementSibling.textContent = "Total Guesses";
+                guessCountElement.textContent = totalGuesses;
+            }
+            
+            // Change "Current Round" to "Final Round"
+            var currentScoreElement = document.getElementById("currentScore");
+            if (currentScoreElement && currentScoreElement.previousElementSibling) {
+                currentScoreElement.previousElementSibling.textContent = "Final Round";
+            }
+        }
+        
+        // Countdown timer to next puzzle
+        function startCountdownTimer() {
+            function updateCountdown() {
+                var now = new Date();
+                var tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+                var timeUntilMidnight = tomorrow - now;
+                
+                var hours = Math.floor(timeUntilMidnight / (1000 * 60 * 60));
+                var minutes = Math.floor((timeUntilMidnight % (1000 * 60 * 60)) / (1000 * 60));
+                var seconds = Math.floor((timeUntilMidnight % (1000 * 60)) / 1000);
+                
+                var countdownEl = document.getElementById("countdownTimer");
+                if (countdownEl) {
+                    countdownEl.innerHTML = '<span style="color: #FF9F00; font-size: 0.5em; text-shadow: 0 0 8px rgba(255,159,0,0.4);">Next puzzle in:</span><br>' + 
+                        String(hours).padStart(2, '0') + ':' + 
+                        String(minutes).padStart(2, '0') + ':' + 
+                        String(seconds).padStart(2, '0');
+                }
+            }
+            
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
         }
         
         function showAlreadyPlayedMessage() {
@@ -468,13 +713,13 @@
             
             // Update display to show already played
             var instructions = document.querySelector(".instructions");
-            instructions.innerHTML = "<strong>âœ¨ You've already completed today's challenge! Return tomorrow for a new game.</strong>";
+            instructions.innerHTML = "<strong>✨ You've already completed today's challenge! Return tomorrow for a new game.</strong>";
             instructions.style.background = "linear-gradient(135deg, #667eea15 0%, #764ba215 100%)";
             
             // Show GAME OVER badge
             var dailyIndicator = document.getElementById("dailyIndicator");
             var streakBadge = document.getElementById("streakBadge");
-            dailyIndicator.innerHTML = '<span style="display: inline-block; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 8px 16px; border-radius: 20px; font-size: 1em; font-weight: 600;">GAME OVER</span> ' + streakBadge.outerHTML;
+            dailyIndicator.innerHTML = '<span class="game-over-badge">GAME OVER</span> ' + streakBadge.outerHTML;
             
             // Update streak display
             updateStreakDisplay();
@@ -483,18 +728,33 @@
             document.getElementById("guessInput").style.display = "none";
             document.querySelector(".button-group").style.display = "none";
             
-            // Show today's words if available
+            // Add countdown timer to feedback area - styled like digital clock radio
+            var feedbackDiv = document.getElementById("feedback");
+            feedbackDiv.innerHTML = '<div id="countdownTimer" style="text-align: center; padding: 25px 30px; font-size: 2em; color: #00ff41; font-weight: 700; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 15px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5), 0 4px 15px rgba(0,0,0,0.3); font-family: \'Courier New\', Courier, monospace; letter-spacing: 0.1em; text-shadow: 0 0 10px rgba(0,255,65,0.5), 0 0 20px rgba(0,255,65,0.3);"></div>';
+            startCountdownTimer();
+            
+            // Show today's words with dictionary links and guess counts
             if (roundResults.length > 0) {
                 var buttonGroup = document.querySelector(".button-group");
                 var wordsDiv = document.createElement("div");
-                wordsDiv.style.cssText = "text-align: center; padding: 20px; background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 15px 0;";
+                wordsDiv.style.cssText = "text-align: center; padding: 15px 20px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 15px 0;";
                 
-                var html = '<h3 style="margin: 0 0 15px 0; color: #667eea;">Today\'s Words</h3>';
+                var html = '<h3 style="margin: 0 0 12px 0; color: #667eea; font-size: 1.1em;">Today\'s Words</h3>';
+                html += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 10px 20px; max-width: 250px; margin: 0 auto;">';
+                
                 for (var i = 0; i < roundResults.length; i++) {
-                    html += '<div style="font-size: 1.2em; font-weight: 600; margin: 8px 0; color: #333;">';
-                    html += (i + 1) + '. ' + roundResults[i].word;
-                    html += '</div>';
+                    var word = roundResults[i].word;
+                    var guesses = roundResults[i].guesses;
+                    var dictUrl = 'https://www.dictionary.com/browse/' + word.toLowerCase();
+                    
+                    // Word link (left side)
+                    html += '<div style="text-align: left;"><a href="' + dictUrl + '" target="_blank" style="text-decoration: underline; color: #667eea; font-weight: 600; font-size: 1.1em;">' + word + '</a></div>';
+                    
+                    // Guess count (right side)
+                    html += '<div style="text-align: right; color: #666; font-size: 0.95em;">' + guesses + ' guess' + (guesses !== 1 ? 'es' : '') + '</div>';
                 }
+                
+                html += '</div>';
                 wordsDiv.innerHTML = html;
                 buttonGroup.parentNode.insertBefore(wordsDiv, buttonGroup.nextSibling);
                 
@@ -504,6 +764,33 @@
                 scoreMessage.textContent = "Your Score: " + totalScore + " points";
                 wordsDiv.parentNode.insertBefore(scoreMessage, wordsDiv);
             }
+            
+            // Update score display with final values
+            if (roundResults.length > 0) {
+                var totalGuesses = 0;
+                
+                // Calculate total guesses
+                for (var i = 0; i < roundResults.length; i++) {
+                    totalGuesses += roundResults[i].guesses;
+                }
+                
+                // Update the three score items
+                document.getElementById("currentScore").textContent = "---";
+                document.getElementById("totalScore").textContent = totalScore;
+                
+                // Change "Current Round" to "Final Round"
+                var currentScoreElement = document.getElementById("currentScore");
+                if (currentScoreElement && currentScoreElement.previousElementSibling) {
+                    currentScoreElement.previousElementSibling.textContent = "Final Round";
+                }
+                
+                // Change "Guesses" to "Total Guesses" and show total
+                var guessCountElement = document.getElementById("guessCount");
+                if (guessCountElement && guessCountElement.previousElementSibling) {
+                    guessCountElement.previousElementSibling.textContent = "Total Guesses";
+                    guessCountElement.textContent = totalGuesses;
+                }
+            }
         }
         
         function generateShareText() {
@@ -511,7 +798,7 @@
             
             // Add streak if greater than 0
             if (playerStats.currentStreak > 0) {
-                text += " - ðŸ”¥ " + playerStats.currentStreak + " day streak";
+                text += " - 🔥 " + playerStats.currentStreak + " day streak";
             }
             text += "\n\n";
             
@@ -521,11 +808,11 @@
                 if (result && result.pattern) {
                     // Replace unicode symbols with emoji for sharing
                     var sharePattern = result.pattern
-                        .replace(/â—/g, "ðŸŸ¢")
-                        .replace(/â–º/g, "â–¶ï¸")
-                        .replace(/â–¶/g, "â–¶ï¸")
-                        .replace(/â—„/g, "â—€ï¸")
-                        .replace(/â—€/g, "â—€ï¸");
+                        .replace(/●/g, "🟢")
+                        .replace(/►/g, "▶️")
+                        .replace(/▶/g, "▶️")
+                        .replace(/◄/g, "◀️")
+                        .replace(/◀/g, "◀️");
                     text += sharePattern + "\n";
                 }
             }
@@ -655,7 +942,7 @@
             var feedbackDiv = document.getElementById("feedback");
             var newGameLine = document.createElement("div");
             newGameLine.className = "new-game-message";
-            newGameLine.innerHTML = "â—„ â— Round " + currentRound + " of " + maxRounds + " â— â–º";
+            newGameLine.innerHTML = "◄ ● Round " + currentRound + " of " + maxRounds + " ● ►";
             feedbackDiv.appendChild(newGameLine);
             
             startNewGame();
@@ -675,7 +962,7 @@
                 score: 0,
                 guesses: guessCount,
                 // Show last attempt before running out of points
-                pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "âš« âš« âš« âš« âš«"
+                pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "⚫ ⚫ ⚫ ⚫ ⚫"
             });
             nextWord();
         }
@@ -703,7 +990,7 @@
                 score: 0,
                 guesses: guessCount,
                 // Show last attempt before giving up
-                pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "âš« âš« âš« âš« âš«"
+                pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "⚫ ⚫ ⚫ ⚫ ⚫"
             });
             
             setTimeout(() => {
@@ -807,6 +1094,29 @@
             });
         };
 
+        // Dev mode reload function - starts completely fresh game
+        function reloadDevGame() {
+            if (!devMode) return; // Safety check
+            
+            console.log("🔄 DEV MODE: Reloading game with new words...");
+            
+            // Reset all game state
+            currentRound = 1;
+            totalScore = 0;
+            roundResults = [];
+            guessHistory = [];
+            
+            // Clear feedback
+            document.getElementById("feedback").innerHTML = "";
+            
+            // Update round display
+            document.getElementById("roundNumber").textContent = currentRound;
+            document.getElementById("totalScore").textContent = totalScore;
+            
+            // Start fresh
+            startNewGame();
+        }
+
         // Make functions globally accessible
         window.nextWord = nextWord;
         window.confirmGiveUp = confirmGiveUp;
@@ -826,4 +1136,5 @@
         window.copyToClipboard = copyToClipboard;
         window.shareToTwitter = shareToTwitter;
         window.shareToBluesky = shareToBluesky;
+        window.reloadDevGame = reloadDevGame;
         window.shareToFacebook = shareToFacebook;
