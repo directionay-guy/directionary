@@ -617,9 +617,14 @@
         }
         
         function showComeBackMessage() {
-            var instructions = document.querySelector(".instructions");
-            instructions.innerHTML = "<strong>✨ You've completed today's challenge! Return after midnight for tomorrow's game.</strong>";
-            instructions.style.background = "linear-gradient(135deg, #667eea15 0%, #764ba215 100%)";
+            var instructions = document.querySelector(".instructions-brief");
+            if (!instructions) {
+                instructions = document.querySelector(".instructions");
+            }
+            if (instructions) {
+                instructions.innerHTML = "<strong>✨ You've completed today's challenge! Return after midnight for tomorrow's game.</strong>";
+                instructions.style.background = "linear-gradient(135deg, #667eea15 0%, #764ba215 100%)";
+            }
             
             // Hide input and buttons
             document.getElementById("guessInput").style.display = "none";
