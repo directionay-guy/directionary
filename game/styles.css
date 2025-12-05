@@ -100,6 +100,21 @@
             margin-bottom: 15px;
             margin-top: -5px;
             font-style: italic;
+            font-weight: 600;
+        }
+        
+        .instructions-brief {
+            font-size: 0.85em;
+            color: #28a745;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .legend-box {
+            text-align: center;
+            margin: 15px 0 10px 0;
+            font-size: 0.9em;
+            color: #666;
         }
         
         .daily-indicator {
@@ -758,8 +773,8 @@
             }
             
             .alphabet-display {
-                font-size: 0.65em;
-                letter-spacing: 0.8px;
+                font-size: 0.58em;
+                letter-spacing: 0.5px;
             }
             
             /* Make daily indicator + streak fit on one line */
@@ -931,6 +946,15 @@
             
             .instructions {
                 font-size: 0.7em;
+            }
+            
+            .instructions-brief {
+                font-size: 0.75em;
+            }
+            
+            .legend-box {
+                font-size: 0.8em;
+                margin: 10px 0 8px 0;
             }
             
             .score-item {
