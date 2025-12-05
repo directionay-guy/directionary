@@ -32,7 +32,10 @@
             <span class="title-arrow title-arrow-right">►</span>
         </h1>
         <p class="tagline">Which Way To Words?</p>
-        <div class="daily-indicator" id="dailyIndicator">Daily Challenge - Round <span id="roundNumber">1</span> of 3<button class="streak-badge" id="streakBadge" onclick="toggleStats()"><span class="streak-icon">🔥</span> <span id="streakDisplay">0</span> Day Streak</button></div>
+        <div class="instructions-brief">
+            You have 10 tries to guess the word using directional clues
+        </div>
+        <div class="daily-indicator" id="dailyIndicator">Daily Puzzle - Round <span id="roundNumber">1</span> of 3<button class="streak-badge" id="streakBadge" onclick="toggleStats()"><span class="streak-icon">🔥</span> <span id="streakDisplay">0</span> Day Streak</button></div>
         
         <div class="score-display">
             <div class="score-item">
@@ -50,18 +53,13 @@
         </div>
         
         <div class="instructions">
-            You have ten tries to guess the<br>hidden word using directional clues.<br>
-            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #28a745;">●</span> = correct</span>
-            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">◄</span> = earlier</span>
-            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">►</span> = later</span>
-        </div>
-        
         <!-- Definition box (hidden until word is solved) -->
         <div class="definition-box" id="definitionBox">
             <div class="definition-word" id="defWord"></div>
             <div class="definition-text" id="defText"></div>
             <div class="definition-credit">Powered by Free Dictionary API</div>
         </div>
+        
         
         <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-form-type="other">
         
@@ -71,9 +69,6 @@
         </div>
         
         <div class="alphabet-display" id="alphabetDisplay">
-            <span>A</span> <span>B</span> <span>C</span> <span>D</span> <span>E</span> <span>F</span> <span>G</span> <span>H</span> <span>I</span> <span>J</span> <span>K</span> <span>L</span> <span>M</span> <span>N</span> <span>O</span> <span>P</span> <span>Q</span> <span>R</span> <span>S</span> <span>T</span> <span>U</span> <span>V</span> <span>W</span> <span>X</span> <span>Y</span> <span>Z</span>
-        </div>
-        
         <div id="errorMessage"></div>
         
         <div class="feedback" id="feedback"></div>
@@ -153,13 +148,13 @@
         
         <div class="help-section">
             <h3>Contact</h3>
-            <p>Email: <a href="mailto:info@directionary.net">info@directionary.net</a></p>
+            <p>Email: <a href="/cdn-cgi/l/email-protection#f69f989099b6929f849395829f999897848fd8989382"><span class="__cf_email__" data-cfemail="fc95929a93bc98958e999f889593929d8e85d2929988">[email&#160;protected]</span></a></p>
         </div>
         
         <div class="help-section">
             <h3>Licensing</h3>
             <p>Directionary is available for sale or licensing.<br>
-            Contact us at: <a href="mailto:business@directionary.net">business@directionary.net</a></p>
+            Contact us at: <a href="/cdn-cgi/l/email-protection#ef8d9a9c86818a9c9caf8b869d8a8c9b8680818e9d96c1818a9b"><span class="__cf_email__" data-cfemail="98faedebf1f6fdebebd8fcf1eafdfbecf1f7f6f9eae1b6f6fdec">[email&#160;protected]</span></a></p>
         </div>
         
         <button class="close-panel-btn" onclick="closeInfo()">Close</button>
@@ -297,7 +292,7 @@
         <div class="success-content">
             <div class="success-title">Already Used!</div>
             <div class="success-score" style="margin: 20px 0;">
-                You already guessed that word this round.<br>
+                             You already guessed that word this round.<br>
                 It won't affect your score.
             </div>
             <button class="success-btn" onclick="closeDuplicateModal()">Try Again</button>
