@@ -43,11 +43,11 @@
         var urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('dev') === DEV_PASSWORD) {
             devMode = true;
-            console.log("\ud83c\udfaf DEV MODE ENABLED");
+            console.log("ðŸŽ¯ DEV MODE ENABLED");
         }
         if (urlParams.get('test') === TEST_PASSWORD) {
             testMode = true;
-            console.log("\ud83e\uddea TEST MODE ENABLED - Using random words");
+            console.log("ðŸ§ª TEST MODE ENABLED - Using random words");
         }
         
         // Mock dictionary definitions (to be replaced with API integration later)
@@ -257,14 +257,14 @@
                 var t = targetWord[i];
                 
                 if (g === t) {
-                    feedback += "\u25CF";
-                    spacedFeedback += "\u25CF ";
+                    feedback += "â—";
+                    spacedFeedback += "â— ";
                 } else if (g < t) {
-                    feedback += "\u25BA";
-                    spacedFeedback += "\u25B6 ";
+                    feedback += "â–º";
+                    spacedFeedback += "â–¶ ";
                 } else {
-                    feedback += "\u25C4";
-                    spacedFeedback += "\u25C0 ";
+                    feedback += "â—„";
+                    spacedFeedback += "â—€ ";
                 }
             }
             spacedFeedback = spacedFeedback.trim();
@@ -276,12 +276,12 @@
             
             var arrowSpans = "";
             for (var j = 0; j < feedback.length; j++) {
-                var className = feedback[j] === "\u25CF" ? " class=\"correct\"" : "";
+                var className = feedback[j] === "â—" ? " class=\"correct\"" : "";
                 arrowSpans += "<span" + className + ">" + feedback[j] + "</span>";
             }
             
             feedbackLine.innerHTML = "<span style=\"color: #bbb; margin-right: 8px;\">" + guessCount + ")</span> <span>" + guess + "</span> <div class=\"feedback-arrows\">" + arrowSpans + "</div>";
-            feedbackDiv.appendChild(feedbackLine);
+            feedbackDiv.insertBefore(feedbackLine, feedbackDiv.firstChild);
             feedbackDiv.scrollTop = feedbackDiv.scrollHeight;
             
             input.value = "";
@@ -367,7 +367,7 @@
             if (currentRound >= maxRounds) {
                 document.querySelector("#successModal .success-btn").textContent = "View Results";
             } else {
-                document.querySelector("#successModal .success-btn").textContent = "Next Round \u2192";
+                document.querySelector("#successModal .success-btn").textContent = "Next Round â†’";
             }
             
             document.getElementById("successModal").style.display = "flex";
@@ -403,7 +403,7 @@
             } else if (totalScore < 150) {
                 modalTitle.textContent = "Daily Puzzle Complete";
             } else {
-                modalTitle.textContent = "\ud83c\udfc6 Daily Puzzle Complete!";
+                modalTitle.textContent = "ðŸ† Daily Puzzle Complete!";
             }
             
             // Update daily indicator to show Game Over
@@ -431,7 +431,7 @@
         
         function showComeBackMessage() {
             var instructions = document.querySelector(".instructions");
-            instructions.innerHTML = "<strong>\u2728 You've completed today's challenge! Return after midnight for tomorrow's game.</strong>";
+            instructions.innerHTML = "<strong>âœ¨ You've completed today's challenge! Return after midnight for tomorrow's game.</strong>";
             instructions.style.background = "linear-gradient(135deg, #667eea15 0%, #764ba215 100%)";
             
             // Hide input and buttons
@@ -468,7 +468,7 @@
             
             // Update display to show already played
             var instructions = document.querySelector(".instructions");
-            instructions.innerHTML = "<strong>\u2728 You've already completed today's challenge! Return tomorrow for a new game.</strong>";
+            instructions.innerHTML = "<strong>âœ¨ You've already completed today's challenge! Return tomorrow for a new game.</strong>";
             instructions.style.background = "linear-gradient(135deg, #667eea15 0%, #764ba215 100%)";
             
             // Show GAME OVER badge
@@ -511,7 +511,7 @@
             
             // Add streak if greater than 0
             if (playerStats.currentStreak > 0) {
-                text += " - \ud83d\udd25 " + playerStats.currentStreak + " day streak";
+                text += " - ðŸ”¥ " + playerStats.currentStreak + " day streak";
             }
             text += "\n\n";
             
@@ -521,11 +521,11 @@
                 if (result && result.pattern) {
                     // Replace unicode symbols with emoji for sharing
                     var sharePattern = result.pattern
-                        .replace(/\u25CF/g, "\ud83d\udfe2")
-                        .replace(/\u25BA/g, "\u25B6\ufe0f")
-                        .replace(/\u25B6/g, "\u25B6\ufe0f")
-                        .replace(/\u25C4/g, "\u25C0\ufe0f")
-                        .replace(/\u25C0/g, "\u25C0\ufe0f");
+                        .replace(/â—/g, "ðŸŸ¢")
+                        .replace(/â–º/g, "â–¶ï¸")
+                        .replace(/â–¶/g, "â–¶ï¸")
+                        .replace(/â—„/g, "â—€ï¸")
+                        .replace(/â—€/g, "â—€ï¸");
                     text += sharePattern + "\n";
                 }
             }
@@ -655,7 +655,7 @@
             var feedbackDiv = document.getElementById("feedback");
             var newGameLine = document.createElement("div");
             newGameLine.className = "new-game-message";
-            newGameLine.innerHTML = "\u25C4 \u25CF Round " + currentRound + " of " + maxRounds + " \u25CF \u25BA";
+            newGameLine.innerHTML = "â—„ â— Round " + currentRound + " of " + maxRounds + " â— â–º";
             feedbackDiv.appendChild(newGameLine);
             
             startNewGame();
@@ -675,7 +675,7 @@
                 score: 0,
                 guesses: guessCount,
                 // Show last attempt before running out of points
-                pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "\u26ab \u26ab \u26ab \u26ab \u26ab"
+                pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "âš« âš« âš« âš« âš«"
             });
             nextWord();
         }
@@ -703,7 +703,7 @@
                 score: 0,
                 guesses: guessCount,
                 // Show last attempt before giving up
-                pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "\u26ab \u26ab \u26ab \u26ab \u26ab"
+                pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "âš« âš« âš« âš« âš«"
             });
             
             setTimeout(() => {
@@ -726,17 +726,11 @@
         
         function viewResults() {
             document.getElementById("dailyCompleteModal").style.display = "none";
-            setTimeout(function() {
-                toggleShare();
-            }, 100);
+            toggleShare();
         }
         
         function closeDailyModal() {
             document.getElementById("dailyCompleteModal").style.display = "none";
-            // Also ensure game is disabled
-            if (!devMode && !testMode) {
-                showComeBackMessage();
-            }
         }
         
         // Stats functions
