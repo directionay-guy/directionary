@@ -7,8 +7,7 @@
     <meta name="description" content="Directionary: A unique daily word puzzle using directional clues. Guess the 5-letter word using alphabetical arrows. Free to play, no download required.">
     <meta name="keywords" content="directionary, word game, daily puzzle, alphabetical clues, wordle alternative, logic puzzle, word definitions">
     <meta property="og:title" content="Directionary - Daily Word Puzzle Game">
-    <meta property="og:description" content="Use directional arrows to find the daily word. A unique logic puzzle that uses alphabetical reasoning.">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta property="og:description" content="Use directional arrows to find the daily word. A unique logic puzzle that teaches alphabetical reasoning.">
     <link rel="stylesheet" href="game/styles.css">
 </head>
 <body>
@@ -16,26 +15,23 @@
     <div class="game-container">
         <!-- Dev mode target word display -->
         <div id="devModeDisplay" style="display: none; background: #fff3cd; color: #856404; padding: 8px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9em; font-weight: 600; text-align: center;">
-            🎯 DEV MODE: Target = <span id="devTargetWord"></span>
+            ðŸŽ¯ DEV MODE: Target = <span id="devTargetWord"></span>
         </div>
         
         <!-- Test mode indicator -->
         <div id="testModeDisplay" style="display: none; background: #d1ecf1; color: #0c5460; padding: 8px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9em; font-weight: 600; text-align: center;">
-            🧪 TEST MODE: Random words enabled
+            ðŸ§ª TEST MODE: Random words enabled
         </div>
         
         <h1 class="game-title">
-            <span class="title-arrow title-arrow-left">◄</span>
-            <span class="title-arrow">●</span>
+            <span class="title-arrow title-arrow-left">â—„</span>
+            <span class="title-arrow">â—</span>
             <span class="title-text">Directionary</span>
-            <span class="title-arrow">●</span>
-            <span class="title-arrow title-arrow-right">►</span>
+            <span class="title-arrow">â—</span>
+            <span class="title-arrow title-arrow-right">â–º</span>
         </h1>
         <p class="tagline">Which Way To Words?</p>
-        <div class="instructions-brief">
-            Guess the word in 10 tries using directional clues
-        </div>
-        <div class="daily-indicator" id="dailyIndicator">Daily Puzzle - Round <span id="roundNumber">1</span> of 3<button class="streak-badge" id="streakBadge" onclick="toggleStats()"><span class="streak-icon">🔥</span> <span id="streakDisplay">0</span> Day Streak</button></div>
+        <div class="daily-indicator" id="dailyIndicator">Daily Puzzle - Round <span id="roundNumber">1</span> of 3<button class="streak-badge" id="streakBadge" onclick="toggleStats()"><span class="streak-icon">ðŸ”¥</span> <span id="streakDisplay">0</span> Day Streak</button></div>
         
         <div class="score-display">
             <div class="score-item">
@@ -52,7 +48,11 @@
             </div>
         </div>
         
-<!-- Definition box (hidden until word is solved) -->
+        <div class="instructions">
+            Guess the word in 10 tries using directional clues
+        </div>
+        
+        <!-- Definition box (hidden until word is solved) -->
         <div class="definition-box" id="definitionBox">
             <div class="definition-word" id="defWord"></div>
             <div class="definition-text" id="defText"></div>
@@ -62,8 +62,11 @@
         <div class="alphabet-display" id="alphabetDisplay">
             <span>A</span> <span>B</span> <span>C</span> <span>D</span> <span>E</span> <span>F</span> <span>G</span> <span>H</span> <span>I</span> <span>J</span> <span>K</span> <span>L</span> <span>M</span> <span>N</span> <span>O</span> <span>P</span> <span>Q</span> <span>R</span> <span>S</span> <span>T</span> <span>U</span> <span>V</span> <span>W</span> <span>X</span> <span>Y</span> <span>Z</span>
         </div>
+            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #28a745;">â—</span> = correct</span>
+        </div>
         
-        <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-form-type="other">
+        
+        <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" autocomplete="off" spellcheck="false">
         
         <div class="button-group">
             <button id="submitBtn">Submit</button>
@@ -71,9 +74,9 @@
         </div>
         
         <div class="legend-box">
-            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #28a745;">●</span> = correct</span>
-            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">◄</span> = earlier</span>
-            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">►</span> = later</span>
+            <span style="color: #28a745; font-weight: 600;">●</span> = correct &nbsp; 
+            <span style="color: #667eea; font-weight: 600;">◄</span> = earlier &nbsp; 
+            <span style="color: #667eea; font-weight: 600;">►</span> = later
         </div>
         
         <div id="errorMessage"></div>
@@ -83,17 +86,17 @@
     
     <!-- Bottom buttons with text labels -->
     <div class="bottom-buttons-container">
-        <button class="panel-btn share-btn" onclick="toggleShare()">📤 Share</button>
-        <button class="panel-btn stats-btn" onclick="toggleStats()">📊 Stats</button>
-        <button class="panel-btn info-btn" onclick="toggleInfo()">ℹ️ About</button>
-        <button class="panel-btn help-btn" onclick="toggleHelp()">❓ Help</button>
+        <button class="panel-btn share-btn" onclick="toggleShare()">ðŸ“¤ Share</button>
+        <button class="panel-btn stats-btn" onclick="toggleStats()">ðŸ“Š Stats</button>
+        <button class="panel-btn info-btn" onclick="toggleInfo()">â„¹ï¸ About</button>
+        <button class="panel-btn help-btn" onclick="toggleHelp()">â“ Help</button>
     </div>
     </div> <!-- End main-wrapper -->
     
     <!-- Share panel -->
     <div class="info-panel" id="sharePanel">
         <div style="position: relative;">
-        <button class="modal-close-x" onclick="closeShare()">×</button>
+        <button class="modal-close-x" onclick="closeShare()">Ã—</button>
         <h2>Share Your Results</h2>
         <div class="share-preview" id="sharePreview">Your results will appear here after playing!</div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
@@ -112,7 +115,7 @@
     <!-- Stats panel -->
     <div class="info-panel" id="statsPanel">
         <div style="position: relative;">
-        <button class="modal-close-x" onclick="closeStats()">×</button>
+        <button class="modal-close-x" onclick="closeStats()">Ã—</button>
         <h2>Your Statistics</h2>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;">
             <div style="text-align: center; background: #f8f9fa; padding: 15px; border-radius: 12px;">
@@ -133,7 +136,7 @@
             </div>
             <div style="text-align: center; grid-column: 1 / -1; background: #f8f9fa; padding: 15px; border-radius: 12px;">
                 <div style="font-size: 2em; font-weight: bold; color: #667eea;"><span id="statMaxStreak">0</span></div>
-                <div style="color: #666;">🔥 Best Streak</div>
+                <div style="color: #666;">ðŸ”¥ Best Streak</div>
             </div>
         </div>
         <button class="close-panel-btn" onclick="closeStats()">Close</button>
@@ -143,25 +146,25 @@
     <!-- Info/About panel -->
     <div class="info-panel" id="infoPanel">
         <div style="position: relative;">
-        <button class="modal-close-x" onclick="closeInfo()">×</button>
+        <button class="modal-close-x" onclick="closeInfo()">Ã—</button>
         <h2>About Directionary</h2>
         
         <div class="help-section">
             <h3>About</h3>
             <p>Created by Joel Pickard<br>
-            © 2025 All Rights Reserved<br>
+            Â© 2025 All Rights Reserved<br>
             A unique word puzzle game where directional arrows guide you to the solution.</p>
         </div>
         
         <div class="help-section">
             <h3>Contact</h3>
-            <p>Email: <a href="/cdn-cgi/l/email-protection#9ef7f0f8f1defaf7ecfbfdeaf7f1f0ffece7b0f0fbea"><span class="__cf_email__" data-cfemail="741d1a121b34101d061117001d1b1a15060d5a1a1100">[email&#160;protected]</span></a></p>
+            <p>Email: info@directionary.net</p>
         </div>
         
         <div class="help-section">
             <h3>Licensing</h3>
-            <p>Directionary is available for sale or licensing.<br>
-            Contact us at: <a href="/cdn-cgi/l/email-protection#50322523393e35232310343922353324393f3e3122297e3e3524"><span class="__cf_email__" data-cfemail="1c7e696f7572796f6f5c78756e797f687573727d6e6532727968">[email&#160;protected]</span></a></p>
+            <p>Directionary is available for licensing.<br>
+            Contact us at: business@directionary.net</p>
         </div>
         
         <button class="close-panel-btn" onclick="closeInfo()">Close</button>
@@ -171,7 +174,7 @@
     <!-- Help panel -->
     <div class="info-panel" id="helpPanel">
         <div style="position: relative;">
-        <button class="modal-close-x" onclick="closeHelp()">×</button>
+        <button class="modal-close-x" onclick="closeHelp()">Ã—</button>
         <h2>How to Play Directionary</h2>
         
         <div class="help-section">
@@ -183,15 +186,15 @@
             <h3>Symbols Guide</h3>
             <div class="help-symbols">
                 <div class="help-symbol">
-                    <span>●</span>
+                    <span>â—</span>
                     <span>Correct letter in the right position</span>
                 </div>
                 <div class="help-symbol">
-                    <span>◄</span>
+                    <span>â—„</span>
                     <span>Go earlier in the alphabet (your letter is too late)</span>
                 </div>
                 <div class="help-symbol">
-                    <span>►</span>
+                    <span>â–º</span>
                     <span>Go later in the alphabet (your letter is too early)</span>
                 </div>
             </div>
@@ -199,38 +202,36 @@
         
         <div class="help-section">
             <h3>Example</h3>
-            <p>If the target word is HOUSE and you guess GREAT:</p>
-            <p>G ► (H comes after G in alphabet)<br>
-            R ◄ (O comes before R in alphabet)<br>
-            E ► (U comes after E in alphabet)<br>
-            A ► (S comes after A in alphabet)<br>
-            T ◄ (E comes before T in alphabet)</p>
+            <p>If the word is HOUSE and you guess GREAT:</p>
+            <p>G â–º (G needs to go later to reach H)<br>
+            R â—„ (R needs to go earlier to reach O)<br>
+            E â–º (E needs to go later to reach U)<br>
+            A â–º (A needs to go later to reach S)<br>
+            T â—„ (T needs to go earlier to reach E)</p>
         </div>
         
         <div class="help-section">
             <h3>Scoring</h3>
-            <p>• You have 10 guesses per round<br>
-            • Start with 100 points per word<br>
-            • Lose 10 points for each incorrect guess<br>
-            • Complete 3 rounds for your daily score<br>
-            • Share your results with friends!</p>
+            <p>â€¢ You have 10 guesses per round<br>
+            â€¢ Start with 100 points per word<br>
+            â€¢ Lose 10 points for each incorrect guess<br>
+            â€¢ Complete 3 rounds for your daily score<br>
+            â€¢ Share your results with friends!</p>
         </div>
         
         <div class="help-section">
             <h3>Game Controls</h3>
-            <p>• The "Skip This Round" button skips the current round<br>
-            • Skipping scores that round as ZERO points (no matter how many guesses you used)<br>
-            • You can still complete the remaining rounds<br>
-            • Your total score continues across all 3 rounds</p>
+            <p>â€¢ The "Skip This Round" button only skips the current round<br>
+            â€¢ You can still complete the remaining rounds<br>
+            â€¢ Your total score continues across all 3 rounds</p>
         </div>
         
         <div class="help-section">
             <h3>Tips</h3>
-            <p>• Valid words include common English words (like "photo" for "photograph") but exclude proper nouns, names, slang, profanity, and specialized jargon (legal, medical, or technical terms)<br>
-            • The alphabet stays visible as you play<br>
-            • Darkened letters show what you've tried, but they may still be in the word at different positions<br>
-            • Start with words using middle alphabet letters (L-M-N-O) to eliminate half the alphabet at once<br>
-            • Pay attention to the arrows - they show which direction to move through the alphabet</p>
+            <p>â€¢ The alphabet at the top stays visible as you play<br>
+            â€¢ Darkened letters show what you've tried, but they may still be in the word at different positions<br>
+            â€¢ Start with words using middle alphabet letters (L-M-N-O) to eliminate half the alphabet at once<br>
+            â€¢ Pay attention to the arrows - they show which direction to move through the alphabet</p>
         </div>
         
         <button class="close-panel-btn" onclick="closeHelp()">Got it!</button>
@@ -246,7 +247,7 @@
                 You scored <strong id="modalScore"></strong> points!<br>
                 Total: <strong id="modalTotal"></strong> points
             </div>
-            <button class="success-btn" onclick="nextWord()">Next Round →</button>
+            <button class="success-btn" onclick="nextWord()">Next Round â†’</button>
             
             <!-- Definition in modal -->
             <div class="modal-definition" id="modalDefinition">
@@ -260,7 +261,7 @@
     <!-- Daily Complete Modal -->
     <div class="success-modal" id="dailyCompleteModal">
         <div class="success-content">
-            <div class="success-title">🏆 Daily Puzzle Complete!</div>
+            <div class="success-title">ðŸ† Daily Puzzle Complete!</div>
             <div class="success-score">
                 Final Score: <strong id="finalScore"></strong> points<br>
                 <br>
@@ -274,7 +275,7 @@
     <!-- Zero Score Modal -->
     <div class="success-modal" id="zeroScoreModal">
         <div class="success-content">
-            <div class="success-title">⚠️ Score Reached Zero!</div>
+            <div class="success-title">âš ï¸ Score Reached Zero!</div>
             <div class="success-score" style="margin: 20px 0;">
                 You've used up all your points for this round.
             </div>
@@ -298,7 +299,7 @@
     <div class="success-modal" id="duplicateWordModal">
         <div class="success-content">
             <div class="success-title">Already Used!</div>
-            <div class="success-score" style="margin: 20px 0>
+            <div class="success-score" style="margin: 20px 0;">
                 You already guessed that word this round.<br>
                 It won't affect your score.
             </div>
