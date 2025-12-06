@@ -1148,4 +1148,3 @@
         window.shareToBluesky = shareToBluesky;
         window.reloadDevGame = reloadDevGame;
         window.shareToFacebook = shareToFacebook;
-        };
