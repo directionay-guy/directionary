@@ -50,8 +50,8 @@
         }
         
         .alphabet-display .used-letter {
-            color: #4a5568;
-            font-weight: 600;
+            color: #2d3748;
+            font-weight: 800;
             opacity: 1;
         }
         
@@ -638,7 +638,7 @@
         }
         
         .help-symbols {
-            background: #f8f9fa;
+            background: #e8e9ed;
             padding: 15px;
             border-radius: 10px;
             margin: 10px 0;
@@ -648,7 +648,7 @@
             display: flex;
             align-items: center;
             margin: 8px 0;
-            font-size: 1.1em;
+            font-size: 0.95em;
         }
         
         .help-symbol span:first-child {

@@ -717,9 +717,14 @@
             }
             
             // Update display to show already played
-            var instructions = document.querySelector(".instructions");
-            instructions.innerHTML = "<strong>✨ You've already completed today's challenge! Return tomorrow for a new game.</strong>";
-            instructions.style.background = "linear-gradient(135deg, #667eea15 0%, #764ba215 100%)";
+            var instructions = document.querySelector(".instructions-brief");
+            if (!instructions) {
+                instructions = document.querySelector(".instructions");
+            }
+            if (instructions) {
+                instructions.innerHTML = "<strong>✨ You've already completed today's challenge! Return tomorrow for a new game.</strong>";
+                instructions.style.background = "linear-gradient(135deg, #667eea15 0%, #764ba215 100%)";
+            }
             
             // Show GAME OVER badge
             var dailyIndicator = document.getElementById("dailyIndicator");
