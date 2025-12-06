@@ -95,12 +95,12 @@
         }
         
         .tagline {
-            font-size: 0.9em;
+            font-size: 1.1em;
             color: #666;
             margin-bottom: 15px;
             margin-top: -5px;
             font-style: italic;
-            font-weight: 600;
+            font-weight: 700;
         }
         
         .instructions-brief {
