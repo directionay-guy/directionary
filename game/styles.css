@@ -764,12 +764,17 @@
         
         @media (max-width: 480px) {
             .game-title {
-                font-size: 1.6em;
+                font-size: 1.9em;
                 gap: 6px;
             }
             
             .game-title .title-arrow {
                 font-size: 0.85em;
+                transform: translateY(0);
+            }
+            
+            .tagline {
+                font-size: 0.9em;
             }
             
             .alphabet-display {
