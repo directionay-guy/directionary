@@ -32,10 +32,7 @@
             <span class="title-arrow title-arrow-right">►</span>
         </h1>
         <p class="tagline">Which Way To Words?</p>
-        <div class="instructions-brief">
-            Use 10 tries to guess the word using directional clues
-        </div>
-        <div class="daily-indicator" id="dailyIndicator">Daily Puzzle - Round <span id="roundNumber">1</span> of 3<button class="streak-badge" id="streakBadge" onclick="toggleStats()"><span class="streak-icon">🔥</span> <span id="streakDisplay">0</span> Day Streak</button></div>
+        <div class="daily-indicator" id="dailyIndicator">Daily Challenge - Round <span id="roundNumber">1</span> of 3<button class="streak-badge" id="streakBadge" onclick="toggleStats()"><span class="streak-icon">🔥</span> <span id="streakDisplay">0</span> Day Streak</button></div>
         
         <div class="score-display">
             <div class="score-item">
@@ -53,16 +50,17 @@
         </div>
         
         <div class="instructions">
+            You have ten tries to guess the<br>hidden word using directional clues.<br>
+            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #28a745;">●</span> = correct</span>
+            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">◄</span> = earlier</span>
+            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">►</span> = later</span>
+        </div>
         
         <!-- Definition box (hidden until word is solved) -->
         <div class="definition-box" id="definitionBox">
             <div class="definition-word" id="defWord"></div>
             <div class="definition-text" id="defText"></div>
             <div class="definition-credit">Powered by Free Dictionary API</div>
-        </div>
-        
-        <div class="alphabet-display" id="alphabetDisplay">
-            <span>A</span> <span>B</span> <span>C</span> <span>D</span> <span>E</span> <span>F</span> <span>G</span> <span>H</span> <span>I</span> <span>J</span> <span>K</span> <span>L</span> <span>M</span> <span>N</span> <span>O</span> <span>P</span> <span>Q</span> <span>R</span> <span>S</span> <span>T</span> <span>U</span> <span>V</span> <span>W</span> <span>X</span> <span>Y</span> <span>Z</span>
         </div>
         
         <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-form-type="other">
@@ -72,10 +70,8 @@
             <button class="give-up-btn" id="giveUpBtn">Skip This Round</button>
         </div>
         
-        <div class="legend-box">
-            <span style="color: #28a745; font-weight: 600;">●</span> = correct &nbsp;
-            <span style="color: #667eea; font-weight: 600;">◄</span> = earlier &nbsp;
-            <span style="color: #667eea; font-weight: 600;">►</span> = later
+        <div class="alphabet-display" id="alphabetDisplay">
+            <span>A</span> <span>B</span> <span>C</span> <span>D</span> <span>E</span> <span>F</span> <span>G</span> <span>H</span> <span>I</span> <span>J</span> <span>K</span> <span>L</span> <span>M</span> <span>N</span> <span>O</span> <span>P</span> <span>Q</span> <span>R</span> <span>S</span> <span>T</span> <span>U</span> <span>V</span> <span>W</span> <span>X</span> <span>Y</span> <span>Z</span>
         </div>
         
         <div id="errorMessage"></div>
@@ -154,13 +150,13 @@
         
         <div class="help-section">
             <h3>Contact</h3>
-            <p>Email: <a href="/cdn-cgi/l/email-protection#b3daddd5dcf3d7dac1d6d0c7dadcddd2c1ca9dddd6c7"><span class="__cf_email__" data-cfemail="533a3d353c13373a213630273a3c3d32212a7d3d3627">[email&#160;protected]</span></a></p>
+            <p>Email: <a href="/cdn-cgi/l/email-protection#640d0a020b24000d160107100d0b0a05161d4a0a0110"><span class="__cf_email__" data-cfemail="51383f373e11353823343225383e3f3023287f3f3425">[email&#160;protected]</span></a></p>
         </div>
         
         <div class="help-section">
             <h3>Licensing</h3>
             <p>Directionary is available for sale or licensing.<br>
-            Contact us at: <a href="/cdn-cgi/l/email-protection#9ffdeaecf6f1faececdffbf6edfafcebf6f0f1feede6b1f1faeb"><span class="__cf_email__" data-cfemail="0c6e797f6562697f7f4c68657e696f786563626d7e7522626978">[email&#160;protected]</span></a></p>
+            Contact us at: <a href="/cdn-cgi/l/email-protection#036176706a6d66707043676a716660776a6c6d62717a2d6d6677"><span class="__cf_email__" data-cfemail="bfddcaccd6d1daccccffdbd6cddadccbd6d0d1decdc691d1dacb">[email&#160;protected]</span></a></p>
         </div>
         
         <button class="close-panel-btn" onclick="closeInfo()">Close</button>
@@ -182,15 +178,15 @@
             <h3>Symbols Guide</h3>
             <div class="help-symbols">
                 <div class="help-symbol">
-                    <span style="color: #28a745;">●</span>
+                    <span>●</span>
                     <span>Correct letter in the right position</span>
                 </div>
                 <div class="help-symbol">
-                    <span style="color: #667eea;">◄</span>
+                    <span>◄</span>
                     <span>Go earlier in the alphabet (your letter is too late)</span>
                 </div>
                 <div class="help-symbol">
-                    <span style="color: #667eea;">►</span>
+                    <span>►</span>
                     <span>Go later in the alphabet (your letter is too early)</span>
                 </div>
             </div>
@@ -230,8 +226,9 @@
         
         <div class="help-section">
             <h3>Tips</h3>
-            <p>• Valid words include common English words (like "photo" for "photograph") but exclude proper nouns, names, profanity, and specialized jargon (legal, medical, or technical terms)<br>
-            • Darkened letters in the alphabet guide show what you've tried, and what direction to go from that letter, but those letters may still be in the word at another position<br>
+            <p>• Valid words include common English words (like "photo" for "photograph") but exclude proper nouns, names, slang, profanity, and specialized jargon (legal, medical, or technical terms)<br>
+            • The alphabet at the top stays visible as you play<br>
+            • Darkened letters show what you've tried, but they may still be in the word at different positions<br>
             • Start with words using middle alphabet letters (L-M-N-O) to eliminate half the alphabet at once<br>
             • Pay attention to the arrows - they show which direction to move through the alphabet</p>
         </div>
@@ -302,7 +299,7 @@
         <div class="success-content">
             <div class="success-title">Already Used!</div>
             <div class="success-score" style="margin: 20px 0;">
-                                           You already guessed that word this round.<br>
+                             You already guessed that word this round.<br>
                 It won't affect your score.
             </div>
             <button class="success-btn" onclick="closeDuplicateModal()">Try Again</button>
