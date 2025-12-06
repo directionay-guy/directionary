@@ -101,7 +101,7 @@
             margin-bottom: 15px;
             margin-top: -5px;
             font-style: italic;
-            font-weight: 700;
+            font-weight: 400;
         }
         
         .instructions-brief {
@@ -768,7 +768,7 @@
             }
             
             .game-title {
-                font-size: 2.5em;
+                font-size: 2.8em;
                 gap: 6px;
             }
             
@@ -779,7 +779,6 @@
             
             .tagline {
                 font-size: 0.8em;
-                font-weight: 700;
             }
             
             .alphabet-display {
