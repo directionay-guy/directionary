@@ -234,8 +234,6 @@
         
         function initGame() {
             console.log("Initializing Directionary...");
-            document.getElementById("gameLink").href = GAME_URL;
-            document.getElementById("gameLink").textContent = GAME_URL;
             
             // Check for beta mode and show banner if enabled
             showBetaBannerIfEnabled();
