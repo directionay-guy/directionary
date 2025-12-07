@@ -760,6 +760,15 @@
                 gap: 8px;
             }
             
+            .game-title .title-arrow {
+                transform: translateY(-0.5em);
+            }
+            
+            .game-title .title-arrow-left,
+            .game-title .title-arrow-right {
+                transform: translateY(-0.6em);
+            }
+            
             .alphabet-display {
                 font-size: 0.7em;
                 letter-spacing: 1px;
