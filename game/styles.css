@@ -122,6 +122,10 @@
             color: #28a745;
             margin-bottom: 10px;
             font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
         }
         
         .streak-badge {
@@ -132,7 +136,7 @@
             border-radius: 20px;
             font-size: 0.9em;
             font-weight: 600;
-            margin-left: 10px;
+            margin-left: 0;
             box-shadow: 0 4px 12px rgba(255, 154, 86, 0.35);
             cursor: pointer;
             transition: all 0.3s ease;
@@ -798,9 +802,8 @@
                 font-size: 0.7em;
                 display: flex;
                 align-items: center;
-                justify-content: center;
+                justify-content: space-between;
                 flex-wrap: nowrap;
-                gap: 3px;
                 white-space: nowrap;
             }
             
@@ -940,7 +943,6 @@
         @media (max-width: 375px) {
             .daily-indicator {
                 font-size: 0.65em;
-                gap: 2px;
             }
             
             .streak-badge {
