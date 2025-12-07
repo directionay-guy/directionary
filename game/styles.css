@@ -1,4 +1,4 @@
-       body {
+        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(180deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
             margin: 0;
@@ -769,12 +769,12 @@
         /* Tablet/iPad optimizations */
         @media (min-width: 481px) and (max-width: 768px) {
             .game-title .title-arrow {
-                transform: translateY(-0.35em);
+                transform: translateY(-0.5em);
             }
             
             .game-title .title-arrow-left,
             .game-title .title-arrow-right {
-                transform: translateY(-0.45em);
+                transform: translateY(-0.6em);
             }
         }
         
