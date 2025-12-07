@@ -762,6 +762,13 @@
             }
         }
         
+        /* Tablet/iPad optimizations */
+        @media (min-width: 481px) and (max-width: 768px) {
+            .game-title .title-arrow {
+                transform: translateY(-0.08em);
+            }
+        }
+        
         @media (max-width: 480px) {
             .game-container {
                 padding: 10px 20px 20px 20px;

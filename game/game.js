@@ -573,7 +573,7 @@
             // Update daily indicator to show Game Over
             var dailyIndicator = document.getElementById("dailyIndicator");
             var streakBadge = document.getElementById("streakBadge");
-            dailyIndicator.innerHTML = '<span style="display: inline-block; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 8px 16px; border-radius: 20px; font-size: 1em; font-weight: 600;">GAME OVER</span> ' + streakBadge.outerHTML;
+            dailyIndicator.innerHTML = '<span class="game-over-badge">GAME OVER</span> ' + streakBadge.outerHTML;
             
             // Build round summary with two-column layout and dictionary links
             var summary = "";
@@ -720,7 +720,7 @@
                 instructions = document.querySelector(".instructions");
             }
             if (instructions) {
-                instructions.innerHTML = "<strong>✨ You've already completed today's challenge! Return tomorrow for a new game.</strong>";
+                instructions.innerHTML = "<strong>✨ You've completed today's challenge! Return tomorrow for a new game.</strong>";
                 instructions.style.background = "linear-gradient(135deg, #667eea15 0%, #764ba215 100%)";
             }
             
@@ -825,8 +825,8 @@
                 }
             }
             
-            text += "\nScore: " + totalScore + "\n\n";
-            text += GAME_URL;
+            text += "\nScore: " + totalScore + " out of 300\n\n";
+            text += "#WW2W " + GAME_URL;
             
             return text;
         }
@@ -1146,3 +1146,4 @@
         window.shareToBluesky = shareToBluesky;
         window.reloadDevGame = reloadDevGame;
         window.shareToFacebook = shareToFacebook;
+        };
