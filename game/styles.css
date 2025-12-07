@@ -84,6 +84,7 @@
             line-height: 1;
             display: inline-flex;
             align-items: center;
+            -webkit-transform: translateY(-0.08em);
             transform: translateY(-0.08em);
         }
         
@@ -761,11 +762,13 @@
             }
             
             .game-title .title-arrow {
+                -webkit-transform: translateY(-0.5em);
                 transform: translateY(-0.5em);
             }
             
             .game-title .title-arrow-left,
             .game-title .title-arrow-right {
+                -webkit-transform: translateY(-0.6em);
                 transform: translateY(-0.6em);
             }
             
@@ -799,6 +802,7 @@
             
             .game-title .title-arrow {
                 font-size: 0.85em;
+                -webkit-transform: translateY(-0.15em);
                 transform: translateY(-0.15em);
             }
             
