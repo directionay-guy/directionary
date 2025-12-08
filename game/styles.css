@@ -64,8 +64,6 @@
             justify-content: center;
             gap: 12px;
             line-height: 1.2;
-            overflow: visible;
-            padding: 2px 0;
         }
         
         .game-title .title-text {
@@ -73,7 +71,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            padding-bottom: 3px;
+            line-height: 1.2;
         }
         
         .game-title .title-arrow {
@@ -81,19 +79,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            line-height: 1;
-            display: inline-flex;
-            align-items: center;
-            -webkit-transform: translateY(-0.08em);
-            transform: translateY(-0.08em);
-        }
-        
-        .game-title .title-arrow-left {
-            transform: translateY(0);
-        }
-        
-        .game-title .title-arrow-right {
-            transform: translateY(0);
+            line-height: 1.2;
         }
         
         .tagline {
@@ -761,17 +747,6 @@
                 gap: 8px;
             }
             
-            .game-title .title-arrow {
-                -webkit-transform: translateY(-0.5em);
-                transform: translateY(-0.5em);
-            }
-            
-            .game-title .title-arrow-left,
-            .game-title .title-arrow-right {
-                -webkit-transform: translateY(-0.6em);
-                transform: translateY(-0.6em);
-            }
-            
             .alphabet-display {
                 font-size: 0.7em;
                 letter-spacing: 1px;
@@ -780,30 +755,12 @@
         
         /* Tablet/iPad optimizations */
         @media (min-width: 481px) and (max-width: 768px) {
-            .game-title .title-arrow {
-                transform: translateY(-0.5em);
-            }
-            
-            .game-title .title-arrow-left,
-            .game-title .title-arrow-right {
-                transform: translateY(-0.6em);
-            }
+            /* Reserved for future tablet-specific styles */
         }
         
         @media (max-width: 480px) {
             .game-container {
                 padding: 10px 20px 20px 20px;
-            }
-            
-            .game-title {
-                font-size: 2.8em;
-                gap: 6px;
-            }
-            
-            .game-title .title-arrow {
-                font-size: 0.85em;
-                -webkit-transform: translateY(-0.15em);
-                transform: translateY(-0.15em);
             }
             
             .tagline {
@@ -974,10 +931,6 @@
                 font-size: 0.7em;
                 margin-right: 2px;
                 border-radius: 10px;
-            }
-            
-            .game-title {
-                font-size: 1.4em;
             }
             
             .instructions {
