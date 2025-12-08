@@ -56,44 +56,17 @@
         }
         
         .game-title {
-            font-size: 2.2em;
-            margin-bottom: 5px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            line-height: 1.2;
-            overflow: visible;
-            padding: 2px 0;
-        }
-        
-        .game-title .title-text {
-            font-family: Georgia, 'Times New Roman', serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            padding-bottom: 3px;
-        }
-        
-        .game-title .title-arrow {
-            font-size: 0.9em;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin: 20px 0 10px 0;
             line-height: 1;
-            display: inline-flex;
-            align-items: center;
-            -webkit-transform: translateY(-0.08em);
-            transform: translateY(-0.08em);
         }
         
-        .game-title .title-arrow-left {
-            transform: translateY(0);
-        }
-        
-        .game-title .title-arrow-right {
-            transform: translateY(0);
+        .title-logo {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
         }
         
         .tagline {
@@ -756,20 +729,8 @@
         
         /* Mobile optimizations */
         @media (max-width: 768px) {
-            .game-title {
-                font-size: 1.8em;
-                gap: 8px;
-            }
-            
-            .game-title .title-arrow {
-                -webkit-transform: translateY(-0.5em);
-                transform: translateY(-0.5em);
-            }
-            
-            .game-title .title-arrow-left,
-            .game-title .title-arrow-right {
-                -webkit-transform: translateY(-0.6em);
-                transform: translateY(-0.6em);
+            .title-logo {
+                max-width: 450px;
             }
             
             .alphabet-display {
@@ -780,13 +741,8 @@
         
         /* Tablet/iPad optimizations */
         @media (min-width: 481px) and (max-width: 768px) {
-            .game-title .title-arrow {
-                transform: translateY(-0.5em);
-            }
-            
-            .game-title .title-arrow-left,
-            .game-title .title-arrow-right {
-                transform: translateY(-0.6em);
+            .title-logo {
+                max-width: 500px;
             }
         }
         
@@ -795,15 +751,8 @@
                 padding: 10px 20px 20px 20px;
             }
             
-            .game-title {
-                font-size: 2.8em;
-                gap: 6px;
-            }
-            
-            .game-title .title-arrow {
-                font-size: 0.85em;
-                -webkit-transform: translateY(-0.15em);
-                transform: translateY(-0.15em);
+            .title-logo {
+                max-width: 350px;
             }
             
             .tagline {
@@ -976,8 +925,8 @@
                 border-radius: 10px;
             }
             
-            .game-title {
-                font-size: 1.4em;
+            .title-logo {
+                max-width: 300px;
             }
             
             .instructions {
