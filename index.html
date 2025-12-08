@@ -24,8 +24,7 @@
             🧪 TEST MODE: Random words enabled
         </div>
         
-        <h1 class="game-title" style="position: relative;">
-            <span style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); font-size: 0.5em; opacity: 0.6; color: #667eea;">™</span>
+        <h1 class="game-title">
             <span class="title-arrow title-arrow-left">◄</span>
             <span class="title-arrow">●</span>
             <span class="title-text">Directionary</span>
@@ -33,7 +32,7 @@
             <span class="title-arrow title-arrow-right">►</span>
         </h1>
         <p class="tagline">Which Way To Words?<sup style="font-size: 0.5em; opacity: 0.6; margin-left: 2px; color: #666;">™</sup></p>
-        <div class="daily-indicator" id="dailyIndicator">Daily Challenge - Round <span id="roundNumber">1</span> of 3<button class="streak-badge" id="streakBadge" onclick="toggleStats()"><span class="streak-icon">🔥</span> <span id="streakDisplay">0</span> Day Streak</button></div>
+        <div class="daily-indicator" id="dailyIndicator"><span>Daily Puzzle - Round <span id="roundNumber">1</span> of 3</span><button class="streak-badge" id="streakBadge" onclick="toggleStats()"><span class="streak-icon">🔥</span> <span id="streakDisplay">0</span> Day Streak</button></div>
         
         <div class="score-display">
             <div class="score-item">
@@ -151,13 +150,13 @@
         
         <div class="help-section">
             <h3>Contact</h3>
-            <p>Email: <a href="/cdn-cgi/l/email-protection#640d0a020b24000d160107100d0b0a05161d4a0a0110"><span class="__cf_email__" data-cfemail="51383f373e11353823343225383e3f3023287f3f3425">[email&#160;protected]</span></a></p>
+            <p>Email: <a href="mailto:admin@directionary.net">admin@directionary.net</a></p>
         </div>
         
         <div class="help-section">
             <h3>Licensing</h3>
             <p>Directionary™ is available for sale or licensing.<br>
-            Contact us at: <a href="/cdn-cgi/l/email-protection#036176706a6d66707043676a716660776a6c6d62717a2d6d6677"><span class="__cf_email__" data-cfemail="bfddcaccd6d1daccccffdbd6cddadccbd6d0d1decdc691d1dacb">[email&#160;protected]</span></a></p>
+            Contact us at: <a href="mailto:licensing@directionary.net">licensing@directionary.net</a></p>
         </div>
         
         <button class="close-panel-btn" onclick="closeInfo()">Close</button>
@@ -179,15 +178,15 @@
             <h3>Symbols Guide</h3>
             <div class="help-symbols">
                 <div class="help-symbol">
-                    <span>●</span>
+                    <span style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">●</span>
                     <span>Correct letter in the right position</span>
                 </div>
                 <div class="help-symbol">
-                    <span>◄</span>
+                    <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">◄</span>
                     <span>Go earlier in the alphabet (your letter is too late)</span>
                 </div>
                 <div class="help-symbol">
-                    <span>►</span>
+                    <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">►</span>
                     <span>Go later in the alphabet (your letter is too early)</span>
                 </div>
             </div>
@@ -227,9 +226,8 @@
         
         <div class="help-section">
             <h3>Tips</h3>
-            <p>• Valid words include common English words (like "photo" for "photograph") but exclude proper nouns, names, slang, profanity, and specialized jargon (legal, medical, or technical terms)<br>
-            • The alphabet at the top stays visible as you play<br>
-            • Darkened letters show what you've tried, but they may still be in the word at different positions<br>
+            <p>• Valid words include common English words, but exclude proper nouns, names, profanity, and specialized jargon. Slang may be appropriate in some instances<br>
+            • The alphabet at the top stays visible as you play - darkened letters show what you've tried, but they may still be in the word at different positions<br>
             • Start with words using middle alphabet letters (L-M-N-O) to eliminate half the alphabet at once<br>
             • Pay attention to the arrows - they show which direction to move through the alphabet</p>
         </div>
