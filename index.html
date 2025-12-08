@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Directionary - The Word Game Where Arrows Guide the Way</title>
-    <meta name="description" content="Directionary: A unique daily word puzzle using directional clues. Guess the 5-letter word using alphabetical arrows. Free to play, no download required.">
+    <title>Directionary™ - The Word Game Where Arrows Guide the Way</title>
+    <meta name="description" content="Directionary™: A unique daily word puzzle using directional clues. Guess the 5-letter word using alphabetical arrows. Free to play, no download required.">
     <meta name="keywords" content="directionary, word game, daily puzzle, alphabetical clues, wordle alternative, logic puzzle, word definitions">
-    <meta property="og:title" content="Directionary - Daily Word Puzzle Game">
+    <meta property="og:title" content="Directionary™ - Daily Word Puzzle Game">
     <meta property="og:description" content="Use directional arrows to find the daily word. A unique logic puzzle that teaches alphabetical reasoning.">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="stylesheet" href="game/styles.css?v=2">
+    <link rel="stylesheet" href="game/styles.css">
 </head>
 <body>
     <div class="main-wrapper">
@@ -27,12 +27,12 @@
         <h1 class="game-title">
             <span class="title-arrow title-arrow-left">◄</span>
             <span class="title-arrow">●</span>
-            <span class="title-text">Directionary</span>
+            <span class="title-text">Directionary<sup style="font-size: 0.5em; opacity: 0.6;">™</sup></span>
             <span class="title-arrow">●</span>
             <span class="title-arrow title-arrow-right">►</span>
         </h1>
-        <p class="tagline">Which Way To Words?</p>
-        <div class="daily-indicator" id="dailyIndicator"><span>Daily Puzzle - Round <span id="roundNumber">1</span> of 3</span><button class="streak-badge" id="streakBadge" onclick="toggleStats()"><span class="streak-icon">🔥</span> <span id="streakDisplay">0</span> Day Streak</button></div>
+        <p class="tagline">Which Way To Words?<sup style="font-size: 0.5em; opacity: 0.6;">™</sup></p>
+        <div class="daily-indicator" id="dailyIndicator">Daily Challenge - Round <span id="roundNumber">1</span> of 3<button class="streak-badge" id="streakBadge" onclick="toggleStats()"><span class="streak-icon">🔥</span> <span id="streakDisplay">0</span> Day Streak</button></div>
         
         <div class="score-display">
             <div class="score-item">
@@ -50,7 +50,7 @@
         </div>
         
         <div class="instructions">
-            10 tries to find 3 words using direction<br>
+            You have ten tries to guess the<br>hidden word using directional clues.<br>
             <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #28a745;">●</span> = correct</span>
             <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">◄</span> = earlier</span>
             <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">►</span> = later</span>
@@ -139,7 +139,7 @@
     <div class="info-panel" id="infoPanel">
         <div style="position: relative;">
         <button class="modal-close-x" onclick="closeInfo()">×</button>
-        <h2>About Directionary</h2>
+        <h2>About Directionary™</h2>
         
         <div class="help-section">
             <h3>About</h3>
@@ -150,13 +150,13 @@
         
         <div class="help-section">
             <h3>Contact</h3>
-            <p>Email: <a href="mailto:info@directionary.net">info@directionary.net</a></p>
+            <p>Email: <a href="/cdn-cgi/l/email-protection#640d0a020b24000d160107100d0b0a05161d4a0a0110"><span class="__cf_email__" data-cfemail="51383f373e11353823343225383e3f3023287f3f3425">[email&#160;protected]</span></a></p>
         </div>
         
         <div class="help-section">
             <h3>Licensing</h3>
-            <p>Directionary is available for sale or licensing.<br>
-            Contact us at: <a href="mailto:business@directionary.net">business@directionary.net</a></p>
+            <p>Directionary™ is available for sale or licensing.<br>
+            Contact us at: <a href="/cdn-cgi/l/email-protection#036176706a6d66707043676a716660776a6c6d62717a2d6d6677"><span class="__cf_email__" data-cfemail="bfddcaccd6d1daccccffdbd6cddadccbd6d0d1decdc691d1dacb">[email&#160;protected]</span></a></p>
         </div>
         
         <button class="close-panel-btn" onclick="closeInfo()">Close</button>
@@ -167,26 +167,26 @@
     <div class="info-panel" id="helpPanel">
         <div style="position: relative;">
         <button class="modal-close-x" onclick="closeHelp()">×</button>
-        <h2>How to Play Directionary</h2>
+        <h2>How to Play Directionary™</h2>
         
         <div class="help-section">
             <h3>Goal</h3>
-            <p>Complete 3 daily word puzzles using 10 directional clues per round. Each guess shows whether letters should come earlier or later in the alphabet.</p>
+            <p>Complete 3 daily word puzzles using directional clues. Each guess shows whether letters should come earlier or later in the alphabet.</p>
         </div>
         
         <div class="help-section">
             <h3>Symbols Guide</h3>
             <div class="help-symbols">
                 <div class="help-symbol">
-                    <span style="color: #28a745;">●</span>
+                    <span>●</span>
                     <span>Correct letter in the right position</span>
                 </div>
                 <div class="help-symbol">
-                    <span style="color: #667eea;">◄</span>
+                    <span>◄</span>
                     <span>Go earlier in the alphabet (your letter is too late)</span>
                 </div>
                 <div class="help-symbol">
-                    <span style="color: #667eea;">►</span>
+                    <span>►</span>
                     <span>Go later in the alphabet (your letter is too early)</span>
                 </div>
             </div>
@@ -226,9 +226,9 @@
         
         <div class="help-section">
             <h3>Tips</h3>
-            <p>• Valid words include common English words (like "photo" for "photograph") but exclude proper nouns, names, profanity, and specialized jargon (legal, medical, or technical terms)<br>
-            • Daily puzzle words typically exclude simple plurals (adding 's') and past tenses (adding 'd' or 'ed'), though these can be used as guesses<br>
-            • Bold letters in the alphabet show what you've tried and which way to go, but they might still be in the word elsewhere<br>
+            <p>• Valid words include common English words (like "photo" for "photograph") but exclude proper nouns, names, slang, profanity, and specialized jargon (legal, medical, or technical terms)<br>
+            • The alphabet at the top stays visible as you play<br>
+            • Darkened letters show what you've tried, but they may still be in the word at different positions<br>
             • Start with words using middle alphabet letters (L-M-N-O) to eliminate half the alphabet at once<br>
             • Pay attention to the arrows - they show which direction to move through the alphabet</p>
         </div>
@@ -299,12 +299,17 @@
         <div class="success-content">
             <div class="success-title">Already Used!</div>
             <div class="success-score" style="margin: 20px 0;">
-                         You already guessed that word this round.<br>
+                             You already guessed that word this round.<br>
                 It won't affect your score.
             </div>
             <button class="success-btn" onclick="closeDuplicateModal()">Try Again</button>
         </div>
     </div>
+
+    <footer style="text-align: center; padding: 20px 0; color: #666; font-size: 0.9em; margin-top: 40px;">
+        <p>Directionary<sup style="font-size: 0.5em; opacity: 0.6;">™</sup> - Which Way To Words?<sup style="font-size: 0.5em; opacity: 0.6;">™</sup></p>
+        <p><span style="font-size: 0.9em; opacity: 0.7;">© 2025 All Rights Reserved</span></p>
+    </footer>
 
     <script src="game/game.js"></script>
 </body>
