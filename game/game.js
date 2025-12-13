@@ -14,10 +14,15 @@
         
         // Get game day number based on LOCAL midnight (like Wordle)
         function getLocalGameDay() {
-            var now = new Date();
-            var localMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            return Math.floor(localMidnight.getTime() / 86400000);
-        }
+    var now = new Date();
+    var localMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // PRIVATE BETA LAUNCH: December 10, 2025
+    var launchDate = new Date(2025, 11, 10); // Month is 0-indexed (11 = December)
+    
+    var daysSinceLaunch = Math.floor((localMidnight - launchDate) / 86400000);
+    return daysSinceLaunch + 1; // Start at Day 1
+}
         
         var dailyNumber = getLocalGameDay();
         var usingFallbackMode = false; // Track if using fallback words for testing
