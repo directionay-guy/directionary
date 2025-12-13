@@ -1188,7 +1188,8 @@ document.addEventListener('keydown', function(e) {
         }
     }
 });
-
+        }  // <-- ADD THIS LINE (closes the main function wrapper)
+        
         // Make functions globally accessible
         window.nextWord = nextWord;
         window.confirmGiveUp = confirmGiveUp;
