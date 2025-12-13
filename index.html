@@ -279,15 +279,14 @@
     </div>
     
     <!-- Zero Score Modal -->
-    <div class="success-modal" id="zeroScoreModal">
-        <div class="success-content">
-            <div class="success-title">⚠️ Score Reached Zero!</div>
-            <div class="success-score" style="margin: 20px 0;">
-                You've used up all your points for this round.
-            </div>
-            <button class="success-btn" onclick="skipRound()" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">Skip This Round</button>
-        </div>
+    <div class="modal" id="zeroScoreModal">
+    <div class="modal-content">
+        <div class="modal-title">🎯 Out of Tries!</div>
+        <p>You've used all 10 guesses for this round.</p>
+        <p>Score: 0 points</p>
+        <button class="success-btn" onclick="skipAfterZero()">Next Round →</button>
     </div>
+</div>
     
     <!-- Give Up Modal -->
     <div class="success-modal" id="giveUpModal">
