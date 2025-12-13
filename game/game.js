@@ -807,7 +807,7 @@
         }
         
         function generateShareText() {
-            var text = "Directionary #" + (dailyNumber % 1000);
+            var text = "Directionary (BETA) #" + (dailyNumber % 1000);
             
             // Add streak if greater than 0
             if (playerStats.currentStreak > 0) {
