@@ -14,15 +14,10 @@
         
         // Get game day number based on LOCAL midnight (like Wordle)
         function getLocalGameDay() {
-    var now = new Date();
-    var localMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
-    // PRIVATE BETA LAUNCH: December 10, 2025
-    var launchDate = new Date(2025, 11, 13); // Month is 0-indexed (11 = December)
-    
-    var daysSinceLaunch = Math.floor((localMidnight - launchDate) / 86400000);
-    return daysSinceLaunch + 1; // Start at Day 1
-}
+            var now = new Date();
+            var localMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            return Math.floor(localMidnight.getTime() / 86400000);
+        }
         
         var dailyNumber = getLocalGameDay();
         var usingFallbackMode = false; // Track if using fallback words for testing
@@ -485,7 +480,6 @@
             }
         }
         
-        
         function showError(message) {
             var errorDiv = document.getElementById("errorMessage");
             errorDiv.innerHTML = '<div class="error-message">' + message + '</div>';
@@ -808,7 +802,7 @@
         }
         
         function generateShareText() {
-            var text = "Directionary (BETA) #" + (dailyNumber % 1000);
+            var text = "Directionary #" + (dailyNumber % 1000);
             
             // Add streak if greater than 0
             if (playerStats.currentStreak > 0) {
@@ -967,13 +961,6 @@
             document.getElementById("guessInput").disabled = true;
             document.getElementById("submitBtn").disabled = true;
             document.getElementById("giveUpBtn").disabled = true;
-        }
-        function skipAfterZero() {
-            document.getElementById("zeroScoreModal").style.display = "none";
-            document.getElementById("guessInput").disabled = false;
-            document.getElementById("submitBtn").disabled = false;
-            document.getElementById("giveUpBtn").disabled = false;
-            startNewRound();
         }
         
         function skipRound() {
@@ -1137,59 +1124,7 @@
             // Start fresh
             startNewGame();
         }
-`        // Enter key handling for single-action modals
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        // Zero Score Modal - Next Round
-        var zeroScoreModal = document.getElementById('zeroScoreModal');
-        if (zeroScoreModal && zeroScoreModal.style.display === 'flex') {
-            skipAfterZero();
-            return;
-        }
-        
-        // Success Modal - Next Round
-        var successModal = document.getElementById('successModal');
-        if (successModal && successModal.style.display === 'flex') {
-            closeSuccessModal();
-            return;
-        }
-        
-        // Daily Complete Modal - View Results
-        var completeModal = document.getElementById('dailyCompleteModal');
-        if (completeModal && completeModal.style.display === 'flex') {
-            closeDailyModal();
-            toggleStats();
-            return;
-        }
-        
-        // Duplicate Word Modal - Try Again
-        var duplicateModal = document.getElementById('duplicateWordModal');
-        if (duplicateModal && duplicateModal.style.display === 'flex') {
-            closeDuplicateModal();
-            return;
-        }
-    }
-    
-    // Escape key closes info panels
-    if (e.key === 'Escape') {
-        var statsPanel = document.getElementById('statsPanel');
-        var helpPanel = document.getElementById('helpPanel');
-        var aboutPanel = document.getElementById('aboutPanel');
-        var sharePanel = document.getElementById('sharePanel');
-        
-        if (statsPanel && statsPanel.style.display === 'flex') {
-            toggleStats();
-        } else if (helpPanel && helpPanel.style.display === 'flex') {
-            toggleHelp();
-        } else if (aboutPanel && aboutPanel.style.display === 'flex') {
-            toggleAbout();
-        } else if (sharePanel && sharePanel.style.display === 'flex') {
-            toggleShare();
-        }
-    }
-});
-        }  // <-- ADD THIS LINE (closes the main function wrapper)
-        
+
         // Make functions globally accessible
         window.nextWord = nextWord;
         window.confirmGiveUp = confirmGiveUp;
