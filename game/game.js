@@ -1130,56 +1130,56 @@
             startNewGame();
         }
         // Enter key and Escape key handling for modals
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        // Success Modal - Next Round
-        var successModal = document.getElementById('successModal');
-        if (successModal && successModal.style.display === 'flex') {
-            nextWord();
-            return;
-        }
-        
-        // Daily Complete Modal - View Results
-        var completeModal = document.getElementById('dailyCompleteModal');
-        if (completeModal && completeModal.style.display === 'flex') {
-            closeDailyModal();
-            toggleStats();
-            return;
-        }
-        
-        // Zero Score Modal - Next Round
-        var zeroScoreModal = document.getElementById('zeroScoreModal');
-        if (zeroScoreModal && zeroScoreModal.style.display === 'flex') {
-            skipRound();
-            return;
-        }
-        
-        // Duplicate Word Modal - Try Again
-        var duplicateModal = document.getElementById('duplicateWordModal');
-        if (duplicateModal && duplicateModal.style.display === 'flex') {
-            closeDuplicateModal();
-            return;
-        }
-    }
-    
-    // Escape key closes info panels
-    if (e.key === 'Escape') {
-        var statsPanel = document.getElementById('statsPanel');
-        var helpPanel = document.getElementById('helpPanel');
-        var aboutPanel = document.getElementById('aboutPanel');
-        var sharePanel = document.getElementById('sharePanel');
-        
-        if (statsPanel && statsPanel.style.display === 'flex') {
-            toggleStats();
-        } else if (helpPanel && helpPanel.style.display === 'flex') {
-            toggleHelp();
-        } else if (aboutPanel && aboutPanel.style.display === 'flex') {
-            toggleAbout();
-        } else if (sharePanel && sharePanel.style.display === 'flex') {
-            toggleShare();
-        }
-    }
-});
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                // Success Modal - Next Round
+                var successModal = document.getElementById('successModal');
+                if (successModal && successModal.style.display === 'flex') {
+                    nextWord();
+                    return;
+                }
+                
+                // Daily Complete Modal - View Results
+                var completeModal = document.getElementById('dailyCompleteModal');
+                if (completeModal && completeModal.style.display === 'flex') {
+                    closeDailyModal();
+                    toggleStats();
+                    return;
+                }
+                
+                // Zero Score Modal - Next Round
+                var zeroScoreModal = document.getElementById('zeroScoreModal');
+                if (zeroScoreModal && zeroScoreModal.style.display === 'flex') {
+                    skipRound();
+                    return;
+                }
+                
+                // Duplicate Word Modal - Try Again
+                var duplicateModal = document.getElementById('duplicateWordModal');
+                if (duplicateModal && duplicateModal.style.display === 'flex') {
+                    closeDuplicateModal();
+                    return;
+                }
+            }
+            
+            // Escape key closes info panels
+            if (e.key === 'Escape') {
+                var statsPanel = document.getElementById('statsPanel');
+                var helpPanel = document.getElementById('helpPanel');
+                var aboutPanel = document.getElementById('aboutPanel');
+                var sharePanel = document.getElementById('sharePanel');
+                
+                if (statsPanel && statsPanel.style.display === 'flex') {
+                    toggleStats();
+                } else if (helpPanel && helpPanel.style.display === 'flex') {
+                    toggleHelp();
+                } else if (aboutPanel && aboutPanel.style.display === 'flex') {
+                    toggleAbout();
+                } else if (sharePanel && sharePanel.style.display === 'flex') {
+                    toggleShare();
+                }
+            }
+        });
 
         // Make functions globally accessible
         window.nextWord = nextWord;
