@@ -281,10 +281,11 @@
                 var currentDay = getLocalGameDay();
                 var storedDay = localStorage.getItem('directionary_currentDay');
                 
-                // Store current day on first check
+               // Store current day on first check (use yesterday so next check will detect change)
                 if (!storedDay) {
-                    localStorage.setItem('directionary_currentDay', currentDay);
-                    console.log("Stored current day:", currentDay);
+                    var yesterday = currentDay - 1;
+                    localStorage.setItem('directionary_currentDay', yesterday);
+                    console.log("🔧 No stored day - initialized to yesterday:", yesterday, "(will reload on next check)");
                     return;
                 }
                 
@@ -296,7 +297,7 @@
                     localStorage.setItem('directionary_currentDay', currentDay);
                     location.reload();
                 }
-            }, 60000); // Check every 60 seconds
+            }, 10000); // Check every 10 seconds
         }
 
         function startNewGame() {
