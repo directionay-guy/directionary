@@ -18,7 +18,7 @@
     var localMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
     // PRIVATE BETA LAUNCH: December 13, 2025
-    var launchDate = new Date(2025, 11, 13); // Month is 0-indexed (11 = December)
+    var launchDate = new Date(2025, 11, 14); // December 14 December is indexed so 11 = December
     
     var daysSinceLaunch = Math.floor((localMidnight - launchDate) / 86400000);
     return daysSinceLaunch + 1; // Start at Day 1
