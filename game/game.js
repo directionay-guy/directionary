@@ -691,6 +691,13 @@
                 var now = new Date();
                 var tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
                 var timeUntilMidnight = tomorrow - now;
+
+                 // Reload immediately when countdown reaches zero!
+                    if (timeUntilMidnight <= 1000) {
+                        console.log("⏰ Midnight reached! Reloading for new puzzle...");
+                        location.reload();
+                        return;
+                    }
                 
                 var hours = Math.floor(timeUntilMidnight / (1000 * 60 * 60));
                 var minutes = Math.floor((timeUntilMidnight % (1000 * 60 * 60)) / (1000 * 60));
