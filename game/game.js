@@ -446,8 +446,12 @@
             
             var arrowSpans = "";
             for (var j = 0; j < feedback.length; j++) {
-                var className = feedback[j] === "●" ? " class=\"correct\"" : "";
-                arrowSpans += "<span" + className + ">" + feedback[j] + "</span>";
+                var letter = guess[j];
+                var symbolClass = feedback[j] === "●" ? "correct" : (feedback[j] === "►" ? "later" : "earlier");
+                arrowSpans += '<div class="symbol-with-letter">';
+                arrowSpans += '<span class="background-letter">' + letter + '</span>';
+                arrowSpans += '<span class="overlay-symbol ' + symbolClass + '">' + feedback[j] + '</span>';
+                arrowSpans += '</div>';
             }
             
             feedbackLine.innerHTML = "<span style=\"color: #bbb; margin-right: 8px;\">" + guessCount + ")</span> <span>" + guess + "</span> <div class=\"feedback-arrows\">" + arrowSpans + "</div>";
