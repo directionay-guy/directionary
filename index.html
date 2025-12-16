@@ -12,10 +12,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Directionary™ - The Word Game Where Arrows Guide the Way</title>
+    
+    <!-- Essential SEO Meta Tags -->
     <meta name="description" content="Directionary™: A unique daily word puzzle using directional clues. Guess the 5-letter word using alphabetical arrows. Free to play, no download required.">
-    <meta name="keywords" content="directionary, word game, daily puzzle, alphabetical clues, wordle alternative, logic puzzle, word definitions">
+    <meta name="keywords" content="directionary, word game, daily puzzle, alphabetical clues, wordle alternative, logic puzzle, word definitions, #WW2W, which way to words">
+    <meta name="author" content="Joel Pickard">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://directionary.net">
+    
+    <!-- Open Graph / Facebook / LinkedIn -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://directionary.net">
     <meta property="og:title" content="Directionary™ - Daily Word Puzzle Game">
     <meta property="og:description" content="Use directional arrows to find the daily word. A unique logic puzzle that teaches alphabetical reasoning.">
+    <meta property="og:image" content="https://directionary.net/og-image.png">
+    <meta property="og:site_name" content="Directionary">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://directionary.net">
+    <meta name="twitter:title" content="Directionary™ - Daily Word Puzzle">
+    <meta name="twitter:description" content="Use directional arrows to find the daily word. A unique logic puzzle that teaches alphabetical reasoning.">
+    <meta name="twitter:image" content="https://directionary.net/twitter-card.png">
+    
+    <!-- Schema.org Structured Data for Rich Results -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "Directionary",
+      "alternateName": "Directionary™ - Which Way To Words?",
+      "description": "Daily word puzzle game with directional alphabet clues. Decode words using left/right/correct feedback. Play 3 rounds daily!",
+      "url": "https://directionary.net",
+      "gamePlatform": ["Web Browser", "iOS Safari", "Android Chrome"],
+      "genre": ["Puzzle", "Word Game"],
+      "playMode": "SinglePlayer",
+      "numberOfPlayers": {
+        "@type": "QuantitativeValue",
+        "value": 1
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Joel Pickard"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
+      },
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Web Browser"
+    }
+    </script>
+    
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="game/styles.css">
 </head>
@@ -158,13 +208,13 @@
         
         <div class="help-section">
             <h3>Contact</h3>
-            <p>Email: <a href="mailto:info@directionary.net">info@directionary.net</a></p>
+            <p>Email: <a href="/cdn-cgi/l/email-protection#fa93949c95ba9e93889f998e9395949b8883d4949f8e"><span class="__cf_email__" data-cfemail="7b12151d143b1f12091e180f1214151a090255151e0f">[email&#160;protected]</span></a></p>
         </div>
         
         <div class="help-section">
             <h3>Licensing</h3>
             <p>Directionary™ is available for sale or licensing.<br>
-            Contact us at: <a href="mailto:business@directionary.net">business@directionary.net</a></p>
+            Contact us at: <a href="/cdn-cgi/l/email-protection#f89a8d8b91969d8b8bb89c918a9d9b8c919796998a81d6969d8c"><span class="__cf_email__" data-cfemail="7d1f080e1413180e0e3d19140f181e091412131c0f0453131809">[email&#160;protected]</span></a></p>
         </div>
         
         <button class="close-panel-btn" onclick="closeInfo()">Close</button>
@@ -315,7 +365,6 @@
         <p>Directionary<sup style="font-size: 0.5em; opacity: 0.8; margin-left: 2px; color: #e8e8e8;">™</sup> - Which Way To Words?<sup style="font-size: 0.5em; opacity: 0.8; margin-left: 2px; color: #e8e8e8;">™</sup></p>
         <p><span style="font-size: 0.9em; opacity: 0.8; color: #e8e8e8;">© 2025 All Rights Reserved</span></p>
     </footer>
-
     <script src="game/game.js"></script>
 </body>
 </html>
