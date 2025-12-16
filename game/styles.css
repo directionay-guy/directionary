@@ -332,6 +332,58 @@
             -webkit-text-fill-color: transparent;
         }
         
+        /* Letter backgrounds under symbols */
+        .symbol-with-letter {
+            position: relative;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .background-letter {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            color: #d0d0d0 !important;
+            position: absolute;
+            z-index: 1;
+            user-select: none;
+            background: none !important;
+            -webkit-background-clip: initial !important;
+            -webkit-text-fill-color: #d0d0d0 !important;
+            background-clip: initial !important;
+        }
+        
+        .overlay-symbol {
+            font-size: 24px;
+            position: absolute;
+            z-index: 2;
+            font-weight: bold;
+        }
+        
+        .overlay-symbol.earlier {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .overlay-symbol.later {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .overlay-symbol.correct {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
         .new-game-message {
             text-align: center;
             padding: 10px;
@@ -835,6 +887,26 @@
             
             .feedback-arrows span {
                 letter-spacing: 2px;
+            
+            /* Mobile letter backgrounds */
+            .symbol-with-letter {
+                width: 26px;
+                height: 28px;
+            }
+            
+            .background-letter {
+                font-size: 24px;
+                font-weight: 900;
+                color: #d0d0d0 !important;
+                background: none !important;
+                -webkit-background-clip: initial !important;
+                -webkit-text-fill-color: #d0d0d0 !important;
+                background-clip: initial !important;
+            }
+            
+            .overlay-symbol {
+                font-size: 20px;
+            }
             }
             
             /* Input field adjustments */
