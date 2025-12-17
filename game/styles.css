@@ -346,13 +346,13 @@
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             font-size: 28px;
             font-weight: 900;
-            color: #ececec !important;
+            color: #e0e0e0 !important;
             position: absolute;
             z-index: 1;
             user-select: none;
             background: none !important;
             -webkit-background-clip: initial !important;
-            -webkit-text-fill-color: #ececec !important;
+            -webkit-text-fill-color: #e0e0e0 !important;
             background-clip: initial !important;
         }
         
@@ -361,6 +361,7 @@
             position: absolute;
             z-index: 2;
             font-weight: bold;
+            line-height: 1;
         }
         
         .overlay-symbol.earlier {
@@ -897,15 +898,16 @@
             .background-letter {
                 font-size: 24px;
                 font-weight: 900;
-                color: #ececec !important;
+                color: #e0e0e0 !important;
                 background: none !important;
                 -webkit-background-clip: initial !important;
-                -webkit-text-fill-color: #ececec !important;
+                -webkit-text-fill-color: #e0e0e0 !important;
                 background-clip: initial !important;
             }
             
             .overlay-symbol {
                 font-size: 20px;
+                line-height: 1;
             }
             }
             
