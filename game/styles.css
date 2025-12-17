@@ -362,7 +362,9 @@
             z-index: 2;
             font-weight: bold;
             line-height: 1;
+            vertical-align: top;
             top: 50%;
+            -webkit-transform: translateY(-50%);
             transform: translateY(-50%);
         }
         
@@ -910,7 +912,9 @@
             .overlay-symbol {
                 font-size: 20px;
                 line-height: 1;
+                vertical-align: top;
                 top: 50%;
+                -webkit-transform: translateY(-50%);
                 transform: translateY(-50%);
             }
             }
