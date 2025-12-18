@@ -906,11 +906,21 @@
                 background-clip: initial !important;
             }
             
-            .overlay-symbol {
-                font-size: 20px;
-                line-height: 1;
-                top: 3px;
+            
+            /* Tablet-specific (iPad, etc) */
+            @media (min-width: 601px) {
+                .overlay-symbol {
+                    top: 0px;
+                }
             }
+            
+            /* Phone-specific (iPhone, etc) */
+            @media (max-width: 600px) {
+                .overlay-symbol {
+                    top: 2px;
+                }
+            }
+            
             }
             
             /* Input field adjustments */
