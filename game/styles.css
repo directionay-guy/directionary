@@ -811,7 +811,7 @@
             /* Reserved for future tablet-specific styles */
         }
         
-        @media (max-width: 480px) {
+        @media (max-width: 1024px) {
             .game-container {
                 padding: 10px 20px 20px 20px;
             }
