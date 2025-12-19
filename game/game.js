@@ -415,6 +415,9 @@
 
             guessCount++;
             
+            // Clear previous letters - only show latest guess in alphabet
+            usedLetters.clear();
+            
             for (var i = 0; i < guess.length; i++) {
                 usedLetters.add(guess[i]);
             }
