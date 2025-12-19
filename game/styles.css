@@ -43,7 +43,7 @@
             color: #5566cc;
             letter-spacing: 1.5px;
             margin: 15px 0;
-            font-weight: 500;
+            font-weight: 400;
             opacity: 0.95;
             white-space: nowrap;
             overflow: hidden;
@@ -51,7 +51,7 @@
         
         .alphabet-display .used-letter {
             color: #2d3748;
-            font-weight: 800;
+            font-weight: 700;
             opacity: 1;
         }
         
@@ -191,13 +191,13 @@
         
         .instructions {
             font-size: 0.95em;
-            color: #28a745;
+            color: #000;
             margin-bottom: 15px;
             line-height: 1.6;
             padding: 12px;
             background: #f8f9fa;
             border-radius: 10px;
-            font-weight: 600;
+            font-weight: normal;
         }
         
         .legend {
@@ -1075,7 +1075,7 @@
 /* Phones (iPhone, etc) - up to 600px width */
 @media (max-width: 600px) {
     .overlay-symbol {
-        top: -1px;
+        top: 2px;
     }
 }
 

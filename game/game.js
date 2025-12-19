@@ -74,6 +74,11 @@
             defText.textContent = 'Loading definition...';
             defBox.style.display = 'block';
             
+            // Auto-hide after 10 seconds
+            setTimeout(function() {
+                defBox.style.display = 'none';
+            }, 10000);
+            
             // Fetch from Free Dictionary API
             fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + word.toLowerCase())
                 .then(response => {
