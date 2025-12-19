@@ -92,6 +92,13 @@
         <p class="tagline">Which Way To Words?<sup style="font-size: 0.5em; opacity: 0.6; margin-left: 2px; color: #666;">™</sup></p>
         <div class="daily-indicator" id="dailyIndicator"><span>Daily Puzzle - Round <span id="roundNumber">1</span> of 3</span><button class="streak-badge" id="streakBadge" onclick="toggleStats()"><span class="streak-icon">🔥</span> <span id="streakDisplay">0</span> Day Streak</button></div>
         
+        <div class="instructions">
+            10 tries each in 3 rounds to guess 3 words using direction.
+            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #28a745;">●</span> <span style="color: #000;">= correct</span></span>
+            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">◄</span> <span style="color: #000;">= before</span></span>
+            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">►</span> <span style="color: #000;">= after</span></span>
+        </div>
+        
         <div class="score-display">
             <div class="score-item">
                 <div class="score-label">Current Round</div>
@@ -105,13 +112,6 @@
                 <div class="score-label">Guesses</div>
                 <div class="score-value" id="guessCount">0</div>
             </div>
-        </div>
-        
-        <div class="instructions">
-            You have ten tries to guess the<br>hidden word using directional clues.<br>
-            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #28a745;">●</span> = correct</span>
-            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">◄</span> = before</span>
-            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">►</span> = after</span>
         </div>
         
         <!-- Definition box (hidden until word is solved) -->
@@ -203,18 +203,18 @@
             <h3>About</h3>
             <p>Created by Joel Pickard<br>
             © 2025 All Rights Reserved<br>
-            A unique word puzzle game where directional arrows guide you to the solution.</p>
+            A word puzzle where arrows guide you to the solution.</p>
         </div>
         
         <div class="help-section">
             <h3>Contact</h3>
-            <p>Email: <a href="mailto:info&#64;directionary&#46;net">info&#64;directionary&#46;net</a></p>
+            <p>Email: <a href="/cdn-cgi/l/email-protection#234a4d454c0500151718474a514640574a4c4d42515a05001715184d4657">info&#64;directionary&#46;net</a></p>
         </div>
         
         <div class="help-section">
             <h3>Licensing</h3>
             <p>Directionary™ is available for sale or licensing.<br>
-            Contact us at: <a href="mailto:business&#64;directionary&#46;net">business&#64;directionary&#46;net</a></p>
+            Contact us at: <a href="/cdn-cgi/l/email-protection#ff9d8a8c96919a8c8cd9dcc9cbc49b968d9a9c8b9690919e8d86d9dccbc9c4919a8b">business&#64;directionary&#46;net</a></p>
         </div>
         
         <button class="close-panel-btn" onclick="closeInfo()">Close</button>
@@ -284,10 +284,10 @@
         
         <div class="help-section">
             <h3>Tips</h3>
-            <p>• Valid words include common English words, but exclude proper nouns, names, profanity, and specialized jargon. Slang may be appropriate in some instances<br>
-            • The alphabet display shows which letters you've tried - darkened letters show what you've used, but they may still be in the word at different positions<br>
-            • Start with words using middle alphabet letters (L-M-N-O) to eliminate half the alphabet at once<br>
-            • Pay attention to the arrows - they show which direction to move through the alphabet</p>
+            <p>• Valid words include common English words, but exclude proper nouns, names, profanity, and specialized jargon. Slang may be appropriate in some instances.<br>
+            • The alphabet guide shows which letters you've tried per guess- darkened letters show what you've used, but they may still be in the word at different positions.<br>
+            • Start with words using middle alphabet letters (L-M-N-O) to eliminate half the alphabet at once.<br>
+            • Pay attention to the arrows - they show which direction to move through the alphabet.</p>
         </div>
         
         <button class="close-panel-btn" onclick="closeHelp()">Got it!</button>
@@ -363,8 +363,4 @@
 
     <footer style="text-align: center; padding: 20px 0; color: #e8e8e8; font-size: 0.9em; margin-top: 40px;">
         <p>Directionary<sup style="font-size: 0.5em; opacity: 0.8; margin-left: 2px; color: #e8e8e8;">™</sup> - Which Way To Words?<sup style="font-size: 0.5em; opacity: 0.8; margin-left: 2px; color: #e8e8e8;">™</sup></p>
-        <p><span style="font-size: 0.9em; opacity: 0.8; color: #e8e8e8;">© 2025 All Rights Reserved</span></p>
-    </footer>
-    <script src="game/game.js"></script>
-</body>
-</html>
+        <p><span style="font-size: 0.9em; opacity: 0.8; color: #e8e8e8;">©
