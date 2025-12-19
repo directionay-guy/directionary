@@ -1077,9 +1077,17 @@
             }
 
             // Use algorithm (same as main game)
+            // FIXED: Use LOCAL midnight calculation (not UTC)
             const date = new Date(dateStr);
-            const daysSinceEpoch = Math.floor(date.getTime() / 86400000);
-            const wordIndex = ((daysSinceEpoch * 317) + (round * 773)) % wordPool.length;
+            const localMidnight = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            
+            // Launch date: December 14, 2025 (same as game.js)
+            const launchDate = new Date(2025, 11, 14); // December is month 11
+            
+            const daysSinceLaunch = Math.floor((localMidnight - launchDate) / 86400000);
+            const dailyNumber = daysSinceLaunch + 1; // Start at Day 1
+            
+            const wordIndex = ((dailyNumber * 317) + (round * 773)) % wordPool.length;
             return { word: wordPool[wordIndex], isOverride: false };
         }
 
