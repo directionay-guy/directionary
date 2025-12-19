@@ -303,6 +303,15 @@
         function startNewGame() {
             console.log("Starting round " + currentRound + "...");
             
+            // Check for saved game state (only on round 1)
+            if (currentRound === 1) {
+                var savedState = loadGameState();
+                if (savedState) {
+                    restoreGameState(savedState);
+                    return; // Skip normal initialization
+                }
+            }
+            
             var wordPool = answerWords.length > 0 ? answerWords : fallbackWords;
             var wordIndex;
             
@@ -484,6 +493,7 @@
                 // Incorrect guess - deduct points
                 currentScore = Math.max(0, 100 - guessCount * 10);
                 updateScoreDisplay();
+                saveGameState();
                 
                 if (currentScore === 0) {
                     setTimeout(() => {
@@ -960,6 +970,7 @@
             document.getElementById("successModal").style.display = "none";
             
             if (currentRound >= maxRounds) {
+                clearGameState();
                 showDailyCompleteModal();
                 return;
             }
@@ -974,6 +985,7 @@
             feedbackDiv.appendChild(newGameLine);
             
             startNewGame();
+            saveGameState();
         }
         
         function showZeroScoreModal() {
@@ -1094,6 +1106,102 @@
         function updateStreakDisplay() {
             document.getElementById('streakDisplay').textContent = playerStats.currentStreak;
         }
+
+        // Game State Save/Load Functions
+        function saveGameState() {
+            // Only save in production mode (not dev/test)
+            if (devMode || testMode) return;
+            
+            var state = {
+                gameDay: dailyNumber,
+                currentRound: currentRound,
+                currentScore: currentScore,
+                totalScore: totalScore,
+                guessCount: guessCount,
+                targetWord: targetWord,
+                guessHistory: guessHistory,
+                feedbackHtml: document.getElementById("feedback").innerHTML, // Save complete HTML
+                roundResults: roundResults,
+                usedLetters: Array.from(usedLetters),
+                guessedWordsThisRound: Array.from(guessedWordsThisRound),
+                timestamp: Date.now()
+            };
+            
+            try {
+                localStorage.setItem('directionary_gameState', JSON.stringify(state));
+                console.log("💾 Game state saved");
+            } catch (e) {
+                console.log("Could not save game state:", e);
+            }
+        }
+        
+        function loadGameState() {
+            // Only load in production mode
+            if (devMode || testMode) return null;
+            
+            try {
+                var saved = localStorage.getItem('directionary_gameState');
+                if (!saved) return null;
+                
+                var state = JSON.parse(saved);
+                
+                // Verify it's from today
+                if (state.gameDay !== dailyNumber) {
+                    console.log("Saved game is from different day, starting fresh");
+                    clearGameState();
+                    return null;
+                }
+                
+                // Check if game was already completed
+                var lastPlayed = localStorage.getItem('directionary_lastPlayed');
+                if (lastPlayed == dailyNumber) {
+                    console.log("Game already completed today");
+                    return null;
+                }
+                
+                console.log("📂 Restoring game state from Round", state.currentRound);
+                return state;
+            } catch (e) {
+                console.log("Could not load game state:", e);
+                return null;
+            }
+        }
+        
+        function clearGameState() {
+            try {
+                localStorage.removeItem('directionary_gameState');
+                console.log("🗑️ Game state cleared");
+            } catch (e) {
+                console.log("Could not clear game state:", e);
+            }
+        }
+        
+        function restoreGameState(state) {
+            currentRound = state.currentRound;
+            currentScore = state.currentScore;
+            totalScore = state.totalScore;
+            guessCount = state.guessCount;
+            targetWord = state.targetWord;
+            guessHistory = state.guessHistory || [];
+            roundResults = state.roundResults || [];
+            usedLetters = new Set(state.usedLetters || []);
+            guessedWordsThisRound = new Set(state.guessedWordsThisRound || []);
+            
+            // Update displays
+            updateScoreDisplay();
+            updateAlphabetDisplay();
+            
+            // Restore complete feedback display (with letter backgrounds)
+            var feedbackDiv = document.getElementById("feedback");
+            if (state.feedbackHtml) {
+                feedbackDiv.innerHTML = state.feedbackHtml;
+            } else {
+                feedbackDiv.innerHTML = "";
+            }
+            
+            console.log("✅ Game state restored: Round " + currentRound + ", Score " + totalScore + ", " + guessCount + " guesses");
+        }
+
 
         // Set up event listeners
         window.onload = function() {
