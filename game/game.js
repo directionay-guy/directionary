@@ -304,7 +304,6 @@
             console.log("Starting round " + currentRound + "...");
             
             var wordPool = answerWords.length > 0 ? answerWords : fallbackWords;
-            var daysSinceEpoch = Math.floor(Date.now() / 86400000);
             var wordIndex;
             
             if (testMode || devMode || usingFallbackMode) {
@@ -315,7 +314,8 @@
             } else {
                 // JSON mode: Use day-based seed with prime number multiplier for variety
                 // Each day jumps to different part of word list
-                wordIndex = ((daysSinceEpoch * 317) + (currentRound * 773)) % wordPool.length;
+                // FIXED: Use dailyNumber (local midnight) instead of UTC time
+                wordIndex = ((dailyNumber * 317) + (currentRound * 773)) % wordPool.length;
                 console.log("JSON MODE: Day-based index:", wordIndex, "(varied selection)");
             }
             
@@ -414,9 +414,6 @@
             guessedWordsThisRound.add(guess);
 
             guessCount++;
-            
-            // Clear previous letters - only show latest guess in alphabet
-            usedLetters.clear();
             
             for (var i = 0; i < guess.length; i++) {
                 usedLetters.add(guess[i]);
