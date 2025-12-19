@@ -907,19 +907,6 @@
             }
             
             
-            /* Tablet-specific (iPad, etc) */
-            @media (min-width: 601px) {
-                .overlay-symbol {
-                    top: 0px;
-                }
-            }
-            
-            /* Phone-specific (iPhone, etc) */
-            @media (max-width: 600px) {
-                .overlay-symbol {
-                    top: 2px;
-                }
-            }
             
             }
             
@@ -1075,3 +1062,20 @@
                 padding: 30px 0 0 0;
             }
         }
+
+/* ===== TABLET & PHONE SPECIFIC OVERLAY SYMBOL POSITIONING ===== */
+
+/* Tablets (iPad, etc) - 601px to 1024px width */
+@media (min-width: 601px) and (max-width: 1024px) {
+    .overlay-symbol {
+        top: 0px;
+    }
+}
+
+/* Phones (iPhone, etc) - up to 600px width */
+@media (max-width: 600px) {
+    .overlay-symbol {
+        top: 2px;
+    }
+}
+
