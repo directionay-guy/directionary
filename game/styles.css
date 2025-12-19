@@ -1075,7 +1075,7 @@
 /* Phones (iPhone, etc) - up to 600px width */
 @media (max-width: 600px) {
     .overlay-symbol {
-        top: 2px;
+        top: -2px;
     }
 }
 
