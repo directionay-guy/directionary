@@ -654,7 +654,13 @@
             
             // Clear alphabet darkening
             usedLetters.clear();
-            updateAlphabetDisplay();
+            var alphabetDiv = document.getElementById("alphabetDisplay");
+            if (alphabetDiv) {
+                var spans = alphabetDiv.getElementsByTagName("span");
+                for (var i = 0; i < spans.length; i++) {
+                    spans[i].classList.remove("used-letter");
+                }
+            }
             
             // Hide input and buttons
             document.getElementById("guessInput").style.display = "none";
@@ -765,7 +771,13 @@
             
             // Clear alphabet darkening
             usedLetters.clear();
-            updateAlphabetDisplay();
+            var alphabetDiv = document.getElementById("alphabetDisplay");
+            if (alphabetDiv) {
+                var spans = alphabetDiv.getElementsByTagName("span");
+                for (var i = 0; i < spans.length; i++) {
+                    spans[i].classList.remove("used-letter");
+                }
+            }
             
             // Show GAME OVER badge
             var dailyIndicator = document.getElementById("dailyIndicator");
