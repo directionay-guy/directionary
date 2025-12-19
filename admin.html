@@ -27,6 +27,30 @@
             overflow: hidden;
         }
 
+        /* Warning Banner */
+        .warning-banner {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: #ffeb3b;
+            padding: 20px 30px;
+            font-weight: 700;
+            font-size: 1.1em;
+            text-align: center;
+            border-bottom: 4px solid #a71d2a;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        
+        .warning-banner strong {
+            color: #fff;
+            font-size: 1.2em;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .warning-banner p {
+            margin: 5px 0;
+            line-height: 1.5;
+        }
+
         /* Login Screen */
         .login-screen {
             padding: 60px 40px;
@@ -622,6 +646,14 @@
             </div>
 
             <div class="dashboard-content">
+                <!-- ⚠️ WARNING BANNER -->
+                <div class="warning-banner">
+                    <strong>⚠️ CRITICAL: Adding Words Changes Future Puzzles!</strong>
+                    <p>Modifying words.json changes the word list length, which affects the algorithm for ALL future days.</p>
+                    <p>✅ SAFE: Add words at midnight or when no one is playing | ❌ RISKY: Adding words mid-day can change active puzzles</p>
+                    <p>Players mid-game will keep their word (saved in state), but new players will get different words!</p>
+                </div>
+                
                 <!-- Game Settings -->
                 <div class="section">
                     <h2>⚙️ Game Settings</h2>
