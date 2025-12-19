@@ -1077,12 +1077,11 @@
             }
 
             // Use algorithm (same as main game)
-            // FIXED: Use LOCAL midnight calculation (not UTC)
-            const date = new Date(dateStr);
-            const localMidnight = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            // FIXED: Use parseDateString for LOCAL time (not UTC)
+            const localMidnight = parseDateString(dateStr);
             
             // Launch date: December 14, 2025 (same as game.js)
-            const launchDate = new Date(2025, 11, 14); // December is month 11
+            const launchDate = new Date(2025, 11, 14);
             
             const daysSinceLaunch = Math.floor((localMidnight - launchDate) / 86400000);
             const dailyNumber = daysSinceLaunch + 1; // Start at Day 1
