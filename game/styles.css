@@ -190,13 +190,13 @@
         }
         
         .instructions {
-            font-size: 0.95em;
+            font-size: 0.85em;
             color: #000;
             margin-bottom: 15px;
             line-height: 1.6;
             padding: 12px;
-            background: #f8f9fa;
-            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-radius: 12px;
             font-weight: normal;
         }
         
@@ -207,7 +207,7 @@
             background: white;
             border-radius: 5px;
             white-space: nowrap;
-            font-size: 1.05em;
+            font-size: 0.95em;
         }
         
         input {

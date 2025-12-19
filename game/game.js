@@ -652,6 +652,10 @@
                 instructions.style.background = "linear-gradient(135deg, #667eea15 0%, #764ba215 100%)";
             }
             
+            // Clear alphabet darkening
+            usedLetters.clear();
+            updateAlphabetDisplay();
+            
             // Hide input and buttons
             document.getElementById("guessInput").style.display = "none";
             document.querySelector(".button-group").style.display = "none";
@@ -758,6 +762,10 @@
                 instructions.innerHTML = "<strong>✨ You've completed today's challenge! Return tomorrow for a new game.</strong>";
                 instructions.style.background = "linear-gradient(135deg, #667eea15 0%, #764ba215 100%)";
             }
+            
+            // Clear alphabet darkening
+            usedLetters.clear();
+            updateAlphabetDisplay();
             
             // Show GAME OVER badge
             var dailyIndicator = document.getElementById("dailyIndicator");
