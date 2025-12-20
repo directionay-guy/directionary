@@ -977,8 +977,22 @@
         
         function shareToBluesky() {
             var shareText = document.getElementById("sharePreview").textContent;
-            var blueskyUrl = "https://bsky.app/intent/compose?text=" + encodeURIComponent(shareText);
-            window.open(blueskyUrl, "_blank");
+            
+            // Mobile devices - copy first, then open Bluesky
+            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                navigator.clipboard.writeText(shareText).then(function() {
+                    alert("Results copied! Opening Bluesky - paste into your post.");
+                    // Just open Bluesky, let user paste
+                    window.open("https://bsky.app", "_blank");
+                }).catch(function() {
+                    // Clipboard failed, just open Bluesky
+                    window.open("https://bsky.app", "_blank");
+                });
+            } else {
+                // Desktop - try the intent URL
+                var blueskyUrl = "https://bsky.app/intent/compose?text=" + encodeURIComponent(shareText);
+                window.open(blueskyUrl, "_blank");
+            }
         }
         
         function shareToFacebook() {
