@@ -207,7 +207,8 @@
             background: white;
             border-radius: 5px;
             white-space: nowrap;
-            font-size: 1.2em;
+            font-size: 0.95em;
+            line-height: 1.1;
         }
         
         input {
@@ -1079,7 +1080,7 @@
     }
     
     .legend {
-        font-size: 1.1em;
+        font-size: 1.05em;
     }
 }
 
