@@ -250,8 +250,8 @@
             width: 70%;
         }
         
-        button {
-            padding: 12px 24px;
+        .button-group button {
+            padding: 12px 50px;
             font-size: 1em;
             cursor: pointer;
             border: none;
@@ -261,15 +261,14 @@
             transition: all 0.3s ease;
             font-weight: 600;
             box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-            flex: 1;
         }
         
-        button:hover:not(:disabled) {
+        .button-group button:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
         
-        button:disabled {
+        .button-group button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
@@ -277,7 +276,7 @@
         .give-up-btn {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             font-size: 0.9em;
-            padding: 10px 20px;
+            padding: 10px 45px;
         }
         
         .give-up-btn:hover:not(:disabled) {
