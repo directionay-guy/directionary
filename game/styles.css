@@ -808,11 +808,13 @@
         }
         
         /* Tablet/iPad optimizations */
-        @media (min-width: 481px) and (max-width: 768px) {
-            /* Reserved for future tablet-specific styles */
+        @media (min-width: 481px) and (max-width: 1024px) {
+            .alphabet-display {
+                letter-spacing: 2.5px;
+            }
         }
         
-        @media (max-width: 1024px) {
+        @media (max-width: 480px) {
             .game-container {
                 padding: 10px 20px 20px 20px;
             }
