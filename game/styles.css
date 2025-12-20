@@ -245,13 +245,12 @@
         .button-group {
             display: flex;
             gap: 10px;
-            justify-content: space-between;
-            margin: 10px auto;
-            width: 70%;
+            justify-content: center;
+            margin: 10px 0;
         }
         
         button {
-            padding: 12px 40px;
+            padding: 12px 24px;
             font-size: 1em;
             cursor: pointer;
             border: none;
@@ -275,8 +274,8 @@
         
         .give-up-btn {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            font-size: 0.85em;
-            padding: 10px 35px;
+            font-size: 0.9em;
+            padding: 10px 20px;
         }
         
         .give-up-btn:hover:not(:disabled) {
