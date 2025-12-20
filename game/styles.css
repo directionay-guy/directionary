@@ -203,11 +203,11 @@
         .legend {
             display: inline-block;
             margin: 6px 6px 0 6px;
-            padding: 0px 6px;
+            padding: 1px 6px;
             background: white;
             border-radius: 5px;
             white-space: nowrap;
-            font-size: 0.95em;
+            font-size: 1.2em;
         }
         
         input {
@@ -1079,7 +1079,7 @@
     }
     
     .legend {
-        font-size: 1.05em;
+        font-size: 1.25em;
     }
 }
 
