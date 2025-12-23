@@ -1034,17 +1034,17 @@
             document.getElementById("giveUpBtn").disabled = true;
         }
         
-        function skipRound() {
+       function skipRound() {
+            document.getElementById("guessInput").value = ""; // ← ADD THIS LINE
             document.getElementById("zeroScoreModal").style.display = "none";
             roundResults.push({
-                word: targetWord,
-                score: 0,
-                guesses: guessCount,
-                // Show last attempt before running out of points
-                pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "⚫ ⚫ ⚫ ⚫ ⚫"
-            });
-            nextWord();
-        }
+        word: targetWord,
+        score: 0,
+        guesses: guessCount,
+        pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "⚫ ⚫ ⚫ ⚫ ⚫"
+    });
+    nextWord();
+}
         
         function giveUp() {
             document.getElementById("giveUpModal").style.display = "flex";
