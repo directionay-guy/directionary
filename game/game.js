@@ -388,7 +388,7 @@
             
             // Hide definition box when starting new round
             document.getElementById('definitionBox').style.display = 'none';
-            
+            document.getElementById("guessInput").value = "";
             document.getElementById("guessInput").disabled = false;
             document.getElementById("submitBtn").disabled = false;
             document.getElementById("giveUpBtn").disabled = false;
@@ -1035,7 +1035,6 @@
         }
         
        function skipRound() {
-            document.getElementById("guessInput").value = ""; // ← ADD THIS LINE
             document.getElementById("zeroScoreModal").style.display = "none";
             roundResults.push({
         word: targetWord,
