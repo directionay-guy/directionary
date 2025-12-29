@@ -1085,4 +1085,72 @@
         font-size: 1.05em;
     }
 }
+/* Rotate device overlay - Directionary style */
+.rotate-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
 
+.rotate-content {
+    padding: 40px;
+    color: white;
+}
+
+.rotate-arrows {
+    font-size: 4em;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.rotate-device {
+    font-size: 3em;
+    display: block;
+    animation: rotate-spin 2s ease-in-out infinite;
+}
+
+.rotate-arrow-down {
+    font-size: 3em;
+    color: white;
+    animation: bounce-down 1.5s ease-in-out infinite;
+    display: block;
+    margin-top: -20px;
+}
+
+@keyframes rotate-spin {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-15deg); }
+    75% { transform: rotate(15deg); }
+}
+
+@keyframes bounce-down {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(10px); }
+}
+
+.rotate-content h2 {
+    font-size: 2em;
+    margin-bottom: 15px;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.rotate-content p {
+    font-size: 1.2em;
+    opacity: 0.9;
+}
+
+/* Show overlay ONLY on tablets in LANDSCAPE mode (tell them to go portrait) */
+@media (min-width: 600px) and (max-width: 1024px) and (orientation: landscape) {
+    .rotate-overlay {
+        display: flex !important;
+    }
+}
