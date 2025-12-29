@@ -1364,16 +1364,25 @@
         window.reloadDevGame = reloadDevGame;
         window.shareToFacebook = shareToFacebook;
 
-// Rotate overlay dismiss function
+// Rotate overlay dismiss - using event listener (more reliable)
 function dismissRotateOverlay() {
     document.getElementById("rotateOverlay").style.display = "none";
     sessionStorage.setItem('dismissedRotateOverlay', 'true');
 }
 
-// Check if user already dismissed it this session
-if (sessionStorage.getItem('dismissedRotateOverlay') === 'true') {
-    var overlay = document.getElementById("rotateOverlay");
-    if (overlay) overlay.style.display = "none";
-}
+// Setup button when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if user already dismissed it this session
+    if (sessionStorage.getItem('dismissedRotateOverlay') === 'true') {
+        var overlay = document.getElementById("rotateOverlay");
+        if (overlay) overlay.style.display = "none";
+    }
+    
+    // Add click handler to button
+    var dismissBtn = document.querySelector('.dismiss-rotate-btn');
+    if (dismissBtn) {
+        dismissBtn.addEventListener('click', dismissRotateOverlay);
+    }
+});
 
 window.dismissRotateOverlay = dismissRotateOverlay;
