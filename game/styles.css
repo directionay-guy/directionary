@@ -1085,7 +1085,7 @@
         font-size: 1.05em;
     }
 }
-/* Rotate device overlay - Directionary style */
+/* Rotate device overlay - Directionary style - COMPACT */
 .rotate-overlay {
     display: none;
     position: fixed;
@@ -1098,39 +1098,40 @@
     justify-content: center;
     align-items: center;
     text-align: center;
+    padding: 10px;
 }
 
 .rotate-content {
-    padding: 40px;
     color: white;
+    max-width: 95%;
 }
 
 .rotate-logo {
-    font-size: 2.5em;
+    font-size: 1.3em;
     font-weight: bold;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
     text-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    letter-spacing: 2px;
+    letter-spacing: 1px;
 }
 
 .rotate-arrows {
-    font-size: 4em;
-    margin-bottom: 30px;
+    font-size: 2em;
+    margin-bottom: 10px;
     text-align: center;
 }
 
 .rotate-device {
-    font-size: 3em;
+    font-size: 1.5em;
     display: block;
     animation: rotate-spin 2s ease-in-out infinite;
 }
 
 .rotate-arrow-down {
-    font-size: 3em;
+    font-size: 1.5em;
     color: white;
     animation: bounce-down 1.5s ease-in-out infinite;
     display: block;
-    margin-top: -20px;
+    margin-top: -10px;
 }
 
 @keyframes rotate-spin {
@@ -1141,29 +1142,30 @@
 
 @keyframes bounce-down {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(10px); }
+    50% { transform: translateY(8px); }
 }
 
 .rotate-content h2 {
-    font-size: 2em;
-    margin-bottom: 15px;
+    font-size: 1.2em;
+    margin-bottom: 8px;
     font-weight: bold;
     text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .rotate-content p {
-    font-size: 1.2em;
+    font-size: 0.9em;
     opacity: 0.9;
+    margin-bottom: 10px;
 }
 
 .dismiss-rotate-btn {
-    margin-top: 20px;
-    padding: 12px 24px;
-    font-size: 1.1em;
+    margin-top: 10px;
+    padding: 8px 16px;
+    font-size: 0.9em;
     background: rgba(255, 255, 255, 0.2);
     border: 2px solid white;
     color: white;
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
     transition: all 0.3s ease;
@@ -1174,8 +1176,8 @@
     color: #667eea;
 }
 
-/* Show overlay ONLY on tablets in LANDSCAPE mode (tell them to go portrait) */
-@media (min-width: 600px) and (max-width: 1400px) and (orientation: landscape) {
+/* Show overlay ONLY on TABLETS in landscape */
+@media (min-width: 768px) and (max-width: 1400px) and (orientation: landscape) {
     .rotate-overlay {
         display: flex !important;
     }
