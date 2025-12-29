@@ -69,17 +69,18 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="game/styles.css">
 </head>
-<body>
-    <div id="rotateOverlay" class="rotate-overlay">
-        <div class="rotate-content">
-            <div class="rotate-arrows">
-                <span class="rotate-device">📱</span>
-                <span class="rotate-arrow-down">▼</span>
-            </div>
-            <h2>Turn your tablet upright</h2>
-            <p>Directionary plays best in portrait mode</p>
+<div id="rotateOverlay" class="rotate-overlay">
+    <div class="rotate-content">
+        <h1 class="rotate-logo">● ◄ Directionary<sup style="font-size: 0.4em;">™</sup> ► ●</h1>
+        <div class="rotate-arrows">
+            <span class="rotate-device">📱</span>
+            <span class="rotate-arrow-down">▼</span>
         </div>
+        <h2>Tip: Portrait mode works best</h2>
+        <p>Directionary is easier to play with your tablet upright</p>
+        <button onclick="dismissRotateOverlay()" class="dismiss-rotate-btn">Play in Landscape Anyway</button>
     </div>
+</div>
     <div class="main-wrapper">
     <div class="game-container">
         <!-- Dev mode target word display -->
