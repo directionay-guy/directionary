@@ -1363,3 +1363,17 @@
         window.shareToBluesky = shareToBluesky;
         window.reloadDevGame = reloadDevGame;
         window.shareToFacebook = shareToFacebook;
+
+// Rotate overlay dismiss function
+function dismissRotateOverlay() {
+    document.getElementById("rotateOverlay").style.display = "none";
+    sessionStorage.setItem('dismissedRotateOverlay', 'true');
+}
+
+// Check if user already dismissed it this session
+if (sessionStorage.getItem('dismissedRotateOverlay') === 'true') {
+    var overlay = document.getElementById("rotateOverlay");
+    if (overlay) overlay.style.display = "none";
+}
+
+window.dismissRotateOverlay = dismissRotateOverlay;
