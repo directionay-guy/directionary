@@ -1364,25 +1364,40 @@
         window.reloadDevGame = reloadDevGame;
         window.shareToFacebook = shareToFacebook;
 
-// Rotate overlay dismiss - using event listener (more reliable)
-function dismissRotateOverlay() {
-    document.getElementById("rotateOverlay").style.display = "none";
-    sessionStorage.setItem('dismissedRotateOverlay', 'true');
-}
 
-// Setup button when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    // Check if user already dismissed it this session
-    if (sessionStorage.getItem('dismissedRotateOverlay') === 'true') {
+// Rotate overlay dismiss - CLASS-BASED approach (fixes the button!)
+(function() {
+    function dismissRotateOverlay() {
         var overlay = document.getElementById("rotateOverlay");
-        if (overlay) overlay.style.display = "none";
+        if (overlay) {
+            overlay.classList.add('dismissed');
+            sessionStorage.setItem('dismissedRotateOverlay', 'true');
+        }
     }
     
-    // Add click handler to button
-    var dismissBtn = document.querySelector('.dismiss-rotate-btn');
-    if (dismissBtn) {
-        dismissBtn.addEventListener('click', dismissRotateOverlay);
+    // Setup on load
+    function initRotateOverlay() {
+        var overlay = document.getElementById("rotateOverlay");
+        if (!overlay) return;
+        
+        // Check if already dismissed this session
+        if (sessionStorage.getItem('dismissedRotateOverlay') === 'true') {
+            overlay.classList.add('dismissed');
+        }
+        
+        // Add button click handler
+        var btn = overlay.querySelector('.dismiss-rotate-btn');
+        if (btn) {
+            btn.addEventListener('click', dismissRotateOverlay);
+        }
     }
-});
-
-window.dismissRotateOverlay = dismissRotateOverlay;
+    
+    // Run when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initRotateOverlay);
+    } else {
+        initRotateOverlay();
+    }
+    
+    window.dismissRotateOverlay = dismissRotateOverlay;
+})();
