@@ -1184,7 +1184,8 @@
 }
 
 /* Show overlay ONLY on TABLETS in landscape - but NOT if dismissed */
-@media (min-width: 768px) and (max-width: 1400px) and (orientation: landscape) {
+/* NEW (use this instead): */
+@media (min-width: 768px) and (max-width: 1400px) and (min-height: 500px) and (orientation: landscape) and (hover: none) {
     .rotate-overlay:not(.dismissed) {
         display: flex !important;
     }
