@@ -1112,8 +1112,8 @@
             // FIXED: Use parseDateString for LOCAL time (not UTC)
             const localMidnight = parseDateString(dateStr);
             
-            // Launch date: December 14, 2025 (same as game.js)
-            const launchDate = new Date(2025, 11, 14);
+            // Launch date: January 1, 2026 (same as game.js)
+            const launchDate = new Date(2026, 0, 1);
             
             const daysSinceLaunch = Math.floor((localMidnight - launchDate) / 86400000);
             const dailyNumber = daysSinceLaunch + 1; // Start at Day 1
