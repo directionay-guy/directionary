@@ -17,8 +17,8 @@
     var now = new Date();
     var localMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
-    // PRIVATE BETA LAUNCH: December 13, 2025
-    var launchDate = new Date(2025, 11, 14); // December 14 December is indexed so 11 = December
+    // OFFICIAL LAUNCH: January 1, 2026
+    var launchDate = new Date(2026, 0, 1); // January 1, 2026 (month is 0-indexed)
     
     var daysSinceLaunch = Math.floor((localMidnight - launchDate) / 86400000);
     return daysSinceLaunch + 1; // Start at Day 1
@@ -857,7 +857,7 @@
         }
         
         function generateShareText() {
-            var text = "Directionary (BETA) #" + (dailyNumber % 1000);
+            var text = "Directionary #" + (dailyNumber % 1000);
             
             // Add streak if greater than 0
             if (playerStats.currentStreak > 0) {
@@ -1243,7 +1243,7 @@
 
         // Set up event listeners
         window.onload = function() {
-            console.log("Directionary loading... [Version: Nov 3, 2025 - Random Words Fixed]");
+            console.log("Directionary loading... [Version: Jan 1, 2026 - Official Launch]");
             loadStats();
             updateStreakDisplay();
             initGame();
