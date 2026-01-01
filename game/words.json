@@ -2322,6 +2322,11 @@
     "LASER",
     "LEARY",
     "HOODY",
+    "MITER",
+    "HYDRA",
+    "MOMMY",
+    "MISTY",
+    "GRIST".
     "ZONAL"
   ],
   "valid": [
@@ -16527,6 +16532,11 @@
     "STALK",
     "FLACK",
     "WIDOW",
+    "MITER",
+    "HYDRA",
+    "MOMMY",
+    "MISTY",
+    "GRIST".
     "AUGUR"
   ]
 }
