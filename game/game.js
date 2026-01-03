@@ -271,15 +271,6 @@
             roundResults = [];
             guessHistory = [];
             loadWordList();
-            
-            // Google Analytics - Track game start
-            if (typeof gtag === 'function') {
-                gtag('event', 'game_start', {
-                    'game_day': dailyNumber,
-                    'mode': devMode ? 'dev' : (testMode ? 'test' : 'production')
-                });
-            }
-            
             // Focus input field when game starts
             setTimeout(function() {
                 document.getElementById("guessInput").focus();
@@ -528,16 +519,6 @@
             document.getElementById("modalScore").textContent = currentScore;
             document.getElementById("modalTotal").textContent = totalScore;
             
-            // Google Analytics - Track round complete
-            if (typeof gtag === 'function') {
-                gtag('event', 'round_complete', {
-                    'round_number': currentRound,
-                    'score': currentScore,
-                    'guesses_used': guessCount,
-                    'target_word': targetWord
-                });
-            }
-            
             // Change title based on round
             var titleElement = document.querySelector("#successModal .success-title");
             if (currentRound >= maxRounds) {
@@ -589,15 +570,6 @@
         }
         
         function showDailyCompleteModal() {
-            // Google Analytics - Track daily complete
-            if (typeof gtag === 'function') {
-                gtag('event', 'daily_complete', {
-                    'total_score': totalScore,
-                    'rounds_completed': roundResults.length,
-                    'game_day': dailyNumber
-                });
-            }
-            
             updateStats();
             
             // Save today's completion date and state (only in production mode)
@@ -927,11 +899,6 @@
         }
         
         function toggleHelp() {
-            // Google Analytics - Track help modal open
-            if (typeof gtag === 'function') {
-                gtag('event', 'modal_open', {'modal_type': 'help'});
-            }
-            
             closeAllPanels();
             var helpPanel = document.getElementById("helpPanel");
             if (helpPanel.style.display === "flex") {
@@ -942,11 +909,6 @@
         }
         
         function toggleStats() {
-            // Google Analytics - Track stats modal open
-            if (typeof gtag === 'function') {
-                gtag('event', 'modal_open', {'modal_type': 'stats'});
-            }
-            
             closeAllPanels();
             var statsPanel = document.getElementById("statsPanel");
             if (statsPanel.style.display === "flex") {
@@ -958,11 +920,6 @@
         }
         
         function toggleInfo() {
-            // Google Analytics - Track about modal open
-            if (typeof gtag === 'function') {
-                gtag('event', 'modal_open', {'modal_type': 'about'});
-            }
-            
             closeAllPanels();
             var infoPanel = document.getElementById("infoPanel");
             if (infoPanel.style.display === "flex") {
@@ -1006,11 +963,6 @@
         }
         
         function copyToClipboard() {
-            // Google Analytics - Track clipboard share
-            if (typeof gtag === 'function') {
-                gtag('event', 'share', {'method': 'clipboard'});
-            }
-            
             var shareText = document.getElementById("sharePreview").textContent;
             navigator.clipboard.writeText(shareText).then(function() {
                 alert("Results copied to clipboard!");
@@ -1018,22 +970,12 @@
         }
         
         function shareToTwitter() {
-            // Google Analytics - Track Twitter share
-            if (typeof gtag === 'function') {
-                gtag('event', 'share', {'method': 'twitter'});
-            }
-            
             var shareText = document.getElementById("sharePreview").textContent;
             var tweetUrl = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(shareText);
             window.open(tweetUrl, "_blank");
         }
         
         function shareToBluesky() {
-            // Google Analytics - Track Bluesky share
-            if (typeof gtag === 'function') {
-                gtag('event', 'share', {'method': 'bluesky'});
-            }
-            
             var shareText = document.getElementById("sharePreview").textContent;
             
             // Mobile devices - copy first, then open Bluesky
@@ -1054,11 +996,6 @@
         }
         
         function shareToFacebook() {
-            // Google Analytics - Track Facebook share
-            if (typeof gtag === 'function') {
-                gtag('event', 'share', {'method': 'facebook'});
-            }
-            
             var shareText = document.getElementById("sharePreview").textContent;
             navigator.clipboard.writeText(shareText).then(function() {
                 alert("Results copied to clipboard! Paste into your Facebook post.");
@@ -1116,14 +1053,6 @@
         }
         
         function confirmGiveUp() {
-            // Google Analytics - Track give up
-            if (typeof gtag === 'function') {
-                gtag('event', 'give_up', {
-                    'round_number': currentRound,
-                    'guesses_used': guessCount
-                });
-            }
-            
             document.getElementById("giveUpModal").style.display = "none";
             
             var feedbackDiv = document.getElementById("feedback");
