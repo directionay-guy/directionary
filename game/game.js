@@ -480,9 +480,12 @@
                 arrowSpans += '</div>';
             }
             
-            feedbackLine.innerHTML = "<span style=\"color: #bbb; margin-right: 8px;\">" + guessCount + ")</span> <span>" + guess + "</span> <div class=\"feedback-arrows\">" + arrowSpans + "</div>";
+            feedbackLine.innerHTML = "<span style=\"color: #bbb; margin-right: 8px;\">" + guessCount + ")</span> <span class='guess-word-clickable' onclick='showDefinitionModal(\"" + guess + "\")'>" + guess + "</span> <div class=\"feedback-arrows\">" + arrowSpans + "</div>";
             // Insert at the TOP so newest guess is always visible
             feedbackDiv.insertBefore(feedbackLine, feedbackDiv.firstChild);
+            
+            // Setup AlphaHint handlers on this new guess
+            setTimeout(setupAlphaHintHandlers, 100);
             
             input.value = "";
             input.focus();
@@ -1435,6 +1438,217 @@
         window.reloadDevGame = reloadDevGame;
         window.shareToFacebook = shareToFacebook;
 
+
+// Dictionary Modal Functions
+function showDefinitionModal(word) {
+    var modal = document.getElementById('definitionModal');
+    if (!modal) {
+        // Create modal if it doesn't exist
+        modal = document.createElement('div');
+        modal.id = 'definitionModal';
+        modal.className = 'definition-modal';
+        document.body.appendChild(modal);
+    }
+    
+    modal.innerHTML = '<div class="definition-content"><div class="definition-loading">Loading definition...</div></div>';
+    modal.classList.add('show');
+    
+    // Fetch definition
+    fetchDefinition(word.toLowerCase(), modal);
+    
+    // Close on background click
+    modal.onclick = function(e) {
+        if (e.target === modal) {
+            closeDefinitionModal();
+        }
+    };
+}
+
+function fetchDefinition(word, modal) {
+    fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + word)
+        .then(function(response) {
+            if (!response.ok) throw new Error('Word not found');
+            return response.json();
+        })
+        .then(function(data) {
+            var entry = data[0];
+            var html = '<div class="definition-word-title">' + word.toUpperCase() + '</div>';
+            
+            // Add pronunciation if available
+            if (entry.phonetic) {
+                html += '<div class="definition-pronunciation">' + entry.phonetic + '</div>';
+            }
+            
+            // Add meanings
+            if (entry.meanings && entry.meanings.length > 0) {
+                entry.meanings.forEach(function(meaning) {
+                    html += '<div class="definition-meaning">';
+                    html += '<div class="definition-pos">' + meaning.partOfSpeech + '</div>';
+                    
+                    if (meaning.definitions && meaning.definitions.length > 0) {
+                        var def = meaning.definitions[0];
+                        html += '<div class="definition-text">' + def.definition + '</div>';
+                        
+                        if (def.example) {
+                            html += '<div class="definition-example">"' + def.example + '"</div>';
+                        }
+                    }
+                    html += '</div>';
+                });
+            }
+            
+            html += '<button class="definition-close" onclick="closeDefinitionModal()">Close</button>';
+            modal.querySelector('.definition-content').innerHTML = html;
+        })
+        .catch(function(error) {
+            modal.querySelector('.definition-content').innerHTML = 
+                '<div class="definition-error">Definition not found for "' + word + '"</div>' +
+                '<button class="definition-close" onclick="closeDefinitionModal()">Close</button>';
+        });
+}
+
+function closeDefinitionModal() {
+    var modal = document.getElementById('definitionModal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+}
+
+// AlphaHint Functions
+function initAlphaHint() {
+    // Add hint instruction text
+    var feedbackDiv = document.getElementById('feedback');
+    if (feedbackDiv && !document.getElementById('hintInstruction')) {
+        var hintText = document.createElement('div');
+        hintText.id = 'hintInstruction';
+        hintText.className = 'hint-instruction';
+        hintText.textContent = 'Hold arrows for hints';
+        hintText.style.display = 'none'; // Hidden until first guess
+        feedbackDiv.appendChild(hintText);
+    }
+}
+
+function setupAlphaHintHandlers() {
+    // Show hint text after first guess
+    var hintText = document.getElementById('hintInstruction');
+    if (hintText && guessCount > 0) {
+        hintText.style.display = 'block';
+    }
+    
+    // Add handlers to symbols in latest guess (first feedback-line)
+    var feedbackDiv = document.getElementById('feedback');
+    var latestGuess = feedbackDiv.querySelector('.feedback-line');
+    if (!latestGuess) return;
+    
+    var symbols = latestGuess.querySelectorAll('.symbol-with-letter');
+    symbols.forEach(function(symbol, index) {
+        var overlaySymbol = symbol.querySelector('.overlay-symbol');
+        if (!overlaySymbol) return;
+        
+        var symbolText = overlaySymbol.textContent.trim();
+        
+        // Add touch and mouse handlers
+        var startHandler = function(e) {
+            e.preventDefault();
+            highlightAlphaRange(index, symbolText, latestGuess);
+        };
+        
+        var endHandler = function(e) {
+            e.preventDefault();
+            clearAlphaHighlight();
+        };
+        
+        symbol.addEventListener('mousedown', startHandler);
+        symbol.addEventListener('touchstart', startHandler);
+        symbol.addEventListener('mouseup', endHandler);
+        symbol.addEventListener('mouseleave', endHandler);
+        symbol.addEventListener('touchend', endHandler);
+    });
+}
+
+function highlightAlphaRange(position, symbol, guessLine) {
+    // Get bounds from previous guesses and target word
+    var bounds = calculateLetterBounds(position);
+    if (!bounds) return;
+    
+    // Highlight valid letters in alphabet
+    var alphabetDiv = document.getElementById('alphabetDisplay');
+    var letters = alphabetDiv.querySelectorAll('span');
+    
+    letters.forEach(function(letterSpan) {
+        var letter = letterSpan.textContent.trim();
+        if (letter >= bounds.min && letter <= bounds.max) {
+            letterSpan.classList.add('hint-highlight');
+        }
+    });
+    
+    // Highlight constraint letters in previous guesses
+    highlightConstraintLetters(position, bounds);
+}
+
+function calculateLetterBounds(position) {
+    // Calculate valid range based on all previous guesses
+    var minLetter = 'A';
+    var maxLetter = 'Z';
+    
+    var feedbackLines = document.querySelectorAll('.feedback-line');
+    feedbackLines.forEach(function(line) {
+        var word = line.querySelector('span:nth-child(2)').textContent.trim();
+        var symbols = line.querySelectorAll('.overlay-symbol');
+        
+        if (symbols[position]) {
+            var symbol = symbols[position].textContent.trim();
+            var letter = word[position];
+            
+            if (symbol === '►' || symbol === '▶') {
+                // Letter must come after this
+                if (letter >= minLetter) {
+                    minLetter = String.fromCharCode(letter.charCodeAt(0) + 1);
+                }
+            } else if (symbol === '◄' || symbol === '◀') {
+                // Letter must come before this
+                if (letter <= maxLetter) {
+                    maxLetter = String.fromCharCode(letter.charCodeAt(0) - 1);
+                }
+            }
+        }
+    });
+    
+    return { min: minLetter, max: maxLetter };
+}
+
+function highlightConstraintLetters(position, bounds) {
+    var feedbackLines = document.querySelectorAll('.feedback-line');
+    feedbackLines.forEach(function(line) {
+        var symbols = line.querySelectorAll('.symbol-with-letter');
+        if (symbols[position]) {
+            var letter = line.querySelector('span:nth-child(2)').textContent.trim()[position];
+            if (letter === String.fromCharCode(bounds.min.charCodeAt(0) - 1) || 
+                letter === String.fromCharCode(bounds.max.charCodeAt(0) + 1)) {
+                symbols[position].classList.add('hint-constraint');
+            }
+        }
+    });
+}
+
+function clearAlphaHighlight() {
+    // Remove alphabet highlights
+    var letters = document.querySelectorAll('.alphabet-display span');
+    letters.forEach(function(letter) {
+        letter.classList.remove('hint-highlight');
+    });
+    
+    // Remove constraint highlights
+    var constraints = document.querySelectorAll('.hint-constraint');
+    constraints.forEach(function(el) {
+        el.classList.remove('hint-constraint');
+    });
+}
+
+// Initialize AlphaHint on load
+document.addEventListener('DOMContentLoaded', function() {
+    initAlphaHint();
+});
 
 // Rotate overlay dismiss - CLASS-BASED approach (fixes the button!)
 (function() {
