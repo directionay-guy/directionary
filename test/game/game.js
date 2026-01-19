@@ -880,7 +880,7 @@ function showDailyCompleteModal() {
         
         // Add cross-promotion
         summary += '<div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; font-size: 0.9em; color: #666;">';
-        summary += '<p>💡 Want more challenge right now?<br>Directionary PRO - unlimited 3-word puzzles<br>(Coming Soon!)</p>';
+        summary += '<p>Want more challenge right now?<br><span class="cross-promo-link" onclick="showComingSoon(event)" style="color: #667eea; text-decoration: underline; font-weight: 600; cursor: pointer;">Directionary PRO</span> - unlimited 3-word puzzles</p>';
         summary += '</div>';
     } else {
         summary = "No rounds completed<br>";
@@ -1602,16 +1602,17 @@ window.showWordDefinitionModal = showWordDefinitionModal;
 window.closeWordDefPanel = closeWordDefPanel;
 
 // Show "Coming Soon!" when PRO link is clicked
-function showComingSoon() {
-    var proLink = document.getElementById('proLink');
-    if (proLink) {
-        proLink.textContent = 'Coming Soon!';
-        proLink.style.cursor = 'default';
-        proLink.onclick = null;
+function showComingSoon(event) {
+    // Work with either the clicked element (from onclick) or the element with id
+    var target = event ? event.target : document.getElementById('proLink');
+    if (target) {
+        target.textContent = 'Coming Soon!';
+        target.style.cursor = 'default';
+        target.onclick = null;
         setTimeout(function() {
-            proLink.textContent = 'Directionary PRO';
-            proLink.style.cursor = 'pointer';
-            proLink.onclick = showComingSoon;
+            target.textContent = 'Directionary PRO';
+            target.style.cursor = 'pointer';
+            target.onclick = showComingSoon;
         }, 2000);
     }
 }
