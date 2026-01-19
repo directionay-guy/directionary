@@ -107,6 +107,13 @@
         function showWordDefinitionModal(word) {
             document.getElementById('wordDefWord').textContent = word.toLowerCase();
             document.getElementById('wordDefText').textContent = 'Fetching definition...';
+            
+            // Update the "See full definition" link
+            var linkElement = document.querySelector('#wordDefLink a');
+            if (linkElement) {
+                linkElement.href = 'https://api.dictionaryapi.dev/api/v2/entries/en/' + word.toLowerCase();
+            }
+            
             document.getElementById('wordDefPanel').style.display = 'flex';
             
             // Fetch from Free Dictionary API
@@ -573,8 +580,11 @@
             var feedbackDiv = document.getElementById("feedback");
             var allLines = feedbackDiv.querySelectorAll('.feedback-line');
             
-            // FIRST: Remove ALL existing handlers from ALL lines (prevents old guesses from showing hints)
-            allLines.forEach(function(line) {
+            // Remove handlers from PREVIOUS guesses only (not latest)
+            allLines.forEach(function(line, index) {
+                // Skip the first line (latest guess - index 0)
+                if (index === 0) return;
+                
                 var symbols = line.querySelectorAll('.overlay-symbol');
                 symbols.forEach(function(symbol) {
                     // Remove pointer cursor from old guesses
@@ -585,7 +595,7 @@
                 });
             });
             
-            // THEN: Attach handlers ONLY to the LATEST guess (first child, most recent)
+            // Attach handlers ONLY to the LATEST guess (first child, most recent)
             var latestLine = feedbackDiv.firstElementChild;
             if (!latestLine || !latestLine.classList.contains('feedback-line')) return;
             
@@ -660,19 +670,19 @@
                 }
             });
             
-            // Highlight alphabet
+            // Hide invalid letters in alphabet (instead of highlighting valid ones)
             var alphabetDiv = document.getElementById("alphabetDisplay");
             var letters = alphabetDiv.querySelectorAll('span');
             
             if (solved) {
-                // Only highlight the solved letter
+                // Hide all letters except the solved one
                 letters.forEach(function(span) {
-                    if (span.textContent === solved) {
-                        span.classList.add('hint-valid');
+                    if (span.textContent !== solved) {
+                        span.classList.add('hint-hidden');
                     }
                 });
             } else {
-                // Highlight valid range
+                // Hide invalid letters (keep valid range visible)
                 letters.forEach(function(span) {
                     var letter = span.textContent;
                     var valid = true;
@@ -680,8 +690,8 @@
                     if (lowerBound && letter <= lowerBound) valid = false;
                     if (upperBound && letter >= upperBound) valid = false;
                     
-                    if (valid) {
-                        span.classList.add('hint-valid');
+                    if (!valid) {
+                        span.classList.add('hint-hidden');
                     }
                 });
             }
@@ -703,11 +713,11 @@
         }
         
         function clearAlphaHint() {
-            // Remove alphabet highlights
+            // Remove alphabet hidden classes
             var alphabetDiv = document.getElementById("alphabetDisplay");
             var letters = alphabetDiv.querySelectorAll('span');
             letters.forEach(function(span) {
-                span.classList.remove('hint-valid');
+                span.classList.remove('hint-hidden');
             });
             
             // Remove constraint highlights
