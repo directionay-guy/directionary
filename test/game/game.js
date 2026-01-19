@@ -1556,6 +1556,22 @@
         window.closeStreakPanel = closeStreakPanel;
         window.showWordDefinitionModal = showWordDefinitionModal;
         window.closeWordDefPanel = closeWordDefPanel;
+        
+        // Show "Coming Soon!" when PRO link is clicked
+        function showComingSoon() {
+            var proLink = document.getElementById('proLink');
+            if (proLink) {
+                proLink.textContent = 'Coming Soon!';
+                proLink.style.cursor = 'default';
+                proLink.onclick = null;
+                setTimeout(function() {
+                    proLink.textContent = 'Directionary PRO';
+                    proLink.style.cursor = 'pointer';
+                    proLink.onclick = showComingSoon;
+                }, 2000);
+            }
+        }
+        window.showComingSoon = showComingSoon;
 
 (function() {
     function dismissRotateOverlay() {
