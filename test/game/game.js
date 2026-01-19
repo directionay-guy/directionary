@@ -1454,7 +1454,25 @@
             updateStreakDisplay();
             initGame();
             
-            document.getElementById("guessInput").addEventListener("keypress", function(event) {
+            // Input validation - only allow A-Z letters
+            var guessInput = document.getElementById("guessInput");
+            
+            guessInput.addEventListener("input", function(event) {
+                // Remove anything that's not a letter A-Z
+                var cleaned = this.value.replace(/[^A-Za-z]/g, '');
+                // Convert to uppercase
+                cleaned = cleaned.toUpperCase();
+                // Limit to 5 characters
+                if (cleaned.length > 5) {
+                    cleaned = cleaned.substring(0, 5);
+                }
+                // Update the input if it changed
+                if (this.value !== cleaned) {
+                    this.value = cleaned;
+                }
+            });
+            
+            guessInput.addEventListener("keypress", function(event) {
                 if (event.key === "Enter" && !this.disabled) {
                     event.preventDefault();
                     submitGuess();
