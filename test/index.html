@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-M5WHQLMFV3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-M5WHQLMFV3');
+</script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Directionary™ - The Word Game Where Arrows Guide the Way</title>
+    
+    <!-- Essential SEO Meta Tags -->
+    <meta name="description" content="Directionary™: A unique daily word puzzle using directional clues. Guess the 5-letter word using alphabetical arrows. Free to play, no download required.">
+    <meta name="keywords" content="directionary, word game, daily puzzle, alphabetical clues, wordle alternative, logic puzzle, word definitions, #WW2W, which way to words">
+    <meta name="author" content="Joel Pickard">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://directionary.net">
+    
+    <!-- Open Graph / Facebook / LinkedIn -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://directionary.net">
+    <meta property="og:title" content="Directionary™ - Daily Word Puzzle Game">
+    <meta property="og:description" content="Use directional arrows to find the daily word. A unique logic puzzle that uses alphabetical reasoning.">
+    <meta property="og:image" content="https://directionary.net/og-image.png">
+    <meta property="og:site_name" content="Directionary">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://directionary.net">
+    <meta name="twitter:title" content="Directionary™ - Daily Word Puzzle">
+    <meta name="twitter:description" content="Use directional arrows to find the daily word. A unique logic puzzle that uses alphabetical reasoning.">
+    <meta name="twitter:image" content="https://directionary.net/twitter-card.png">
+    
+    <!-- Schema.org Structured Data for Rich Results -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "Directionary",
+      "alternateName": "Directionary™ - "Which Way To Words?",
+      "description": "Daily word puzzle game with directional alphabet clues. Decode words using left/right/correct feedback. Play 3 rounds daily!",
+      "url": "https://directionary.net",
+      "gamePlatform": ["Web Browser", "iOS Safari", "Android Chrome"],
+      "genre": ["Puzzle", "Word Game"],
+      "playMode": "SinglePlayer",
+      "numberOfPlayers": {
+        "@type": "QuantitativeValue",
+        "value": 1
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Joel Pickard"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
+      },
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Web Browser"
+    }
+    </script>
+    
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="game/styles.css">
+</head>
+<body>
+    <!-- Rotate overlay for tablets in landscape -->
+    <div id="rotateOverlay" class="rotate-overlay">
+        <div class="rotate-content">
+            <h1 class="rotate-logo">◄ ● Directionary ● ►</h1>
+            <div class="rotate-arrows">
+                <span class="rotate-device">📱</span>
+                <span class="rotate-arrow-down">▼</span>
+            </div>
+            <h2>Tip: Portrait mode works best</h2>
+            <p>Directionary is easier to play with your tablet upright</p>
+            <button class="dismiss-rotate-btn">Play in Landscape Anyway</button>
+        </div>
+    </div>
+
+    <div class="main-wrapper">
+    <div class="game-container">
+        <!-- Dev mode target word display -->
+        <div id="devModeDisplay" style="display: none; background: #fff3cd; color: #856404; padding: 8px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9em; font-weight: 600; text-align: center;">
+            🎯 DEV MODE: Target = <span id="devTargetWord"></span>
+        </div>
+        
+        <!-- Test mode indicator -->
+        <div id="testModeDisplay" style="display: none; background: #d1ecf1; color: #0c5460; padding: 8px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9em; font-weight: 600; text-align: center;">
+            🧪 TEST MODE: Random words enabled
+        </div>
+        
+        <h1 class="game-title">
+            <span class="title-arrow title-arrow-left">◄</span>
+            <span class="title-arrow">●</span>
+            <span class="title-text">Directionary</span>
+            <span class="title-arrow">●</span>
+            <span class="title-arrow title-arrow-right">►</span>
+        </h1>
+        <p class="tagline">Which Way To Words?<sup style="font-size: 0.5em; opacity: 0.6; margin-left: 2px; color: #666;">™</sup></p>
+        
+        <div class="instructions">
+            Guess 3 words using arrows - 10 tries per round.<br>
+            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #28a745;">●</span> <span style="color: #000;">= correct</span></span>
+            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">◄</span> <span style="color: #000;">= before</span></span>
+            <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">►</span> <span style="color: #000;">= after</span></span>
+        </div>
+        
+        <div class="score-display">
+            <div class="score-item">
+                <div class="score-label">Guesses</div>
+                <div class="score-value" id="guessCount">0</div>
+            </div>
+            <div class="score-item">
+                <div class="score-label">Score</div>
+                <div class="score-value" id="currentScore">100/300</div>
+            </div>
+            <div class="score-item streak-button" onclick="openStreakPanel()">
+                <div class="score-label">🔥 Streak</div>
+                <div class="score-value" id="streakDisplay">0</div>
+            </div>
+        </div>
+        
+        <!-- Cross-promotion box -->
+        <div class="cross-promo-box">
+            💡 Want unlimited puzzles? Directionary PRO (Coming Soon!)
+        </div>
+        
+        <!-- Definition box (hidden until word is solved) -->
+        <div class="definition-box" id="definitionBox">
+            <div class="definition-word" id="defWord"></div>
+            <div class="definition-text" id="defText"></div>
+            <div class="definition-credit">Powered by Free Dictionary API</div>
+        </div>
+        
+        <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-form-type="other">
+        
+        <div class="button-group">
+            <button id="submitBtn">Submit</button>
+            <button class="give-up-btn" id="giveUpBtn">Skip This Round</button>
+        </div>
+        
+        <div class="alphabet-display" id="alphabetDisplay">
+            <span>A</span> <span>B</span> <span>C</span> <span>D</span> <span>E</span> <span>F</span> <span>G</span> <span>H</span> <span>I</span> <span>J</span> <span>K</span> <span>L</span> <span>M</span> <span>N</span> <span>O</span> <span>P</span> <span>Q</span> <span>R</span> <span>S</span> <span>T</span> <span>U</span> <span>V</span> <span>W</span> <span>X</span> <span>Y</span> <span>Z</span>
+        </div>
+        
+        <!-- AlphaHint instruction text -->
+        <div class="alphahint-text">Hold arrows for hints</div>
+        
+        <div id="errorMessage"></div>
+        
+        <div class="feedback" id="feedback"></div>
+    </div>
+    
+    <!-- Bottom buttons with text labels -->
+    <div class="bottom-buttons-container">
+        <button class="panel-btn share-btn" onclick="toggleShare()">📤 Share</button>
+        <button class="panel-btn stats-btn" onclick="toggleStats()">📊 Stats</button>
+        <button class="panel-btn info-btn" onclick="toggleInfo()">ℹ️ About</button>
+        <button class="panel-btn help-btn" onclick="toggleHelp()">❓ Help</button>
+    </div>
+    </div> <!-- End main-wrapper -->
+    
+    <!-- Share panel -->
+    <div class="info-panel" id="sharePanel">
+        <div style="position: relative;">
+        <button class="modal-close-x" onclick="closeShare()">×</button>
+        <h2>Share Your Results</h2>
+        <div class="share-preview" id="sharePreview">Your results will appear here after playing!</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
+        <button class="copy-btn" onclick="copyToClipboard()">Clipboard</button>
+        <button class="copy-btn" onclick="shareToTwitter()">X</button>
+        <button class="copy-btn" onclick="shareToBluesky()">Bluesky</button>
+        <button class="copy-btn" onclick="shareToFacebook()">Facebook</button>
+        </div>
+        <button class="close-panel-btn" onclick="closeShare()">Close</button>
+        </div>
+    </div>
+    
+    <!-- Stats panel -->
+    <div class="info-panel" id="statsPanel">
+        <div style="position: relative;">
+        <button class="modal-close-x" onclick="closeStats()">×</button>
+        <h2>Your Statistics</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;">
+            <div style="text-align: center; background: #f8f9fa; padding: 15px; border-radius: 12px;">
+                <div style="font-size: 2em; font-weight: bold; color: #667eea;"><span id="statGamesPlayed">0</span></div>
+                <div style="color: #666;">Games Played</div>
+            </div>
+            <div style="text-align: center; background: #f8f9fa; padding: 15px; border-radius: 12px;">
+                <div style="font-size: 2em; font-weight: bold; color: #667eea;"><span id="statBestScore">0</span></div>
+                <div style="color: #666;">Best Score</div>
+            </div>
+            <div style="text-align: center; background: #f8f9fa; padding: 15px; border-radius: 12px;">
+                <div style="font-size: 2em; font-weight: bold; color: #667eea;"><span id="statAvgScore">0</span></div>
+                <div style="color: #666;">Avg Score</div>
+            </div>
+            <div style="text-align: center; background: #f8f9fa; padding: 15px; border-radius: 12px;">
+                <div style="font-size: 2em; font-weight: bold; color: #667eea;"><span id="statStreak">0</span></div>
+                <div style="color: #666;">Current Streak</div>
+            </div>
+            <div style="text-align: center; grid-column: 1 / -1; background: #f8f9fa; padding: 15px; border-radius: 12px;">
+                <div style="font-size: 2em; font-weight: bold; color: #667eea;"><span id="statMaxStreak">0</span></div>
+                <div style="color: #666;">🔥 Best Streak</div>
+            </div>
+        </div>
+        <button class="close-panel-btn" onclick="closeStats()">Close</button>
+        </div>
+    </div>
+    
+    <!-- Streak Explanation Modal -->
+    <div class="info-panel" id="streakPanel">
+        <div style="position: relative;">
+        <button class="modal-close-x" onclick="closeStreakPanel()">×</button>
+        <h2>About Your Streak 🔥</h2>
+        
+        <div class="help-section">
+            <h3>We reward effort, not eyeballs.</h3>
+            <p>Your streak counts the days you've ATTEMPTED to play.</p>
+        </div>
+        
+        <div class="help-section">
+            <h3>How it works:</h3>
+            <p>✓ Enter at least one guess = your streak continues<br>
+            ✓ Skip days, weeks, or months = your streak PAUSES (doesn't reset!)<br>
+            ✗ Start playing but abandon = streak resets to 0<br>
+            ✗ Complete with zero score = streak resets to 0</p>
+        </div>
+        
+        <div class="help-section" style="background: #f8f9fa; padding: 15px; border-radius: 12px;">
+            <h3>Your Current Stats</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 2em;">🔥 <span id="streakModalCurrent">0</span></div>
+                    <div style="color: #666; font-size: 0.9em;">Current Streak</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2em;">🏆 <span id="streakModalBest">0</span></div>
+                    <div style="color: #666; font-size: 0.9em;">Best Streak</div>
+                </div>
+            </div>
+            <p style="text-align: center; margin-top: 10px; color: #666; font-size: 0.9em;">
+                Last Played: <span id="streakModalLast">Never</span>
+            </p>
+        </div>
+        
+        <div class="help-section">
+            <p style="text-align: center; font-style: italic; color: #666;">
+                No ads. No daily pressure. No tricks.<br>
+                Just play when you can.
+            </p>
+        </div>
+        
+        <button class="close-panel-btn" onclick="closeStreakPanel()">Got it!</button>
+        </div>
+    </div>
+    
+    <!-- Word Definition Modal (for clicked guessed words) -->
+    <div class="info-panel" id="wordDefPanel">
+        <div style="position: relative;">
+        <button class="modal-close-x" onclick="closeWordDefPanel()">×</button>
+        <h2 id="wordDefTitle">Word Definition</h2>
+        
+        <div class="help-section" style="background: #f8f9fa; padding: 20px; border-radius: 12px;">
+            <h3 id="wordDefWord" style="color: #667eea; font-size: 1.5em; margin-bottom: 15px;">Loading...</h3>
+            <p id="wordDefText" style="font-size: 1em; line-height: 1.6; color: #555;">Fetching definition...</p>
+            <p style="font-size: 0.8em; color: #999; margin-top: 10px; font-style: italic;">Powered by Free Dictionary API</p>
+        </div>
+        
+        <button class="close-panel-btn" onclick="closeWordDefPanel()">Close</button>
+        </div>
+    </div>
+    
+    <!-- Info/About panel -->
+    <div class="info-panel" id="infoPanel">
+        <div style="position: relative;">
+        <button class="modal-close-x" onclick="closeInfo()">×</button>
+        <h2>About Directionary™</h2>
+        
+        <div class="help-section">
+            <h3>About</h3>
+            <p>Created by Joel Pickard<br>
+            © 2025 All Rights Reserved<br>
+            A word puzzle where arrows guide you to the solution..</p>
+        </div>
+        
+        <div class="help-section">
+            <h3>Contact</h3>
+            <p>Email: info@directionary.net</p>
+        </div>
+        
+        <div class="help-section">
+            <h3>Licensing</h3>
+            <p>Directionary™ is available for sale or licensing.<br>
+            Contact us at: business@directionary.net</p>
+        </div>
+        
+        <button class="close-panel-btn" onclick="closeInfo()">Close</button>
+        </div>
+    </div>
+    
+    <!-- Help panel -->
+    <div class="info-panel" id="helpPanel">
+        <div style="position: relative;">
+        <button class="modal-close-x" onclick="closeHelp()">×</button>
+        <h2>How to Play Directionary™</h2>
+        
+        <div class="help-section">
+            <h3>Goal</h3>
+            <p>Complete 3 daily word puzzles using directional clues. Each guess shows whether letters should come earlier or later in the alphabet.</p>
+        </div>
+        
+        <div class="help-section">
+            <h3>Symbols Guide</h3>
+            <div class="help-symbols">
+                <div class="help-symbol">
+                    <span style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">●</span>
+                    <span>Correct letter in the right position</span>
+                </div>
+                <div class="help-symbol">
+                    <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">◄</span>
+                    <span>Go earlier in the alphabet (your letter is too late)</span>
+                </div>
+                <div class="help-symbol">
+                    <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">►</span>
+                    <span>Go later in the alphabet (your letter is too early)</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="help-section">
+            <h3>Example</h3>
+            <p>If the target word is HOUSE and you guess GREAT:</p>
+            <p>G ► (H comes after G in alphabet)<br>
+            R ◄ (O comes before R in alphabet)<br>
+            E ► (U comes after E in alphabet)<br>
+            A ► (S comes after A in alphabet)<br>
+            T ◄ (E comes before T in alphabet)</p>
+        </div>
+        
+        <div class="help-section">
+            <h3>AlphaHint™ - Interactive Hints</h3>
+            <p>Stuck on a position? Hold any arrow in your most recent guess to see which letters are still possible.</p>
+            
+            <p><strong>How it works:</strong><br>
+            • Hold (press and keep pressing) an arrow ◄ or ► in your latest guess<br>
+            • The alphabet highlights valid letters for that position<br>
+            • The boundary arrows in previous guesses light up too</p>
+            
+            <p><strong>Example:</strong><br>
+            Your guesses for position 1:<br>
+            • B► (target is after B in alphabet)<br>
+            • D◄ (target is before D in alphabet)<br>
+            <br>
+            Hold the D◄ → Alphabet highlights <strong>C</strong><br>
+            (The only letter after B but before D!)</p>
+            
+            <p><strong>Notes:</strong><br>
+            • Only works on your most recent guess (top row)<br>
+            • Green dots ● are already solved - no hint needed<br>
+            • Helps you understand the logic puzzle aspect of the game</p>
+        </div>
+        
+        <div class="help-section">
+            <h3>Word Definitions</h3>
+            <p>Click any word you've guessed to see its definition!</p>
+        </div>
+        
+        <div class="help-section">
+            <h3>Scoring</h3>
+            <p>• You have 10 guesses per round<br>
+            • Start with 100 points per word<br>
+            • Lose 10 points for each incorrect guess<br>
+            • Complete 3 rounds for your daily score<br>
+            • Share your results with friends!</p>
+        </div>
+        
+        <div class="help-section">
+            <h3>Your Streak 🔥</h3>
+            <p>We reward effort, not eyeballs.</p>
+            <p>Your streak counts the days you've ATTEMPTED to play:</p>
+            <p>✓ Enter at least one guess = streak continues<br>
+            ✓ Skip days, weeks, or months = streak PAUSES (doesn't reset!)<br>
+            ✗ Start playing but abandon = streak resets<br>
+            ✗ Complete with zero score = streak resets</p>
+            <p>💡 <strong>Tip:</strong> Click the 🔥 Streak box to see your stats!</p>
+            <p style="font-style: italic; color: #666;">No ads. No daily pressure. No tricks. Just play when you can.</p>
+        </div>
+        
+        <div class="help-section">
+            <h3>Game Controls</h3>
+            <p>• The "Skip This Round" button skips the current round<br>
+            • Skipping scores that round as ZERO points (no matter how many guesses you used)<br>
+            • You can still complete the remaining rounds<br>
+            • Your total score continues across all 3 rounds</p>
+        </div>
+        
+        <div class="help-section">
+            <h3>Sharing</h3>
+            <p>• The 3 lines of icons in the share screen represent the final guesses before the success or failure of each round.</p>
+        </div>
+        
+        <div class="help-section">
+            <h3>Tips</h3>
+            <p>• Valid words include common English words, but exclude proper nouns, names, profanity, and specialized jargon. Slang may be appropriate in some instances. No plural or past tense words are the answers but may be used as guesses.<br>
+            • The alphabet guide shows which letters you've tried per guess- darkened letters show what you've used, but they may still be in the word at different positions.<br>
+            • Start with words using middle alphabet letters (L-M-N-O) to eliminate half the alphabet at once.<br>
+            • Pay attention to the arrows - they show which direction to move through the alphabet.</p>
+        </div>
+        
+        <button class="close-panel-btn" onclick="closeHelp()">Got it!</button>
+        </div>
+    </div>
+    
+    <!-- Success Modal -->
+    <div class="success-modal" id="successModal">
+        <div class="success-content">
+            <div class="success-title">Correct!</div>
+            <div class="success-word">The word was: <span id="modalWord"></span></div>
+            <div class="success-score">
+                You scored <strong id="modalScore"></strong> points!<br>
+                Total: <strong id="modalTotal"></strong> points
+            </div>
+            <button class="success-btn" onclick="nextWord()">Next Round →</button>
+            
+            <!-- Definition in modal -->
+            <div class="modal-definition" id="modalDefinition">
+                <div class="modal-definition-word" id="modalDefWord"></div>
+                <div class="modal-definition-text" id="modalDefText"></div>
+                <div class="modal-definition-credit">Powered by Free Dictionary API</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Daily Complete Modal -->
+    <div class="success-modal" id="dailyCompleteModal">
+        <div class="success-content">
+            <div class="success-title">🏆 Daily Challenge Complete!</div>
+            <div class="success-score">
+                Final Score: <strong id="finalScore"></strong> points<br>
+                <br>
+                <div id="roundSummary" style="text-align: left; margin: 10px 0;"></div>
+            </div>
+            <button class="success-btn" onclick="viewResults()">View & Share Results</button>
+            <button class="success-btn" onclick="closeDailyModal()" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">Close</button>
+        </div>
+    </div>
+    
+    <!-- Zero Score Modal -->
+<div class="success-modal" id="zeroScoreModal" style="display: none;">
+    <div class="success-content">
+        <div class="success-title">🎯 Out of Tries!</div>
+        <div class="success-score">You've used all 10 guesses for this round.<br>Score: 0 points</div>
+        <button class="success-btn" onclick="skipRound()">Next Round →</button>
+    </div>
+</div>
+    
+    <!-- Give Up Modal -->
+    <div class="success-modal" id="giveUpModal">
+        <div class="success-content">
+            <div class="success-title">Skip This Round?</div>
+            <div class="success-score" style="margin: 20px 0;">
+                Reveal this answer and move to next round?
+            </div>
+            <button class="success-btn" onclick="confirmGiveUp()" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">Yes, Reveal Answer</button>
+            <button class="success-btn" onclick="cancelGiveUp()">Cancel</button>
+        </div>
+    </div>
+    
+    <!-- Duplicate Word Modal -->
+    <div class="success-modal" id="duplicateWordModal">
+        <div class="success-content">
+            <div class="success-title">Already Used!</div>
+            <div class="success-score" style="margin: 20px 0;">
+                             You already guessed that word this round.<br>
+                It won't affect your score.
+            </div>
+            <button class="success-btn" onclick="closeDuplicateModal()">Try Again</button>
+        </div>
+    </div>
+
+    <footer style="text-align: center; padding: 20px 0; color: #e8e8e8; font-size: 0.9em; margin-top: 40px;">
+        <p>Directionary<sup style="font-size: 0.5em; opacity: 0.8; margin-left: 2px; color: #e8e8e8;">™</sup> - Which Way To Words?<sup style="font-size: 0.5em; opacity: 0.8; margin-left: 2px; color: #e8e8e8;">™</sup></p>
+        <p><span style="font-size: 0.9em; opacity: 0.8; color: #e8e8e8;">© 2025 Joel Pickard. All rights reserved.</span></p>
+    </footer>
+
+    <script src="game/game.js"></script>
+</body>
+</html>
