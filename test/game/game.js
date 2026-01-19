@@ -108,10 +108,10 @@ function showWordDefinitionModal(word) {
     document.getElementById('wordDefWord').textContent = word.toLowerCase();
     document.getElementById('wordDefText').textContent = 'Fetching definition...';
     
-    // Update the "See full definition" link
+    // Update the "See full definition" link to Dictionary.com
     var linkElement = document.querySelector('#wordDefLink a');
     if (linkElement) {
-        linkElement.href = 'https://api.dictionaryapi.dev/api/v2/entries/en/' + word.toLowerCase();
+        linkElement.href = 'https://www.dictionary.com/browse/' + word.toLowerCase();
     }
     
     document.getElementById('wordDefPanel').style.display = 'flex';
