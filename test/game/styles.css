@@ -55,14 +55,21 @@ body {
             opacity: 1;
         }
         
-        /* AlphaHint highlighting */
+        /* AlphaHint highlighting - continuous range */
         .alphabet-display .hint-valid {
-            background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+            background: #8b4513;
             color: white;
-            border-radius: 3px;
             font-weight: 700;
-            outline: 2px solid #8b4513;
-            outline-offset: -2px;
+            padding: 2px 0;
+        }
+        
+        /* Remove gaps between highlighted letters to create continuous rectangle */
+        .alphabet-display span {
+            margin: 0;
+        }
+        
+        .alphabet-display .hint-valid {
+            margin: 0 -1px;
         }
         
         .game-title {
@@ -271,14 +278,20 @@ body {
             border-radius: 10px;
         }
         
-        .cross-promo-box a {
+        .cross-promo-link {
             color: #667eea;
             text-decoration: underline;
             font-weight: 600;
+            cursor: pointer;
+            transition: color 0.2s ease;
         }
         
-        .cross-promo-box a:hover {
+        .cross-promo-link:hover {
             color: #764ba2;
+        }
+        
+        .cross-promo-link:active {
+            color: #5a4d8a;
         }
         
         /* AlphaHint text */
@@ -470,10 +483,12 @@ body {
         
         /* AlphaHint - constraint highlighting in previous guesses */
         .overlay-symbol.hint-constraint {
-            background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
-            color: white;
-            padding: 3px 6px;
+            background: #8b4513 !important;
+            color: white !important;
             border-radius: 4px;
+            background-clip: border-box !important;
+            -webkit-background-clip: border-box !important;
+            -webkit-text-fill-color: white !important;
         }
         
         .overlay-symbol.earlier {
@@ -984,6 +999,13 @@ body {
                 font-size: 0.85em;
                 margin: 4px 3px;
                 padding: 2px 4px;
+            }
+            
+            /* Cross-promo mobile adjustments */
+            .cross-promo-box {
+                font-size: 0.75em;
+                padding: 6px 10px;
+                line-height: 1.4;
             }
             
             /* Feedback/Results display - CRITICAL FIX */
