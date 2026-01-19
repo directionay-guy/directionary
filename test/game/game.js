@@ -146,10 +146,16 @@ function closeWordDefPanel() {
 }
 
 function updateScoreDisplay() {
-    document.getElementById("guessCount").textContent = guessCount;
+    // Calculate total guesses across all rounds
+    var totalGuesses = guessCount; // Current round guesses
+    for (var i = 0; i < roundResults.length; i++) {
+        totalGuesses += roundResults[i].guesses;
+    }
+    document.getElementById("guessCount").textContent = totalGuesses;
     
     // Show X/300 format for 3-word game
     var totalPossible = maxRounds * 100;
+    // Show projected total (totalScore + currentScore) - currentScore is 0 after winning a round
     var currentTotal = totalScore + currentScore;
     document.getElementById("currentScore").textContent = currentTotal + "/" + totalPossible;
 }
@@ -511,9 +517,6 @@ function submitGuess() {
     input.focus();
 
     if (guess === targetWord) {
-        totalScore += currentScore;
-        updateScoreDisplay();
-        
         var roundData = {
             word: targetWord,
             score: currentScore,
@@ -521,6 +524,10 @@ function submitGuess() {
             pattern: guessCount > 1 ? guessHistory[guessHistory.length - 2] : guessHistory[0]
         };
         roundResults.push(roundData);
+        
+        totalScore += currentScore;
+        currentScore = 0; // Reset to prevent double-counting in display
+        updateScoreDisplay();
         
         setTimeout(() => {
             showSuccessModal();
@@ -971,7 +978,10 @@ function showAlreadyPlayedMessage() {
         var state = JSON.parse(savedState);
         roundResults = state.roundResults || [];
         totalScore = state.totalScore || 0;
+        currentScore = 0; // Set to 0 since game is complete
     }
+    
+    updateScoreDisplay(); // Update the score display with correct totals
     
     var instructions = document.querySelector(".instructions-brief");
     if (!instructions) {
@@ -992,6 +1002,12 @@ function showAlreadyPlayedMessage() {
     }
     
     updateStreakDisplay();
+    
+    // Hide AlphaHint instruction text since game is complete
+    var alphahintText = document.querySelector(".alphahint-text");
+    if (alphahintText) {
+        alphahintText.style.display = "none";
+    }
     
     document.getElementById("guessInput").style.display = "none";
     document.querySelector(".button-group").style.display = "none";
