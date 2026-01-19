@@ -570,10 +570,23 @@
         
         // AlphaHint™ - COMPLETE IMPLEMENTATION
         function attachAlphaHintHandlers() {
-            // Get the LATEST feedback line (first child, most recent guess)
             var feedbackDiv = document.getElementById("feedback");
-            var latestLine = feedbackDiv.firstElementChild;
+            var allLines = feedbackDiv.querySelectorAll('.feedback-line');
             
+            // FIRST: Remove ALL existing handlers from ALL lines (prevents old guesses from showing hints)
+            allLines.forEach(function(line) {
+                var symbols = line.querySelectorAll('.overlay-symbol');
+                symbols.forEach(function(symbol) {
+                    // Remove pointer cursor from old guesses
+                    symbol.style.cursor = 'default';
+                    // Clone and replace to remove all event listeners
+                    var newSymbol = symbol.cloneNode(true);
+                    symbol.parentNode.replaceChild(newSymbol, symbol);
+                });
+            });
+            
+            // THEN: Attach handlers ONLY to the LATEST guess (first child, most recent)
+            var latestLine = feedbackDiv.firstElementChild;
             if (!latestLine || !latestLine.classList.contains('feedback-line')) return;
             
             var symbols = latestLine.querySelectorAll('.overlay-symbol');
@@ -581,7 +594,13 @@
             symbols.forEach(function(symbol) {
                 // Only attach to arrows, not dots
                 var symbolText = symbol.textContent.trim();
-                if (symbolText === '●') return; // Skip green dots
+                if (symbolText === '●') {
+                    symbol.style.cursor = 'default';
+                    return; // Skip green dots
+                }
+                
+                // Show pointer cursor on latest guess arrows
+                symbol.style.cursor = 'pointer';
                 
                 var position = parseInt(symbol.getAttribute('data-position'));
                 
