@@ -184,8 +184,6 @@ body {
             transition: all 0.3s ease;
             position: relative;
             animation: subtle-pulse 3s ease-in-out infinite;
-            background: linear-gradient(180deg, rgba(255, 107, 53, 0.08) 0%, rgba(255, 107, 53, 0.18) 100%);
-            border-radius: 12px;
         }
         
         /* Gentle pulse to show it's clickable */
