@@ -55,21 +55,10 @@ body {
             opacity: 1;
         }
         
-        /* AlphaHint highlighting - continuous range */
-        .alphabet-display .hint-valid {
-            background: #8b4513;
-            color: white;
-            font-weight: 700;
-            padding: 2px 0;
-        }
-        
-        /* Remove gaps between highlighted letters to create continuous rectangle */
-        .alphabet-display span {
-            margin: 0;
-        }
-        
-        .alphabet-display .hint-valid {
-            margin: 0 -1px;
+        /* AlphaHint - hide invalid letters instead of highlighting */
+        .alphabet-display .hint-hidden {
+            opacity: 0.15;
+            color: rgba(85, 102, 204, 0.15);
         }
         
         .game-title {
@@ -410,11 +399,16 @@ body {
             cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
+            text-decoration: underline;
+            text-decoration-style: solid;
+            text-decoration-color: rgba(102, 126, 234, 0.3);
+            text-decoration-thickness: 1px;
+            text-underline-offset: 2px;
         }
         
         .feedback-word:hover {
             color: #667eea;
-            text-decoration: underline;
+            text-decoration-color: #667eea;
         }
         
         .feedback-word::after {
@@ -1086,11 +1080,10 @@ body {
             }
             
             .modal-close-x {
-                position: fixed;
-                top: 25px;
-                right: 20px;
-                z-index: 2001;
-                background: rgba(255, 255, 255, 0.9);
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: rgba(255, 255, 255, 0.95);
                 border-radius: 50%;
                 width: 35px;
                 height: 35px;
