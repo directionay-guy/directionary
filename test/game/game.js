@@ -527,6 +527,7 @@ function submitGuess() {
         
         totalScore += currentScore;
         currentScore = 0; // Reset to prevent double-counting in display
+        guessCount = 0; // Reset to prevent double-counting in total guesses display
         updateScoreDisplay();
         
         setTimeout(() => {
