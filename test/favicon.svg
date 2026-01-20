@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+    <!-- Directionary Favicon - Simple D with arrow -->
+    
+    <defs>
+        <linearGradient id="dGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+        </linearGradient>
+    </defs>
+    
+    <!-- Background circle -->
+    <circle cx="16" cy="16" r="16" fill="white"/>
+    
+    <!-- Large D in gradient -->
+    <text x="16" y="25" font-size="22" fill="url(#dGradient)" font-family="Georgia, serif" font-weight="bold" text-anchor="middle">D</text>
+    
+    <!-- Small arrow on side -->
+    <text x="26" y="12" font-size="8" fill="#667eea" font-family="Arial, sans-serif" font-weight="bold">►</text>
+</svg>
