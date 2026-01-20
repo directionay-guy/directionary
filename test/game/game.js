@@ -717,6 +717,13 @@ function showAlphaHint(position) {
             }
         }
     });
+    
+    // Update AlphaHint text to show which position
+    var alphahintText = document.querySelector('.alphahint-text');
+    if (alphahintText) {
+        var ordinals = ['1st', '2nd', '3rd', '4th', '5th'];
+        alphahintText.textContent = 'Options for the ' + ordinals[position] + ' letter';
+    }
 }
 
 function clearAlphaHint() {
@@ -733,6 +740,12 @@ function clearAlphaHint() {
     allSymbols.forEach(function(symbol) {
         symbol.classList.remove('hint-constraint');
     });
+    
+    // Reset AlphaHint text to default
+    var alphahintText = document.querySelector('.alphahint-text');
+    if (alphahintText) {
+        alphahintText.textContent = 'AlphaHint™: Hold arrow for letter options';
+    }
 }
 
 function showError(message) {
