@@ -756,15 +756,18 @@ function showError(message) {
 }
 
 function showSuccessModal() {
+    // Get the score from the just-saved roundData (currentScore was reset to 0)
+    var lastRoundScore = roundResults.length > 0 ? roundResults[roundResults.length - 1].score : 0;
+    
     document.getElementById("modalWord").textContent = targetWord;
-    document.getElementById("modalScore").textContent = currentScore;
+    document.getElementById("modalScore").textContent = lastRoundScore;
     document.getElementById("modalTotal").textContent = totalScore;
     
     if (typeof gtag === 'function') {
         gtag('event', 'round_complete', {
             'round_number': currentRound,
-            'score': currentScore,
-            'guesses_used': guessCount,
+            'score': lastRoundScore,
+            'guesses_used': roundResults.length > 0 ? roundResults[roundResults.length - 1].guesses : 0,
             'target_word': targetWord
         });
     }
