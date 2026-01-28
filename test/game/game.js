@@ -333,9 +333,8 @@ function startDayChangeChecker() {
         var storedDay = localStorage.getItem('directionary_currentDay');
         
         if (!storedDay) {
-            var yesterday = currentDay - 1;
-            localStorage.setItem('directionary_currentDay', yesterday);
-            console.log("🔧 No stored day - initialized to yesterday:", yesterday, "(will reload on next check)");
+            localStorage.setItem('directionary_currentDay', currentDay);
+            console.log("🔧 No stored day - initialized to current day:", currentDay);
             return;
         }
         
@@ -510,6 +509,20 @@ function submitGuess() {
     feedbackLine.innerHTML = "<span style=\"color: #bbb; margin-right: 8px;\">" + guessCount + ")</span> <span class=\"feedback-word\" onclick=\"showWordDefinitionModal('" + guess + "')\">" + guess + "</span> <div class=\"feedback-arrows\">" + arrowSpans + "</div>";
     feedbackDiv.insertBefore(feedbackLine, feedbackDiv.firstChild);
     
+    // Remove placeholder demo after first guess
+    var placeholder = document.getElementById("placeholderGuess");
+    if (placeholder) {
+        placeholder.remove();
+    }
+    
+    // Mark all previous guesses as inactive (muted styling)
+    var allLines = feedbackDiv.querySelectorAll('.feedback-line');
+    allLines.forEach(function(line, index) {
+        if (index > 0) { // Skip first line (latest guess)
+            line.classList.add('inactive-guess');
+        }
+    });
+    
     // Attach AlphaHint handlers to latest guess only
     attachAlphaHintHandlers();
     
@@ -593,13 +606,13 @@ function attachAlphaHintHandlers() {
         // Skip the first line (latest guess - index 0)
         if (index === 0) return;
         
-        var symbols = line.querySelectorAll('.overlay-symbol');
-        symbols.forEach(function(symbol) {
+        var containers = line.querySelectorAll('.symbol-with-letter');
+        containers.forEach(function(container) {
             // Remove pointer cursor from old guesses
-            symbol.style.cursor = 'default';
+            container.style.cursor = 'default';
             // Clone and replace to remove all event listeners
-            var newSymbol = symbol.cloneNode(true);
-            symbol.parentNode.replaceChild(newSymbol, symbol);
+            var newContainer = container.cloneNode(true);
+            container.parentNode.replaceChild(newContainer, container);
         });
     });
     
@@ -607,38 +620,41 @@ function attachAlphaHintHandlers() {
     var latestLine = feedbackDiv.firstElementChild;
     if (!latestLine || !latestLine.classList.contains('feedback-line')) return;
     
-    var symbols = latestLine.querySelectorAll('.overlay-symbol');
+    var containers = latestLine.querySelectorAll('.symbol-with-letter');
     
-    symbols.forEach(function(symbol) {
+    containers.forEach(function(container) {
+        var symbol = container.querySelector('.overlay-symbol');
+        if (!symbol) return;
+        
         // Only attach to arrows, not dots
         var symbolText = symbol.textContent.trim();
         if (symbolText === '●') {
-            symbol.style.cursor = 'default';
+            container.style.cursor = 'default';
             return; // Skip green dots
         }
         
-        // Show pointer cursor on latest guess arrows
-        symbol.style.cursor = 'pointer';
+        // Show pointer cursor on entire container (letter + arrow)
+        container.style.cursor = 'pointer';
         
         var position = parseInt(symbol.getAttribute('data-position'));
         
-        // Mouse events
-        symbol.addEventListener('mousedown', function(e) {
+        // Mouse events on entire container
+        container.addEventListener('mousedown', function(e) {
             e.preventDefault();
             showAlphaHint(position);
         });
         
-        symbol.addEventListener('mouseup', clearAlphaHint);
-        symbol.addEventListener('mouseleave', clearAlphaHint);
+        container.addEventListener('mouseup', clearAlphaHint);
+        container.addEventListener('mouseleave', clearAlphaHint);
         
-        // Touch events
-        symbol.addEventListener('touchstart', function(e) {
+        // Touch events on entire container
+        container.addEventListener('touchstart', function(e) {
             e.preventDefault();
             showAlphaHint(position);
         });
         
-        symbol.addEventListener('touchend', clearAlphaHint);
-        symbol.addEventListener('touchcancel', clearAlphaHint);
+        container.addEventListener('touchend', clearAlphaHint);
+        container.addEventListener('touchcancel', clearAlphaHint);
     });
 }
 
@@ -681,6 +697,9 @@ function showAlphaHint(position) {
     // Hide invalid letters in alphabet (instead of highlighting valid ones)
     var alphabetDiv = document.getElementById("alphabetDisplay");
     var letters = alphabetDiv.querySelectorAll('span');
+    
+    // Add hint-active class to remove bold from all letters
+    alphabetDiv.classList.add('hint-active');
     
     if (solved) {
         // Hide all letters except the solved one
@@ -730,6 +749,10 @@ function showAlphaHint(position) {
 function clearAlphaHint() {
     // Remove alphabet hidden classes
     var alphabetDiv = document.getElementById("alphabetDisplay");
+    
+    // Remove hint-active class to restore bold on used letters
+    alphabetDiv.classList.remove('hint-active');
+    
     var letters = alphabetDiv.querySelectorAll('span');
     letters.forEach(function(span) {
         span.classList.remove('hint-hidden');
@@ -1338,6 +1361,15 @@ function cancelGiveUp() {
 
 function closeDuplicateModal() {
     document.getElementById("duplicateWordModal").style.display = "none";
+    document.getElementById("guessInput").focus();
+}
+
+function showPlaceholderModal() {
+    document.getElementById("placeholderModal").style.display = "flex";
+}
+
+function closePlaceholderModal() {
+    document.getElementById("placeholderModal").style.display = "none";
     document.getElementById("guessInput").focus();
 }
 
