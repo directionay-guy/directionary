@@ -55,6 +55,11 @@ body {
             opacity: 1;
         }
         
+        /* AlphaHint active - remove bold from all letters to avoid confusion */
+        .alphabet-display.hint-active span {
+            font-weight: 500 !important;
+        }
+        
         /* AlphaHint - hide invalid letters instead of highlighting */
         .alphabet-display .hint-hidden {
             opacity: 0.15;
@@ -392,6 +397,26 @@ body {
         .feedback-line:hover {
             transform: translateX(5px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Previous guesses - inactive styling */
+        .feedback-line.inactive-guess {
+            background: #f5f5f5;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        
+        .feedback-line.inactive-guess:hover {
+            transform: translateX(2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+        }
+        
+        .feedback-line.inactive-guess .feedback-word {
+            color: #555;
+            text-decoration-color: rgba(102, 126, 234, 0.5);
+        }
+        
+        .feedback-line.inactive-guess .overlay-symbol {
+            opacity: 0.6;
         }
         
         /* Clickable words in feedback */
