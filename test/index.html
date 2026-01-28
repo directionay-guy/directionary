@@ -158,7 +158,35 @@
         
         <div id="errorMessage"></div>
         
-        <div class="feedback" id="feedback"></div>
+        <div class="feedback" id="feedback">
+            <!-- Placeholder demo - removed after first guess -->
+            <div class="feedback-line placeholder-guess" id="placeholderGuess">
+                <span style="color: #bbb; margin-right: 8px;">1)</span>
+                <span class="feedback-word" onclick="showPlaceholderModal()" style="cursor: pointer; color: #999;">GUESS</span>
+                <div class="feedback-arrows">
+                    <div class="symbol-with-letter">
+                        <span class="background-letter" style="color: #ccc;">G</span>
+                        <span class="overlay-symbol" style="color: #ccc;">○</span>
+                    </div>
+                    <div class="symbol-with-letter">
+                        <span class="background-letter" style="color: #ccc;">U</span>
+                        <span class="overlay-symbol" style="color: #ccc;">○</span>
+                    </div>
+                    <div class="symbol-with-letter">
+                        <span class="background-letter" style="color: #ccc;">E</span>
+                        <span class="overlay-symbol" style="color: #ccc;">○</span>
+                    </div>
+                    <div class="symbol-with-letter">
+                        <span class="background-letter" style="color: #ccc;">S</span>
+                        <span class="overlay-symbol" style="color: #ccc;">○</span>
+                    </div>
+                    <div class="symbol-with-letter">
+                        <span class="background-letter" style="color: #ccc;">S</span>
+                        <span class="overlay-symbol" style="color: #ccc;">○</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     
     <!-- Bottom buttons with text labels -->
@@ -296,18 +324,18 @@
         
         <div class="help-section">
             <h3>Contact</h3>
-            <p>Email: <img src="images/email-info.png" alt="info@directionary.net" style="vertical-align: middle; height: 18px;"></p>
+            <p>Email: <img src="images/email-info.png" alt="info@directionary.net" style="vertical-align: middle; height: 24px;"></p>
         </div>
         
         <div class="help-section">
             <h3>Licensing</h3>
             <p>Directionary™ is available for sale or licensing.<br>
-            Contact us at: <img src="images/email-business.png" alt="business@directionary.net" style="vertical-align: middle; height: 18px;"></p>
+            Contact us at: <img src="images/email-business.png" alt="business@directionary.net" style="vertical-align: middle; height: 24px;"></p>
         </div>
         
         <div class="help-section">
             <h3>Did you find any bugs?</h3>
-            <p><img src="images/email-feedback.png" alt="feedback@directionary.net" style="vertical-align: middle; height: 18px;"></p>
+            <p><img src="images/email-feedback.png" alt="feedback@directionary.net" style="vertical-align: middle; height: 24px;"></p>
         </div>
         
         <button class="close-panel-btn" onclick="closeInfo()">Close</button>
@@ -425,7 +453,7 @@
         
         <div class="help-section">
             <h3>Did you find a bug or something wrong with the instructions? Let us know:</h3>
-            <p><img src="images/email-feedback.png" alt="feedback@directionary.net" style="vertical-align: middle; height: 18px;"></p>
+            <p><img src="images/email-feedback.png" alt="feedback@directionary.net" style="vertical-align: middle; height: 24px;"></p>
         </div>
         
         <button class="close-panel-btn" onclick="closeHelp()">Got it!</button>
@@ -496,6 +524,21 @@
                 It won't affect your score.
             </div>
             <button class="success-btn" onclick="closeDuplicateModal()">Try Again</button>
+        </div>
+    </div>
+    
+    <!-- Placeholder "How It Works" Modal -->
+    <div class="success-modal" id="placeholderModal">
+        <div class="success-content">
+            <div class="success-title">How Guesses Work</div>
+            <div class="success-score" style="margin: 20px 0; text-align: left; line-height: 1.6;">
+                Your guesses appear here with directional clues:<br><br>
+                <strong>◄</strong> means the correct letter is <strong>earlier</strong> in the alphabet<br>
+                <strong>►</strong> means the correct letter is <strong>later</strong> in the alphabet<br>
+                <strong>●</strong> means you found the <strong>correct letter!</strong><br><br>
+                Use these clues to narrow down the answer!
+            </div>
+            <button class="success-btn" onclick="closePlaceholderModal()">Got it!</button>
         </div>
     </div>
 
