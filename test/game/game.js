@@ -1519,6 +1519,58 @@ window.onload = function() {
     updateStreakDisplay();
     initGame();
     
+    // Placeholder dots demo - highlight AlphaHint text when held
+    var placeholder = document.getElementById("placeholderGuess");
+    if (placeholder) {
+        var placeholderDots = placeholder.querySelectorAll('.symbol-with-letter');
+        var alphahintText = document.querySelector('.alphahint-text');
+        
+        placeholderDots.forEach(function(dot) {
+            // Mouse events
+            dot.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                if (alphahintText) {
+                    alphahintText.classList.add('demo-active');
+                }
+            });
+            
+            dot.addEventListener('mouseup', function() {
+                if (alphahintText) {
+                    alphahintText.classList.remove('demo-active');
+                }
+            });
+            
+            dot.addEventListener('mouseleave', function() {
+                if (alphahintText) {
+                    alphahintText.classList.remove('demo-active');
+                }
+            });
+            
+            // Touch events
+            dot.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                if (alphahintText) {
+                    alphahintText.classList.add('demo-active');
+                }
+            });
+            
+            dot.addEventListener('touchend', function() {
+                if (alphahintText) {
+                    alphahintText.classList.remove('demo-active');
+                }
+            });
+            
+            dot.addEventListener('touchcancel', function() {
+                if (alphahintText) {
+                    alphahintText.classList.remove('demo-active');
+                }
+            });
+            
+            // Add cursor pointer to show it's interactive
+            dot.style.cursor = 'pointer';
+        });
+    }
+    
     // Input validation - only allow A-Z letters
     var guessInput = document.getElementById("guessInput");
     
