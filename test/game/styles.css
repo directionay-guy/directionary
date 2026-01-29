@@ -297,6 +297,15 @@ body {
             font-style: italic;
         }
         
+        /* Highlight AlphaHint text when holding placeholder dots */
+        .alphahint-text.demo-active {
+            font-weight: 700;
+            font-size: 1.1em;
+            color: #667eea;
+            text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+            transition: all 0.3s ease;
+        }
+        
         input {
             width: 70%;
             padding: 12px;
