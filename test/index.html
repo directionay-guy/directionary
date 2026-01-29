@@ -109,10 +109,15 @@
         <p class="tagline">Which Way To Words?<sup style="font-size: 0.5em; opacity: 0.6; margin-left: 2px; color: #666;">™</sup></p>
         
         <div class="instructions">
-            Guess 3 words using arrows - 10 tries per round.<br>
+            Reveal 3 words in 10 tries per round.<br>
             <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #28a745;">●</span> <span style="color: #000;">= correct</span></span>
             <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">◄</span> <span style="color: #000;">= before</span></span>
             <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">►</span> <span style="color: #000;">= after</span></span>
+        </div>
+        
+        <!-- Cross-promotion box -->
+        <div class="cross-promo-box">
+            Want unlimited puzzles? <span class="cross-promo-link" id="proLink" onclick="showComingSoon(event)">Directionary PRO</span>
         </div>
         
         <div class="score-display">
@@ -128,11 +133,6 @@
                 <div class="score-label">🔥 Streak</div>
                 <div class="score-value" id="streakDisplay">0</div>
             </div>
-        </div>
-        
-        <!-- Cross-promotion box -->
-        <div class="cross-promo-box">
-            Want unlimited puzzles? <span class="cross-promo-link" id="proLink" onclick="showComingSoon(event)">Directionary PRO</span>
         </div>
         
         <!-- Definition box (hidden until word is solved) -->
@@ -166,26 +166,28 @@
                 <div class="feedback-arrows">
                     <div class="symbol-with-letter">
                         <span class="background-letter" style="color: #ccc;">G</span>
-                        <span class="overlay-symbol" style="color: #ccc;">○</span>
+                        <span class="overlay-symbol" style="color: #333;">●</span>
                     </div>
                     <div class="symbol-with-letter">
                         <span class="background-letter" style="color: #ccc;">U</span>
-                        <span class="overlay-symbol" style="color: #ccc;">○</span>
+                        <span class="overlay-symbol" style="color: #333;">●</span>
                     </div>
                     <div class="symbol-with-letter">
                         <span class="background-letter" style="color: #ccc;">E</span>
-                        <span class="overlay-symbol" style="color: #ccc;">○</span>
+                        <span class="overlay-symbol" style="color: #333;">●</span>
                     </div>
                     <div class="symbol-with-letter">
                         <span class="background-letter" style="color: #ccc;">S</span>
-                        <span class="overlay-symbol" style="color: #ccc;">○</span>
+                        <span class="overlay-symbol" style="color: #333;">●</span>
                     </div>
                     <div class="symbol-with-letter">
                         <span class="background-letter" style="color: #ccc;">S</span>
-                        <span class="overlay-symbol" style="color: #ccc;">○</span>
+                        <span class="overlay-symbol" style="color: #333;">●</span>
                     </div>
                 </div>
             </div>
+            <!-- Round indicator for Round 1 -->
+            <div class="new-game-message" id="round1Indicator">◄ ● Round 1 of 3 ● ►</div>
         </div>
     </div>
     
