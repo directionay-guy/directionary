@@ -291,6 +291,12 @@ function loadWordList() {
 function initGame() {
     console.log("Initializing Directionary...");
     
+    // CRITICAL: Set current day in localStorage FIRST, before day checker starts
+    // This prevents false "new day" detection on fresh page loads
+    if (!devMode && !testMode) {
+        localStorage.setItem('directionary_currentDay', getLocalGameDay());
+    }
+    
     showBetaBannerIfEnabled();
     
     if (!devMode && !testMode) {
@@ -990,6 +996,9 @@ function startCountdownTimer() {
 
         if (timeUntilMidnight <= 1000) {
             console.log("⏰ Midnight reached! Reloading for new puzzle...");
+            // Set to TOMORROW's day (current + 1) since we're reloading into the new day
+            var tomorrowDay = getLocalGameDay() + 1;
+            localStorage.setItem('directionary_currentDay', tomorrowDay);
             location.reload();
             return;
         }
