@@ -58,6 +58,13 @@ body {
         /* AlphaHint active - remove bold from all letters to avoid confusion */
         .alphabet-display.hint-active span {
             font-weight: 500 !important;
+            color: #5566cc !important;
+        }
+        
+        /* Make sure used letters also change color during hint */
+        .alphabet-display.hint-active .used-letter {
+            font-weight: 500 !important;
+            color: #5566cc !important;
         }
         
         /* AlphaHint - hide invalid letters instead of highlighting */
