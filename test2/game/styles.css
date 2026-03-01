@@ -380,6 +380,11 @@ body {
             border: 2px solid transparent;
         }
         
+        /* Input box in flex layout - don't use fixed width */
+        #guessInput {
+            width: auto; /* Let flex: 1 control the width */
+        }
+        
         .give-up-btn {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             font-size: 0.9em;
