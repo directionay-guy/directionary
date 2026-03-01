@@ -533,7 +533,7 @@ function submitGuess() {
         
         totalScore += currentScore;
         currentScore = 0; // Reset to prevent double-counting in display
-        guessCount = 0; // Reset to prevent double-counting in total guesses display
+        // Don't reset guessCount - keep it visible for player to see final count
         updateScoreDisplay();
         
         setTimeout(() => {
@@ -777,7 +777,7 @@ function showSuccessModal() {
     
     document.getElementById("modalWord").textContent = targetWord;
     document.getElementById("modalScore").textContent = lastRoundScore;
-    document.getElementById("modalTotal").textContent = totalScore;
+    // modalTotal doesn't exist in Standard game (no "Total: X/300" line)
     
     if (typeof gtag === 'function') {
         gtag('event', 'round_complete', {
