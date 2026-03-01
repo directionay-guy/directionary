@@ -374,6 +374,12 @@ body {
             cursor: not-allowed;
         }
         
+        /* Submit button in Standard game - match input height */
+        #submitBtn {
+            font-size: 1.2em;
+            border: 2px solid transparent;
+        }
+        
         .give-up-btn {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             font-size: 0.9em;
