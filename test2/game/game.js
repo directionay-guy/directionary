@@ -992,7 +992,7 @@ function showComeBackMessage() {
     }
     
     document.getElementById("guessInput").style.display = "none";
-    document.querySelector(".button-group").style.display = "none";
+    document.getElementById("submitBtn").style.display = "none";
     
     var feedbackDiv = document.getElementById("feedback");
     feedbackDiv.innerHTML = '<div id="countdownTimer" style="text-align: center; padding: 25px 30px; font-size: 2em; color: #00ff41; font-weight: 700; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 15px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5), 0 4px 15px rgba(0,0,0,0.3); font-family: \'Courier New\', Courier, monospace; letter-spacing: 0.1em; text-shadow: 0 0 10px rgba(0,255,65,0.5), 0 0 20px rgba(0,255,65,0.3);"></div>';
@@ -1148,7 +1148,7 @@ function generateShareText() {
         }
     }
     
-    text += "\nScore: " + totalScore + " out of 300\n\n";
+    text += "\nScore: " + totalScore + "\n\n";
     text += "#WW2W " + GAME_URL;
     
     return text;
