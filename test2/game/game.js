@@ -771,6 +771,43 @@ function showError(message) {
     setTimeout(() => { errorDiv.innerHTML = ""; }, 3000);
 }
 
+function fetchWordDefinition(word, callback) {
+    fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + word.toLowerCase())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Definition not found');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && data[0]) {
+                var entry = data[0];
+                var phonetic = entry.phonetic || '';
+                
+                if (entry.meanings && entry.meanings[0]) {
+                    var meaning = entry.meanings[0];
+                    var partOfSpeech = meaning.partOfSpeech || '';
+                    var definition = meaning.definitions[0].definition || '';
+                    
+                    callback({
+                        word: word,
+                        phonetic: phonetic,
+                        partOfSpeech: partOfSpeech,
+                        definition: definition
+                    });
+                } else {
+                    callback(null);
+                }
+            } else {
+                callback(null);
+            }
+        })
+        .catch(error => {
+            console.log('Dictionary API error:', error);
+            callback(null);
+        });
+}
+
 function showSuccessModal() {
     // Get the score from the just-saved roundData (currentScore was reset to 0)
     var lastRoundScore = roundResults.length > 0 ? roundResults[roundResults.length - 1].score : 0;
@@ -999,12 +1036,12 @@ function showComeBackMessage() {
     startCountdownTimer();
     
     if (roundResults.length > 0) {
-        var buttonGroup = document.querySelector(".button-group");
+        // Create words display below countdown
         var wordsDiv = document.createElement("div");
         wordsDiv.id = "todaysWordsDisplay";
         wordsDiv.style.cssText = "text-align: center; padding: 15px 20px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 15px 0;";
         
-        var html = '<h3 style="margin: 0 0 12px 0; color: #667eea; font-size: 1.1em;">Today\'s Words</h3>';
+        var html = '<h3 style="margin: 0 0 12px 0; color: #667eea; font-size: 1.1em;">Today\'s Word</h3>';
         html += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 10px 20px; max-width: 250px; margin: 0 auto;">';
         
         for (var i = 0; i < roundResults.length; i++) {
@@ -1018,7 +1055,14 @@ function showComeBackMessage() {
         
         html += '</div>';
         wordsDiv.innerHTML = html;
-        buttonGroup.parentNode.insertBefore(wordsDiv, buttonGroup.nextSibling);
+        
+        // Insert after feedback div
+        feedbackDiv.parentNode.insertBefore(wordsDiv, feedbackDiv.nextSibling);
+        
+        var scoreMessage = document.createElement("div");
+        scoreMessage.style.cssText = "text-align: center; margin: 20px 0; font-size: 1.2em; font-weight: 600; color: #667eea;";
+        scoreMessage.textContent = "Your Score: " + totalScore + " points";
+        feedbackDiv.parentNode.insertBefore(scoreMessage, wordsDiv);
     }
 }
 
@@ -1093,14 +1137,14 @@ function showAlreadyPlayedMessage() {
     }
     
     document.getElementById("guessInput").style.display = "none";
-    document.querySelector(".button-group").style.display = "none";
+    document.getElementById("submitBtn").style.display = "none";
     
     var feedbackDiv = document.getElementById("feedback");
     feedbackDiv.innerHTML = '<div id="countdownTimer" style="text-align: center; padding: 25px 30px; font-size: 2em; color: #00ff41; font-weight: 700; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 15px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5), 0 4px 15px rgba(0,0,0,0.3); font-family: \'Courier New\', Courier, monospace; letter-spacing: 0.1em; text-shadow: 0 0 10px rgba(0,255,65,0.5), 0 0 20px rgba(0,255,65,0.3);"></div>';
     startCountdownTimer();
     
     if (roundResults.length > 0) {
-        var buttonGroup = document.querySelector(".button-group");
+        // Create words display below countdown
         var wordsDiv = document.createElement("div");
         wordsDiv.style.cssText = "text-align: center; padding: 15px 20px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 15px 0;";
         
@@ -1118,12 +1162,14 @@ function showAlreadyPlayedMessage() {
         
         html += '</div>';
         wordsDiv.innerHTML = html;
-        buttonGroup.parentNode.insertBefore(wordsDiv, buttonGroup.nextSibling);
+        
+        // Insert after feedback div
+        feedbackDiv.parentNode.insertBefore(wordsDiv, feedbackDiv.nextSibling);
         
         var scoreMessage = document.createElement("div");
         scoreMessage.style.cssText = "text-align: center; margin: 20px 0; font-size: 1.2em; font-weight: 600; color: #667eea;";
         scoreMessage.textContent = "Your Score: " + totalScore + " points";
-        wordsDiv.parentNode.insertBefore(scoreMessage, wordsDiv);
+        feedbackDiv.parentNode.insertBefore(scoreMessage, wordsDiv);
     }
 }
 
