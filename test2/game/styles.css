@@ -382,6 +382,9 @@ body {
             height: 50px;  /* Explicit height to match input */
             box-sizing: border-box;  /* Include padding and border in height */
             margin: 0;  /* Remove any default margin */
+            display: flex;  /* Use flex to center text */
+            align-items: center;  /* Center text vertically */
+            justify-content: center;  /* Center text horizontally */
         }
         
         /* Input box - set explicit height to match button */
