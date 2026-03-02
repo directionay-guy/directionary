@@ -376,13 +376,18 @@ body {
         
         /* Submit button in Standard game - match input height */
         #submitBtn {
+            padding: 12px;  /* Match input padding exactly */
             font-size: 1.2em;
             border: 2px solid transparent;
+            height: 50px;  /* Explicit height to match input */
+            box-sizing: border-box;  /* Include padding and border in height */
         }
         
-        /* Input box in flex layout - don't use fixed width */
+        /* Input box - set explicit height to match button */
         #guessInput {
             width: auto; /* Let flex: 1 control the width */
+            height: 50px;  /* Explicit height to match button */
+            box-sizing: border-box;  /* Include padding and border in height */
         }
         
         .give-up-btn {
