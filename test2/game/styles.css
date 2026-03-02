@@ -381,6 +381,7 @@ body {
             border: 2px solid transparent;
             height: 50px;  /* Explicit height to match input */
             box-sizing: border-box;  /* Include padding and border in height */
+            margin: 0;  /* Remove any default margin */
         }
         
         /* Input box - set explicit height to match button */
@@ -388,6 +389,7 @@ body {
             width: auto; /* Let flex: 1 control the width */
             height: 50px;  /* Explicit height to match button */
             box-sizing: border-box;  /* Include padding and border in height */
+            margin: 0 !important;  /* Override the margin: 15px 0 from general input CSS */
         }
         
         .give-up-btn {
