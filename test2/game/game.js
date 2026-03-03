@@ -1787,6 +1787,11 @@ if (sessionStorage.getItem('dismissedRotateOverlay') === 'true') {
 var btn = overlay.querySelector('.dismiss-rotate-btn');
 if (btn) {
     btn.addEventListener('click', dismissRotateOverlay);
+    // iOS/iPad sometimes needs touchend event
+    btn.addEventListener('touchend', function(e) {
+        e.preventDefault(); // Prevent ghost click
+        dismissRotateOverlay();
+    });
 }
     }
     
