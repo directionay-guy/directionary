@@ -1291,11 +1291,6 @@ body {
     padding: 10px;
 }
 
-/* When dismissed, ALWAYS hide - this beats the media query */
-.rotate-overlay.dismissed {
-    display: none !important;
-}
-
 .rotate-content {
     color: white;
     max-width: 95%;
@@ -1378,4 +1373,9 @@ body {
     .rotate-overlay:not(.dismissed) {
         display: flex !important;
     }
+}
+
+/* CRITICAL: This MUST come AFTER the media query to override it */
+.rotate-overlay.dismissed {
+    display: none !important;
 }
