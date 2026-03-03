@@ -1365,20 +1365,11 @@ body {
     cursor: pointer;
     font-weight: 600;
     transition: all 0.3s ease;
-    -webkit-tap-highlight-color: rgba(255, 255, 255, 0.3);
-    touch-action: manipulation;
-    user-select: none;
 }
 
 .dismiss-rotate-btn:hover {
     background: white;
     color: #667eea;
-}
-
-.dismiss-rotate-btn:active {
-    background: white;
-    color: #667eea;
-    transform: scale(0.98);
 }
 
 /* Show overlay ONLY on TABLETS in landscape - but NOT if dismissed */
