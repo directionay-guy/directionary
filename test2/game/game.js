@@ -1770,8 +1770,9 @@ window.showComingSoon = showComingSoon;
 (function() {
     function dismissRotateOverlay() {
 var overlay = document.getElementById("rotateOverlay");
-if (overlay) {
-    overlay.classList.add('dismissed');
+if (overlay && overlay.parentNode) {
+    // Remove from DOM entirely - bypass all CSS
+    overlay.parentNode.removeChild(overlay);
     sessionStorage.setItem('dismissedRotateOverlay', 'true');
 }
     }
@@ -1780,8 +1781,12 @@ if (overlay) {
 var overlay = document.getElementById("rotateOverlay");
 if (!overlay) return;
 
+// If previously dismissed, remove immediately
 if (sessionStorage.getItem('dismissedRotateOverlay') === 'true') {
-    overlay.classList.add('dismissed');
+    if (overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+    }
+    return;
 }
 
 var btn = overlay.querySelector('.dismiss-rotate-btn');
