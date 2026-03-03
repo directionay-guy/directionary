@@ -1772,7 +1772,15 @@ window.showComingSoon = showComingSoon;
 var overlay = document.getElementById("rotateOverlay");
 if (overlay) {
     overlay.classList.add('dismissed');
+    overlay.style.display = 'none';  // Force hide directly
+    overlay.style.setProperty('display', 'none', 'important');  // Override any !important
     sessionStorage.setItem('dismissedRotateOverlay', 'true');
+    // Nuclear option: remove from DOM entirely
+    setTimeout(function() {
+        if (overlay.parentNode) {
+            overlay.parentNode.removeChild(overlay);
+        }
+    }, 300);  // Small delay for visual feedback
 }
     }
     
@@ -1782,6 +1790,13 @@ if (!overlay) return;
 
 if (sessionStorage.getItem('dismissedRotateOverlay') === 'true') {
     overlay.classList.add('dismissed');
+    overlay.style.display = 'none';  // Force hide directly
+    overlay.style.setProperty('display', 'none', 'important');  // Override any !important
+    // Remove from DOM entirely
+    if (overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+    }
+    return;  // Don't need to set up button listener if removed
 }
 
 var btn = overlay.querySelector('.dismiss-rotate-btn');
