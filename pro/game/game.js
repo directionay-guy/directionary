@@ -593,6 +593,13 @@ function submitGuess() {
         placeholder.remove();
     }
     
+    // Ensure round indicator is visible
+    var roundIndicator = document.getElementById("round1Indicator");
+    if (roundIndicator && currentRound === 1) {
+        // Make sure it's at the end of the feedback div
+        feedbackDiv.appendChild(roundIndicator);
+    }
+    
     // Mark all previous guesses as inactive (muted styling)
     var allLines = feedbackDiv.querySelectorAll('.feedback-line');
     allLines.forEach(function(line, index) {
@@ -1842,16 +1849,39 @@ function switchToProPlusMode() {
 }
 
 function confirmModeSwitch() {
+    console.log("Confirm mode switch clicked, pending mode:", pendingModeSwitch);
+    
+    // Close modal immediately
+    var modal = document.getElementById('modeSwitchModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    
+    // Then perform the switch
     if (pendingModeSwitch) {
         performModeSwitch(pendingModeSwitch);
     }
-    document.getElementById('modeSwitchModal').style.display = 'none';
+    
     pendingModeSwitch = null;
+    
+    // Focus input after switch
+    setTimeout(function() {
+        document.getElementById("guessInput").focus();
+    }, 100);
 }
 
 function cancelModeSwitch() {
-    document.getElementById('modeSwitchModal').style.display = 'none';
+    console.log("Cancel mode switch clicked");
+    var modal = document.getElementById('modeSwitchModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
     pendingModeSwitch = null;
+    
+    // Focus input after cancel
+    setTimeout(function() {
+        document.getElementById("guessInput").focus();
+    }, 100);
 }
 
 function performModeSwitch(newMode) {
@@ -1914,11 +1944,37 @@ function resetGame() {
     document.getElementById("totalScore").textContent = "0";
     document.getElementById("errorMessage").innerHTML = "";
     
-    // Update round indicator
-    var roundIndicator = document.querySelector('.round-indicator');
-    if (roundIndicator) {
-        roundIndicator.innerHTML = '◄ ● Round 1 of 3 ● ►';
-    }
+    // Restore placeholder and round indicator
+    var feedbackDiv = document.getElementById("feedback");
+    feedbackDiv.innerHTML = `
+        <div class="feedback-line placeholder-guess" id="placeholderGuess">
+            <span style="color: #bbb; margin-right: 8px;">1)</span>
+            <span class="feedback-word" onclick="showPlaceholderModal()" style="cursor: pointer; color: #999;">GUESS</span>
+            <div class="feedback-arrows">
+                <div class="symbol-with-letter">
+                    <span class="background-letter" style="color: #ccc;">G</span>
+                    <span class="overlay-symbol" style="color: #333;">◄</span>
+                </div>
+                <div class="symbol-with-letter">
+                    <span class="background-letter" style="color: #ccc;">U</span>
+                    <span class="overlay-symbol" style="color: #333;">►</span>
+                </div>
+                <div class="symbol-with-letter">
+                    <span class="background-letter" style="color: #ccc;">E</span>
+                    <span class="overlay-symbol" style="color: #333;">◄</span>
+                </div>
+                <div class="symbol-with-letter">
+                    <span class="background-letter" style="color: #ccc;">S</span>
+                    <span class="overlay-symbol" style="color: #333;">►</span>
+                </div>
+                <div class="symbol-with-letter">
+                    <span class="background-letter" style="color: #ccc;">S</span>
+                    <span class="overlay-symbol" style="color: #333;">►</span>
+                </div>
+            </div>
+        </div>
+        <div class="new-game-message" id="round1Indicator">◄ ● Round 1 of 3 ● ►</div>
+    `;
     
     // Reset alphabet
     updateAlphabetDisplay();
