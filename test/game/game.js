@@ -178,7 +178,7 @@ function updateAlphabetDisplay() {
 
 // Beta Banner Management
 function showBetaBannerIfEnabled() {
-    var betaMode = localStorage.getItem('directionary_betaMode') === 'true';
+    var betaMode = localStorage.getItem('directionary_base_betaMode') === 'true';
     
     if (betaMode) {
         // Check if banner already exists
@@ -218,7 +218,7 @@ function loadWordList() {
             
             // Merge words added via Word Management Dashboard (admin.html)
             try {
-                var addedWordsData = localStorage.getItem('directionary_addedWords');
+                var addedWordsData = localStorage.getItem('directionary_base_addedWords');
                 if (addedWordsData) {
                     var addedWords = JSON.parse(addedWordsData);
                     
@@ -256,7 +256,7 @@ function loadWordList() {
             console.log("FALLBACK MODE ENABLED - words will use rotation");
             
             try {
-                var addedWordsData = localStorage.getItem('directionary_addedWords');
+                var addedWordsData = localStorage.getItem('directionary_base_addedWords');
                 if (addedWordsData) {
                     var addedWords = JSON.parse(addedWordsData);
                     
@@ -294,7 +294,7 @@ function initGame() {
     // CRITICAL: Set current day in localStorage FIRST, before day checker starts
     // This prevents false "new day" detection on fresh page loads
     if (!devMode && !testMode) {
-        localStorage.setItem('directionary_currentDay', getLocalGameDay());
+        localStorage.setItem('directionary_base_currentDay', getLocalGameDay());
     }
     
     showBetaBannerIfEnabled();
@@ -304,7 +304,7 @@ function initGame() {
     }
     
     if (!devMode && !testMode) {
-        var lastPlayed = localStorage.getItem('directionary_lastPlayed');
+        var lastPlayed = localStorage.getItem('directionary_base_lastPlayed');
         var today = getLocalGameDay();
         
         if (lastPlayed == today) {
@@ -336,10 +336,10 @@ function startDayChangeChecker() {
     
     setInterval(function() {
         var currentDay = getLocalGameDay();
-        var storedDay = localStorage.getItem('directionary_currentDay');
+        var storedDay = localStorage.getItem('directionary_base_currentDay');
         
         if (!storedDay) {
-            localStorage.setItem('directionary_currentDay', currentDay);
+            localStorage.setItem('directionary_base_currentDay', currentDay);
             console.log("🔧 No stored day - initialized to current day:", currentDay);
             return;
         }
@@ -349,7 +349,7 @@ function startDayChangeChecker() {
         if (currentDay > storedDay) {
             console.log("New day detected! Old day:", storedDay, "New day:", currentDay);
             console.log("Reloading for fresh puzzle...");
-            localStorage.setItem('directionary_currentDay', currentDay);
+            localStorage.setItem('directionary_base_currentDay', currentDay);
             location.reload();
         }
     }, 10000);
@@ -374,13 +374,13 @@ function startNewGame() {
         var modeLabel = testMode ? "TEST MODE" : (devMode ? "DEV MODE" : "FALLBACK MODE");
         console.log(modeLabel + ": Random word index:", wordIndex);
     } else {
-        wordIndex = ((dailyNumber * 317) + (currentRound * 773)) % wordPool.length;
-        console.log("JSON MODE: Day-based index:", wordIndex, "(varied selection)");
+        wordIndex = (((dailyNumber + 1000) * 457) + (currentRound * 881)) % wordPool.length;
+        console.log("JSON MODE: Day-based index:", wordIndex, "(Base game formula with offset)");
     }
     
     var overrides = {};
     try {
-        var overrideData = localStorage.getItem('directionary_wordOverrides');
+        var overrideData = localStorage.getItem('directionary_base_wordOverrides');
         if (overrideData) {
             overrides = JSON.parse(overrideData);
         }
@@ -568,9 +568,9 @@ function submitGuess() {
 // LENIENT STREAK SYSTEM
 function trackFirstGuess() {
     var today = getLocalGameDay();
-    var gameStartedDay = localStorage.getItem('directionary_gameStartedDay');
-    var gameCompletedDay = localStorage.getItem('directionary_gameCompletedDay');
-    var lastStreakDay = localStorage.getItem('directionary_lastStreakDay');
+    var gameStartedDay = localStorage.getItem('directionary_base_gameStartedDay');
+    var gameCompletedDay = localStorage.getItem('directionary_base_gameCompletedDay');
+    var lastStreakDay = localStorage.getItem('directionary_base_lastStreakDay');
     
     // Check for abandonment from previous day
     if (gameStartedDay && gameStartedDay != today) {
@@ -584,13 +584,13 @@ function trackFirstGuess() {
     }
     
     // Mark game started today
-    localStorage.setItem('directionary_gameStartedDay', today);
-    localStorage.removeItem('directionary_gameCompletedDay');
+    localStorage.setItem('directionary_base_gameStartedDay', today);
+    localStorage.removeItem('directionary_base_gameCompletedDay');
     
     // Increment streak if new day
     if (lastStreakDay != today) {
         playerStats.currentStreak++;
-        localStorage.setItem('directionary_lastStreakDay', today);
+        localStorage.setItem('directionary_base_lastStreakDay', today);
         
         if (playerStats.currentStreak > playerStats.maxStreak) {
             playerStats.maxStreak = playerStats.currentStreak;
@@ -870,9 +870,9 @@ function showDailyCompleteModal() {
     
     if (!devMode && !testMode) {
         var today = getLocalGameDay();
-        localStorage.setItem('directionary_lastPlayed', today);
-        localStorage.setItem('directionary_gameCompletedDay', today);
-        localStorage.setItem('directionary_dailyState', JSON.stringify({
+        localStorage.setItem('directionary_base_lastPlayed', today);
+        localStorage.setItem('directionary_base_gameCompletedDay', today);
+        localStorage.setItem('directionary_base_dailyState', JSON.stringify({
             roundResults: roundResults,
             totalScore: totalScore,
             completedDate: today
@@ -998,7 +998,7 @@ function startCountdownTimer() {
             console.log("⏰ Midnight reached! Reloading for new puzzle...");
             // Set to TOMORROW's day (current + 1) since we're reloading into the new day
             var tomorrowDay = getLocalGameDay() + 1;
-            localStorage.setItem('directionary_currentDay', tomorrowDay);
+            localStorage.setItem('directionary_base_currentDay', tomorrowDay);
             location.reload();
             return;
         }
@@ -1022,7 +1022,7 @@ function startCountdownTimer() {
 
 function showAlreadyPlayedMessage() {
     loadStats();
-    var savedState = localStorage.getItem('directionary_dailyState');
+    var savedState = localStorage.getItem('directionary_base_dailyState');
     if (savedState) {
         var state = JSON.parse(savedState);
         roundResults = state.roundResults || [];
@@ -1392,14 +1392,14 @@ function closeDailyModal() {
 }
 
 function loadStats() {
-    var saved = localStorage.getItem('directionaryStats');
+    var saved = localStorage.getItem('directionary_base_Stats');
     if (saved) {
         playerStats = JSON.parse(saved);
     }
 }
 
 function saveStats() {
-    localStorage.setItem('directionaryStats', JSON.stringify(playerStats));
+    localStorage.setItem('directionary_base_Stats', JSON.stringify(playerStats));
 }
 
 function updateStats() {
@@ -1450,7 +1450,7 @@ function saveGameState() {
     };
     
     try {
-        localStorage.setItem('directionary_gameState', JSON.stringify(state));
+        localStorage.setItem('directionary_base_gameState', JSON.stringify(state));
         console.log("💾 Game state saved");
     } catch (e) {
         console.log("Could not save game state:", e);
@@ -1461,7 +1461,7 @@ function loadGameState() {
     if (devMode || testMode) return null;
     
     try {
-        var saved = localStorage.getItem('directionary_gameState');
+        var saved = localStorage.getItem('directionary_base_gameState');
         if (!saved) return null;
         
         var state = JSON.parse(saved);
@@ -1472,7 +1472,7 @@ function loadGameState() {
             return null;
         }
         
-        var lastPlayed = localStorage.getItem('directionary_lastPlayed');
+        var lastPlayed = localStorage.getItem('directionary_base_lastPlayed');
         if (lastPlayed == dailyNumber) {
             console.log("Game already completed today");
             return null;
@@ -1488,7 +1488,7 @@ function loadGameState() {
 
 function clearGameState() {
     try {
-        localStorage.removeItem('directionary_gameState');
+        localStorage.removeItem('directionary_base_gameState');
         console.log("🗑️ Game state cleared");
     } catch (e) {
         console.log("Could not clear game state:", e);
