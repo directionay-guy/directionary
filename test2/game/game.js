@@ -1770,9 +1770,8 @@ window.showComingSoon = showComingSoon;
 (function() {
     function dismissRotateOverlay() {
 var overlay = document.getElementById("rotateOverlay");
-if (overlay && overlay.parentNode) {
-    // Remove from DOM entirely - bypass all CSS
-    overlay.parentNode.removeChild(overlay);
+if (overlay) {
+    overlay.classList.add('dismissed');
     sessionStorage.setItem('dismissedRotateOverlay', 'true');
 }
     }
@@ -1781,17 +1780,17 @@ if (overlay && overlay.parentNode) {
 var overlay = document.getElementById("rotateOverlay");
 if (!overlay) return;
 
-// If previously dismissed, remove immediately
 if (sessionStorage.getItem('dismissedRotateOverlay') === 'true') {
-    if (overlay.parentNode) {
-        overlay.parentNode.removeChild(overlay);
-    }
-    return;
+    overlay.classList.add('dismissed');
 }
 
 var btn = overlay.querySelector('.dismiss-rotate-btn');
 if (btn) {
     btn.addEventListener('click', dismissRotateOverlay);
+    btn.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        dismissRotateOverlay();
+    }, {passive: false});
 }
     }
     
