@@ -561,7 +561,13 @@ function submitGuess() {
         }
     }
     spacedFeedback = spacedFeedback.trim();
-    guessHistory.push(spacedFeedback);
+    
+    // Store both word and feedback for Pro+ validation
+    guessHistory.push({
+        word: guess,
+        feedback: feedback,
+        display: spacedFeedback
+    });
 
     var feedbackDiv = document.getElementById("feedback");
     var feedbackLine = document.createElement("div");
@@ -606,7 +612,7 @@ function submitGuess() {
             word: targetWord,
             score: currentScore,
             guesses: guessCount,
-            pattern: guessCount > 1 ? guessHistory[guessHistory.length - 2] : guessHistory[0]
+            pattern: guessCount > 1 ? guessHistory[guessHistory.length - 2].display : guessHistory[0].display
         };
         roundResults.push(roundData);
         
@@ -1397,10 +1403,10 @@ function showZeroScoreModal() {
        function skipRound() {
     document.getElementById("zeroScoreModal").style.display = "none";
     roundResults.push({
-word: targetWord,
-score: 0,
-guesses: guessCount,
-pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "⚫ ⚫ ⚫ ⚫ ⚫"
+        word: targetWord,
+        score: 0,
+        guesses: guessCount,
+        pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1].display : "⚫ ⚫ ⚫ ⚫ ⚫"
     });
     nextWord();
 }
@@ -1434,7 +1440,7 @@ function confirmGiveUp() {
         word: targetWord,
         score: 0,
         guesses: guessCount,
-        pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "⚫ ⚫ ⚫ ⚫ ⚫"
+        pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1].display : "⚫ ⚫ ⚫ ⚫ ⚫"
     });
     
     setTimeout(() => {
