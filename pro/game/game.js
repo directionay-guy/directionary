@@ -13,6 +13,7 @@ var guessHistory = [];
 var guessedWordsThisRound = new Set();
 var lastFetchedDefinition = null; // Store definition for reuse
 var playCount = 0; // PRO MODE: Track number of games played for word selection
+var playCountProPlus = 0; // PRO+ MODE: Separate counter for hard mode
 var gameMode = 'pro'; // 'pro' or 'proplus' - Default to Pro mode
 
 // Get game day number based on LOCAL midnight (like Wordle)
@@ -166,6 +167,15 @@ function updateAlphabetDisplay() {
     var alphabetDiv = document.getElementById("alphabetDisplay");
     if (!alphabetDiv) return;
     
+    // PRO+ MODE: Don't bold used letters
+    if (gameMode === 'proplus') {
+        var spans = alphabetDiv.getElementsByTagName("span");
+        for (var i = 0; i < spans.length; i++) {
+            spans[i].classList.remove("used-letter");
+        }
+        return;
+    }
+    
     var spans = alphabetDiv.getElementsByTagName("span");
     for (var i = 0; i < spans.length; i++) {
         var span = spans[i];
@@ -293,10 +303,15 @@ function loadWordList() {
 function initGame() {
     console.log("Initializing Directionary...");
     
-    // PRO MODE: Load play count for word selection
-    var storedPlayCount = localStorage.getItem('directionary_pro_playCount');
-    playCount = storedPlayCount ? parseInt(storedPlayCount) : 0;
+    // Load play counts for both modes
+    var storedPlayCountPro = localStorage.getItem('directionary_pro_playCount');
+    playCount = storedPlayCountPro ? parseInt(storedPlayCountPro) : 0;
+    
+    var storedPlayCountProPlus = localStorage.getItem('directionary_proplus_playCount');
+    playCountProPlus = storedPlayCountProPlus ? parseInt(storedPlayCountProPlus) : 0;
+    
     console.log("PRO MODE: Play count loaded:", playCount);
+    console.log("PRO+ MODE: Play count loaded:", playCountProPlus);
     
     // CRITICAL: Set current day in localStorage FIRST, before day checker starts
     // This prevents false "new day" detection on fresh page loads
@@ -375,8 +390,14 @@ function startNewGame() {
         var modeLabel = testMode ? "TEST MODE" : (devMode ? "DEV MODE" : "FALLBACK MODE");
         console.log(modeLabel + ": Random word index:", wordIndex);
     } else {
-        wordIndex = (((dailyNumber + playCount) * 613) + (currentRound * 997)) % wordPool.length;
-        console.log("PRO MODE: Word index:", wordIndex, "(day:", dailyNumber, "playCount:", playCount, "round:", currentRound, ")");
+        // Use correct playCount and formula based on mode
+        if (gameMode === 'proplus') {
+            wordIndex = (((dailyNumber + playCountProPlus) * 751) + (currentRound * 1009)) % wordPool.length;
+            console.log("PRO+ MODE: Word index:", wordIndex, "(day:", dailyNumber, "playCount:", playCountProPlus, "round:", currentRound, ")");
+        } else {
+            wordIndex = (((dailyNumber + playCount) * 613) + (currentRound * 997)) % wordPool.length;
+            console.log("PRO MODE: Word index:", wordIndex, "(day:", dailyNumber, "playCount:", playCount, "round:", currentRound, ")");
+        }
     }
     
     var overrides = {};
@@ -433,6 +454,42 @@ function startNewGame() {
     document.getElementById("guessInput").focus();
 }
 
+// PRO+ MODE: Validate guess respects arrow constraints
+function validateProPlusGuess(guess) {
+    if (gameMode !== 'proplus' || guessHistory.length === 0) {
+        return true; // Not in Pro+ mode or no previous guesses
+    }
+    
+    // Check the most recent guess for constraints
+    var lastGuess = guessHistory[guessHistory.length - 1];
+    if (!lastGuess || !lastGuess.feedback) return true;
+    
+    for (var i = 0; i < 5; i++) {
+        var newLetter = guess[i];
+        var feedback = lastGuess.feedback[i];
+        var oldLetter = lastGuess.word[i];
+        
+        if (feedback === '●') {
+            // Must use same letter
+            if (newLetter !== oldLetter) {
+                return false;
+            }
+        } else if (feedback === '►') {
+            // Must use later letter
+            if (newLetter <= oldLetter) {
+                return false;
+            }
+        } else if (feedback === '◄') {
+            // Must use earlier letter
+            if (newLetter >= oldLetter) {
+                return false;
+            }
+        }
+    }
+    
+    return true;
+}
+
 function submitGuess() {
     var input = document.getElementById("guessInput");
     var guess = input.value.trim().toUpperCase();
@@ -450,6 +507,14 @@ function submitGuess() {
     var validList = validWords.length > 0 ? validWords : fallbackWords;
     if (!validList.includes(guess)) {
         showError('"' + guess + '" is not in the word list. Try another word!');
+        input.value = "";
+        input.focus();
+        return;
+    }
+    
+    // PRO+ MODE: Validate guess respects arrow constraints
+    if (!validateProPlusGuess(guess)) {
+        showError("Guess must follow arrow clues in Pro+");
         input.value = "";
         input.focus();
         return;
@@ -605,6 +670,11 @@ function trackFirstGuess() {
 
 // AlphaHint™ - COMPLETE IMPLEMENTATION
 function attachAlphaHintHandlers() {
+    // PRO+ MODE: Disable AlphaHint entirely
+    if (gameMode === 'proplus') {
+        return;
+    }
+    
     var feedbackDiv = document.getElementById("feedback");
     var allLines = feedbackDiv.querySelectorAll('.feedback-line');
     
@@ -879,10 +949,16 @@ function showDailyCompleteModal() {
             completedDate: today
         }));
         
-        // PRO MODE: Increment play count for next game
-        playCount++;
-        localStorage.setItem('directionary_pro_playCount', playCount);
-        console.log("PRO MODE: Play count incremented to:", playCount);
+        // Increment correct play count based on mode
+        if (gameMode === 'proplus') {
+            playCountProPlus++;
+            localStorage.setItem('directionary_proplus_playCount', playCountProPlus);
+            console.log("PRO+ MODE: Play count incremented to:", playCountProPlus);
+        } else {
+            playCount++;
+            localStorage.setItem('directionary_pro_playCount', playCount);
+            console.log("PRO MODE: Play count incremented to:", playCount);
+        }
     }
     
     document.getElementById("finalScore").textContent = totalScore;
@@ -1723,7 +1799,9 @@ function switchToProMode() {
     document.getElementById('proModeBtn').classList.add('active');
     document.getElementById('proPlusModeBtn').classList.remove('active');
     console.log("Switched to PRO mode");
-    // Note: Mode only affects NEW games, not current game in progress
+    // Update alphabet display to show/hide bold letters
+    updateAlphabetDisplay();
+    // Note: Mode only affects NEW games for word selection, but AlphaHint/bold letters change immediately
 }
 
 function switchToProPlusMode() {
@@ -1731,7 +1809,9 @@ function switchToProPlusMode() {
     document.getElementById('proPlusModeBtn').classList.add('active');
     document.getElementById('proModeBtn').classList.remove('active');
     console.log("Switched to PRO+ mode (Hard Mode)");
-    // Note: Mode only affects NEW games, not current game in progress
+    // Update alphabet display to remove bold letters
+    updateAlphabetDisplay();
+    // Note: Mode only affects NEW games for word selection, but AlphaHint/bold letters change immediately
 }
 
 window.switchToProMode = switchToProMode;
