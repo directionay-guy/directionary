@@ -546,15 +546,15 @@
     
     <!-- Mode Switch Confirmation Modal -->
     <div class="success-modal" id="modeSwitchModal" style="display: none;">
-        <div class="success-content">
+        <div class="success-content" onclick="event.stopPropagation()">
             <div class="success-title" id="modeSwitchTitle">Switch Mode?</div>
             <div class="success-score" style="margin: 20px 0; line-height: 1.6;">
                 <p id="modeSwitchMessage">This will restart your current game.</p>
                 <p style="margin-top: 10px; font-size: 0.9em; color: #666;" id="modeSwitchDescription"></p>
             </div>
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button class="success-btn" onclick="confirmModeSwitch()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">Switch Mode</button>
-                <button class="success-btn" onclick="cancelModeSwitch()" style="background: #999;">Cancel</button>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button class="success-btn" onclick="confirmModeSwitch(); event.stopPropagation();" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-width: 140px;">YES - Switch Mode</button>
+                <button class="success-btn" onclick="cancelModeSwitch(); event.stopPropagation();" style="background: #999; min-width: 140px;">NO - Cancel</button>
             </div>
         </div>
     </div>
