@@ -74,7 +74,7 @@ body {
         }
         
         .game-title {
-            font-size: 2.2em;
+            font-size: 1.9em;
             margin-bottom: 5px;
             font-weight: bold;
             display: flex;
@@ -82,6 +82,7 @@ body {
             justify-content: center;
             gap: 12px;
             line-height: 1.2;
+            white-space: nowrap;
         }
         
         .game-title .title-text {
@@ -960,7 +961,7 @@ body {
         /* Mobile optimizations */
         @media (max-width: 768px) {
             .game-title {
-                font-size: 1.8em;
+                font-size: 1.5em;
                 gap: 8px;
             }
             
