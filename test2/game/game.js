@@ -1766,39 +1766,3 @@ function showComingSoon(event) {
     }
 }
 window.showComingSoon = showComingSoon;
-
-(function() {
-    function dismissRotateOverlay() {
-var overlay = document.getElementById("rotateOverlay");
-if (overlay) {
-    overlay.classList.add('dismissed');
-    sessionStorage.setItem('dismissedRotateOverlay', 'true');
-}
-    }
-    
-    function initRotateOverlay() {
-var overlay = document.getElementById("rotateOverlay");
-if (!overlay) return;
-
-if (sessionStorage.getItem('dismissedRotateOverlay') === 'true') {
-    overlay.classList.add('dismissed');
-}
-
-var btn = overlay.querySelector('.dismiss-rotate-btn');
-if (btn) {
-    btn.addEventListener('click', dismissRotateOverlay);
-    btn.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-        dismissRotateOverlay();
-    }, {passive: false});
-}
-    }
-    
-    if (document.readyState === 'loading') {
-document.addEventListener('DOMContentLoaded', initRotateOverlay);
-    } else {
-initRotateOverlay();
-    }
-    
-    window.dismissRotateOverlay = dismissRotateOverlay;
-})();
