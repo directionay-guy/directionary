@@ -1610,6 +1610,9 @@ window.onload = function() {
     updateStreakDisplay();
     initGame();
     
+    // Initialize mode description and AlphaHint text for default Pro mode
+    updateAlphaHintText('pro');
+    
     // Placeholder dots demo - highlight AlphaHint text when held
     var placeholder = document.getElementById("placeholderGuess");
     if (placeholder) {
@@ -1794,28 +1797,134 @@ window.showWordDefinitionModal = showWordDefinitionModal;
 window.closeWordDefPanel = closeWordDefPanel;
 
 // Pro/Pro+ Mode Switching
+var pendingModeSwitch = null; // Track which mode user wants to switch to
+
 function switchToProMode() {
-    gameMode = 'pro';
-    document.getElementById('proModeBtn').classList.add('active');
-    document.getElementById('proPlusModeBtn').classList.remove('active');
-    console.log("Switched to PRO mode");
-    // Update alphabet display to show/hide bold letters
-    updateAlphabetDisplay();
-    // Note: Mode only affects NEW games for word selection, but AlphaHint/bold letters change immediately
+    // If already in Pro mode, do nothing
+    if (gameMode === 'pro') return;
+    
+    // Check if game is in progress
+    if (guessCount > 0) {
+        // Show confirmation modal
+        pendingModeSwitch = 'pro';
+        document.getElementById('modeSwitchTitle').textContent = 'Switch to PRO Mode?';
+        document.getElementById('modeSwitchMessage').textContent = 'This will restart your current game.';
+        document.getElementById('modeSwitchDescription').textContent = 'PRO mode: AlphaHint enabled, bold letters show used letters, any guess allowed.';
+        document.getElementById('modeSwitchModal').style.display = 'flex';
+    } else {
+        // No game in progress, just switch
+        performModeSwitch('pro');
+    }
 }
 
 function switchToProPlusMode() {
-    gameMode = 'proplus';
-    document.getElementById('proPlusModeBtn').classList.add('active');
-    document.getElementById('proModeBtn').classList.remove('active');
-    console.log("Switched to PRO+ mode (Hard Mode)");
-    // Update alphabet display to remove bold letters
+    // If already in Pro+ mode, do nothing
+    if (gameMode === 'proplus') return;
+    
+    // Check if game is in progress
+    if (guessCount > 0) {
+        // Show confirmation modal
+        pendingModeSwitch = 'proplus';
+        document.getElementById('modeSwitchTitle').textContent = 'Switch to PRO+ Mode?';
+        document.getElementById('modeSwitchMessage').textContent = 'This will restart your current game.';
+        document.getElementById('modeSwitchDescription').textContent = 'PRO+ mode removes AlphaHint and all guesses must adhere to arrow clues.';
+        document.getElementById('modeSwitchModal').style.display = 'flex';
+    } else {
+        // No game in progress, just switch
+        performModeSwitch('proplus');
+    }
+}
+
+function confirmModeSwitch() {
+    if (pendingModeSwitch) {
+        performModeSwitch(pendingModeSwitch);
+    }
+    document.getElementById('modeSwitchModal').style.display = 'none';
+    pendingModeSwitch = null;
+}
+
+function cancelModeSwitch() {
+    document.getElementById('modeSwitchModal').style.display = 'none';
+    pendingModeSwitch = null;
+}
+
+function performModeSwitch(newMode) {
+    gameMode = newMode;
+    
+    // Update button states
+    if (newMode === 'pro') {
+        document.getElementById('proModeBtn').classList.add('active');
+        document.getElementById('proPlusModeBtn').classList.remove('active');
+        document.getElementById('modeDescription').innerHTML = '<strong>PRO Mode:</strong> AlphaHint enabled, bold letters, any guess allowed';
+        updateAlphaHintText('pro');
+        console.log("Switched to PRO mode");
+    } else {
+        document.getElementById('proPlusModeBtn').classList.add('active');
+        document.getElementById('proModeBtn').classList.remove('active');
+        document.getElementById('modeDescription').innerHTML = '<strong>PRO+ Mode:</strong> Removes AlphaHint, all guesses must adhere to arrow clues';
+        updateAlphaHintText('proplus');
+        console.log("Switched to PRO+ mode (Hard Mode)");
+    }
+    
+    // Restart game if in progress
+    if (guessCount > 0) {
+        resetGame();
+    }
+    
+    // Update alphabet display
     updateAlphabetDisplay();
-    // Note: Mode only affects NEW games for word selection, but AlphaHint/bold letters change immediately
+}
+
+function updateAlphaHintText(mode) {
+    var alphaHintText = document.querySelector('.alphahint-text');
+    if (alphaHintText) {
+        if (mode === 'proplus') {
+            alphaHintText.textContent = 'AlphaHint™: Not available in Pro+ mode';
+            alphaHintText.style.color = '#999';
+            alphaHintText.style.fontStyle = 'italic';
+        } else {
+            alphaHintText.textContent = 'AlphaHint™: Hold arrow for letter options';
+            alphaHintText.style.color = '';
+            alphaHintText.style.fontStyle = '';
+        }
+    }
+}
+
+function resetGame() {
+    // Clear game state
+    currentRound = 1;
+    totalScore = 0;
+    guessCount = 0;
+    roundResults = [];
+    guessHistory = [];
+    guessedWordsThisRound.clear();
+    usedLetters.clear();
+    
+    // Clear UI
+    document.getElementById("feedback").innerHTML = "";
+    document.getElementById("guessInput").value = "";
+    document.getElementById("guessCount").textContent = "0";
+    document.getElementById("currentScore").textContent = "100";
+    document.getElementById("totalScore").textContent = "0";
+    document.getElementById("errorMessage").innerHTML = "";
+    
+    // Update round indicator
+    var roundIndicator = document.querySelector('.round-indicator');
+    if (roundIndicator) {
+        roundIndicator.innerHTML = '◄ ● Round 1 of 3 ● ►';
+    }
+    
+    // Reset alphabet
+    updateAlphabetDisplay();
+    
+    // Load new word for current mode
+    loadWordList();
 }
 
 window.switchToProMode = switchToProMode;
 window.switchToProPlusMode = switchToProPlusMode;
+window.confirmModeSwitch = confirmModeSwitch;
+window.cancelModeSwitch = cancelModeSwitch;
 
 // Show "Coming Soon!" when PRO link is clicked
 function showComingSoon(event) {
