@@ -454,12 +454,26 @@ function startNewGame() {
     document.getElementById("giveUpBtn").disabled = false;
     document.getElementById("guessInput").focus();
     
-    // Ensure round indicator is visible
+    // Clean up any old round indicators and ensure current one is visible
+    var feedbackDiv = document.getElementById('feedback');
+    var allIndicators = feedbackDiv.querySelectorAll('.new-game-message');
+    
+    // Remove old round indicators from previous rounds
+    allIndicators.forEach(function(indicator) {
+        if (indicator.id && indicator.id.match(/^round\d+Indicator$/)) {
+            var indicatorRound = parseInt(indicator.id.replace('round', '').replace('Indicator', ''));
+            if (indicatorRound !== currentRound) {
+                indicator.remove();
+                console.log("startNewGame: Removed old round indicator:", indicator.id);
+            }
+        }
+    });
+    
+    // Ensure current round indicator exists
     var roundIndicatorId = "round" + currentRound + "Indicator";
     var roundIndicator = document.getElementById(roundIndicatorId);
     if (!roundIndicator) {
         console.warn("startNewGame: Round indicator missing for Round", currentRound, "- adding it");
-        var feedbackDiv = document.getElementById('feedback');
         var newIndicator = document.createElement('div');
         newIndicator.className = 'new-game-message';
         newIndicator.id = roundIndicatorId;
@@ -613,6 +627,21 @@ function submitGuess() {
     }
     
     // Ensure round indicator is visible (for any round)
+    // First, remove ANY old round indicators that might exist
+    var allIndicators = feedbackDiv.querySelectorAll('.new-game-message');
+    allIndicators.forEach(function(indicator) {
+        // Remove if it's a round indicator (has an ID like "roundXIndicator")
+        if (indicator.id && indicator.id.match(/^round\d+Indicator$/)) {
+            var indicatorRound = parseInt(indicator.id.replace('round', '').replace('Indicator', ''));
+            // Keep only the current round's indicator
+            if (indicatorRound !== currentRound) {
+                indicator.remove();
+                console.log("submitGuess: Removed old round indicator:", indicator.id);
+            }
+        }
+    });
+    
+    // Now ensure the current round indicator is at the end
     var roundIndicatorId = "round" + currentRound + "Indicator";
     var roundIndicator = document.getElementById(roundIndicatorId);
     if (roundIndicator) {
@@ -1544,6 +1573,17 @@ function nextWord() {
     document.getElementById("feedback").innerHTML = "";
     
     var feedbackDiv = document.getElementById("feedback");
+    
+    // Clean up any lingering round indicators from previous rounds (safety check)
+    var allIndicators = document.querySelectorAll('.new-game-message');
+    allIndicators.forEach(function(indicator) {
+        if (indicator.id && indicator.id.match(/^round\d+Indicator$/)) {
+            indicator.remove();
+            console.log("nextWord: Cleaned up lingering indicator:", indicator.id);
+        }
+    });
+    
+    // Create new round indicator
     var newGameLine = document.createElement("div");
     newGameLine.className = "new-game-message";
     newGameLine.id = "round" + currentRound + "Indicator"; // Add ID for each round
@@ -2166,6 +2206,32 @@ function resetGame() {
     `;
     
     console.log("resetGame: HTML restored, round indicator should be present");
+    
+    // Re-show input and buttons (hidden by showPlayAgainButtons)
+    document.getElementById("guessInput").style.display = "";
+    document.querySelector(".button-group").style.display = "";
+    
+    // Re-enable input and buttons
+    document.getElementById("guessInput").disabled = false;
+    document.getElementById("submitBtn").disabled = false;
+    document.getElementById("giveUpBtn").disabled = false;
+    
+    // Update instructions to default
+    var instructions = document.querySelector(".instructions-brief");
+    if (!instructions) {
+        instructions = document.querySelector(".instructions");
+    }
+    if (instructions) {
+        var modeLabel = gameMode === 'proplus' ? 'PRO+' : 'PRO';
+        instructions.innerHTML = "<strong>Guess the 5-letter word!</strong> Use the arrows to guide you.";
+        instructions.style.background = "";
+    }
+    
+    // Remove "Your Words" display if it exists
+    var wordsDisplay = document.getElementById("yourWordsDisplay");
+    if (wordsDisplay) {
+        wordsDisplay.remove();
+    }
     
     // Re-attach placeholder event handlers
     attachPlaceholderHandlers();
