@@ -337,6 +337,7 @@ function initGame() {
     
     if (typeof gtag === 'function') {
         gtag('event', 'game_start', {
+            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
             'game_day': dailyNumber,
             'mode': devMode ? 'dev' : (testMode ? 'test' : 'production')
         });
@@ -452,6 +453,24 @@ function startNewGame() {
     document.getElementById("submitBtn").disabled = false;
     document.getElementById("giveUpBtn").disabled = false;
     document.getElementById("guessInput").focus();
+    
+    // Ensure round indicator is visible
+    var roundIndicatorId = "round" + currentRound + "Indicator";
+    var roundIndicator = document.getElementById(roundIndicatorId);
+    if (!roundIndicator) {
+        console.warn("startNewGame: Round indicator missing for Round", currentRound, "- adding it");
+        var feedbackDiv = document.getElementById('feedback');
+        var newIndicator = document.createElement('div');
+        newIndicator.className = 'new-game-message';
+        newIndicator.id = roundIndicatorId;
+        newIndicator.innerHTML = '◄ ● Round ' + currentRound + ' of ' + maxRounds + ' ● ►';
+        feedbackDiv.appendChild(newIndicator);
+    }
+    
+    // Update dev console
+    if (typeof updateDevConsole === 'function') {
+        updateDevConsole();
+    }
 }
 
 // PRO+ MODE: Validate guess respects arrow constraints
@@ -593,11 +612,13 @@ function submitGuess() {
         placeholder.remove();
     }
     
-    // Ensure round indicator is visible
-    var roundIndicator = document.getElementById("round1Indicator");
-    if (roundIndicator && currentRound === 1) {
+    // Ensure round indicator is visible (for any round)
+    var roundIndicatorId = "round" + currentRound + "Indicator";
+    var roundIndicator = document.getElementById(roundIndicatorId);
+    if (roundIndicator) {
         // Make sure it's at the end of the feedback div
         feedbackDiv.appendChild(roundIndicator);
+        console.log("submitGuess: Round indicator preserved for Round", currentRound);
     }
     
     // Mark all previous guesses as inactive (muted styling)
@@ -878,6 +899,7 @@ function showSuccessModal() {
     
     if (typeof gtag === 'function') {
         gtag('event', 'round_complete', {
+            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
             'round_number': currentRound,
             'score': lastRoundScore,
             'guesses_used': roundResults.length > 0 ? roundResults[roundResults.length - 1].guesses : 0,
@@ -944,6 +966,7 @@ function showSuccessModal() {
 function showDailyCompleteModal() {
     if (typeof gtag === 'function') {
         gtag('event', 'daily_complete', {
+            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
             'total_score': totalScore,
             'rounds_completed': roundResults.length,
             'game_day': dailyNumber
@@ -977,8 +1000,10 @@ function showDailyCompleteModal() {
     document.getElementById("finalScore").textContent = totalScore;
     
     var modalTitle = document.querySelector("#dailyCompleteModal .success-title");
+    var modeLabel = gameMode === 'proplus' ? 'PRO+' : 'PRO';
+    
     if (totalScore === 0) {
-        modalTitle.textContent = "Game Over - Try Again Tomorrow!";
+        modalTitle.textContent = "Game Over - Try Again!";
         modalTitle.style.background = "linear-gradient(135deg, #dc3545 0%, #c82333 100%)";
         modalTitle.style.webkitBackgroundClip = "text";
         modalTitle.style.webkitTextFillColor = "transparent";
@@ -990,9 +1015,9 @@ function showDailyCompleteModal() {
             updateStreakDisplay();
         }
     } else if (totalScore < 150) {
-        modalTitle.textContent = "Daily Challenge Complete";
+        modalTitle.textContent = modeLabel + " Game Complete";
     } else {
-        modalTitle.textContent = "🏆 Daily Challenge Complete!";
+        modalTitle.textContent = "🏆 " + modeLabel + " Game Complete!";
     }
     
     var summary = "";
@@ -1018,19 +1043,125 @@ function showDailyCompleteModal() {
         summary += '<div style="text-align: right; font-weight: 700; color: #667eea; border-top: 2px solid #ddd; padding-top: 10px; margin-top: 5px;">' + totalGuesses + '</div>';
         
         summary += '</div>';
-        
-        // Add cross-promotion
-        summary += '<div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; font-size: 0.9em; color: #666;">';
-        summary += '<p>Want more challenge right now?<br><span class="cross-promo-link" onclick="showComingSoon(event)" style="color: #667eea; text-decoration: underline; font-weight: 600; cursor: pointer;">Directionary PRO</span> - unlimited 3-word puzzles</p>';
-        summary += '</div>';
     } else {
         summary = "No rounds completed<br>";
     }
     document.getElementById("roundSummary").innerHTML = summary;
     
-    showComeBackMessage();
+    showPlayAgainButtons();
+    
+    // Update dev console with new play counts
+    if (typeof updateDevConsole === 'function') {
+        updateDevConsole();
+    }
     
     document.getElementById("dailyCompleteModal").style.display = "flex";
+}
+
+function showPlayAgainButtons() {
+    var instructions = document.querySelector(".instructions-brief");
+    if (!instructions) {
+        instructions = document.querySelector(".instructions");
+    }
+    if (instructions) {
+        var modeLabel = gameMode === 'proplus' ? 'PRO+' : 'PRO';
+        instructions.innerHTML = "<strong>✨ " + modeLabel + " game complete! Play as many times as you want.</strong>";
+        instructions.style.background = "linear-gradient(135deg, #667eea15 0%, #764ba215 100%)";
+    }
+    
+    usedLetters.clear();
+    var alphabetDiv = document.getElementById("alphabetDisplay");
+    if (alphabetDiv) {
+        var spans = alphabetDiv.getElementsByTagName("span");
+        for (var i = 0; i < spans.length; i++) {
+            spans[i].classList.remove("used-letter");
+        }
+    }
+    
+    document.getElementById("guessInput").style.display = "none";
+    document.querySelector(".button-group").style.display = "none";
+    
+    // Create play again buttons instead of countdown
+    var feedbackDiv = document.getElementById("feedback");
+    var currentMode = gameMode === 'proplus' ? 'PRO+' : 'PRO';
+    var otherMode = gameMode === 'proplus' ? 'PRO' : 'PRO+';
+    
+    feedbackDiv.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 12px; padding: 20px;">
+            <button onclick="playAgainSameMode()" style="
+                padding: 16px 24px;
+                font-size: 1.1em;
+                font-weight: 700;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                border-radius: 12px;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                transition: all 0.3s ease;
+            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.5)';" 
+               onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)';">
+                ▶ Play Another ${currentMode} Game
+            </button>
+            <button onclick="playAgainOtherMode()" style="
+                padding: 14px 24px;
+                font-size: 1em;
+                font-weight: 600;
+                background: white;
+                color: #667eea;
+                border: 2px solid #667eea;
+                border-radius: 12px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            " onmouseover="this.style.background='rgba(102, 126, 234, 0.1)';" 
+               onmouseout="this.style.background='white';">
+                Try ${otherMode} Mode
+            </button>
+        </div>
+    `;
+    
+    if (roundResults.length > 0) {
+        var buttonGroup = document.querySelector(".button-group");
+        var wordsDiv = document.createElement("div");
+        wordsDiv.id = "yourWordsDisplay";
+        wordsDiv.style.cssText = "text-align: center; padding: 15px 20px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 15px 0;";
+        
+        var html = '<h3 style="margin: 0 0 12px 0; color: #667eea; font-size: 1.1em;">Your Words</h3>';
+        html += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 10px 20px; max-width: 250px; margin: 0 auto;">';
+        
+        for (var i = 0; i < roundResults.length; i++) {
+            var word = roundResults[i].word;
+            var guesses = roundResults[i].guesses;
+            var dictUrl = 'https://www.dictionary.com/browse/' + word.toLowerCase();
+            
+            html += '<div style="text-align: left;"><a href="' + dictUrl + '" target="_blank" style="text-decoration: underline; color: #667eea; font-weight: 600; font-size: 1.1em;">' + word + '</a></div>';
+            html += '<div style="text-align: right; color: #666; font-size: 0.95em;">' + guesses + ' guess' + (guesses !== 1 ? 'es' : '') + '</div>';
+        }
+        
+        html += '</div>';
+        wordsDiv.innerHTML = html;
+        buttonGroup.parentNode.insertBefore(wordsDiv, buttonGroup.nextSibling);
+    }
+}
+
+function playAgainSameMode() {
+    console.log("=== PLAY AGAIN SAME MODE ===");
+    console.log("Current mode:", gameMode);
+    console.log("Current playCount (Pro):", playCount);
+    console.log("Current playCount (Pro+):", playCountProPlus);
+    closeDailyModal();
+    resetGame();
+}
+
+function playAgainOtherMode() {
+    var targetMode = gameMode === 'proplus' ? 'pro' : 'proplus';
+    console.log("=== PLAY AGAIN OTHER MODE ===");
+    console.log("Switching from", gameMode, "to", targetMode);
+    console.log("Current playCount (Pro):", playCount);
+    console.log("Current playCount (Pro+):", playCountProPlus);
+    closeDailyModal();
+    performModeSwitch(targetMode);
+    resetGame();
 }
 
 function showComeBackMessage() {
@@ -1189,7 +1320,8 @@ function showAlreadyPlayedMessage() {
 }
 
 function generateShareText() {
-    var text = "Directionary #" + (dailyNumber % 1000);
+    var modeLabel = gameMode === 'proplus' ? 'PRO+' : 'PRO';
+    var text = "Directionary " + modeLabel + " #" + (dailyNumber % 1000);
     
     if (playerStats.currentStreak > 0) {
         text += " - 🔥 " + playerStats.currentStreak + " day streak";
@@ -1227,7 +1359,10 @@ function toggleShare() {
 
 function toggleHelp() {
     if (typeof gtag === 'function') {
-        gtag('event', 'modal_open', {'modal_type': 'help'});
+        gtag('event', 'modal_open', {
+            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
+            'modal_type': 'help'
+        });
     }
     
     closeAllPanels();
@@ -1241,7 +1376,10 @@ function toggleHelp() {
 
 function toggleStats() {
     if (typeof gtag === 'function') {
-        gtag('event', 'modal_open', {'modal_type': 'stats'});
+        gtag('event', 'modal_open', {
+            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
+            'modal_type': 'stats'
+        });
     }
     
     closeAllPanels();
@@ -1256,7 +1394,10 @@ function toggleStats() {
 
 function toggleInfo() {
     if (typeof gtag === 'function') {
-        gtag('event', 'modal_open', {'modal_type': 'about'});
+        gtag('event', 'modal_open', {
+            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
+            'modal_type': 'about'
+        });
     }
     
     closeAllPanels();
@@ -1326,7 +1467,10 @@ function closeStreakPanel() {
 
 function copyToClipboard() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {'method': 'clipboard'});
+        gtag('event', 'share', {
+            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
+            'method': 'clipboard'
+        });
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1337,7 +1481,10 @@ function copyToClipboard() {
 
 function shareToTwitter() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {'method': 'twitter'});
+        gtag('event', 'share', {
+            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
+            'method': 'twitter'
+        });
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1347,7 +1494,10 @@ function shareToTwitter() {
 
 function shareToBluesky() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {'method': 'bluesky'});
+        gtag('event', 'share', {
+            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
+            'method': 'bluesky'
+        });
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1367,7 +1517,10 @@ function shareToBluesky() {
 
 function shareToFacebook() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {'method': 'facebook'});
+        gtag('event', 'share', {
+            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
+            'method': 'facebook'
+        });
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1393,8 +1546,11 @@ function nextWord() {
     var feedbackDiv = document.getElementById("feedback");
     var newGameLine = document.createElement("div");
     newGameLine.className = "new-game-message";
+    newGameLine.id = "round" + currentRound + "Indicator"; // Add ID for each round
     newGameLine.innerHTML = "◄ ● Round " + currentRound + " of " + maxRounds + " ● ►";
     feedbackDiv.appendChild(newGameLine);
+    
+    console.log("nextWord: Round indicator added for Round", currentRound);
     
     startNewGame();
     saveGameState();
@@ -1428,6 +1584,7 @@ function giveUp() {
 function confirmGiveUp() {
     if (typeof gtag === 'function') {
         gtag('event', 'give_up', {
+            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
             'round_number': currentRound,
             'guesses_used': guessCount
         });
@@ -1626,57 +1783,15 @@ window.onload = function() {
     // Initialize mode description and AlphaHint text for default Pro mode
     updateAlphaHintText('pro');
     
-    // Placeholder dots demo - highlight AlphaHint text when held
-    var placeholder = document.getElementById("placeholderGuess");
-    if (placeholder) {
-        var placeholderDots = placeholder.querySelectorAll('.symbol-with-letter');
-        var alphahintText = document.querySelector('.alphahint-text');
-        
-        placeholderDots.forEach(function(dot) {
-            // Mouse events
-            dot.addEventListener('mousedown', function(e) {
-                e.preventDefault();
-                if (alphahintText) {
-                    alphahintText.classList.add('demo-active');
-                }
-            });
-            
-            dot.addEventListener('mouseup', function() {
-                if (alphahintText) {
-                    alphahintText.classList.remove('demo-active');
-                }
-            });
-            
-            dot.addEventListener('mouseleave', function() {
-                if (alphahintText) {
-                    alphahintText.classList.remove('demo-active');
-                }
-            });
-            
-            // Touch events
-            dot.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                if (alphahintText) {
-                    alphahintText.classList.add('demo-active');
-                }
-            });
-            
-            dot.addEventListener('touchend', function() {
-                if (alphahintText) {
-                    alphahintText.classList.remove('demo-active');
-                }
-            });
-            
-            dot.addEventListener('touchcancel', function() {
-                if (alphahintText) {
-                    alphahintText.classList.remove('demo-active');
-                }
-            });
-            
-            // Add cursor pointer to show it's interactive
-            dot.style.cursor = 'pointer';
-        });
-    }
+    // Attach placeholder event handlers
+    attachPlaceholderHandlers();
+    
+    // Initialize dev console
+    setTimeout(function() {
+        if (typeof updateDevConsole === 'function') {
+            updateDevConsole();
+        }
+    }, 500);
     
     // Input validation - only allow A-Z letters
     var guessInput = document.getElementById("guessInput");
@@ -1905,10 +2020,29 @@ function performModeSwitch(newMode) {
     // Restart game if in progress
     if (guessCount > 0) {
         resetGame();
+    } else {
+        // Even if no guesses made, ensure round indicator is visible
+        var roundIndicator = document.getElementById('round1Indicator');
+        console.log("Mode switch: Checking round indicator, found:", !!roundIndicator);
+        if (!roundIndicator) {
+            // Round indicator missing, add it
+            console.log("Mode switch: Adding missing round indicator");
+            var feedbackDiv = document.getElementById('feedback');
+            var newIndicator = document.createElement('div');
+            newIndicator.className = 'new-game-message';
+            newIndicator.id = 'round1Indicator';
+            newIndicator.innerHTML = '◄ ● Round 1 of 3 ● ►';
+            feedbackDiv.appendChild(newIndicator);
+        }
     }
     
     // Update alphabet display
     updateAlphabetDisplay();
+    
+    // Update dev console
+    if (typeof updateDevConsole === 'function') {
+        updateDevConsole();
+    }
 }
 
 function updateAlphaHintText(mode) {
@@ -1926,7 +2060,62 @@ function updateAlphaHintText(mode) {
     }
 }
 
+function attachPlaceholderHandlers() {
+    var placeholder = document.getElementById("placeholderGuess");
+    if (!placeholder) return;
+    
+    var placeholderDots = placeholder.querySelectorAll('.symbol-with-letter');
+    var alphahintText = document.querySelector('.alphahint-text');
+    
+    placeholderDots.forEach(function(dot) {
+        // Mouse events
+        dot.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            if (alphahintText && gameMode !== 'proplus') {
+                alphahintText.classList.add('demo-active');
+            }
+        });
+        
+        dot.addEventListener('mouseup', function() {
+            if (alphahintText) {
+                alphahintText.classList.remove('demo-active');
+            }
+        });
+        
+        dot.addEventListener('mouseleave', function() {
+            if (alphahintText) {
+                alphahintText.classList.remove('demo-active');
+            }
+        });
+        
+        // Touch events
+        dot.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            if (alphahintText && gameMode !== 'proplus') {
+                alphahintText.classList.add('demo-active');
+            }
+        });
+        
+        dot.addEventListener('touchend', function() {
+            if (alphahintText) {
+                alphahintText.classList.remove('demo-active');
+            }
+        });
+        
+        dot.addEventListener('touchcancel', function() {
+            if (alphahintText) {
+                alphahintText.classList.remove('demo-active');
+            }
+        });
+        
+        // Add cursor pointer to show it's interactive (but not in Pro+ mode)
+        dot.style.cursor = gameMode !== 'proplus' ? 'pointer' : 'default';
+    });
+}
+
 function resetGame() {
+    console.log("resetGame: Starting game reset");
+    
     // Clear game state
     currentRound = 1;
     totalScore = 0;
@@ -1976,6 +2165,11 @@ function resetGame() {
         <div class="new-game-message" id="round1Indicator">◄ ● Round 1 of 3 ● ►</div>
     `;
     
+    console.log("resetGame: HTML restored, round indicator should be present");
+    
+    // Re-attach placeholder event handlers
+    attachPlaceholderHandlers();
+    
     // Reset alphabet
     updateAlphabetDisplay();
     
@@ -1987,6 +2181,49 @@ window.switchToProMode = switchToProMode;
 window.switchToProPlusMode = switchToProPlusMode;
 window.confirmModeSwitch = confirmModeSwitch;
 window.cancelModeSwitch = cancelModeSwitch;
+window.playAgainSameMode = playAgainSameMode;
+window.playAgainOtherMode = playAgainOtherMode;
+
+// DEV CONSOLE - REMOVE BEFORE PUBLIC LAUNCH
+function updateDevConsole() {
+    var devConsole = document.getElementById('devConsole');
+    if (!devConsole) return;
+    
+    // Update mode
+    document.getElementById('devMode').textContent = gameMode === 'proplus' ? 'PRO+' : 'PRO';
+    
+    // Update round
+    document.getElementById('devRound').textContent = currentRound;
+    
+    // Update target word
+    document.getElementById('devTarget').textContent = targetWord || '-----';
+    
+    // Calculate all 3 words for this game
+    var wordPool = answerWords.length > 0 ? answerWords : fallbackWords;
+    var words = ['-----', '-----', '-----'];
+    
+    if (!testMode && !devMode && !usingFallbackMode && wordPool.length > 0) {
+        for (var r = 1; r <= 3; r++) {
+            var wordIndex;
+            if (gameMode === 'proplus') {
+                wordIndex = (((dailyNumber + playCountProPlus) * 751) + (r * 1009)) % wordPool.length;
+            } else {
+                wordIndex = (((dailyNumber + playCount) * 613) + (r * 997)) % wordPool.length;
+            }
+            words[r - 1] = wordPool[wordIndex];
+        }
+    }
+    
+    document.getElementById('devWord1').textContent = words[0];
+    document.getElementById('devWord2').textContent = words[1];
+    document.getElementById('devWord3').textContent = words[2];
+    
+    // Update play counts
+    document.getElementById('devPlayCountPro').textContent = playCount;
+    document.getElementById('devPlayCountProPlus').textContent = playCountProPlus;
+}
+
+window.updateDevConsole = updateDevConsole;
 
 // Show "Coming Soon!" when PRO link is clicked
 function showComingSoon(event) {
