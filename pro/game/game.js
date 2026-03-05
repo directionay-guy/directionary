@@ -2108,13 +2108,12 @@ function performModeSwitch(newMode) {
     console.log("Mode switch: Reloading game with new word formula...");
     resetGame();
     
-    // Update alphabet display
+    // Update alphabet display (safe to do immediately)
     updateAlphabetDisplay();
     
-    // Update dev console
-    if (typeof updateDevConsole === 'function') {
-        updateDevConsole();
-    }
+    // NOTE: Don't call updateDevConsole() here! 
+    // resetGame() → loadWordList() is ASYNC
+    // startNewGame() will call updateDevConsole() after new word loads
 }
 
 function updateAlphaHintText(mode) {
@@ -2299,51 +2298,72 @@ function updateDevConsole() {
     var devConsole = document.getElementById('devConsole');
     if (!devConsole) return;
     
-    // Update mode
-    document.getElementById('devMode').textContent = gameMode === 'proplus' ? 'PRO+' : 'PRO';
+    console.log("=== DEV CONSOLE UPDATE ===");
+    console.log("Current Mode:", gameMode);
+    console.log("DailyNumber:", dailyNumber);
+    console.log("PlayCount (Pro):", playCount);
+    console.log("PlayCount (Pro+):", playCountProPlus);
+    console.log("Current Round:", currentRound);
+    
+    // Update active mode display
+    var modeLabel = gameMode === 'proplus' ? 'PRO+' : 'PRO';
+    document.getElementById('devActiveMode').textContent = modeLabel;
     
     // Update round
     document.getElementById('devRound').textContent = currentRound;
     
-    // Update target word
-    document.getElementById('devTarget').textContent = targetWord || '-----';
+    // Update play counts in left column
+    document.getElementById('devPlayCountPro').textContent = playCount;
+    document.getElementById('devPlayCountProPlus').textContent = playCountProPlus;
     
-    // Calculate all 3 words for this game
+    // Get word pool
     var wordPool = answerWords.length > 0 ? answerWords : fallbackWords;
-    var words = ['-----', '-----', '-----'];
     
-    // Get the ACTIVE playCount for current mode
-    var activePlayCount = gameMode === 'proplus' ? playCountProPlus : playCount;
-    
-    console.log("=== DEV CONSOLE UPDATE ===");
-    console.log("Mode:", gameMode);
-    console.log("DailyNumber:", dailyNumber);
-    console.log("Active PlayCount:", activePlayCount);
-    console.log("Current Round:", currentRound);
-    console.log("Target Word:", targetWord);
-    
+    // Calculate PRO words (all 3 rounds)
+    var proWords = ['-----', '-----', '-----'];
     if (!testMode && !devMode && !usingFallbackMode && wordPool.length > 0) {
         for (var r = 1; r <= 3; r++) {
-            var wordIndex;
-            if (gameMode === 'proplus') {
-                wordIndex = (((dailyNumber + playCountProPlus) * 751) + (r * 1009)) % wordPool.length;
-                console.log("PRO+ R" + r + " calc: ((" + dailyNumber + " + " + playCountProPlus + ") * 751) + (" + r + " * 1009) = index " + wordIndex);
-            } else {
-                wordIndex = (((dailyNumber + playCount) * 613) + (r * 997)) % wordPool.length;
-                console.log("PRO R" + r + " calc: ((" + dailyNumber + " + " + playCount + ") * 613) + (" + r + " * 997) = index " + wordIndex);
-            }
-            words[r - 1] = wordPool[wordIndex];
-            console.log("R" + r + " word:", words[r - 1]);
+            var proIndex = (((dailyNumber + playCount) * 613) + (r * 997)) % wordPool.length;
+            proWords[r - 1] = wordPool[proIndex];
+            console.log("PRO R" + r + " calc: ((" + dailyNumber + " + " + playCount + ") * 613) + (" + r + " * 997) = index " + proIndex + " = " + proWords[r - 1]);
         }
     }
     
-    document.getElementById('devWord1').textContent = words[0];
-    document.getElementById('devWord2').textContent = words[1];
-    document.getElementById('devWord3').textContent = words[2];
+    // Calculate PRO+ words (all 3 rounds)
+    var proPlusWords = ['-----', '-----', '-----'];
+    if (!testMode && !devMode && !usingFallbackMode && wordPool.length > 0) {
+        for (var r = 1; r <= 3; r++) {
+            var proPlusIndex = (((dailyNumber + playCountProPlus) * 751) + (r * 1009)) % wordPool.length;
+            proPlusWords[r - 1] = wordPool[proPlusIndex];
+            console.log("PRO+ R" + r + " calc: ((" + dailyNumber + " + " + playCountProPlus + ") * 751) + (" + r + " * 1009) = index " + proPlusIndex + " = " + proPlusWords[r - 1]);
+        }
+    }
     
-    // Update play counts
-    document.getElementById('devPlayCountPro').textContent = playCount;
-    document.getElementById('devPlayCountProPlus').textContent = playCountProPlus;
+    // Update PRO column
+    document.getElementById('devProWord1').textContent = proWords[0];
+    document.getElementById('devProWord2').textContent = proWords[1];
+    document.getElementById('devProWord3').textContent = proWords[2];
+    document.getElementById('devProPlayCount').textContent = playCount;
+    
+    // Update PRO+ column
+    document.getElementById('devProPlusWord1').textContent = proPlusWords[0];
+    document.getElementById('devProPlusWord2').textContent = proPlusWords[1];
+    document.getElementById('devProPlusWord3').textContent = proPlusWords[2];
+    document.getElementById('devProPlusPlayCount').textContent = playCountProPlus;
+    
+    // Highlight active mode column
+    var proColumn = document.getElementById('devProColumn');
+    var proPlusColumn = document.getElementById('devProPlusColumn');
+    
+    if (gameMode === 'proplus') {
+        // Dim Pro, brighten Pro+
+        proColumn.style.opacity = '0.5';
+        proPlusColumn.style.opacity = '1';
+    } else {
+        // Brighten Pro, dim Pro+
+        proColumn.style.opacity = '1';
+        proPlusColumn.style.opacity = '0.5';
+    }
     
     console.log("=========================");
 }
