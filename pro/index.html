@@ -579,6 +579,54 @@
         <p><span style="font-size: 0.9em; opacity: 0.8; color: #e8e8e8;">© 2025 Joel Pickard. All rights reserved.</span></p>
     </footer>
 
+    <!-- DEV CONSOLE - REMOVE BEFORE PUBLIC LAUNCH -->
+    <div id="devConsole" style="
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.95);
+        color: #00ff41;
+        padding: 15px 20px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85em;
+        border-top: 2px solid #00ff41;
+        z-index: 10000;
+        box-shadow: 0 -4px 20px rgba(0, 255, 65, 0.3);
+    ">
+        <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+            <div>
+                <div style="color: #fff; font-weight: 700; margin-bottom: 8px;">GAME STATE</div>
+                <div>Mode: <span id="devMode" style="color: #ffff00;">PRO</span></div>
+                <div>Round: <span id="devRound">1</span> of 3</div>
+                <div>Target: <span id="devTarget" style="color: #ff6b6b; font-weight: 700;">-----</span></div>
+            </div>
+            <div>
+                <div style="color: #fff; font-weight: 700; margin-bottom: 8px;">THIS GAME'S WORDS</div>
+                <div>R1: <span id="devWord1" style="color: #ff6b6b;">-----</span></div>
+                <div>R2: <span id="devWord2" style="color: #ff6b6b;">-----</span></div>
+                <div>R3: <span id="devWord3" style="color: #ff6b6b;">-----</span></div>
+            </div>
+            <div>
+                <div style="color: #fff; font-weight: 700; margin-bottom: 8px;">PLAY COUNTS</div>
+                <div>Pro: <span id="devPlayCountPro">0</span></div>
+                <div>Pro+: <span id="devPlayCountProPlus">0</span></div>
+                <div style="margin-top: 10px;">
+                    <button onclick="updateDevConsole()" style="
+                        background: #00ff41;
+                        color: #000;
+                        border: none;
+                        padding: 6px 12px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-weight: 700;
+                        font-family: 'Courier New', monospace;
+                    ">↻ REFRESH</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="game/game.js"></script>
 </body>
 </html>
