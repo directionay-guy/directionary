@@ -594,23 +594,17 @@
         z-index: 10000;
         box-shadow: 0 -4px 20px rgba(0, 255, 65, 0.3);
     ">
-        <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+        <div style="max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 25px;">
+            <!-- Left: Current Game State -->
             <div>
-                <div style="color: #fff; font-weight: 700; margin-bottom: 8px;">GAME STATE</div>
-                <div>Mode: <span id="devMode" style="color: #ffff00;">PRO</span></div>
-                <div>Round: <span id="devRound">1</span> of 3</div>
-                <div>Target: <span id="devTarget" style="color: #ff6b6b; font-weight: 700;">-----</span></div>
-            </div>
-            <div>
-                <div style="color: #fff; font-weight: 700; margin-bottom: 8px;">THIS GAME'S WORDS</div>
-                <div>R1: <span id="devWord1" style="color: #ff6b6b;">-----</span></div>
-                <div>R2: <span id="devWord2" style="color: #ff6b6b;">-----</span></div>
-                <div>R3: <span id="devWord3" style="color: #ff6b6b;">-----</span></div>
-            </div>
-            <div>
-                <div style="color: #fff; font-weight: 700; margin-bottom: 8px;">PLAY COUNTS</div>
-                <div>Pro: <span id="devPlayCountPro">0</span></div>
-                <div>Pro+: <span id="devPlayCountProPlus">0</span></div>
+                <div style="color: #fff; font-weight: 700; margin-bottom: 8px; border-bottom: 1px solid #00ff41; padding-bottom: 4px;">CURRENT GAME</div>
+                <div style="margin-bottom: 4px;">Active: <span id="devActiveMode" style="color: #ffff00; font-weight: 700;">PRO</span></div>
+                <div style="margin-bottom: 4px;">Round: <span id="devRound">1</span> of 3</div>
+                <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #333;">
+                    <div style="color: #aaa; font-size: 0.9em; margin-bottom: 4px;">Play Counts:</div>
+                    <div style="margin-left: 10px;">Pro: <span id="devPlayCountPro">0</span></div>
+                    <div style="margin-left: 10px;">Pro+: <span id="devPlayCountProPlus">0</span></div>
+                </div>
                 <div style="margin-top: 10px;">
                     <button onclick="updateDevConsole()" style="
                         background: #00ff41;
@@ -621,7 +615,30 @@
                         cursor: pointer;
                         font-weight: 700;
                         font-family: 'Courier New', monospace;
+                        font-size: 0.9em;
                     ">↻ REFRESH</button>
+                </div>
+            </div>
+            
+            <!-- Middle: PRO MODE Words -->
+            <div id="devProColumn" style="transition: opacity 0.3s;">
+                <div style="color: #fff; font-weight: 700; margin-bottom: 8px; border-bottom: 1px solid #00ff41; padding-bottom: 4px;">PRO MODE</div>
+                <div style="margin-bottom: 4px;">R1: <span id="devProWord1" style="color: #ff6b6b; font-weight: 700;">-----</span></div>
+                <div style="margin-bottom: 4px;">R2: <span id="devProWord2" style="color: #ff6b6b; font-weight: 700;">-----</span></div>
+                <div style="margin-bottom: 4px;">R3: <span id="devProWord3" style="color: #ff6b6b; font-weight: 700;">-----</span></div>
+                <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #333; color: #aaa; font-size: 0.9em;">
+                    Count: <span id="devProPlayCount">0</span>
+                </div>
+            </div>
+            
+            <!-- Right: PRO+ MODE Words -->
+            <div id="devProPlusColumn" style="transition: opacity 0.3s;">
+                <div style="color: #fff; font-weight: 700; margin-bottom: 8px; border-bottom: 1px solid #00ff41; padding-bottom: 4px;">PRO+ MODE</div>
+                <div style="margin-bottom: 4px;">R1: <span id="devProPlusWord1" style="color: #ff6b6b; font-weight: 700;">-----</span></div>
+                <div style="margin-bottom: 4px;">R2: <span id="devProPlusWord2" style="color: #ff6b6b; font-weight: 700;">-----</span></div>
+                <div style="margin-bottom: 4px;">R3: <span id="devProPlusWord3" style="color: #ff6b6b; font-weight: 700;">-----</span></div>
+                <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #333; color: #aaa; font-size: 0.9em;">
+                    Count: <span id="devProPlusPlayCount">0</span>
                 </div>
             </div>
         </div>
