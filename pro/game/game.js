@@ -2187,7 +2187,7 @@ function attachPlaceholderHandlers() {
 function resetGame() {
     console.log("resetGame: Starting game reset");
     
-    // Clear game state
+    // Clear game state variables
     currentRound = 1;
     totalScore = 0;
     guessCount = 0;
@@ -2196,16 +2196,50 @@ function resetGame() {
     guessedWordsThisRound.clear();
     usedLetters.clear();
     
-    // Clear UI
-    document.getElementById("feedback").innerHTML = "";
-    document.getElementById("guessInput").value = "";
-    document.getElementById("guessCount").textContent = "0";
-    document.getElementById("currentScore").textContent = "100";
-    document.getElementById("totalScore").textContent = "0";
-    document.getElementById("errorMessage").innerHTML = "";
+    // CRITICAL: Clear saved game state from localStorage
+    // Otherwise startNewGame() will restore old game with wrong mode's word!
+    clearGameState();
+    console.log("resetGame: Saved game state cleared");
+    
+    // Clear UI - with null checks
+    var feedbackEl = document.getElementById("feedback");
+    if (feedbackEl) feedbackEl.innerHTML = "";
+    
+    var guessInputEl = document.getElementById("guessInput");
+    if (guessInputEl) guessInputEl.value = "";
+    
+    var guessCountEl = document.getElementById("guessCount");
+    if (guessCountEl) {
+        guessCountEl.textContent = "0";
+    } else {
+        console.error("resetGame: guessCount element not found!");
+    }
+    
+    var currentScoreEl = document.getElementById("currentScore");
+    if (currentScoreEl) {
+        currentScoreEl.textContent = "100";
+    } else {
+        console.error("resetGame: currentScore element not found!");
+    }
+    
+    var totalScoreEl = document.getElementById("totalScore");
+    if (totalScoreEl) {
+        totalScoreEl.textContent = "0";
+    } else {
+        console.error("resetGame: totalScore element not found!");
+    }
+    
+    var errorMessageEl = document.getElementById("errorMessage");
+    if (errorMessageEl) errorMessageEl.innerHTML = "";
+    
+    console.log("resetGame: UI elements cleared");
     
     // Restore placeholder and round indicator
     var feedbackDiv = document.getElementById("feedback");
+    if (!feedbackDiv) {
+        console.error("resetGame: feedback div not found!");
+        return;
+    }
     feedbackDiv.innerHTML = `
         <div class="feedback-line placeholder-guess" id="placeholderGuess">
             <span style="color: #bbb; margin-right: 8px;">1)</span>
@@ -2239,16 +2273,39 @@ function resetGame() {
     console.log("resetGame: HTML restored, round indicator should be present");
     
     console.log("resetGame: Re-showing input and buttons...");
-    // Re-show input and buttons (hidden by showPlayAgainButtons)
-    document.getElementById("guessInput").style.display = "";
-    document.querySelector(".button-group").style.display = "";
-    console.log("resetGame: Input display:", document.getElementById("guessInput").style.display);
-    console.log("resetGame: Button group display:", document.querySelector(".button-group").style.display);
+    // Re-show input and buttons (hidden by showPlayAgainButtons) - with null checks
+    var inputEl = document.getElementById("guessInput");
+    if (inputEl) {
+        inputEl.style.display = "";
+        console.log("resetGame: Input display:", inputEl.style.display);
+    } else {
+        console.error("resetGame: guessInput element not found!");
+    }
     
-    // Re-enable input and buttons
-    document.getElementById("guessInput").disabled = false;
-    document.getElementById("submitBtn").disabled = false;
-    document.getElementById("giveUpBtn").disabled = false;
+    var buttonGroupEl = document.querySelector(".button-group");
+    if (buttonGroupEl) {
+        buttonGroupEl.style.display = "";
+        console.log("resetGame: Button group display:", buttonGroupEl.style.display);
+    } else {
+        console.error("resetGame: button-group element not found!");
+    }
+    
+    // Re-enable input and buttons - with null checks
+    if (inputEl) inputEl.disabled = false;
+    
+    var submitBtnEl = document.getElementById("submitBtn");
+    if (submitBtnEl) {
+        submitBtnEl.disabled = false;
+    } else {
+        console.error("resetGame: submitBtn element not found!");
+    }
+    
+    var giveUpBtnEl = document.getElementById("giveUpBtn");
+    if (giveUpBtnEl) {
+        giveUpBtnEl.disabled = false;
+    } else {
+        console.error("resetGame: giveUpBtn element not found!");
+    }
     console.log("resetGame: Controls re-enabled");
     
     // Update instructions to default
