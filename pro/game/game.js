@@ -216,9 +216,14 @@ function showBetaBannerIfEnabled() {
 }
 
 function loadWordList() {
+    console.log(">>> loadWordList CALLED - fetching words.json...");
     fetch('game/words.json')
-        .then(response => response.json())
+        .then(response => {
+            console.log(">>> loadWordList: words.json fetched successfully");
+            return response.json();
+        })
         .then(data => {
+            console.log(">>> loadWordList: words.json parsed successfully");
             if (data.answers && data.answers.length > 0) {
                 answerWords = data.answers.map(w => w.toUpperCase());
                 console.log("Loaded " + answerWords.length + " answer words");
@@ -258,7 +263,9 @@ function loadWordList() {
                 console.log("Could not load added words:", e);
             }
             
+            console.log(">>> loadWordList: Calling startNewGame...");
             startNewGame();
+            console.log(">>> loadWordList: startNewGame returned");
         })
         .catch(error => {
             console.log("Could not load word list, using fallback:", error);
@@ -373,7 +380,10 @@ function startDayChangeChecker() {
 }
 
 function startNewGame() {
-    console.log("Starting round " + currentRound + "...");
+    console.log(">>> >>> startNewGame CALLED <<<");
+    console.log(">>> Starting round " + currentRound + "...");
+    console.log(">>> Game mode:", gameMode);
+    console.log(">>> Play counts - Pro:", playCount, "Pro+:", playCountProPlus);
     
     if (currentRound === 1) {
         var savedState = loadGameState();
@@ -491,6 +501,8 @@ function startNewGame() {
     if (typeof updateDevConsole === 'function') {
         updateDevConsole();
     }
+    
+    console.log(">>> >>> startNewGame COMPLETED <<<");
 }
 
 // PRO+ MODE: Validate guess respects arrow constraints
@@ -1180,23 +1192,52 @@ function showPlayAgainButtons() {
 }
 
 function playAgainSameMode() {
-    console.log("=== PLAY AGAIN SAME MODE ===");
-    console.log("Current mode:", gameMode);
-    console.log("Current playCount (Pro):", playCount);
-    console.log("Current playCount (Pro+):", playCountProPlus);
-    closeDailyModal();
-    resetGame();
+    try {
+        console.log("=== PLAY AGAIN SAME MODE BUTTON CLICKED ===");
+        console.log("Current mode:", gameMode);
+        console.log("Current playCount (Pro):", playCount);
+        console.log("Current playCount (Pro+):", playCountProPlus);
+        
+        console.log("Step 1: Closing daily modal...");
+        closeDailyModal();
+        console.log("Step 1: Modal closed");
+        
+        console.log("Step 2: Calling resetGame...");
+        resetGame();
+        console.log("Step 2: resetGame completed");
+        
+        console.log("=== PLAY AGAIN SAME MODE COMPLETED ===");
+    } catch (error) {
+        console.error("ERROR in playAgainSameMode:", error);
+        alert("Error starting new game: " + error.message);
+    }
 }
 
 function playAgainOtherMode() {
-    var targetMode = gameMode === 'proplus' ? 'pro' : 'proplus';
-    console.log("=== PLAY AGAIN OTHER MODE ===");
-    console.log("Switching from", gameMode, "to", targetMode);
-    console.log("Current playCount (Pro):", playCount);
-    console.log("Current playCount (Pro+):", playCountProPlus);
-    closeDailyModal();
-    performModeSwitch(targetMode);
-    resetGame();
+    try {
+        var targetMode = gameMode === 'proplus' ? 'pro' : 'proplus';
+        console.log("=== PLAY AGAIN OTHER MODE BUTTON CLICKED ===");
+        console.log("Switching from", gameMode, "to", targetMode);
+        console.log("Current playCount (Pro):", playCount);
+        console.log("Current playCount (Pro+):", playCountProPlus);
+        
+        console.log("Step 1: Closing daily modal...");
+        closeDailyModal();
+        console.log("Step 1: Modal closed");
+        
+        console.log("Step 2: Switching mode to", targetMode);
+        performModeSwitch(targetMode);
+        console.log("Step 2: Mode switched");
+        
+        console.log("Step 3: Calling resetGame...");
+        resetGame();
+        console.log("Step 3: resetGame completed");
+        
+        console.log("=== PLAY AGAIN OTHER MODE COMPLETED ===");
+    } catch (error) {
+        console.error("ERROR in playAgainOtherMode:", error);
+        alert("Error starting new game: " + error.message);
+    }
 }
 
 function showComeBackMessage() {
@@ -2213,14 +2254,18 @@ function resetGame() {
     
     console.log("resetGame: HTML restored, round indicator should be present");
     
+    console.log("resetGame: Re-showing input and buttons...");
     // Re-show input and buttons (hidden by showPlayAgainButtons)
     document.getElementById("guessInput").style.display = "";
     document.querySelector(".button-group").style.display = "";
+    console.log("resetGame: Input display:", document.getElementById("guessInput").style.display);
+    console.log("resetGame: Button group display:", document.querySelector(".button-group").style.display);
     
     // Re-enable input and buttons
     document.getElementById("guessInput").disabled = false;
     document.getElementById("submitBtn").disabled = false;
     document.getElementById("giveUpBtn").disabled = false;
+    console.log("resetGame: Controls re-enabled");
     
     // Update instructions to default
     var instructions = document.querySelector(".instructions-brief");
@@ -2231,22 +2276,30 @@ function resetGame() {
         var modeLabel = gameMode === 'proplus' ? 'PRO+' : 'PRO';
         instructions.innerHTML = "<strong>Guess the 5-letter word!</strong> Use the arrows to guide you.";
         instructions.style.background = "";
+        console.log("resetGame: Instructions updated");
     }
     
     // Remove "Your Words" display if it exists
     var wordsDisplay = document.getElementById("yourWordsDisplay");
     if (wordsDisplay) {
         wordsDisplay.remove();
+        console.log("resetGame: Your Words display removed");
     }
     
     // Re-attach placeholder event handlers
+    console.log("resetGame: Attaching placeholder handlers...");
     attachPlaceholderHandlers();
+    console.log("resetGame: Placeholder handlers attached");
     
     // Reset alphabet
+    console.log("resetGame: Updating alphabet display...");
     updateAlphabetDisplay();
+    console.log("resetGame: Alphabet display updated");
     
     // Load new word for current mode
+    console.log("resetGame: Calling loadWordList...");
     loadWordList();
+    console.log("resetGame: loadWordList called - COMPLETED");
 }
 
 window.switchToProMode = switchToProMode;
