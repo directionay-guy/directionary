@@ -309,6 +309,7 @@ function initGame() {
     
     if (typeof gtag === 'function') {
         gtag('event', 'game_start', {
+            'game_version': 'standard',
             'game_day': dailyNumber,
             'mode': devMode ? 'dev' : (testMode ? 'test' : 'production')
         });
@@ -818,6 +819,7 @@ function showSuccessModal() {
     
     if (typeof gtag === 'function') {
         gtag('event', 'round_complete', {
+            'game_version': 'standard',
             'round_number': currentRound,
             'score': lastRoundScore,
             'guesses_used': roundResults.length > 0 ? roundResults[roundResults.length - 1].guesses : 0,
@@ -883,6 +885,7 @@ function showSuccessModal() {
 function showDailyCompleteModal() {
     if (typeof gtag === 'function') {
         gtag('event', 'daily_complete', {
+            'game_version': 'standard',
             'total_score': totalScore,
             'rounds_completed': roundResults.length,
             'game_day': dailyNumber
@@ -1212,7 +1215,10 @@ function toggleShare() {
 
 function toggleHelp() {
     if (typeof gtag === 'function') {
-        gtag('event', 'modal_open', {'modal_type': 'help'});
+        gtag('event', 'modal_open', {
+            'game_version': 'standard',
+            'modal_type': 'help'
+        });
     }
     
     closeAllPanels();
@@ -1226,7 +1232,10 @@ function toggleHelp() {
 
 function toggleStats() {
     if (typeof gtag === 'function') {
-        gtag('event', 'modal_open', {'modal_type': 'stats'});
+        gtag('event', 'modal_open', {
+            'game_version': 'standard',
+            'modal_type': 'stats'
+        });
     }
     
     closeAllPanels();
@@ -1241,7 +1250,10 @@ function toggleStats() {
 
 function toggleInfo() {
     if (typeof gtag === 'function') {
-        gtag('event', 'modal_open', {'modal_type': 'about'});
+        gtag('event', 'modal_open', {
+            'game_version': 'standard',
+            'modal_type': 'about'
+        });
     }
     
     closeAllPanels();
@@ -1311,7 +1323,10 @@ function closeStreakPanel() {
 
 function copyToClipboard() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {'method': 'clipboard'});
+        gtag('event', 'share', {
+            'game_version': 'standard',
+            'method': 'clipboard'
+        });
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1322,7 +1337,10 @@ function copyToClipboard() {
 
 function shareToTwitter() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {'method': 'twitter'});
+        gtag('event', 'share', {
+            'game_version': 'standard',
+            'method': 'twitter'
+        });
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1332,7 +1350,10 @@ function shareToTwitter() {
 
 function shareToBluesky() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {'method': 'bluesky'});
+        gtag('event', 'share', {
+            'game_version': 'standard',
+            'method': 'bluesky'
+        });
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1352,7 +1373,10 @@ function shareToBluesky() {
 
 function shareToFacebook() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {'method': 'facebook'});
+        gtag('event', 'share', {
+            'game_version': 'standard',
+            'method': 'facebook'
+        });
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
