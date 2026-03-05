@@ -2104,24 +2104,9 @@ function performModeSwitch(newMode) {
         console.log("Switched to PRO+ mode (Hard Mode)");
     }
     
-    // Restart game if in progress
-    if (guessCount > 0) {
-        resetGame();
-    } else {
-        // Even if no guesses made, ensure round indicator is visible
-        var roundIndicator = document.getElementById('round1Indicator');
-        console.log("Mode switch: Checking round indicator, found:", !!roundIndicator);
-        if (!roundIndicator) {
-            // Round indicator missing, add it
-            console.log("Mode switch: Adding missing round indicator");
-            var feedbackDiv = document.getElementById('feedback');
-            var newIndicator = document.createElement('div');
-            newIndicator.className = 'new-game-message';
-            newIndicator.id = 'round1Indicator';
-            newIndicator.innerHTML = '◄ ● Round 1 of 3 ● ►';
-            feedbackDiv.appendChild(newIndicator);
-        }
-    }
+    // ALWAYS reload the game when switching modes (word formula is different!)
+    console.log("Mode switch: Reloading game with new word formula...");
+    resetGame();
     
     // Update alphabet display
     updateAlphabetDisplay();
