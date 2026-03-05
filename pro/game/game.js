@@ -422,6 +422,12 @@ function startNewGame() {
         console.log("Using OVERRIDE word for Round " + currentRound + ":", targetWord);
     } else {
         targetWord = wordPool[wordIndex];
+        console.log("=== TARGET WORD ASSIGNED ===");
+        console.log("Mode:", gameMode);
+        console.log("Word Pool Index:", wordIndex);
+        console.log("Target Word:", targetWord);
+        console.log("Formula used: dailyNumber=" + dailyNumber + ", playCount=" + (gameMode === 'proplus' ? playCountProPlus : playCount) + ", round=" + currentRound);
+        console.log("===========================");
     }
     
     if (devMode || testMode) {
@@ -2268,15 +2274,28 @@ function updateDevConsole() {
     var wordPool = answerWords.length > 0 ? answerWords : fallbackWords;
     var words = ['-----', '-----', '-----'];
     
+    // Get the ACTIVE playCount for current mode
+    var activePlayCount = gameMode === 'proplus' ? playCountProPlus : playCount;
+    
+    console.log("=== DEV CONSOLE UPDATE ===");
+    console.log("Mode:", gameMode);
+    console.log("DailyNumber:", dailyNumber);
+    console.log("Active PlayCount:", activePlayCount);
+    console.log("Current Round:", currentRound);
+    console.log("Target Word:", targetWord);
+    
     if (!testMode && !devMode && !usingFallbackMode && wordPool.length > 0) {
         for (var r = 1; r <= 3; r++) {
             var wordIndex;
             if (gameMode === 'proplus') {
                 wordIndex = (((dailyNumber + playCountProPlus) * 751) + (r * 1009)) % wordPool.length;
+                console.log("PRO+ R" + r + " calc: ((" + dailyNumber + " + " + playCountProPlus + ") * 751) + (" + r + " * 1009) = index " + wordIndex);
             } else {
                 wordIndex = (((dailyNumber + playCount) * 613) + (r * 997)) % wordPool.length;
+                console.log("PRO R" + r + " calc: ((" + dailyNumber + " + " + playCount + ") * 613) + (" + r + " * 997) = index " + wordIndex);
             }
             words[r - 1] = wordPool[wordIndex];
+            console.log("R" + r + " word:", words[r - 1]);
         }
     }
     
@@ -2287,6 +2306,8 @@ function updateDevConsole() {
     // Update play counts
     document.getElementById('devPlayCountPro').textContent = playCount;
     document.getElementById('devPlayCountProPlus').textContent = playCountProPlus;
+    
+    console.log("=========================");
 }
 
 window.updateDevConsole = updateDevConsole;
