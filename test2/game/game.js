@@ -905,6 +905,7 @@ function showDailyCompleteModal() {
         localStorage.setItem('directionary_standard_dailyState', JSON.stringify({
             roundResults: roundResults,
             totalScore: totalScore,
+            guessHistory: guessHistory,  // Save all guess patterns for sharing
             completedDate: today
         }));
     }
@@ -1112,6 +1113,7 @@ function showAlreadyPlayedMessage() {
         var state = JSON.parse(savedState);
         roundResults = state.roundResults || [];
         totalScore = state.totalScore || 0;
+        guessHistory = state.guessHistory || [];  // Restore guess history for sharing
         currentScore = 0; // Set to 0 since game is complete
     }
     
@@ -1188,10 +1190,14 @@ function generateShareText() {
     }
     text += "\n\n";
     
-    for (var i = 0; i < roundResults.length; i++) {
-        var result = roundResults[i];
-        if (result && result.pattern) {
-            var sharePattern = result.pattern
+    // Show LAST 5 guesses from guessHistory
+    var totalGuesses = guessHistory.length;
+    var startIndex = Math.max(0, totalGuesses - 5); // Start from last 5, or beginning if fewer
+    
+    for (var i = startIndex; i < guessHistory.length; i++) {
+        var pattern = guessHistory[i];
+        if (pattern) {
+            var sharePattern = pattern
                 .replace(/●/g, "🟢")
                 .replace(/►/g, "▶️")
                 .replace(/▶/g, "▶️")
