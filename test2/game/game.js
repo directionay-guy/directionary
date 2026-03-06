@@ -737,6 +737,8 @@ function showAlphaHint(position) {
     if (alphahintText) {
         var ordinals = ['1st', '2nd', '3rd', '4th', '5th'];
         alphahintText.textContent = 'Options for the ' + ordinals[position] + ' letter';
+        // Enlarge text like in placeholder demo
+        alphahintText.classList.add('demo-active');
     }
 }
 
@@ -763,6 +765,8 @@ function clearAlphaHint() {
     var alphahintText = document.querySelector('.alphahint-text');
     if (alphahintText) {
         alphahintText.textContent = 'AlphaHint™: Hold arrow for letter options';
+        // Remove enlarged state
+        alphahintText.classList.remove('demo-active');
     }
 }
 
