@@ -1,3 +1,37 @@
+/*
+ * BASE GAME (3-ROUND VERSION) - STARTING POINT FOR PRO/PRO+ REBUILD
+ * 
+ * This is the working Base game code with 3 rounds (maxRounds = 3).
+ * Standard game (1 round) is working perfectly and will be deployed separately.
+ * Use this 3-round base as the foundation to build Pro/Pro+ features.
+ * 
+ * WHAT THIS HAS (WORKING):
+ * ✅ 3 rounds per game
+ * ✅ Score tracking across rounds
+ * ✅ Word loading and validation
+ * ✅ Guess feedback with arrows
+ * ✅ AlphaHint (bold letters)
+ * ✅ UI elements (placeholder, round indicator)
+ * ✅ Stats tracking
+ * ✅ Share functionality
+ * 
+ * MODIFICATIONS NEEDED FOR PRO:
+ * 1. Add gameMode variable: 'pro' or 'proplus'
+ * 2. Add playCountProPlus variable (keep existing playCount for Pro)
+ * 3. Modify word formula to use different multipliers:
+ *    - Pro: ((day + playCount) * 613) + (round * 997)
+ *    - Pro+: ((day + playCountProPlus) * 751) + (round * 1009)
+ * 4. Add Pro+ arrow validation logic (validateProPlusGuess function)
+ * 5. Add AlphaHint disable for Pro+ mode
+ * 6. Replace countdown timer with Play Again buttons in showDailyCompleteModal()
+ * 7. Add mode toggle buttons in HTML header
+ * 8. Add dev console for testing (3-column layout)
+ * 9. Add clearGameState() call in resetGame() to prevent saved game restoration
+ * 10. Add performModeSwitch() function for Pro ↔ Pro+ switching
+ * 
+ * See PRO-GAME-REBUILD-HANDOFF.md for complete requirements and testing checklist.
+ */
+
 // Game state variables
 var targetWord = "";
 var answerWords = [];
@@ -749,6 +783,8 @@ function showAlphaHint(position) {
     if (alphahintText) {
         var ordinals = ['1st', '2nd', '3rd', '4th', '5th'];
         alphahintText.textContent = 'Options for the ' + ordinals[position] + ' letter';
+        // Enlarge text like in placeholder demo
+        alphahintText.classList.add('demo-active');
     }
 }
 
@@ -775,6 +811,8 @@ function clearAlphaHint() {
     var alphahintText = document.querySelector('.alphahint-text');
     if (alphahintText) {
         alphahintText.textContent = 'AlphaHint™: Hold arrow for letter options';
+        // Remove enlarged state
+        alphahintText.classList.remove('demo-active');
     }
 }
 
