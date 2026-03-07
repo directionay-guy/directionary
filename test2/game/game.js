@@ -1717,8 +1717,8 @@ document.addEventListener('keydown', function(e) {
         
         var completeModal = document.getElementById('dailyCompleteModal');
         if (completeModal && completeModal.style.display === 'flex') {
-            closeDailyModal();
-            toggleStats();
+            // Enter activates PRIMARY button (View and Share)
+            viewResults();
             return;
         }
         
@@ -1733,30 +1733,117 @@ document.addEventListener('keydown', function(e) {
             closeDuplicateModal();
             return;
         }
+        
+        // Enter key closes panels (Stats, Share, Help, etc.)
+        var statsPanel = document.getElementById('statsPanel');
+        if (statsPanel && statsPanel.style.display === 'flex') {
+            closeStats();
+            return;
+        }
+        
+        var sharePanel = document.getElementById('sharePanel');
+        if (sharePanel && sharePanel.style.display === 'flex') {
+            closeShare();
+            return;
+        }
+        
+        var helpPanel = document.getElementById('helpPanel');
+        if (helpPanel && helpPanel.style.display === 'flex') {
+            closeHelp();
+            return;
+        }
+        
+        var aboutPanel = document.getElementById('aboutPanel');
+        if (aboutPanel && aboutPanel.style.display === 'flex') {
+            closeInfo();
+            return;
+        }
+        
+        var streakPanel = document.getElementById('streakPanel');
+        if (streakPanel && streakPanel.style.display === 'flex') {
+            closeStreakPanel();
+            return;
+        }
+        
+        var wordDefPanel = document.getElementById('wordDefPanel');
+        if (wordDefPanel && wordDefPanel.style.display === 'flex') {
+            closeWordDefPanel();
+            return;
+        }
     }
     
     if (e.key === 'Escape') {
+        // Escape key closes panels (same pattern as Enter)
         var statsPanel = document.getElementById('statsPanel');
-        var helpPanel = document.getElementById('helpPanel');
-        var aboutPanel = document.getElementById('aboutPanel');
-        var sharePanel = document.getElementById('sharePanel');
-        var streakPanel = document.getElementById('streakPanel');
-        var wordDefPanel = document.getElementById('wordDefPanel');
-        
         if (statsPanel && statsPanel.style.display === 'flex') {
-            toggleStats();
-        } else if (helpPanel && helpPanel.style.display === 'flex') {
-            toggleHelp();
-        } else if (aboutPanel && aboutPanel.style.display === 'flex') {
-            toggleAbout();
-        } else if (sharePanel && sharePanel.style.display === 'flex') {
-            toggleShare();
-        } else if (streakPanel && streakPanel.style.display === 'flex') {
+            closeStats();
+            return;
+        }
+        
+        var sharePanel = document.getElementById('sharePanel');
+        if (sharePanel && sharePanel.style.display === 'flex') {
+            closeShare();
+            return;
+        }
+        
+        var helpPanel = document.getElementById('helpPanel');
+        if (helpPanel && helpPanel.style.display === 'flex') {
+            closeHelp();
+            return;
+        }
+        
+        var aboutPanel = document.getElementById('infoPanel');
+        if (aboutPanel && aboutPanel.style.display === 'flex') {
+            closeInfo();
+            return;
+        }
+        
+        var streakPanel = document.getElementById('streakPanel');
+        if (streakPanel && streakPanel.style.display === 'flex') {
             closeStreakPanel();
-        } else if (wordDefPanel && wordDefPanel.style.display === 'flex') {
+            return;
+        }
+        
+        var wordDefPanel = document.getElementById('wordDefPanel');
+        if (wordDefPanel && wordDefPanel.style.display === 'flex') {
             closeWordDefPanel();
+            return;
+        }
+        
+        // Escape also closes modals (confirmation modals shouldn't close on backdrop, but Escape is OK)
+        var dailyCompleteModal = document.getElementById('dailyCompleteModal');
+        if (dailyCompleteModal && dailyCompleteModal.style.display === 'flex') {
+            closeDailyModal();
+            return;
         }
     }
+});
+
+// BACKDROP CLICK TO CLOSE (Universal GUI Standard)
+// Click outside modal/panel to close it
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all panels and modals
+    var panels = [
+        { element: 'sharePanel', closeFunc: closeShare },
+        { element: 'statsPanel', closeFunc: closeStats },
+        { element: 'helpPanel', closeFunc: closeHelp },
+        { element: 'infoPanel', closeFunc: closeInfo },
+        { element: 'streakPanel', closeFunc: closeStreakPanel },
+        { element: 'wordDefPanel', closeFunc: closeWordDefPanel },
+        { element: 'dailyCompleteModal', closeFunc: closeDailyModal }
+    ];
+    
+    panels.forEach(function(panel) {
+        var elem = document.getElementById(panel.element);
+        if (elem) {
+            // Click on backdrop (outer div) closes
+            elem.addEventListener('click', function(e) {
+                if (e.target === elem) {
+                    panel.closeFunc();
+                }
+            });
+        }
+    });
 });
 
 window.nextWord = nextWord;
