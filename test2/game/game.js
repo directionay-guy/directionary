@@ -1724,13 +1724,19 @@ document.addEventListener('keydown', function(e) {
         
         var zeroScoreModal = document.getElementById('zeroScoreModal');
         if (zeroScoreModal && zeroScoreModal.style.display === 'flex') {
-            skipRound();
+            closeZeroShowDaily();
             return;
         }
         
         var duplicateModal = document.getElementById('duplicateWordModal');
         if (duplicateModal && duplicateModal.style.display === 'flex') {
             closeDuplicateModal();
+            return;
+        }
+        
+        var placeholderModal = document.getElementById('placeholderModal');
+        if (placeholderModal && placeholderModal.style.display === 'flex') {
+            closePlaceholderModal();
             return;
         }
         
@@ -1811,6 +1817,30 @@ document.addEventListener('keydown', function(e) {
         }
         
         // Escape also closes modals (confirmation modals shouldn't close on backdrop, but Escape is OK)
+        var successModal = document.getElementById('successModal');
+        if (successModal && successModal.style.display === 'flex') {
+            closeSuccessShowDaily();
+            return;
+        }
+        
+        var zeroScoreModal = document.getElementById('zeroScoreModal');
+        if (zeroScoreModal && zeroScoreModal.style.display === 'flex') {
+            closeZeroShowDaily();
+            return;
+        }
+        
+        var duplicateModal = document.getElementById('duplicateWordModal');
+        if (duplicateModal && duplicateModal.style.display === 'flex') {
+            closeDuplicateModal();
+            return;
+        }
+        
+        var placeholderModal = document.getElementById('placeholderModal');
+        if (placeholderModal && placeholderModal.style.display === 'flex') {
+            closePlaceholderModal();
+            return;
+        }
+        
         var dailyCompleteModal = document.getElementById('dailyCompleteModal');
         if (dailyCompleteModal && dailyCompleteModal.style.display === 'flex') {
             closeDailyModal();
@@ -1830,6 +1860,10 @@ document.addEventListener('DOMContentLoaded', function() {
         { element: 'infoPanel', closeFunc: closeInfo },
         { element: 'streakPanel', closeFunc: closeStreakPanel },
         { element: 'wordDefPanel', closeFunc: closeWordDefPanel },
+        { element: 'successModal', closeFunc: closeSuccessShowDaily },
+        { element: 'zeroScoreModal', closeFunc: closeZeroShowDaily },
+        { element: 'duplicateWordModal', closeFunc: closeDuplicateModal },
+        { element: 'placeholderModal', closeFunc: closePlaceholderModal },
         { element: 'dailyCompleteModal', closeFunc: closeDailyModal }
     ];
     
