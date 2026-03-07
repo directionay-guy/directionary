@@ -1,4 +1,27 @@
 <!DOCTYPE html>
+<!--
+    BASE GAME HTML (3-ROUND VERSION) - STARTING POINT FOR PRO/PRO+ REBUILD
+    
+    MODIFICATIONS NEEDED FOR PRO:
+    1. Add mode selector buttons in header:
+       <div class="mode-selector">
+           <button id="proModeBtn" class="mode-btn active">PRO</button>
+           <button id="proPlusModeBtn" class="mode-btn">PRO+</button>
+       </div>
+    
+    2. Add mode description text below mode buttons
+    
+    3. Replace countdown timer div in modal with Play Again buttons container
+    
+    4. Add dev console at bottom of page (before closing </body>):
+       - 3-column grid layout
+       - Shows Current Game | PRO MODE | PRO+ MODE
+       - Includes refresh button
+    
+    5. Update script reference if needed (game.js → game-pro.js)
+    
+    See PRO-GAME-REBUILD-HANDOFF.md for complete HTML structure examples.
+-->
 <html lang="en">
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-M5WHQLMFV3"></script>
@@ -305,6 +328,11 @@
         <h2>About Directionary™</h2>
         
         <div class="help-section">
+            <h3>Accessibility</h3>
+            <p>Directionary includes keyboard navigation support (Enter, Escape, Tab), visible focus indicators, and a forgiving streak system that doesn't pressure daily play.</p>
+        </div>
+        
+        <div class="help-section">
             <h3>About</h3>
             <p>Created by Joel Pickard<br>
             © 2025 All Rights Reserved<br>
@@ -450,8 +478,9 @@
     </div>
     
     <!-- Success Modal -->
-    <div class="success-modal" id="successModal">
-        <div class="success-content">
+    <div class="success-modal" id="successModal" onclick="closeSuccessShowDaily()">
+        <div class="success-content" onclick="event.stopPropagation()">
+            <button class="modal-close-x" onclick="closeSuccessShowDaily()">×</button>
             <div class="success-title">Correct!</div>
             <div class="success-word">The word was: <span id="modalWord"></span></div>
             <div class="success-score">
@@ -470,8 +499,9 @@
     </div>
     
     <!-- Daily Complete Modal -->
-    <div class="success-modal" id="dailyCompleteModal">
-        <div class="success-content">
+    <div class="success-modal" id="dailyCompleteModal" onclick="closeDailyModal()">
+        <div class="success-content" onclick="event.stopPropagation()">
+            <button class="modal-close-x" onclick="closeDailyModal()">×</button>
             <div class="success-title">🏆 Daily Challenge Complete!</div>
             <div class="success-score">
                 Final Score: <strong id="finalScore"></strong> points<br>
@@ -484,8 +514,9 @@
     </div>
     
     <!-- Zero Score Modal -->
-<div class="success-modal" id="zeroScoreModal" style="display: none;">
-    <div class="success-content">
+<div class="success-modal" id="zeroScoreModal" style="display: none;" onclick="skipRound()">
+    <div class="success-content" onclick="event.stopPropagation()">
+        <button class="modal-close-x" onclick="skipRound()">×</button>
         <div class="success-title">🎯 Out of Tries!</div>
         <div class="success-score">You've used all 10 guesses for this round.<br>Score: 0 points</div>
         <button class="success-btn" onclick="skipRound()">Next Round →</button>
@@ -493,8 +524,9 @@
 </div>
     
     <!-- Give Up Modal -->
-    <div class="success-modal" id="giveUpModal">
-        <div class="success-content">
+    <div class="success-modal" id="giveUpModal" onclick="cancelGiveUp()">
+        <div class="success-content" onclick="event.stopPropagation()">
+            <button class="modal-close-x" onclick="cancelGiveUp()">×</button>
             <div class="success-title">Skip This Round?</div>
             <div class="success-score" style="margin: 20px 0;">
                 Reveal this answer and move to next round?
@@ -517,8 +549,9 @@
     </div>
     
     <!-- Placeholder "How It Works" Modal -->
-    <div class="success-modal" id="placeholderModal">
-        <div class="success-content">
+    <div class="success-modal" id="placeholderModal" onclick="closePlaceholderModal()">
+        <div class="success-content" onclick="event.stopPropagation()">
+            <button class="modal-close-x" onclick="closePlaceholderModal()">×</button>
             <div class="success-title">How Guesses Work</div>
             <div class="success-score" style="margin: 20px 0; text-align: left; line-height: 1.6;">
                 Your guesses appear here with directional clues for each letter:<br><br>
