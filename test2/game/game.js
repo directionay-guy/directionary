@@ -1759,7 +1759,7 @@ document.addEventListener('keydown', function(e) {
             return;
         }
         
-        var aboutPanel = document.getElementById('aboutPanel');
+        var aboutPanel = document.getElementById('infoPanel');  // FIXED: Was 'aboutPanel', should be 'infoPanel'
         if (aboutPanel && aboutPanel.style.display === 'flex') {
             closeInfo();
             return;
