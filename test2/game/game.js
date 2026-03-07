@@ -1715,6 +1715,15 @@ document.addEventListener('keydown', function(e) {
             return;  // Let the input handle Enter normally
         }
         
+        // Check for duplicate word modal FIRST (highest priority for Enter)
+        var duplicateModal = document.getElementById('duplicateWordModal');
+        if (duplicateModal && duplicateModal.style.display === 'flex') {
+            e.preventDefault();
+            e.stopPropagation();  // Stop event from reaching other handlers
+            closeDuplicateModal();
+            return;
+        }
+        
         var successModal = document.getElementById('successModal');
         if (successModal && successModal.style.display === 'flex') {
             e.preventDefault();  // Prevent any focused button from activating
@@ -1734,13 +1743,6 @@ document.addEventListener('keydown', function(e) {
         if (zeroScoreModal && zeroScoreModal.style.display === 'flex') {
             e.preventDefault();
             closeZeroShowDaily();
-            return;
-        }
-        
-        var duplicateModal = document.getElementById('duplicateWordModal');
-        if (duplicateModal && duplicateModal.style.display === 'flex') {
-            e.preventDefault();
-            closeDuplicateModal();
             return;
         }
         
