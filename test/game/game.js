@@ -489,7 +489,7 @@ function submitGuess() {
     }
     
     if (guessedWordsThisRound.has(guess)) {
-        document.getElementById("duplicateWordModal").style.display = "flex";
+        showError('You already guessed "' + guess.toUpperCase() + '" this round!');
         input.value = "";
         input.focus();
         return;
@@ -1338,6 +1338,13 @@ function nextWord() {
     newGameLine.className = "new-game-message";
     newGameLine.innerHTML = "◄ ● Round " + currentRound + " of " + maxRounds + " ● ►";
     feedbackDiv.appendChild(newGameLine);
+
+function closeSuccessShowDaily() {
+    // Just close the modal without advancing to next round
+    // Used by X button and Escape key
+    document.getElementById("successModal").style.display = "none";
+}
+
     
     startNewGame();
     saveGameState();
@@ -1674,16 +1681,130 @@ function reloadDevGame() {
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
+        // Skip if user is typing in the guess input
+        var guessInput = document.getElementById('guessInput');
+        if (document.activeElement === guessInput) {
+            return;  // Let the input handle Enter normally
+        }
+        
+        // duplicateWordModal REMOVED - now uses simple error message
+        
         var successModal = document.getElementById('successModal');
         if (successModal && successModal.style.display === 'flex') {
+            e.preventDefault();  // Prevent any focused button from activating
             nextWord();
             return;
         }
         
         var completeModal = document.getElementById('dailyCompleteModal');
         if (completeModal && completeModal.style.display === 'flex') {
+            e.preventDefault();
+            // Enter activates PRIMARY button (View and Share) in BASE 3-round game
             closeDailyModal();
             toggleStats();
+            return;
+        }
+        
+        var zeroScoreModal = document.getElementById('zeroScoreModal');
+        if (zeroScoreModal && zeroScoreModal.style.display === 'flex') {
+            e.preventDefault();
+            skipRound();
+            return;
+        }
+        
+        var placeholderModal = document.getElementById('placeholderModal');
+        if (placeholderModal && placeholderModal.style.display === 'flex') {
+            e.preventDefault();
+            closePlaceholderModal();
+            return;
+        }
+        
+        // Enter key closes panels (Stats, Share, Help, etc.)
+        var statsPanel = document.getElementById('statsPanel');
+        if (statsPanel && statsPanel.style.display === 'flex') {
+            e.preventDefault();  // Prevent any focused button from activating
+            closeStats();
+            return;
+        }
+        
+        var sharePanel = document.getElementById('sharePanel');
+        if (sharePanel && sharePanel.style.display === 'flex') {
+            e.preventDefault();
+            closeShare();
+            return;
+        }
+        
+        var helpPanel = document.getElementById('helpPanel');
+        if (helpPanel && helpPanel.style.display === 'flex') {
+            e.preventDefault();
+            closeHelp();
+            return;
+        }
+        
+        var aboutPanel = document.getElementById('infoPanel');  // Note: infoPanel, not aboutPanel
+        if (aboutPanel && aboutPanel.style.display === 'flex') {
+            e.preventDefault();
+            closeInfo();
+            return;
+        }
+        
+        var streakPanel = document.getElementById('streakPanel');
+        if (streakPanel && streakPanel.style.display === 'flex') {
+            e.preventDefault();
+            closeStreakPanel();
+            return;
+        }
+        
+        var wordDefPanel = document.getElementById('wordDefPanel');
+        if (wordDefPanel && wordDefPanel.style.display === 'flex') {
+            e.preventDefault();
+            closeWordDefPanel();
+            return;
+        }
+    }
+    
+    if (e.key === 'Escape') {
+        // Escape key closes panels (same pattern as Enter)
+        var statsPanel = document.getElementById('statsPanel');
+        if (statsPanel && statsPanel.style.display === 'flex') {
+            closeStats();
+            return;
+        }
+        
+        var sharePanel = document.getElementById('sharePanel');
+        if (sharePanel && sharePanel.style.display === 'flex') {
+            closeShare();
+            return;
+        }
+        
+        var helpPanel = document.getElementById('helpPanel');
+        if (helpPanel && helpPanel.style.display === 'flex') {
+            closeHelp();
+            return;
+        }
+        
+        var aboutPanel = document.getElementById('infoPanel');
+        if (aboutPanel && aboutPanel.style.display === 'flex') {
+            closeInfo();
+            return;
+        }
+        
+        var streakPanel = document.getElementById('streakPanel');
+        if (streakPanel && streakPanel.style.display === 'flex') {
+            closeStreakPanel();
+            return;
+        }
+        
+        var wordDefPanel = document.getElementById('wordDefPanel');
+        if (wordDefPanel && wordDefPanel.style.display === 'flex') {
+            closeWordDefPanel();
+            return;
+        }
+        
+        // Escape also closes modals
+        var successModal = document.getElementById('successModal');
+        if (successModal && successModal.style.display === 'flex') {
+            closeSuccessShowDaily();
             return;
         }
         
@@ -1693,38 +1814,55 @@ document.addEventListener('keydown', function(e) {
             return;
         }
         
-        var duplicateModal = document.getElementById('duplicateWordModal');
-        if (duplicateModal && duplicateModal.style.display === 'flex') {
-            closeDuplicateModal();
+        // duplicateWordModal REMOVED - now uses simple error message
+        
+        var placeholderModal = document.getElementById('placeholderModal');
+        if (placeholderModal && placeholderModal.style.display === 'flex') {
+            closePlaceholderModal();
             return;
         }
-    }
-    
-    if (e.key === 'Escape') {
-        var statsPanel = document.getElementById('statsPanel');
-        var helpPanel = document.getElementById('helpPanel');
-        var aboutPanel = document.getElementById('aboutPanel');
-        var sharePanel = document.getElementById('sharePanel');
-        var streakPanel = document.getElementById('streakPanel');
-        var wordDefPanel = document.getElementById('wordDefPanel');
         
-        if (statsPanel && statsPanel.style.display === 'flex') {
-            toggleStats();
-        } else if (helpPanel && helpPanel.style.display === 'flex') {
-            toggleHelp();
-        } else if (aboutPanel && aboutPanel.style.display === 'flex') {
-            toggleAbout();
-        } else if (sharePanel && sharePanel.style.display === 'flex') {
-            toggleShare();
-        } else if (streakPanel && streakPanel.style.display === 'flex') {
-            closeStreakPanel();
-        } else if (wordDefPanel && wordDefPanel.style.display === 'flex') {
-            closeWordDefPanel();
+        var dailyCompleteModal = document.getElementById('dailyCompleteModal');
+        if (dailyCompleteModal && dailyCompleteModal.style.display === 'flex') {
+            closeDailyModal();
+            return;
         }
     }
 });
 
+// BACKDROP CLICK TO CLOSE (Universal GUI Standard)
+// Click outside modal/panel to close it
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all panels and modals
+    var panels = [
+        { element: 'sharePanel', closeFunc: closeShare },
+        { element: 'statsPanel', closeFunc: closeStats },
+        { element: 'helpPanel', closeFunc: closeHelp },
+        { element: 'infoPanel', closeFunc: closeInfo },
+        { element: 'streakPanel', closeFunc: closeStreakPanel },
+        { element: 'wordDefPanel', closeFunc: closeWordDefPanel },
+        { element: 'successModal', closeFunc: closeSuccessShowDaily },
+        { element: 'zeroScoreModal', closeFunc: skipRound },
+        // duplicateWordModal REMOVED - now uses simple error message
+        { element: 'placeholderModal', closeFunc: closePlaceholderModal },
+        { element: 'dailyCompleteModal', closeFunc: closeDailyModal }
+    ];
+    
+    panels.forEach(function(panel) {
+        var elem = document.getElementById(panel.element);
+        if (elem) {
+            // Click on backdrop (outer div) closes
+            elem.addEventListener('click', function(e) {
+                if (e.target === elem) {
+                    panel.closeFunc();
+                }
+            });
+        }
+    });
+});
+
 window.nextWord = nextWord;
+window.closeSuccessShowDaily = closeSuccessShowDaily;
 window.confirmGiveUp = confirmGiveUp;
 window.cancelGiveUp = cancelGiveUp;
 window.closeDuplicateModal = closeDuplicateModal;
