@@ -1709,14 +1709,22 @@ function reloadDevGame() {
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
+        // Skip if user is typing in the guess input
+        var guessInput = document.getElementById('guessInput');
+        if (document.activeElement === guessInput) {
+            return;  // Let the input handle Enter normally
+        }
+        
         var successModal = document.getElementById('successModal');
         if (successModal && successModal.style.display === 'flex') {
+            e.preventDefault();  // Prevent any focused button from activating
             nextWord();
             return;
         }
         
         var completeModal = document.getElementById('dailyCompleteModal');
         if (completeModal && completeModal.style.display === 'flex') {
+            e.preventDefault();
             // Enter activates PRIMARY button (View and Share)
             viewResults();
             return;
@@ -1724,18 +1732,21 @@ document.addEventListener('keydown', function(e) {
         
         var zeroScoreModal = document.getElementById('zeroScoreModal');
         if (zeroScoreModal && zeroScoreModal.style.display === 'flex') {
+            e.preventDefault();
             closeZeroShowDaily();
             return;
         }
         
         var duplicateModal = document.getElementById('duplicateWordModal');
         if (duplicateModal && duplicateModal.style.display === 'flex') {
+            e.preventDefault();
             closeDuplicateModal();
             return;
         }
         
         var placeholderModal = document.getElementById('placeholderModal');
         if (placeholderModal && placeholderModal.style.display === 'flex') {
+            e.preventDefault();
             closePlaceholderModal();
             return;
         }
@@ -1743,36 +1754,42 @@ document.addEventListener('keydown', function(e) {
         // Enter key closes panels (Stats, Share, Help, etc.)
         var statsPanel = document.getElementById('statsPanel');
         if (statsPanel && statsPanel.style.display === 'flex') {
+            e.preventDefault();  // Prevent any focused button from activating
             closeStats();
             return;
         }
         
         var sharePanel = document.getElementById('sharePanel');
         if (sharePanel && sharePanel.style.display === 'flex') {
+            e.preventDefault();
             closeShare();
             return;
         }
         
         var helpPanel = document.getElementById('helpPanel');
         if (helpPanel && helpPanel.style.display === 'flex') {
+            e.preventDefault();
             closeHelp();
             return;
         }
         
         var aboutPanel = document.getElementById('infoPanel');  // FIXED: Was 'aboutPanel', should be 'infoPanel'
         if (aboutPanel && aboutPanel.style.display === 'flex') {
+            e.preventDefault();
             closeInfo();
             return;
         }
         
         var streakPanel = document.getElementById('streakPanel');
         if (streakPanel && streakPanel.style.display === 'flex') {
+            e.preventDefault();
             closeStreakPanel();
             return;
         }
         
         var wordDefPanel = document.getElementById('wordDefPanel');
         if (wordDefPanel && wordDefPanel.style.display === 'flex') {
+            e.preventDefault();
             closeWordDefPanel();
             return;
         }
