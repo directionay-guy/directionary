@@ -451,6 +451,7 @@
     <!-- Success Modal -->
     <div class="success-modal" id="successModal" onclick="closeSuccessShowDaily()">
         <div class="success-content" onclick="event.stopPropagation()">
+            <button class="modal-close-x" onclick="closeSuccessShowDaily()">×</button>
             <div class="success-title">Correct!</div>
             <div class="success-word">The word was: <span id="modalWord"></span></div>
             <div class="success-score">
@@ -470,6 +471,7 @@
     <!-- Daily Complete Modal -->
     <div class="success-modal" id="dailyCompleteModal" onclick="closeDailyModal()">
         <div class="success-content" onclick="event.stopPropagation()">
+            <button class="modal-close-x" onclick="closeDailyModal()">×</button>
             <div class="success-title">🏆 Daily Challenge Complete!</div>
             <div class="success-score">
                 Final Score: <strong id="finalScore"></strong> points<br>
@@ -487,6 +489,7 @@
     <!-- Zero Score Modal -->
 <div class="success-modal" id="zeroScoreModal" style="display: none;" onclick="closeZeroShowDaily()">
     <div class="success-content" onclick="event.stopPropagation()">
+        <button class="modal-close-x" onclick="closeZeroShowDaily()">×</button>
         <div class="success-title">🎯 Out of Tries!</div>
         <div class="success-score">
             You've used all 10 guesses.<br>
@@ -500,6 +503,7 @@
     <!-- Duplicate Word Modal -->
     <div class="success-modal" id="duplicateWordModal" onclick="closeDuplicateModal()">
         <div class="success-content" onclick="event.stopPropagation()">
+            <button class="modal-close-x" onclick="closeDuplicateModal()">×</button>
             <div class="success-title">Already Used!</div>
             <div class="success-score" style="margin: 20px 0;">
                              You already guessed that word this round.<br>
@@ -512,6 +516,7 @@
     <!-- Placeholder "How It Works" Modal -->
     <div class="success-modal" id="placeholderModal" onclick="closePlaceholderModal()">
         <div class="success-content" onclick="event.stopPropagation()">
+            <button class="modal-close-x" onclick="closePlaceholderModal()">×</button>
             <div class="success-title">How Guesses Work</div>
             <div class="success-score" style="margin: 20px 0; text-align: left; line-height: 1.6;">
                 Your guesses appear here with directional clues for each letter:<br><br>
