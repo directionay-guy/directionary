@@ -1,4 +1,23 @@
-body {
+/*
+ * BASE GAME STYLES (3-ROUND VERSION) - STARTING POINT FOR PRO/PRO+ REBUILD
+ * 
+ * MODIFICATIONS NEEDED FOR PRO:
+ * 1. Add .mode-selector styles (button container in header)
+ * 2. Add .mode-btn styles (individual mode buttons)
+ * 3. Add .mode-btn.active styles (active state highlighting)
+ * 4. Add .mode-description styles (text below buttons)
+ * 5. Add #devConsole styles (fixed bottom bar, 3-column grid)
+ * 6. Update modal styles if needed for Play Again buttons
+ * 
+ * Most existing styles will work as-is. Pro mainly needs:
+ * - Mode selector UI
+ * - Dev console UI
+ * - Possibly adjusted modal button styles
+ * 
+ * See PRO-GAME-REBUILD-HANDOFF.md and index-pro.html examples for reference.
+ */
+
+        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(180deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
             margin: 0;
@@ -8,6 +27,19 @@ body {
             justify-content: flex-start;
             align-items: center;
             min-height: 100vh;
+        }
+        
+        /* ACCESSIBILITY: Global focus styles for keyboard navigation */
+        a:focus-visible,
+        [onclick]:focus-visible {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+        
+        /* Remove default focus outline only when using :focus-visible (keyboard) */
+        *:focus:not(:focus-visible) {
+            outline: none;
         }
         
         .main-wrapper {
@@ -369,6 +401,12 @@ body {
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
         
+        /* ACCESSIBILITY: Visible focus indicators for keyboard navigation */
+        button:focus-visible {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+        }
+        
         button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -647,6 +685,7 @@ body {
             box-sizing: border-box;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             animation: slideUp 0.3s ease;
+            position: relative;  /* CRITICAL: Makes X button position relative to modal */
         }
         
         @keyframes slideUp {
@@ -698,6 +737,12 @@ body {
         .success-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* ACCESSIBILITY: Focus indicators for modal buttons */
+        .success-btn:focus-visible {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
         }
         
         .modal-definition {
@@ -757,40 +802,46 @@ body {
         }
         
         .share-btn {
-            background: #8b9dc3;
+            background: #6b8dd3;  /* Brighter blue - was #8b9dc3 */
         }
         
         .share-btn:hover {
-            background: #7a8cb5;
+            background: #5a7dc5;  /* Darker on hover - was #7a8cb5 */
         }
         
         .stats-btn {
-            background: #d4a89b;
+            background: #e4988b;  /* More vibrant peach - was #d4a89b */
         }
         
         .stats-btn:hover {
-            background: #c4988b;
+            background: #d4887b;  /* Darker on hover - was #c4988b */
         }
         
         .info-btn {
-            background: #9b8dbd;
+            background: #8b7dcd;  /* Richer purple - was #9b8dbd */
         }
         
         .info-btn:hover {
-            background: #8b7dad;
+            background: #7b6dbd;  /* Darker on hover - was #8b7dad */
         }
         
         .help-btn {
-            background: #9bb9a8;
+            background: #7bc9a8;  /* Brighter teal - was #9bb9a8 */
         }
         
         .help-btn:hover {
-            background: #8ba998;
+            background: #6bb998;  /* Darker on hover - was #8ba998 */
         }
         
         .panel-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* ACCESSIBILITY: Focus indicators for panel buttons */
+        .panel-btn:focus-visible {
+            outline: 3px solid #ffffff;
+            outline-offset: 2px;
         }
         
         /* Panels - now as overlays */
@@ -868,7 +919,7 @@ body {
         }
         
         .close-panel-btn {
-            background: #c89b9b;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  /* Match main button gradient */
             color: white;
             border: none;
             padding: 10px 25px;
@@ -877,12 +928,13 @@ body {
             font-weight: 600;
             margin-top: 15px;
             transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);  /* Add shadow like other buttons */
         }
         
         .close-panel-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            background: #b88a8a;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);  /* Stronger shadow on hover */
+            background: linear-gradient(135deg, #5569d0 0%, #653a88 100%);  /* Slightly darker on hover */
         }
         
         .modal-close-x {
