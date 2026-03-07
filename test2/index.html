@@ -184,8 +184,8 @@
     </div> <!-- End main-wrapper -->
     
     <!-- Share panel -->
-    <div class="info-panel" id="sharePanel">
-        <div style="position: relative;">
+    <div class="info-panel" id="sharePanel" onclick="closeShare()">
+        <div style="position: relative;" onclick="event.stopPropagation()">
         <button class="modal-close-x" onclick="closeShare()">×</button>
         <h2>Share Your Results</h2>
         <div class="share-preview" id="sharePreview">Your results will appear here after playing!</div>
@@ -200,8 +200,8 @@
     </div>
     
     <!-- Stats panel -->
-    <div class="info-panel" id="statsPanel">
-        <div style="position: relative;">
+    <div class="info-panel" id="statsPanel" onclick="closeStats()">
+        <div style="position: relative;" onclick="event.stopPropagation()">
         <button class="modal-close-x" onclick="closeStats()">×</button>
         <h2>Your Statistics</h2>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;">
@@ -231,8 +231,8 @@
     </div>
     
     <!-- Streak Explanation Modal -->
-    <div class="info-panel" id="streakPanel">
-        <div style="position: relative;">
+    <div class="info-panel" id="streakPanel" onclick="closeStreakPanel()">
+        <div style="position: relative;" onclick="event.stopPropagation()">
         <button class="modal-close-x" onclick="closeStreakPanel()">×</button>
         <h2>About Your Streak 🔥</h2>
         
@@ -278,8 +278,8 @@
     </div>
     
     <!-- Word Definition Modal (for clicked guessed words) -->
-    <div class="info-panel" id="wordDefPanel">
-        <div style="position: relative;">
+    <div class="info-panel" id="wordDefPanel" onclick="closeWordDefPanel()">
+        <div style="position: relative;" onclick="event.stopPropagation()">
         <button class="modal-close-x" onclick="closeWordDefPanel()">×</button>
         <h2 id="wordDefTitle">Word Definition</h2>
         
@@ -295,10 +295,15 @@
     </div>
     
     <!-- Info/About panel -->
-    <div class="info-panel" id="infoPanel">
-        <div style="position: relative;">
+    <div class="info-panel" id="infoPanel" onclick="closeInfo()">
+        <div style="position: relative;" onclick="event.stopPropagation()">
         <button class="modal-close-x" onclick="closeInfo()">×</button>
         <h2>About Directionary™</h2>
+        
+        <div class="help-section">
+            <h3>Accessibility</h3>
+            <p>Directionary includes keyboard navigation support (Enter, Escape, Tab), visible focus indicators, and a forgiving streak system that doesn't pressure daily play.</p>
+        </div>
         
         <div class="help-section">
             <h3>About</h3>
@@ -328,8 +333,8 @@
     </div>
     
     <!-- Help panel -->
-    <div class="info-panel" id="helpPanel">
-        <div style="position: relative;">
+    <div class="info-panel" id="helpPanel" onclick="closeHelp()">
+        <div style="position: relative;" onclick="event.stopPropagation()">
         <button class="modal-close-x" onclick="closeHelp()">×</button>
         <h2>How to Play Directionary™</h2>
         
@@ -444,8 +449,8 @@
     </div>
     
     <!-- Success Modal -->
-    <div class="success-modal" id="successModal">
-        <div class="success-content">
+    <div class="success-modal" id="successModal" onclick="closeSuccessShowDaily()">
+        <div class="success-content" onclick="event.stopPropagation()">
             <div class="success-title">Correct!</div>
             <div class="success-word">The word was: <span id="modalWord"></span></div>
             <div class="success-score">
@@ -463,8 +468,8 @@
     </div>
     
     <!-- Daily Complete Modal -->
-    <div class="success-modal" id="dailyCompleteModal">
-        <div class="success-content">
+    <div class="success-modal" id="dailyCompleteModal" onclick="closeDailyModal()">
+        <div class="success-content" onclick="event.stopPropagation()">
             <div class="success-title">🏆 Daily Challenge Complete!</div>
             <div class="success-score">
                 Final Score: <strong id="finalScore"></strong> points<br>
@@ -480,8 +485,8 @@
     </div>
     
     <!-- Zero Score Modal -->
-<div class="success-modal" id="zeroScoreModal" style="display: none;">
-    <div class="success-content">
+<div class="success-modal" id="zeroScoreModal" style="display: none;" onclick="closeZeroShowDaily()">
+    <div class="success-content" onclick="event.stopPropagation()">
         <div class="success-title">🎯 Out of Tries!</div>
         <div class="success-score">
             You've used all 10 guesses.<br>
@@ -493,8 +498,8 @@
 </div>
     
     <!-- Duplicate Word Modal -->
-    <div class="success-modal" id="duplicateWordModal">
-        <div class="success-content">
+    <div class="success-modal" id="duplicateWordModal" onclick="closeDuplicateModal()">
+        <div class="success-content" onclick="event.stopPropagation()">
             <div class="success-title">Already Used!</div>
             <div class="success-score" style="margin: 20px 0;">
                              You already guessed that word this round.<br>
@@ -505,8 +510,8 @@
     </div>
     
     <!-- Placeholder "How It Works" Modal -->
-    <div class="success-modal" id="placeholderModal">
-        <div class="success-content">
+    <div class="success-modal" id="placeholderModal" onclick="closePlaceholderModal()">
+        <div class="success-content" onclick="event.stopPropagation()">
             <div class="success-title">How Guesses Work</div>
             <div class="success-score" style="margin: 20px 0; text-align: left; line-height: 1.6;">
                 Your guesses appear here with directional clues for each letter:<br><br>
