@@ -443,7 +443,7 @@ function submitGuess() {
     }
     
     if (guessedWordsThisRound.has(guess)) {
-        document.getElementById("duplicateWordModal").style.display = "flex";
+        showError('You already guessed "' + guess.toUpperCase() + '" this round!');
         input.value = "";
         input.focus();
         return;
@@ -1716,13 +1716,7 @@ document.addEventListener('keydown', function(e) {
         }
         
         // Check for duplicate word modal FIRST (highest priority for Enter)
-        var duplicateModal = document.getElementById('duplicateWordModal');
-        if (duplicateModal && duplicateModal.style.display === 'flex') {
-            e.preventDefault();
-            e.stopPropagation();  // Stop event from reaching other handlers
-            closeDuplicateModal();
-            return;
-        }
+        // REMOVED - Now uses simple error message instead of modal
         
         var successModal = document.getElementById('successModal');
         if (successModal && successModal.style.display === 'flex') {
@@ -1848,11 +1842,7 @@ document.addEventListener('keydown', function(e) {
             return;
         }
         
-        var duplicateModal = document.getElementById('duplicateWordModal');
-        if (duplicateModal && duplicateModal.style.display === 'flex') {
-            closeDuplicateModal();
-            return;
-        }
+        // duplicateWordModal REMOVED - now uses simple error message
         
         var placeholderModal = document.getElementById('placeholderModal');
         if (placeholderModal && placeholderModal.style.display === 'flex') {
@@ -1881,7 +1871,7 @@ document.addEventListener('DOMContentLoaded', function() {
         { element: 'wordDefPanel', closeFunc: closeWordDefPanel },
         { element: 'successModal', closeFunc: closeSuccessShowDaily },
         { element: 'zeroScoreModal', closeFunc: closeZeroShowDaily },
-        { element: 'duplicateWordModal', closeFunc: closeDuplicateModal },
+        // duplicateWordModal REMOVED - now uses simple error message
         { element: 'placeholderModal', closeFunc: closePlaceholderModal },
         { element: 'dailyCompleteModal', closeFunc: closeDailyModal }
     ];
