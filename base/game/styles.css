@@ -1,4 +1,23 @@
-body {
+/*
+ * BASE GAME STYLES (3-ROUND VERSION) - STARTING POINT FOR PRO/PRO+ REBUILD
+ * 
+ * MODIFICATIONS NEEDED FOR PRO:
+ * 1. Add .mode-selector styles (button container in header)
+ * 2. Add .mode-btn styles (individual mode buttons)
+ * 3. Add .mode-btn.active styles (active state highlighting)
+ * 4. Add .mode-description styles (text below buttons)
+ * 5. Add #devConsole styles (fixed bottom bar, 3-column grid)
+ * 6. Update modal styles if needed for Play Again buttons
+ * 
+ * Most existing styles will work as-is. Pro mainly needs:
+ * - Mode selector UI
+ * - Dev console UI
+ * - Possibly adjusted modal button styles
+ * 
+ * See PRO-GAME-REBUILD-HANDOFF.md and index-pro.html examples for reference.
+ */
+
+        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(180deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
             margin: 0;
@@ -391,26 +410,6 @@ body {
         button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-        }
-        
-        /* Submit button in Standard game - match input height */
-        #submitBtn {
-            padding: 12px;  /* Match input padding exactly */
-            font-size: 1.2em;
-            border: 2px solid transparent;
-            height: 50px;  /* Explicit height to match input */
-            box-sizing: border-box;  /* Include padding and border in height */
-            margin: 0;  /* Remove any default margin */
-            display: flex;  /* Use flex to center text */
-            align-items: center;  /* Center text vertically */
-            justify-content: center;  /* Center text horizontally */
-        }
-        
-        /* Input box - set explicit height to match button */
-        #guessInput {
-            height: 50px;  /* Explicit height to match button */
-            box-sizing: border-box;  /* Include padding and border in height */
-            margin: 0 !important;  /* Override the margin: 15px 0 from general input CSS */
         }
         
         .give-up-btn {
