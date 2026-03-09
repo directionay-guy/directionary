@@ -1,4 +1,27 @@
 <!DOCTYPE html>
+<!--
+    BASE GAME HTML (3-ROUND VERSION) - STARTING POINT FOR PRO/PRO+ REBUILD
+    
+    MODIFICATIONS NEEDED FOR PRO:
+    1. Add mode selector buttons in header:
+       <div class="mode-selector">
+           <button id="proModeBtn" class="mode-btn active">PRO</button>
+           <button id="proPlusModeBtn" class="mode-btn">PRO+</button>
+       </div>
+    
+    2. Add mode description text below mode buttons
+    
+    3. Replace countdown timer div in modal with Play Again buttons container
+    
+    4. Add dev console at bottom of page (before closing </body>):
+       - 3-column grid layout
+       - Shows Current Game | PRO MODE | PRO+ MODE
+       - Includes refresh button
+    
+    5. Update script reference if needed (game.js → game-pro.js)
+    
+    See PRO-GAME-REBUILD-HANDOFF.md for complete HTML structure examples.
+-->
 <html lang="en">
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-M5WHQLMFV3"></script>
@@ -42,7 +65,7 @@
       "@type": "VideoGame",
       "name": "Directionary",
       "alternateName": "Directionary™ - "Which Way To Words?",
-      "description": "Daily word puzzle game with directional alphabet clues. Decode words using left/right/correct feedback. One word daily!",
+      "description": "Daily word puzzle game with directional alphabet clues. Decode words using left/right/correct feedback. Play 3 rounds daily!",
       "url": "https://directionary.net",
       "gamePlatform": ["Web Browser", "iOS Safari", "Android Chrome"],
       "genre": ["Puzzle", "Word Game"],
@@ -96,7 +119,7 @@
         <p class="tagline">Which Way To Words?<sup style="font-size: 0.5em; opacity: 0.6; margin-left: 2px; color: #666;">™</sup></p>
         
         <div class="instructions">
-            Reveal today's word in 10 tries.<br>
+            Reveal 3 words in 10 tries per round.<br>
             <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #28a745;">●</span> <span style="color: #000;">= correct</span></span>
             <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">◄</span> <span style="color: #000;">= before</span></span>
             <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">►</span> <span style="color: #000;">= after</span></span>
@@ -129,9 +152,11 @@
             <div class="definition-credit">Powered by Free Dictionary API</div>
         </div>
         
-        <div style="display: flex; gap: 10px; align-items: stretch; margin-bottom: 20px;">
-            <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-form-type="other" style="flex: 1; margin-bottom: 0;">
-            <button id="submitBtn" style="flex: 0 0 auto; white-space: nowrap; font-size: 1.2em; border: 2px solid transparent;">Submit</button>
+        <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-form-type="other">
+        
+        <div class="button-group">
+            <button id="submitBtn">Submit</button>
+            <button class="give-up-btn" id="giveUpBtn">Skip This Round</button>
         </div>
         
         <div class="alphabet-display" id="alphabetDisplay">
@@ -171,6 +196,8 @@
                     </div>
                 </div>
             </div>
+            <!-- Round indicator for Round 1 -->
+            <div class="new-game-message" id="round1Indicator">◄ ● Round 1 of 3 ● ►</div>
         </div>
     </div>
     
@@ -340,7 +367,7 @@
         
         <div class="help-section">
             <h3>Goal</h3>
-            <p>Solve today's 5-letter word using directional clues. Each guess shows whether letters should come earlier or later in the alphabet.</p>
+            <p>Complete 3 daily word puzzles using directional clues. Each guess shows whether letters should come earlier or later in the alphabet.</p>
         </div>
         
         <div class="help-section">
@@ -401,9 +428,10 @@
         
         <div class="help-section">
             <h3>Scoring</h3>
-            <p>• You have 10 guesses to find the word<br>
-            • Start with 100 points<br>
+            <p>• You have 10 guesses per round<br>
+            • Start with 100 points per word<br>
             • Lose 10 points for each incorrect guess<br>
+            • Complete 3 rounds for your daily score<br>
             • Share your results with friends!</p>
         </div>
         
@@ -420,15 +448,16 @@
         </div>
         
         <div class="help-section">
+            <h3>Game Controls</h3>
+            <p>• The "Skip This Round" button skips the current round<br>
+            • Skipping scores that round as ZERO points (no matter how many guesses you used)<br>
+            • You can still complete the remaining rounds<br>
+            • Your total score continues across all 3 rounds</p>
+        </div>
+        
+        <div class="help-section">
             <h3>Sharing</h3>
-            <p>• Your share shows your <strong>last 5 guesses</strong> (or fewer if you solved it quickly)<br>
-            • Each line shows one guess with colored icons:<br>
-            &nbsp;&nbsp;&nbsp;🟢 = Correct letter<br>
-            &nbsp;&nbsp;&nbsp;▶️ = Target letter is later in alphabet<br>
-            &nbsp;&nbsp;&nbsp;◀️ = Target letter is earlier in alphabet<br>
-            • Quick solve (3 guesses) = shows all 3 lines<br>
-            • Longer solve (8+ guesses) = shows your final 5 attempts<br>
-            • This shows your "final push" to victory!</p>
+            <p>• The 3 lines of icons in the share screen represent the final guesses before the success or failure of each round.</p>
         </div>
         
         <div class="help-section">
@@ -455,9 +484,10 @@
             <div class="success-title">Correct!</div>
             <div class="success-word">The word was: <span id="modalWord"></span></div>
             <div class="success-score">
-                You scored <strong id="modalScore"></strong> points!
+                You scored <strong id="modalScore"></strong> points!<br>
+                Total: <strong id="modalTotal"></strong> points
             </div>
-            <button class="success-btn" onclick="closeSuccessShowDaily()">Continue →</button>
+            <button class="success-btn" onclick="nextWord()">Next Round →</button>
             
             <!-- Definition in modal -->
             <div class="modal-definition" id="modalDefinition">
@@ -475,11 +505,8 @@
             <div class="success-title">🏆 Daily Challenge Complete!</div>
             <div class="success-score">
                 Final Score: <strong id="finalScore"></strong> points<br>
-                <span id="guessCountLine"></span>
                 <br>
-                <div id="winningWordDisplay" style="text-align: center; margin: 20px 0; font-size: 1.3em; font-weight: 600;"></div>
-                <div id="winningWordDefinition" style="text-align: left; margin: 15px 0; line-height: 1.6; font-size: 0.95em;"></div>
-                <div id="definitionCredit" style="text-align: center; font-size: 0.85em; color: #888; margin-bottom: 15px;"></div>
+                <div id="roundSummary" style="text-align: left; margin: 10px 0;"></div>
             </div>
             <button class="success-btn" onclick="viewResults()">View & Share Results</button>
             <button class="success-btn" onclick="closeDailyModal()" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">Close</button>
@@ -487,23 +514,31 @@
     </div>
     
     <!-- Zero Score Modal -->
-<div class="success-modal" id="zeroScoreModal" style="display: none;" onclick="closeZeroShowDaily()">
+<div class="success-modal" id="zeroScoreModal" style="display: none;" onclick="skipRound()">
     <div class="success-content" onclick="event.stopPropagation()">
-        <button class="modal-close-x" onclick="closeZeroShowDaily()">×</button>
+        <button class="modal-close-x" onclick="skipRound()">×</button>
         <div class="success-title">🎯 Out of Tries!</div>
-        <div class="success-score">
-            You've used all 10 guesses.<br>
-            Score: 0 points<br><br>
-            The word was: <strong id="zeroModalWord"></strong>
-        </div>
-        <button class="success-btn" onclick="closeZeroShowDaily()">Continue →</button>
+        <div class="success-score">You've used all 10 guesses for this round.<br>Score: 0 points</div>
+        <button class="success-btn" onclick="skipRound()">Next Round →</button>
     </div>
 </div>
     
-    <!-- Duplicate Word Modal -->
-    <div class="success-modal" id="duplicateWordModal" onclick="closeDuplicateModal()">
+    <!-- Give Up Modal -->
+    <div class="success-modal" id="giveUpModal" onclick="cancelGiveUp()">
         <div class="success-content" onclick="event.stopPropagation()">
-            <button class="modal-close-x" onclick="closeDuplicateModal()">×</button>
+            <button class="modal-close-x" onclick="cancelGiveUp()">×</button>
+            <div class="success-title">Skip This Round?</div>
+            <div class="success-score" style="margin: 20px 0;">
+                Reveal this answer and move to next round?
+            </div>
+            <button class="success-btn" onclick="confirmGiveUp()" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">Yes, Reveal Answer</button>
+            <button class="success-btn" onclick="cancelGiveUp()">Cancel</button>
+        </div>
+    </div>
+    
+    <!-- Duplicate Word Modal -->
+    <div class="success-modal" id="duplicateWordModal">
+        <div class="success-content">
             <div class="success-title">Already Used!</div>
             <div class="success-score" style="margin: 20px 0;">
                              You already guessed that word this round.<br>
