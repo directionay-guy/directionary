@@ -1,3 +1,37 @@
+/*
+ * BASE GAME (3-ROUND VERSION) - STARTING POINT FOR PRO/PRO+ REBUILD
+ * 
+ * This is the working Base game code with 3 rounds (maxRounds = 3).
+ * Standard game (1 round) is working perfectly and will be deployed separately.
+ * Use this 3-round base as the foundation to build Pro/Pro+ features.
+ * 
+ * WHAT THIS HAS (WORKING):
+ * ✅ 3 rounds per game
+ * ✅ Score tracking across rounds
+ * ✅ Word loading and validation
+ * ✅ Guess feedback with arrows
+ * ✅ AlphaHint (bold letters)
+ * ✅ UI elements (placeholder, round indicator)
+ * ✅ Stats tracking
+ * ✅ Share functionality
+ * 
+ * MODIFICATIONS NEEDED FOR PRO:
+ * 1. Add gameMode variable: 'pro' or 'proplus'
+ * 2. Add playCountProPlus variable (keep existing playCount for Pro)
+ * 3. Modify word formula to use different multipliers:
+ *    - Pro: ((day + playCount) * 613) + (round * 997)
+ *    - Pro+: ((day + playCountProPlus) * 751) + (round * 1009)
+ * 4. Add Pro+ arrow validation logic (validateProPlusGuess function)
+ * 5. Add AlphaHint disable for Pro+ mode
+ * 6. Replace countdown timer with Play Again buttons in showDailyCompleteModal()
+ * 7. Add mode toggle buttons in HTML header
+ * 8. Add dev console for testing (3-column layout)
+ * 9. Add clearGameState() call in resetGame() to prevent saved game restoration
+ * 10. Add performModeSwitch() function for Pro ↔ Pro+ switching
+ * 
+ * See PRO-GAME-REBUILD-HANDOFF.md for complete requirements and testing checklist.
+ */
+
 // Game state variables
 var targetWord = "";
 var answerWords = [];
@@ -7,7 +41,7 @@ var totalScore = 0;
 var guessCount = 0;
 var usedLetters = new Set();
 var currentRound = 1;
-var maxRounds = 1; // Phase 2: Standard single-word daily game
+var maxRounds = 3;
 var roundResults = [];
 var guessHistory = [];
 var guessedWordsThisRound = new Set();
@@ -146,12 +180,18 @@ function closeWordDefPanel() {
 }
 
 function updateScoreDisplay() {
-    // Single-word game: just show current guess count
-    document.getElementById("guessCount").textContent = guessCount;
+    // Calculate total guesses across all rounds
+    var totalGuesses = guessCount; // Current round guesses
+    for (var i = 0; i < roundResults.length; i++) {
+        totalGuesses += roundResults[i].guesses;
+    }
+    document.getElementById("guessCount").textContent = totalGuesses;
     
-    // Show score as single number (not X/300)
+    // Show X/300 format for 3-word game
+    var totalPossible = maxRounds * 100;
+    // Show projected total (totalScore + currentScore) - currentScore is 0 after winning a round
     var currentTotal = totalScore + currentScore;
-    document.getElementById("currentScore").textContent = currentTotal;
+    document.getElementById("currentScore").textContent = currentTotal + "/" + totalPossible;
 }
 
 function updateAlphabetDisplay() {
@@ -172,7 +212,7 @@ function updateAlphabetDisplay() {
 
 // Beta Banner Management
 function showBetaBannerIfEnabled() {
-    var betaMode = localStorage.getItem('directionary_standard_betaMode') === 'true';
+    var betaMode = localStorage.getItem('directionary_base_betaMode') === 'true';
     
     if (betaMode) {
         // Check if banner already exists
@@ -212,7 +252,7 @@ function loadWordList() {
             
             // Merge words added via Word Management Dashboard (admin.html)
             try {
-                var addedWordsData = localStorage.getItem('directionary_standard_addedWords');
+                var addedWordsData = localStorage.getItem('directionary_base_addedWords');
                 if (addedWordsData) {
                     var addedWords = JSON.parse(addedWordsData);
                     
@@ -250,7 +290,7 @@ function loadWordList() {
             console.log("FALLBACK MODE ENABLED - words will use rotation");
             
             try {
-                var addedWordsData = localStorage.getItem('directionary_standard_addedWords');
+                var addedWordsData = localStorage.getItem('directionary_base_addedWords');
                 if (addedWordsData) {
                     var addedWords = JSON.parse(addedWordsData);
                     
@@ -285,6 +325,12 @@ function loadWordList() {
 function initGame() {
     console.log("Initializing Directionary...");
     
+    // CRITICAL: Set current day in localStorage FIRST, before day checker starts
+    // This prevents false "new day" detection on fresh page loads
+    if (!devMode && !testMode) {
+        localStorage.setItem('directionary_base_currentDay', getLocalGameDay());
+    }
+    
     showBetaBannerIfEnabled();
     
     if (!devMode && !testMode) {
@@ -292,7 +338,7 @@ function initGame() {
     }
     
     if (!devMode && !testMode) {
-        var lastPlayed = localStorage.getItem('directionary_standard_lastPlayed');
+        var lastPlayed = localStorage.getItem('directionary_base_lastPlayed');
         var today = getLocalGameDay();
         
         if (lastPlayed == today) {
@@ -309,7 +355,6 @@ function initGame() {
     
     if (typeof gtag === 'function') {
         gtag('event', 'game_start', {
-            'game_version': 'standard',
             'game_day': dailyNumber,
             'mode': devMode ? 'dev' : (testMode ? 'test' : 'production')
         });
@@ -325,10 +370,10 @@ function startDayChangeChecker() {
     
     function checkDay() {
         var currentDay = getLocalGameDay();
-        var storedDay = localStorage.getItem('directionary_standard_currentDay');
+        var storedDay = localStorage.getItem('directionary_base_currentDay');
         
         if (!storedDay) {
-            localStorage.setItem('directionary_standard_currentDay', currentDay);
+            localStorage.setItem('directionary_base_currentDay', currentDay);
             console.log("🔧 No stored day - initialized to current day:", currentDay);
             return;
         }
@@ -338,7 +383,7 @@ function startDayChangeChecker() {
         if (currentDay > storedDay) {
             console.log("🌅 New day detected! Old day:", storedDay, "New day:", currentDay);
             console.log("Reloading for fresh puzzle...");
-            localStorage.setItem('directionary_standard_currentDay', currentDay);
+            localStorage.setItem('directionary_base_currentDay', currentDay);
             location.reload();
         }
     }
@@ -374,13 +419,13 @@ function startNewGame() {
         var modeLabel = testMode ? "TEST MODE" : (devMode ? "DEV MODE" : "FALLBACK MODE");
         console.log(modeLabel + ": Random word index:", wordIndex);
     } else {
-        wordIndex = (dailyNumber * 317) % wordPool.length;
-        console.log("JSON MODE: Day-based index:", wordIndex, "(Standard single-word formula)");
+        wordIndex = (((dailyNumber + 1000) * 457) + (currentRound * 881)) % wordPool.length;
+        console.log("JSON MODE: Day-based index:", wordIndex, "(Base game formula with offset)");
     }
     
     var overrides = {};
     try {
-        var overrideData = localStorage.getItem('directionary_standard_wordOverrides');
+        var overrideData = localStorage.getItem('directionary_base_wordOverrides');
         if (overrideData) {
             overrides = JSON.parse(overrideData);
         }
@@ -428,6 +473,7 @@ function startNewGame() {
     document.getElementById("guessInput").value = "";
     document.getElementById("guessInput").disabled = false;
     document.getElementById("submitBtn").disabled = false;
+    document.getElementById("giveUpBtn").disabled = false;
     document.getElementById("guessInput").focus();
 }
 
@@ -545,7 +591,7 @@ function submitGuess() {
         
         totalScore += currentScore;
         currentScore = 0; // Reset to prevent double-counting in display
-        // Don't reset guessCount - keep it visible for player to see final count
+        guessCount = 0; // Reset to prevent double-counting in total guesses display
         updateScoreDisplay();
         
         setTimeout(() => {
@@ -567,9 +613,9 @@ function submitGuess() {
 // LENIENT STREAK SYSTEM
 function trackFirstGuess() {
     var today = getLocalGameDay();
-    var gameStartedDay = localStorage.getItem('directionary_standard_gameStartedDay');
-    var gameCompletedDay = localStorage.getItem('directionary_standard_gameCompletedDay');
-    var lastStreakDay = localStorage.getItem('directionary_standard_lastStreakDay');
+    var gameStartedDay = localStorage.getItem('directionary_base_gameStartedDay');
+    var gameCompletedDay = localStorage.getItem('directionary_base_gameCompletedDay');
+    var lastStreakDay = localStorage.getItem('directionary_base_lastStreakDay');
     
     // Check for abandonment from previous day
     if (gameStartedDay && gameStartedDay != today) {
@@ -583,13 +629,13 @@ function trackFirstGuess() {
     }
     
     // Mark game started today
-    localStorage.setItem('directionary_standard_gameStartedDay', today);
-    localStorage.removeItem('directionary_standard_gameCompletedDay');
+    localStorage.setItem('directionary_base_gameStartedDay', today);
+    localStorage.removeItem('directionary_base_gameCompletedDay');
     
     // Increment streak if new day
     if (lastStreakDay != today) {
         playerStats.currentStreak++;
-        localStorage.setItem('directionary_standard_lastStreakDay', today);
+        localStorage.setItem('directionary_base_lastStreakDay', today);
         
         if (playerStats.currentStreak > playerStats.maxStreak) {
             playerStats.maxStreak = playerStats.currentStreak;
@@ -787,54 +833,16 @@ function showError(message) {
     setTimeout(() => { errorDiv.innerHTML = ""; }, 3000);
 }
 
-function fetchWordDefinition(word, callback) {
-    fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + word.toLowerCase())
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Definition not found');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data && data[0]) {
-                var entry = data[0];
-                var phonetic = entry.phonetic || '';
-                
-                if (entry.meanings && entry.meanings[0]) {
-                    var meaning = entry.meanings[0];
-                    var partOfSpeech = meaning.partOfSpeech || '';
-                    var definition = meaning.definitions[0].definition || '';
-                    
-                    callback({
-                        word: word,
-                        phonetic: phonetic,
-                        partOfSpeech: partOfSpeech,
-                        definition: definition
-                    });
-                } else {
-                    callback(null);
-                }
-            } else {
-                callback(null);
-            }
-        })
-        .catch(error => {
-            console.log('Dictionary API error:', error);
-            callback(null);
-        });
-}
-
 function showSuccessModal() {
     // Get the score from the just-saved roundData (currentScore was reset to 0)
     var lastRoundScore = roundResults.length > 0 ? roundResults[roundResults.length - 1].score : 0;
     
     document.getElementById("modalWord").textContent = targetWord;
     document.getElementById("modalScore").textContent = lastRoundScore;
-    // modalTotal doesn't exist in Standard game (no "Total: X/300" line)
+    document.getElementById("modalTotal").textContent = totalScore;
     
     if (typeof gtag === 'function') {
         gtag('event', 'round_complete', {
-            'game_version': 'standard',
             'round_number': currentRound,
             'score': lastRoundScore,
             'guesses_used': roundResults.length > 0 ? roundResults[roundResults.length - 1].guesses : 0,
@@ -895,12 +903,12 @@ function showSuccessModal() {
     
     document.getElementById("guessInput").disabled = true;
     document.getElementById("submitBtn").disabled = true;
+    document.getElementById("giveUpBtn").disabled = true;
 }
 
 function showDailyCompleteModal() {
     if (typeof gtag === 'function') {
         gtag('event', 'daily_complete', {
-            'game_version': 'standard',
             'total_score': totalScore,
             'rounds_completed': roundResults.length,
             'game_day': dailyNumber
@@ -911,12 +919,11 @@ function showDailyCompleteModal() {
     
     if (!devMode && !testMode) {
         var today = getLocalGameDay();
-        localStorage.setItem('directionary_standard_lastPlayed', today);
-        localStorage.setItem('directionary_standard_gameCompletedDay', today);
-        localStorage.setItem('directionary_standard_dailyState', JSON.stringify({
+        localStorage.setItem('directionary_base_lastPlayed', today);
+        localStorage.setItem('directionary_base_gameCompletedDay', today);
+        localStorage.setItem('directionary_base_dailyState', JSON.stringify({
             roundResults: roundResults,
             totalScore: totalScore,
-            guessHistory: guessHistory,  // Save all guess patterns for sharing
             completedDate: today
         }));
     }
@@ -943,85 +950,37 @@ function showDailyCompleteModal() {
     }
     
     var summary = "";
+    var totalGuesses = 0;
     
     if (roundResults.length > 0) {
-        var result = roundResults[0]; // Single word game
-        var guessCountText = result.score === 0 ? 
-            "Failed - used all 10 guesses" : 
-            "Solved in " + result.guesses + " guess" + (result.guesses === 1 ? '' : 'es');
+        summary += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: center; max-width: 300px; margin: 0 auto;">';
         
-        document.getElementById("guessCountLine").textContent = guessCountText;
-        
-        // Show winning word as clickable link
-        var wordDisplay = '<a href="https://www.dictionary.com/browse/' + result.word.toLowerCase() + '" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 600;">' + result.word + '</a>';
-        document.getElementById("winningWordDisplay").innerHTML = wordDisplay;
-        
-        // Fetch and display definition
-        fetchWordDefinition(result.word, function(defData) {
-            var defElement = document.getElementById("winningWordDefinition");
-            var creditElement = document.getElementById("definitionCredit");
+        for (var i = 0; i < roundResults.length; i++) {
+            var result = roundResults[i];
+            totalGuesses += result.guesses;
             
-            if (defData && defData.word) {
-                var defHTML = '<strong>' + defData.word + '</strong>';
-                if (defData.phonetic) {
-                    defHTML += ' | ' + defData.phonetic;
-                }
-                if (defData.partOfSpeech) {
-                    defHTML += ' | <em>' + defData.partOfSpeech + '</em>';
-                }
-                defHTML += '<br>' + defData.definition;
-                
-                defElement.innerHTML = defHTML;
-                creditElement.innerHTML = '<a href="https://dictionaryapi.dev/" target="_blank" style="color: #888; text-decoration: none;">Powered by Free Dictionary API</a>';
+            summary += '<div style="text-align: left;"><a href="https://www.dictionary.com/browse/' + result.word.toLowerCase() + '" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 600;">' + result.word + '</a></div>';
+            
+            if (result.score === 0) {
+                summary += '<div style="text-align: right; color: #e53e3e;">Skipped</div>';
             } else {
-                defElement.innerHTML = '';
-                creditElement.innerHTML = '';
+                summary += '<div style="text-align: right; color: #666;">' + result.guesses + ' guess' + (result.guesses === 1 ? '' : 'es') + '</div>';
             }
-        });
-        
-        // Collect all guessed words
-        var allGuesses = [];
-        var feedbackDiv = document.getElementById("feedback");
-        var allLines = feedbackDiv.querySelectorAll('.feedback-line');
-        allLines.forEach(function(line) {
-            var wordSpan = line.querySelector('.feedback-word');
-            if (wordSpan) {
-                var word = wordSpan.textContent;
-                if (word && word !== 'GUESS') { // Skip placeholder
-                    allGuesses.push(word);
-                }
-            }
-        });
-        
-        // Show guessed words as links
-        if (allGuesses.length > 1) {
-            summary += '<div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">';
-            summary += '<div style="font-size: 0.9em; color: #666; margin-bottom: 10px;">All guesses:</div>';
-            summary += '<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">';
-            allGuesses.forEach(function(word) {
-                summary += '<a href="https://www.dictionary.com/browse/' + word.toLowerCase() + '" target="_blank" style="color: #667eea; text-decoration: underline; font-size: 0.9em;">' + word + '</a>';
-            });
-            summary += '</div></div>';
         }
+        
+        summary += '<div style="text-align: left; font-weight: 700; color: #667eea; border-top: 2px solid #ddd; padding-top: 10px; margin-top: 5px;">TOTAL GUESSES</div>';
+        summary += '<div style="text-align: right; font-weight: 700; color: #667eea; border-top: 2px solid #ddd; padding-top: 10px; margin-top: 5px;">' + totalGuesses + '</div>';
+        
+        summary += '</div>';
         
         // Add cross-promotion
         summary += '<div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; font-size: 0.9em; color: #666;">';
         summary += '<p>Want more challenge right now?<br><span class="cross-promo-link" onclick="showComingSoon(event)" style="color: #667eea; text-decoration: underline; font-weight: 600; cursor: pointer;">Directionary PRO</span> - unlimited 3-word puzzles</p>';
         summary += '</div>';
     } else {
-        summary = "No game completed<br>";
-        document.getElementById("guessCountLine").textContent = "";
+        summary = "No rounds completed<br>";
     }
-    
-    // Insert summary after definition (or in place if no definition yet)
-    setTimeout(function() {
-        var defCredit = document.getElementById("definitionCredit");
-        if (defCredit && defCredit.parentNode) {
-            var summaryDiv = document.createElement('div');
-            summaryDiv.innerHTML = summary;
-            defCredit.parentNode.insertBefore(summaryDiv, defCredit.nextSibling);
-        }
-    }, 100);
+    document.getElementById("roundSummary").innerHTML = summary;
     
     showComeBackMessage();
     
@@ -1048,19 +1007,19 @@ function showComeBackMessage() {
     }
     
     document.getElementById("guessInput").style.display = "none";
-    document.getElementById("submitBtn").style.display = "none";
+    document.querySelector(".button-group").style.display = "none";
     
     var feedbackDiv = document.getElementById("feedback");
     feedbackDiv.innerHTML = '<div id="countdownTimer" style="text-align: center; padding: 25px 30px; font-size: 2em; color: #00ff41; font-weight: 700; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 15px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5), 0 4px 15px rgba(0,0,0,0.3); font-family: \'Courier New\', Courier, monospace; letter-spacing: 0.1em; text-shadow: 0 0 10px rgba(0,255,65,0.5), 0 0 20px rgba(0,255,65,0.3);"></div>';
     startCountdownTimer();
     
     if (roundResults.length > 0) {
-        // Create words display below countdown
+        var buttonGroup = document.querySelector(".button-group");
         var wordsDiv = document.createElement("div");
         wordsDiv.id = "todaysWordsDisplay";
         wordsDiv.style.cssText = "text-align: center; padding: 15px 20px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 15px 0;";
         
-        var html = '<h3 style="margin: 0 0 12px 0; color: #667eea; font-size: 1.1em;">Today\'s Word</h3>';
+        var html = '<h3 style="margin: 0 0 12px 0; color: #667eea; font-size: 1.1em;">Today\'s Words</h3>';
         html += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 10px 20px; max-width: 250px; margin: 0 auto;">';
         
         for (var i = 0; i < roundResults.length; i++) {
@@ -1074,14 +1033,7 @@ function showComeBackMessage() {
         
         html += '</div>';
         wordsDiv.innerHTML = html;
-        
-        // Insert after feedback div
-        feedbackDiv.parentNode.insertBefore(wordsDiv, feedbackDiv.nextSibling);
-        
-        var scoreMessage = document.createElement("div");
-        scoreMessage.style.cssText = "text-align: center; margin: 20px 0; font-size: 1.2em; font-weight: 600; color: #667eea;";
-        scoreMessage.textContent = "Your Score: " + totalScore + " points";
-        feedbackDiv.parentNode.insertBefore(scoreMessage, wordsDiv);
+        buttonGroup.parentNode.insertBefore(wordsDiv, buttonGroup.nextSibling);
     }
 }
 
@@ -1095,7 +1047,7 @@ function startCountdownTimer() {
             console.log("⏰ Midnight reached! Reloading for new puzzle...");
             // Set to TOMORROW's day (current + 1) since we're reloading into the new day
             var tomorrowDay = getLocalGameDay() + 1;
-            localStorage.setItem('directionary_standard_currentDay', tomorrowDay);
+            localStorage.setItem('directionary_base_currentDay', tomorrowDay);
             location.reload();
             return;
         }
@@ -1119,12 +1071,11 @@ function startCountdownTimer() {
 
 function showAlreadyPlayedMessage() {
     loadStats();
-    var savedState = localStorage.getItem('directionary_standard_dailyState');
+    var savedState = localStorage.getItem('directionary_base_dailyState');
     if (savedState) {
         var state = JSON.parse(savedState);
         roundResults = state.roundResults || [];
         totalScore = state.totalScore || 0;
-        guessHistory = state.guessHistory || [];  // Restore guess history for sharing
         currentScore = 0; // Set to 0 since game is complete
     }
     
@@ -1157,14 +1108,14 @@ function showAlreadyPlayedMessage() {
     }
     
     document.getElementById("guessInput").style.display = "none";
-    document.getElementById("submitBtn").style.display = "none";
+    document.querySelector(".button-group").style.display = "none";
     
     var feedbackDiv = document.getElementById("feedback");
     feedbackDiv.innerHTML = '<div id="countdownTimer" style="text-align: center; padding: 25px 30px; font-size: 2em; color: #00ff41; font-weight: 700; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 15px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5), 0 4px 15px rgba(0,0,0,0.3); font-family: \'Courier New\', Courier, monospace; letter-spacing: 0.1em; text-shadow: 0 0 10px rgba(0,255,65,0.5), 0 0 20px rgba(0,255,65,0.3);"></div>';
     startCountdownTimer();
     
     if (roundResults.length > 0) {
-        // Create words display below countdown
+        var buttonGroup = document.querySelector(".button-group");
         var wordsDiv = document.createElement("div");
         wordsDiv.style.cssText = "text-align: center; padding: 15px 20px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 15px 0;";
         
@@ -1182,14 +1133,12 @@ function showAlreadyPlayedMessage() {
         
         html += '</div>';
         wordsDiv.innerHTML = html;
-        
-        // Insert after feedback div
-        feedbackDiv.parentNode.insertBefore(wordsDiv, feedbackDiv.nextSibling);
+        buttonGroup.parentNode.insertBefore(wordsDiv, buttonGroup.nextSibling);
         
         var scoreMessage = document.createElement("div");
         scoreMessage.style.cssText = "text-align: center; margin: 20px 0; font-size: 1.2em; font-weight: 600; color: #667eea;";
         scoreMessage.textContent = "Your Score: " + totalScore + " points";
-        feedbackDiv.parentNode.insertBefore(scoreMessage, wordsDiv);
+        wordsDiv.parentNode.insertBefore(scoreMessage, wordsDiv);
     }
 }
 
@@ -1201,14 +1150,10 @@ function generateShareText() {
     }
     text += "\n\n";
     
-    // Show LAST 5 guesses from guessHistory
-    var totalGuesses = guessHistory.length;
-    var startIndex = Math.max(0, totalGuesses - 5); // Start from last 5, or beginning if fewer
-    
-    for (var i = startIndex; i < guessHistory.length; i++) {
-        var pattern = guessHistory[i];
-        if (pattern) {
-            var sharePattern = pattern
+    for (var i = 0; i < roundResults.length; i++) {
+        var result = roundResults[i];
+        if (result && result.pattern) {
+            var sharePattern = result.pattern
                 .replace(/●/g, "🟢")
                 .replace(/►/g, "▶️")
                 .replace(/▶/g, "▶️")
@@ -1218,7 +1163,7 @@ function generateShareText() {
         }
     }
     
-    text += "\nScore: " + totalScore + "\n\n";
+    text += "\nScore: " + totalScore + " out of 300\n\n";
     text += "#WW2W " + GAME_URL;
     
     return text;
@@ -1236,10 +1181,7 @@ function toggleShare() {
 
 function toggleHelp() {
     if (typeof gtag === 'function') {
-        gtag('event', 'modal_open', {
-            'game_version': 'standard',
-            'modal_type': 'help'
-        });
+        gtag('event', 'modal_open', {'modal_type': 'help'});
     }
     
     closeAllPanels();
@@ -1253,10 +1195,7 @@ function toggleHelp() {
 
 function toggleStats() {
     if (typeof gtag === 'function') {
-        gtag('event', 'modal_open', {
-            'game_version': 'standard',
-            'modal_type': 'stats'
-        });
+        gtag('event', 'modal_open', {'modal_type': 'stats'});
     }
     
     closeAllPanels();
@@ -1271,10 +1210,7 @@ function toggleStats() {
 
 function toggleInfo() {
     if (typeof gtag === 'function') {
-        gtag('event', 'modal_open', {
-            'game_version': 'standard',
-            'modal_type': 'about'
-        });
+        gtag('event', 'modal_open', {'modal_type': 'about'});
     }
     
     closeAllPanels();
@@ -1344,10 +1280,7 @@ function closeStreakPanel() {
 
 function copyToClipboard() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {
-            'game_version': 'standard',
-            'method': 'clipboard'
-        });
+        gtag('event', 'share', {'method': 'clipboard'});
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1358,10 +1291,7 @@ function copyToClipboard() {
 
 function shareToTwitter() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {
-            'game_version': 'standard',
-            'method': 'twitter'
-        });
+        gtag('event', 'share', {'method': 'twitter'});
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1371,10 +1301,7 @@ function shareToTwitter() {
 
 function shareToBluesky() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {
-            'game_version': 'standard',
-            'method': 'bluesky'
-        });
+        gtag('event', 'share', {'method': 'bluesky'});
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1394,10 +1321,7 @@ function shareToBluesky() {
 
 function shareToFacebook() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {
-            'game_version': 'standard',
-            'method': 'facebook'
-        });
+        gtag('event', 'share', {'method': 'facebook'});
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1425,31 +1349,79 @@ function nextWord() {
     newGameLine.className = "new-game-message";
     newGameLine.innerHTML = "◄ ● Round " + currentRound + " of " + maxRounds + " ● ►";
     feedbackDiv.appendChild(newGameLine);
+
+function closeSuccessShowDaily() {
+    // Just close the modal without advancing to next round
+    // Used by X button and Escape key
+    document.getElementById("successModal").style.display = "none";
+}
+
     
     startNewGame();
     saveGameState();
 }
 
 function showZeroScoreModal() {
-    document.getElementById("zeroModalWord").textContent = targetWord;
     document.getElementById("zeroScoreModal").style.display = "flex";
     document.getElementById("guessInput").disabled = true;
     document.getElementById("submitBtn").disabled = true;
+    document.getElementById("giveUpBtn").disabled = true;
+}
+
+       function skipRound() {
+    document.getElementById("zeroScoreModal").style.display = "none";
+    roundResults.push({
+word: targetWord,
+score: 0,
+guesses: guessCount,
+pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "⚫ ⚫ ⚫ ⚫ ⚫"
+    });
+    nextWord();
+}
+
+function giveUp() {
+    document.getElementById("giveUpModal").style.display = "flex";
+    document.getElementById("guessInput").disabled = true;
+    document.getElementById("submitBtn").disabled = true;
+    document.getElementById("giveUpBtn").disabled = true;
+}
+
+function confirmGiveUp() {
+    if (typeof gtag === 'function') {
+        gtag('event', 'give_up', {
+            'round_number': currentRound,
+            'guesses_used': guessCount
+        });
+    }
     
-    // Save zero score result
-    var roundData = {
+    document.getElementById("giveUpModal").style.display = "none";
+    
+    var feedbackDiv = document.getElementById("feedback");
+    var giveUpMessage = document.createElement("div");
+    giveUpMessage.className = "new-game-message";
+    giveUpMessage.innerHTML = "The word was: " + targetWord;
+    feedbackDiv.appendChild(giveUpMessage);
+    
+    showDefinition(targetWord);
+    
+    roundResults.push({
         word: targetWord,
         score: 0,
         guesses: guessCount,
         pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "⚫ ⚫ ⚫ ⚫ ⚫"
-    };
-    roundResults.push(roundData);
+    });
+    
+    setTimeout(() => {
+        nextWord();
+    }, 4000);
 }
 
-function closeZeroShowDaily() {
-    document.getElementById("zeroScoreModal").style.display = "none";
-    clearGameState();
-    showDailyCompleteModal();
+function cancelGiveUp() {
+    document.getElementById("giveUpModal").style.display = "none";
+    document.getElementById("guessInput").disabled = false;
+    document.getElementById("submitBtn").disabled = false;
+    document.getElementById("giveUpBtn").disabled = false;
+    document.getElementById("guessInput").focus();
 }
 
 function closeDuplicateModal() {
@@ -1475,21 +1447,15 @@ function closeDailyModal() {
     document.getElementById("dailyCompleteModal").style.display = "none";
 }
 
-function closeSuccessShowDaily() {
-    document.getElementById("successModal").style.display = "none";
-    clearGameState();
-    showDailyCompleteModal();
-}
-
 function loadStats() {
-    var saved = localStorage.getItem('directionary_standard_Stats');
+    var saved = localStorage.getItem('directionary_base_Stats');
     if (saved) {
         playerStats = JSON.parse(saved);
     }
 }
 
 function saveStats() {
-    localStorage.setItem('directionary_standard_Stats', JSON.stringify(playerStats));
+    localStorage.setItem('directionary_base_Stats', JSON.stringify(playerStats));
 }
 
 function updateStats() {
@@ -1540,7 +1506,7 @@ function saveGameState() {
     };
     
     try {
-        localStorage.setItem('directionary_standard_gameState', JSON.stringify(state));
+        localStorage.setItem('directionary_base_gameState', JSON.stringify(state));
         console.log("💾 Game state saved");
     } catch (e) {
         console.log("Could not save game state:", e);
@@ -1551,7 +1517,7 @@ function loadGameState() {
     if (devMode || testMode) return null;
     
     try {
-        var saved = localStorage.getItem('directionary_standard_gameState');
+        var saved = localStorage.getItem('directionary_base_gameState');
         if (!saved) return null;
         
         var state = JSON.parse(saved);
@@ -1562,7 +1528,7 @@ function loadGameState() {
             return null;
         }
         
-        var lastPlayed = localStorage.getItem('directionary_standard_lastPlayed');
+        var lastPlayed = localStorage.getItem('directionary_base_lastPlayed');
         if (lastPlayed == dailyNumber) {
             console.log("Game already completed today");
             return null;
@@ -1578,7 +1544,7 @@ function loadGameState() {
 
 function clearGameState() {
     try {
-        localStorage.removeItem('directionary_standard_gameState');
+        localStorage.removeItem('directionary_base_gameState');
         console.log("🗑️ Game state cleared");
     } catch (e) {
         console.log("Could not clear game state:", e);
@@ -1700,6 +1666,12 @@ window.onload = function() {
             submitGuess();
         }
     });
+    
+    document.getElementById("giveUpBtn").addEventListener("click", function() {
+        if (!this.disabled) {
+            giveUp();
+        }
+    });
 };
 
 function reloadDevGame() {
@@ -1726,8 +1698,7 @@ document.addEventListener('keydown', function(e) {
             return;  // Let the input handle Enter normally
         }
         
-        // Check for duplicate word modal FIRST (highest priority for Enter)
-        // REMOVED - Now uses simple error message instead of modal
+        // duplicateWordModal REMOVED - now uses simple error message
         
         var successModal = document.getElementById('successModal');
         if (successModal && successModal.style.display === 'flex') {
@@ -1739,15 +1710,23 @@ document.addEventListener('keydown', function(e) {
         var completeModal = document.getElementById('dailyCompleteModal');
         if (completeModal && completeModal.style.display === 'flex') {
             e.preventDefault();
-            // Enter activates PRIMARY button (View and Share)
-            viewResults();
+            // Enter activates PRIMARY button (View and Share) in BASE 3-round game
+            closeDailyModal();
+            toggleStats();
             return;
         }
         
         var zeroScoreModal = document.getElementById('zeroScoreModal');
         if (zeroScoreModal && zeroScoreModal.style.display === 'flex') {
             e.preventDefault();
-            closeZeroShowDaily();
+            skipRound();
+            return;
+        }
+        
+        var giveUpModal = document.getElementById('giveUpModal');
+        if (giveUpModal && giveUpModal.style.display === 'flex') {
+            e.preventDefault();
+            cancelGiveUp();  // Safe action - cancel the give up
             return;
         }
         
@@ -1780,7 +1759,7 @@ document.addEventListener('keydown', function(e) {
             return;
         }
         
-        var aboutPanel = document.getElementById('infoPanel');  // FIXED: Was 'aboutPanel', should be 'infoPanel'
+        var aboutPanel = document.getElementById('infoPanel');  // Note: infoPanel, not aboutPanel
         if (aboutPanel && aboutPanel.style.display === 'flex') {
             e.preventDefault();
             closeInfo();
@@ -1840,7 +1819,7 @@ document.addEventListener('keydown', function(e) {
             return;
         }
         
-        // Escape also closes modals (confirmation modals shouldn't close on backdrop, but Escape is OK)
+        // Escape also closes modals
         var successModal = document.getElementById('successModal');
         if (successModal && successModal.style.display === 'flex') {
             closeSuccessShowDaily();
@@ -1849,7 +1828,13 @@ document.addEventListener('keydown', function(e) {
         
         var zeroScoreModal = document.getElementById('zeroScoreModal');
         if (zeroScoreModal && zeroScoreModal.style.display === 'flex') {
-            closeZeroShowDaily();
+            skipRound();
+            return;
+        }
+        
+        var giveUpModal = document.getElementById('giveUpModal');
+        if (giveUpModal && giveUpModal.style.display === 'flex') {
+            cancelGiveUp();  // Safe action - cancel the give up
             return;
         }
         
@@ -1881,7 +1866,7 @@ document.addEventListener('DOMContentLoaded', function() {
         { element: 'streakPanel', closeFunc: closeStreakPanel },
         { element: 'wordDefPanel', closeFunc: closeWordDefPanel },
         { element: 'successModal', closeFunc: closeSuccessShowDaily },
-        { element: 'zeroScoreModal', closeFunc: closeZeroShowDaily },
+        { element: 'zeroScoreModal', closeFunc: skipRound },
         // duplicateWordModal REMOVED - now uses simple error message
         { element: 'placeholderModal', closeFunc: closePlaceholderModal },
         { element: 'dailyCompleteModal', closeFunc: closeDailyModal }
@@ -1901,6 +1886,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 window.nextWord = nextWord;
+window.closeSuccessShowDaily = closeSuccessShowDaily;
 window.confirmGiveUp = confirmGiveUp;
 window.cancelGiveUp = cancelGiveUp;
 window.closeDuplicateModal = closeDuplicateModal;
