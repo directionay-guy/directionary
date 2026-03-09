@@ -1,4 +1,4 @@
-        body {
+body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(180deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
             margin: 0;
@@ -8,6 +8,19 @@
             justify-content: flex-start;
             align-items: center;
             min-height: 100vh;
+        }
+        
+        /* ACCESSIBILITY: Global focus styles for keyboard navigation */
+        a:focus-visible,
+        [onclick]:focus-visible {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+        
+        /* Remove default focus outline only when using :focus-visible (keyboard) */
+        *:focus:not(:focus-visible) {
+            outline: none;
         }
         
         .main-wrapper {
@@ -53,6 +66,24 @@
             color: #2d3748;
             font-weight: 700;
             opacity: 1;
+        }
+        
+        /* AlphaHint active - remove bold from all letters to avoid confusion */
+        .alphabet-display.hint-active span {
+            font-weight: 500 !important;
+            color: #5566cc !important;
+        }
+        
+        /* Make sure used letters also change color during hint */
+        .alphabet-display.hint-active .used-letter {
+            font-weight: 500 !important;
+            color: #5566cc !important;
+        }
+        
+        /* AlphaHint - hide invalid letters instead of highlighting */
+        .alphabet-display .hint-hidden {
+            opacity: 0.15;
+            color: rgba(85, 102, 204, 0.15);
         }
         
         .game-title {
@@ -172,6 +203,45 @@
             min-height: 60px;
         }
         
+        /* Streak button - clickable indicator */
+        .score-item.streak-button {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            animation: subtle-pulse 3s ease-in-out infinite;
+        }
+        
+        /* Gentle pulse to show it's clickable */
+        @keyframes subtle-pulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+            50% { 
+                transform: scale(1.02);
+                box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
+            }
+        }
+        
+        .score-item.streak-button:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 6px 16px rgba(255, 107, 53, 0.3);
+            animation: none;
+        }
+        
+        .score-item.streak-button:active {
+            transform: translateY(-1px) scale(1.01);
+        }
+        
+        .score-item.streak-button:hover::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border: 2px solid rgba(255, 107, 53, 0.4);
+            border-radius: 14px;
+            pointer-events: none;
+        }
+        
         .score-label {
             font-size: 0.8em;
             color: #666;
@@ -209,6 +279,51 @@
             white-space: nowrap;
             font-size: 0.95em;
             line-height: 1.1;
+        }
+        
+        /* Cross-promotion box */
+        .cross-promo-box {
+            font-size: 0.85em;
+            color: #666;
+            text-align: center;
+            padding: 8px 12px;
+            margin: 10px 0;
+            background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+            border-radius: 10px;
+        }
+        
+        .cross-promo-link {
+            color: #667eea;
+            text-decoration: underline;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        
+        .cross-promo-link:hover {
+            color: #764ba2;
+        }
+        
+        .cross-promo-link:active {
+            color: #5a4d8a;
+        }
+        
+        /* AlphaHint text */
+        .alphahint-text {
+            font-size: 0.75em;
+            color: #999;
+            text-align: center;
+            margin: 8px 0;
+            font-style: italic;
+        }
+        
+        /* Highlight AlphaHint text when holding placeholder dots */
+        .alphahint-text.demo-active {
+            font-weight: 700;
+            font-size: 1.1em;
+            color: #667eea;
+            text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+            transition: all 0.3s ease;
         }
         
         input {
@@ -267,9 +382,35 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
         
+        /* ACCESSIBILITY: Visible focus indicators for keyboard navigation */
+        button:focus-visible {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+        }
+        
         button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+        
+        /* Submit button in Standard game - match input height */
+        #submitBtn {
+            padding: 12px;  /* Match input padding exactly */
+            font-size: 1.2em;
+            border: 2px solid transparent;
+            height: 50px;  /* Explicit height to match input */
+            box-sizing: border-box;  /* Include padding and border in height */
+            margin: 0;  /* Remove any default margin */
+            display: flex;  /* Use flex to center text */
+            align-items: center;  /* Center text vertically */
+            justify-content: center;  /* Center text horizontally */
+        }
+        
+        /* Input box - set explicit height to match button */
+        #guessInput {
+            height: 50px;  /* Explicit height to match button */
+            box-sizing: border-box;  /* Include padding and border in height */
+            margin: 0 !important;  /* Override the margin: 15px 0 from general input CSS */
         }
         
         .give-up-btn {
@@ -313,6 +454,57 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         
+        /* Previous guesses - inactive styling */
+        .feedback-line.inactive-guess {
+            background: #f5f5f5;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            border: 1px solid #ccc;
+        }
+        
+        .feedback-line.inactive-guess:hover {
+            transform: translateX(2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+        }
+        
+        .feedback-line.inactive-guess .feedback-word {
+            color: #555;
+            text-decoration-color: rgba(102, 126, 234, 0.5);
+        }
+        
+        .feedback-line.inactive-guess .overlay-symbol {
+            opacity: 0.6;
+        }
+        
+        /* Clickable words in feedback */
+        .feedback-word {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            text-decoration: underline;
+            text-decoration-style: solid;
+            text-decoration-color: #667eea;
+            text-decoration-thickness: 3px;
+            text-underline-offset: 3px;
+        }
+        
+        .feedback-word:hover {
+            color: #667eea;
+            text-decoration-color: #764ba2;
+            text-decoration-thickness: 3.5px;
+        }
+        
+        .feedback-word::after {
+            content: '📖';
+            font-size: 0.7em;
+            opacity: 0;
+            margin-left: 4px;
+            transition: opacity 0.2s ease;
+        }
+        
+        .feedback-word:hover::after {
+            opacity: 0.6;
+        }
+        
         .feedback-arrows {
             display: flex;
             justify-content: space-between;
@@ -347,13 +539,13 @@
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             font-size: 28px;
             font-weight: 900;
-            color: #e0e0e0 !important;
+            color: #ccc !important;
             position: absolute;
             z-index: 1;
             user-select: none;
             background: none !important;
             -webkit-background-clip: initial !important;
-            -webkit-text-fill-color: #e0e0e0 !important;
+            -webkit-text-fill-color: #ccc !important;
             background-clip: initial !important;
         }
         
@@ -363,6 +555,16 @@
             z-index: 2;
             font-weight: bold;
             line-height: 1;
+        }
+        
+        /* AlphaHint - constraint highlighting in previous guesses */
+        .overlay-symbol.hint-constraint {
+            background: #8b4513 !important;
+            color: white !important;
+            border-radius: 4px;
+            background-clip: border-box !important;
+            -webkit-background-clip: border-box !important;
+            -webkit-text-fill-color: white !important;
         }
         
         .overlay-symbol.earlier {
@@ -484,6 +686,7 @@
             box-sizing: border-box;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             animation: slideUp 0.3s ease;
+            position: relative;  /* CRITICAL: Makes X button position relative to modal */
         }
         
         @keyframes slideUp {
@@ -535,6 +738,12 @@
         .success-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* ACCESSIBILITY: Focus indicators for modal buttons */
+        .success-btn:focus-visible {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
         }
         
         .modal-definition {
@@ -594,40 +803,46 @@
         }
         
         .share-btn {
-            background: #8b9dc3;
+            background: #6b8dd3;  /* Brighter blue - was #8b9dc3 */
         }
         
         .share-btn:hover {
-            background: #7a8cb5;
+            background: #5a7dc5;  /* Darker on hover - was #7a8cb5 */
         }
         
         .stats-btn {
-            background: #d4a89b;
+            background: #e4988b;  /* More vibrant peach - was #d4a89b */
         }
         
         .stats-btn:hover {
-            background: #c4988b;
+            background: #d4887b;  /* Darker on hover - was #c4988b */
         }
         
         .info-btn {
-            background: #9b8dbd;
+            background: #8b7dcd;  /* Richer purple - was #9b8dbd */
         }
         
         .info-btn:hover {
-            background: #8b7dad;
+            background: #7b6dbd;  /* Darker on hover - was #8b7dad */
         }
         
         .help-btn {
-            background: #9bb9a8;
+            background: #7bc9a8;  /* Brighter teal - was #9bb9a8 */
         }
         
         .help-btn:hover {
-            background: #8ba998;
+            background: #6bb998;  /* Darker on hover - was #8ba998 */
         }
         
         .panel-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* ACCESSIBILITY: Focus indicators for panel buttons */
+        .panel-btn:focus-visible {
+            outline: 3px solid #ffffff;
+            outline-offset: 2px;
         }
         
         /* Panels - now as overlays */
@@ -705,7 +920,7 @@
         }
         
         .close-panel-btn {
-            background: #c89b9b;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  /* Match main button gradient */
             color: white;
             border: none;
             padding: 10px 25px;
@@ -714,12 +929,13 @@
             font-weight: 600;
             margin-top: 15px;
             transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);  /* Add shadow like other buttons */
         }
         
         .close-panel-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            background: #b88a8a;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);  /* Stronger shadow on hover */
+            background: linear-gradient(135deg, #5569d0 0%, #653a88 100%);  /* Slightly darker on hover */
         }
         
         .modal-close-x {
@@ -875,6 +1091,13 @@
                 padding: 2px 4px;
             }
             
+            /* Cross-promo mobile adjustments */
+            .cross-promo-box {
+                font-size: 0.75em;
+                padding: 6px 10px;
+                line-height: 1.4;
+            }
+            
             /* Feedback/Results display - CRITICAL FIX */
             .feedback-line {
                 font-size: 1em;
@@ -902,10 +1125,10 @@
             .background-letter {
                 font-size: 24px;
                 font-weight: 900;
-                color: #e0e0e0 !important;
+                color: #ccc !important;
                 background: none !important;
                 -webkit-background-clip: initial !important;
-                -webkit-text-fill-color: #e0e0e0 !important;
+                -webkit-text-fill-color: #ccc !important;
                 background-clip: initial !important;
             }
             
@@ -953,11 +1176,10 @@
             }
             
             .modal-close-x {
-                position: fixed;
-                top: 25px;
-                right: 20px;
-                z-index: 2001;
-                background: rgba(255, 255, 255, 0.9);
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: rgba(255, 255, 255, 0.95);
                 border-radius: 50%;
                 width: 35px;
                 height: 35px;
@@ -1087,106 +1309,3 @@
 }
 
 /* Rotate device overlay - Directionary style */
-.rotate-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    z-index: 10000;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 10px;
-}
-
-/* When dismissed, ALWAYS hide - this beats the media query */
-.rotate-overlay.dismissed {
-    display: none !important;
-}
-
-.rotate-content {
-    color: white;
-    max-width: 95%;
-}
-
-.rotate-logo {
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 2em;
-    font-weight: 700;
-    margin-bottom: 15px;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    letter-spacing: 1px;
-}
-
-.rotate-arrows {
-    font-size: 2em;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-.rotate-device {
-    font-size: 1.5em;
-    display: block;
-    animation: rotate-spin 2s ease-in-out infinite;
-}
-
-.rotate-arrow-down {
-    font-size: 1.5em;
-    color: white;
-    animation: bounce-down 1.5s ease-in-out infinite;
-    display: block;
-    margin-top: -10px;
-}
-
-@keyframes rotate-spin {
-    0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(-15deg); }
-    75% { transform: rotate(15deg); }
-}
-
-@keyframes bounce-down {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(8px); }
-}
-
-.rotate-content h2 {
-    font-size: 1.2em;
-    margin-bottom: 8px;
-    font-weight: bold;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.rotate-content p {
-    font-size: 0.9em;
-    opacity: 0.9;
-    margin-bottom: 10px;
-}
-
-.dismiss-rotate-btn {
-    margin-top: 10px;
-    padding: 8px 16px;
-    font-size: 0.9em;
-    background: rgba(255, 255, 255, 0.2);
-    border: 2px solid white;
-    color: white;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.dismiss-rotate-btn:hover {
-    background: white;
-    color: #667eea;
-}
-
-/* Show overlay ONLY on TABLETS in landscape - but NOT if dismissed */
-/* NEW (use this instead): */
-@media (min-width: 768px) and (max-width: 1400px) and (min-height: 500px) and (orientation: landscape) and (hover: none) {
-    .rotate-overlay:not(.dismissed) {
-        display: flex !important;
-    }
-}
