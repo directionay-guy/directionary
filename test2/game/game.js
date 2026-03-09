@@ -454,7 +454,7 @@ function submitGuess() {
     }
     
     if (guessedWordsThisRound.has(guess)) {
-        document.getElementById("duplicateWordModal").style.display = "flex";
+        showError('You already guessed "' + guess + '" this round!');
         input.value = "";
         input.focus();
         return;
@@ -1708,67 +1708,157 @@ function reloadDevGame() {
 }
 
 document.addEventListener('keydown', function(e) {
+    // ENTER KEY
     if (e.key === 'Enter') {
+        // Skip if user is typing in the guess input
+        var guessInput = document.getElementById('guessInput');
+        if (guessInput && document.activeElement === guessInput && !guessInput.disabled) {
+            return; // Let input handle Enter normally
+        }
+        
+        e.preventDefault(); // Prevent default for all other cases
+        
+        // Check ALL 4 MODALS (priority order)
         var successModal = document.getElementById('successModal');
         if (successModal && successModal.style.display === 'flex') {
-            nextWord();
+            nextWord(); // Special case: advance to next word
             return;
         }
         
-        var completeModal = document.getElementById('dailyCompleteModal');
-        if (completeModal && completeModal.style.display === 'flex') {
+        var dailyCompleteModal = document.getElementById('dailyCompleteModal');
+        if (dailyCompleteModal && dailyCompleteModal.style.display === 'flex') {
             closeDailyModal();
-            toggleStats();
             return;
         }
         
         var zeroScoreModal = document.getElementById('zeroScoreModal');
         if (zeroScoreModal && zeroScoreModal.style.display === 'flex') {
-            skipRound();
+            closeZeroShowDaily();
             return;
         }
         
-        var duplicateModal = document.getElementById('duplicateWordModal');
-        if (duplicateModal && duplicateModal.style.display === 'flex') {
-            closeDuplicateModal();
+        var placeholderModal = document.getElementById('placeholderModal');
+        if (placeholderModal && placeholderModal.style.display === 'flex') {
+            closePlaceholderModal();
+            return;
+        }
+        
+        // Check ALL 6 PANELS
+        var statsPanel = document.getElementById('statsPanel');
+        if (statsPanel && statsPanel.style.display === 'flex') {
+            closeStats();
+            return;
+        }
+        
+        var sharePanel = document.getElementById('sharePanel');
+        if (sharePanel && sharePanel.style.display === 'flex') {
+            closeShare();
+            return;
+        }
+        
+        var helpPanel = document.getElementById('helpPanel');
+        if (helpPanel && helpPanel.style.display === 'flex') {
+            closeHelp();
+            return;
+        }
+        
+        var infoPanel = document.getElementById('infoPanel');
+        if (infoPanel && infoPanel.style.display === 'flex') {
+            closeInfo();
+            return;
+        }
+        
+        var streakPanel = document.getElementById('streakPanel');
+        if (streakPanel && streakPanel.style.display === 'flex') {
+            closeStreakPanel();
+            return;
+        }
+        
+        var wordDefPanel = document.getElementById('wordDefPanel');
+        if (wordDefPanel && wordDefPanel.style.display === 'flex') {
+            closeWordDefPanel();
             return;
         }
     }
     
+    // ESCAPE KEY
     if (e.key === 'Escape') {
-        var statsPanel = document.getElementById('statsPanel');
-        var helpPanel = document.getElementById('helpPanel');
-        var aboutPanel = document.getElementById('aboutPanel');
-        var sharePanel = document.getElementById('sharePanel');
-        var streakPanel = document.getElementById('streakPanel');
-        var wordDefPanel = document.getElementById('wordDefPanel');
+        e.preventDefault();
         
+        // Check ALL 4 MODALS first (higher priority)
+        var successModal = document.getElementById('successModal');
+        if (successModal && successModal.style.display === 'flex') {
+            closeSuccessShowDaily();
+            return;
+        }
+        
+        var dailyCompleteModal = document.getElementById('dailyCompleteModal');
+        if (dailyCompleteModal && dailyCompleteModal.style.display === 'flex') {
+            closeDailyModal();
+            return;
+        }
+        
+        var zeroScoreModal = document.getElementById('zeroScoreModal');
+        if (zeroScoreModal && zeroScoreModal.style.display === 'flex') {
+            closeZeroShowDaily();
+            return;
+        }
+        
+        var placeholderModal = document.getElementById('placeholderModal');
+        if (placeholderModal && placeholderModal.style.display === 'flex') {
+            closePlaceholderModal();
+            return;
+        }
+        
+        // Check ALL 6 PANELS
+        var statsPanel = document.getElementById('statsPanel');
         if (statsPanel && statsPanel.style.display === 'flex') {
-            toggleStats();
-        } else if (helpPanel && helpPanel.style.display === 'flex') {
-            toggleHelp();
-        } else if (aboutPanel && aboutPanel.style.display === 'flex') {
-            toggleAbout();
-        } else if (sharePanel && sharePanel.style.display === 'flex') {
-            toggleShare();
-        } else if (streakPanel && streakPanel.style.display === 'flex') {
+            closeStats();
+            return;
+        }
+        
+        var sharePanel = document.getElementById('sharePanel');
+        if (sharePanel && sharePanel.style.display === 'flex') {
+            closeShare();
+            return;
+        }
+        
+        var helpPanel = document.getElementById('helpPanel');
+        if (helpPanel && helpPanel.style.display === 'flex') {
+            closeHelp();
+            return;
+        }
+        
+        var infoPanel = document.getElementById('infoPanel');
+        if (infoPanel && infoPanel.style.display === 'flex') {
+            closeInfo();
+            return;
+        }
+        
+        var streakPanel = document.getElementById('streakPanel');
+        if (streakPanel && streakPanel.style.display === 'flex') {
             closeStreakPanel();
-        } else if (wordDefPanel && wordDefPanel.style.display === 'flex') {
+            return;
+        }
+        
+        var wordDefPanel = document.getElementById('wordDefPanel');
+        if (wordDefPanel && wordDefPanel.style.display === 'flex') {
             closeWordDefPanel();
+            return;
         }
     }
 });
 
 // BACKDROP CLICK - Click outside modal/panel to close
 document.addEventListener('DOMContentLoaded', function() {
-    // All panels with backdrop close
+    // ALL 6 PANELS with backdrop close
     var panels = [
         {id: 'sharePanel', close: closeShare},
         {id: 'statsPanel', close: closeStats},
-        {id: 'wordDefPanel', close: closeWordDefPanel},
-        {id: 'infoPanel', close: closeInfo},
         {id: 'helpPanel', close: closeHelp},
-        {id: 'streakPanel', close: closeStreakPanel}
+        {id: 'infoPanel', close: closeInfo},
+        {id: 'streakPanel', close: closeStreakPanel},
+        {id: 'wordDefPanel', close: closeWordDefPanel}
     ];
     
     panels.forEach(function(panel) {
@@ -1782,12 +1872,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // All modals with backdrop close
+    // ALL 4 MODALS with backdrop close
     var modals = [
-        {id: 'successModal', close: function() { document.getElementById('successModal').style.display = 'none'; }},
+        {id: 'successModal', close: closeSuccessShowDaily},
         {id: 'dailyCompleteModal', close: closeDailyModal},
-        {id: 'zeroScoreModal', close: function() { document.getElementById('zeroScoreModal').style.display = 'none'; }},
-        {id: 'placeholderModal', close: function() { document.getElementById('placeholderModal').style.display = 'none'; }}
+        {id: 'zeroScoreModal', close: closeZeroShowDaily},
+        {id: 'placeholderModal', close: closePlaceholderModal}
     ];
     
     modals.forEach(function(modal) {
@@ -1809,6 +1899,9 @@ window.closeDuplicateModal = closeDuplicateModal;
 window.skipRound = skipRound;
 window.viewResults = viewResults;
 window.closeDailyModal = closeDailyModal;
+window.closeSuccessShowDaily = closeSuccessShowDaily;
+window.closeZeroShowDaily = closeZeroShowDaily;
+window.closePlaceholderModal = closePlaceholderModal;
 window.toggleShare = toggleShare;
 window.toggleHelp = toggleHelp;
 window.toggleStats = toggleStats;
