@@ -842,7 +842,7 @@ function showSuccessModal() {
     
     document.getElementById("modalWord").textContent = targetWord;
     document.getElementById("modalScore").textContent = lastRoundScore;
-    document.getElementById("modalTotal").textContent = totalScore;
+    // Note: modalTotal removed - Standard is single-round, no running total needed
     
     if (typeof gtag === 'function') {
         gtag('event', 'round_complete', {
@@ -1047,9 +1047,8 @@ function startCountdownTimer() {
 
         if (timeUntilMidnight <= 1000) {
             console.log("⏰ Midnight reached! Reloading for new puzzle...");
-            // Set to TOMORROW's day (current + 1) since we're reloading into the new day
-            var tomorrowDay = getLocalGameDay() + 1;
-            localStorage.setItem('directionary_standard_currentDay', tomorrowDay);
+            // Update stored day to current (new) day before reload
+            localStorage.setItem('directionary_standard_currentDay', getLocalGameDay());
             location.reload();
             return;
         }
