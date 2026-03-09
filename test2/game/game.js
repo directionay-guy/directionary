@@ -1,28 +1,3 @@
-/*
- * DIRECTIONARY STANDARD GAME - SINGLE WORD VERSION
- * 
- * Rebuilt from working BASE-game.js code (March 9, 2026)
- * 
- * WHAT THIS IS:
- * ✅ Single word per day (maxRounds = 1)
- * ✅ Lenient streak system (first guess counts)
- * ✅ Daily word formula: (dailyNumber * 317) % wordPool.length
- * ✅ Complete GUI standards (keyboard nav, backdrop click, focus indicators)
- * ✅ Word loading and validation from words.json
- * ✅ AlphaHint system (bold letters on hover)
- * ✅ Stats tracking with streak system
- * ✅ Share functionality
- * ✅ Day-change detection with iOS Safari fix
- * 
- * DIFFERS FROM BASE:
- * - BASE = 3 rounds per day
- * - STANDARD = 1 round per day
- * - Different word selection formula
- * - Different localStorage keys (directionary_standard_*)
- * 
- * Built from BASE code to fix mysterious word validation bug in previous Standard version.
- */
-
 // Game state variables
 var targetWord = "";
 var answerWords = [];
@@ -32,7 +7,7 @@ var totalScore = 0;
 var guessCount = 0;
 var usedLetters = new Set();
 var currentRound = 1;
-var maxRounds = 1;  // STANDARD: Single word per day
+var maxRounds = 1; // Phase 2: Standard single-word daily game
 var roundResults = [];
 var guessHistory = [];
 var guessedWordsThisRound = new Set();
@@ -171,18 +146,12 @@ function closeWordDefPanel() {
 }
 
 function updateScoreDisplay() {
-    // Calculate total guesses across all rounds
-    var totalGuesses = guessCount; // Current round guesses
-    for (var i = 0; i < roundResults.length; i++) {
-        totalGuesses += roundResults[i].guesses;
-    }
-    document.getElementById("guessCount").textContent = totalGuesses;
+    // Single-word game: just show current guess count
+    document.getElementById("guessCount").textContent = guessCount;
     
-    // Show X/300 format for 3-word game
-    var totalPossible = maxRounds * 100;
-    // Show projected total (totalScore + currentScore) - currentScore is 0 after winning a round
+    // Show score as single number (not X/300)
     var currentTotal = totalScore + currentScore;
-    document.getElementById("currentScore").textContent = currentTotal + "/" + totalPossible;
+    document.getElementById("currentScore").textContent = currentTotal;
 }
 
 function updateAlphabetDisplay() {
@@ -270,6 +239,8 @@ function loadWordList() {
             } catch (e) {
                 console.log("Could not load added words:", e);
             }
+            
+            startNewGame();
         })
         .catch(error => {
             console.log("Could not load word list, using fallback:", error);
@@ -306,22 +277,13 @@ function loadWordList() {
             } catch (e) {
                 console.log("Could not load added words:", e);
             }
-        })
-        .finally(function() {
-            // Start game AFTER word loading completes (success or fallback)
-            // This prevents startNewGame errors from triggering fallback mode
+            
             startNewGame();
         });
 }
 
 function initGame() {
     console.log("Initializing Directionary...");
-    
-    // CRITICAL: Set current day in localStorage FIRST, before day checker starts
-    // This prevents false "new day" detection on fresh page loads
-    if (!devMode && !testMode) {
-        localStorage.setItem('directionary_standard_currentDay', getLocalGameDay());
-    }
     
     showBetaBannerIfEnabled();
     
@@ -347,6 +309,7 @@ function initGame() {
     
     if (typeof gtag === 'function') {
         gtag('event', 'game_start', {
+            'game_version': 'standard',
             'game_day': dailyNumber,
             'mode': devMode ? 'dev' : (testMode ? 'test' : 'production')
         });
@@ -461,23 +424,11 @@ function startNewGame() {
     updateScoreDisplay();
     updateAlphabetDisplay();
     
-    // Safe element access with null checks
-    var definitionBox = document.getElementById('definitionBox');
-    if (definitionBox) {
-        definitionBox.style.display = 'none';
-    }
-    
-    var guessInput = document.getElementById("guessInput");
-    if (guessInput) {
-        guessInput.value = "";
-        guessInput.disabled = false;
-        guessInput.focus();
-    }
-    
-    var submitBtn = document.getElementById("submitBtn");
-    if (submitBtn) {
-        submitBtn.disabled = false;
-    }
+    document.getElementById('definitionBox').style.display = 'none';
+    document.getElementById("guessInput").value = "";
+    document.getElementById("guessInput").disabled = false;
+    document.getElementById("submitBtn").disabled = false;
+    document.getElementById("guessInput").focus();
 }
 
 function submitGuess() {
@@ -503,7 +454,7 @@ function submitGuess() {
     }
     
     if (guessedWordsThisRound.has(guess)) {
-        showError('You already guessed "' + guess.toUpperCase() + '" this round!');
+        document.getElementById("duplicateWordModal").style.display = "flex";
         input.value = "";
         input.focus();
         return;
@@ -594,7 +545,7 @@ function submitGuess() {
         
         totalScore += currentScore;
         currentScore = 0; // Reset to prevent double-counting in display
-        guessCount = 0; // Reset to prevent double-counting in total guesses display
+        // Don't reset guessCount - keep it visible for player to see final count
         updateScoreDisplay();
         
         setTimeout(() => {
@@ -797,8 +748,6 @@ function showAlphaHint(position) {
     if (alphahintText) {
         var ordinals = ['1st', '2nd', '3rd', '4th', '5th'];
         alphahintText.textContent = 'Options for the ' + ordinals[position] + ' letter';
-        // Enlarge text like in placeholder demo
-        alphahintText.classList.add('demo-active');
     }
 }
 
@@ -825,8 +774,6 @@ function clearAlphaHint() {
     var alphahintText = document.querySelector('.alphahint-text');
     if (alphahintText) {
         alphahintText.textContent = 'AlphaHint™: Hold arrow for letter options';
-        // Remove enlarged state
-        alphahintText.classList.remove('demo-active');
     }
 }
 
@@ -836,16 +783,54 @@ function showError(message) {
     setTimeout(() => { errorDiv.innerHTML = ""; }, 3000);
 }
 
+function fetchWordDefinition(word, callback) {
+    fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + word.toLowerCase())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Definition not found');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && data[0]) {
+                var entry = data[0];
+                var phonetic = entry.phonetic || '';
+                
+                if (entry.meanings && entry.meanings[0]) {
+                    var meaning = entry.meanings[0];
+                    var partOfSpeech = meaning.partOfSpeech || '';
+                    var definition = meaning.definitions[0].definition || '';
+                    
+                    callback({
+                        word: word,
+                        phonetic: phonetic,
+                        partOfSpeech: partOfSpeech,
+                        definition: definition
+                    });
+                } else {
+                    callback(null);
+                }
+            } else {
+                callback(null);
+            }
+        })
+        .catch(error => {
+            console.log('Dictionary API error:', error);
+            callback(null);
+        });
+}
+
 function showSuccessModal() {
     // Get the score from the just-saved roundData (currentScore was reset to 0)
     var lastRoundScore = roundResults.length > 0 ? roundResults[roundResults.length - 1].score : 0;
     
     document.getElementById("modalWord").textContent = targetWord;
     document.getElementById("modalScore").textContent = lastRoundScore;
-    // Note: modalTotal removed - Standard is single-round, no running total needed
+    // modalTotal doesn't exist in Standard game (no "Total: X/300" line)
     
     if (typeof gtag === 'function') {
         gtag('event', 'round_complete', {
+            'game_version': 'standard',
             'round_number': currentRound,
             'score': lastRoundScore,
             'guesses_used': roundResults.length > 0 ? roundResults[roundResults.length - 1].guesses : 0,
@@ -911,6 +896,7 @@ function showSuccessModal() {
 function showDailyCompleteModal() {
     if (typeof gtag === 'function') {
         gtag('event', 'daily_complete', {
+            'game_version': 'standard',
             'total_score': totalScore,
             'rounds_completed': roundResults.length,
             'game_day': dailyNumber
@@ -952,37 +938,85 @@ function showDailyCompleteModal() {
     }
     
     var summary = "";
-    var totalGuesses = 0;
     
     if (roundResults.length > 0) {
-        summary += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: center; max-width: 300px; margin: 0 auto;">';
+        var result = roundResults[0]; // Single word game
+        var guessCountText = result.score === 0 ? 
+            "Failed - used all 10 guesses" : 
+            "Solved in " + result.guesses + " guess" + (result.guesses === 1 ? '' : 'es');
         
-        for (var i = 0; i < roundResults.length; i++) {
-            var result = roundResults[i];
-            totalGuesses += result.guesses;
+        document.getElementById("guessCountLine").textContent = guessCountText;
+        
+        // Show winning word as clickable link
+        var wordDisplay = '<a href="https://www.dictionary.com/browse/' + result.word.toLowerCase() + '" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 600;">' + result.word + '</a>';
+        document.getElementById("winningWordDisplay").innerHTML = wordDisplay;
+        
+        // Fetch and display definition
+        fetchWordDefinition(result.word, function(defData) {
+            var defElement = document.getElementById("winningWordDefinition");
+            var creditElement = document.getElementById("definitionCredit");
             
-            summary += '<div style="text-align: left;"><a href="https://www.dictionary.com/browse/' + result.word.toLowerCase() + '" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 600;">' + result.word + '</a></div>';
-            
-            if (result.score === 0) {
-                summary += '<div style="text-align: right; color: #e53e3e;">Skipped</div>';
+            if (defData && defData.word) {
+                var defHTML = '<strong>' + defData.word + '</strong>';
+                if (defData.phonetic) {
+                    defHTML += ' | ' + defData.phonetic;
+                }
+                if (defData.partOfSpeech) {
+                    defHTML += ' | <em>' + defData.partOfSpeech + '</em>';
+                }
+                defHTML += '<br>' + defData.definition;
+                
+                defElement.innerHTML = defHTML;
+                creditElement.innerHTML = '<a href="https://dictionaryapi.dev/" target="_blank" style="color: #888; text-decoration: none;">Powered by Free Dictionary API</a>';
             } else {
-                summary += '<div style="text-align: right; color: #666;">' + result.guesses + ' guess' + (result.guesses === 1 ? '' : 'es') + '</div>';
+                defElement.innerHTML = '';
+                creditElement.innerHTML = '';
             }
+        });
+        
+        // Collect all guessed words
+        var allGuesses = [];
+        var feedbackDiv = document.getElementById("feedback");
+        var allLines = feedbackDiv.querySelectorAll('.feedback-line');
+        allLines.forEach(function(line) {
+            var wordSpan = line.querySelector('.feedback-word');
+            if (wordSpan) {
+                var word = wordSpan.textContent;
+                if (word && word !== 'GUESS') { // Skip placeholder
+                    allGuesses.push(word);
+                }
+            }
+        });
+        
+        // Show guessed words as links
+        if (allGuesses.length > 1) {
+            summary += '<div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">';
+            summary += '<div style="font-size: 0.9em; color: #666; margin-bottom: 10px;">All guesses:</div>';
+            summary += '<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">';
+            allGuesses.forEach(function(word) {
+                summary += '<a href="https://www.dictionary.com/browse/' + word.toLowerCase() + '" target="_blank" style="color: #667eea; text-decoration: underline; font-size: 0.9em;">' + word + '</a>';
+            });
+            summary += '</div></div>';
         }
-        
-        summary += '<div style="text-align: left; font-weight: 700; color: #667eea; border-top: 2px solid #ddd; padding-top: 10px; margin-top: 5px;">TOTAL GUESSES</div>';
-        summary += '<div style="text-align: right; font-weight: 700; color: #667eea; border-top: 2px solid #ddd; padding-top: 10px; margin-top: 5px;">' + totalGuesses + '</div>';
-        
-        summary += '</div>';
         
         // Add cross-promotion
         summary += '<div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; font-size: 0.9em; color: #666;">';
         summary += '<p>Want more challenge right now?<br><span class="cross-promo-link" onclick="showComingSoon(event)" style="color: #667eea; text-decoration: underline; font-weight: 600; cursor: pointer;">Directionary PRO</span> - unlimited 3-word puzzles</p>';
         summary += '</div>';
     } else {
-        summary = "No rounds completed<br>";
+        summary = "No game completed<br>";
+        document.getElementById("guessCountLine").textContent = "";
     }
-    document.getElementById("roundSummary").innerHTML = summary;
+    
+    // Insert summary after definition (or in place if no definition yet)
+    setTimeout(function() {
+        var defCredit = document.getElementById("definitionCredit");
+        if (defCredit && defCredit.parentNode) {
+            var summaryDiv = document.createElement('div');
+            summaryDiv.innerHTML = summary;
+            defCredit.parentNode.insertBefore(summaryDiv, defCredit.nextSibling);
+        }
+    }, 100);
     
     showComeBackMessage();
     
@@ -1009,19 +1043,19 @@ function showComeBackMessage() {
     }
     
     document.getElementById("guessInput").style.display = "none";
-    document.querySelector(".button-group").style.display = "none";
+    document.getElementById("submitBtn").style.display = "none";
     
     var feedbackDiv = document.getElementById("feedback");
     feedbackDiv.innerHTML = '<div id="countdownTimer" style="text-align: center; padding: 25px 30px; font-size: 2em; color: #00ff41; font-weight: 700; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 15px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5), 0 4px 15px rgba(0,0,0,0.3); font-family: \'Courier New\', Courier, monospace; letter-spacing: 0.1em; text-shadow: 0 0 10px rgba(0,255,65,0.5), 0 0 20px rgba(0,255,65,0.3);"></div>';
     startCountdownTimer();
     
     if (roundResults.length > 0) {
-        var buttonGroup = document.querySelector(".button-group");
+        // Create words display below countdown
         var wordsDiv = document.createElement("div");
         wordsDiv.id = "todaysWordsDisplay";
         wordsDiv.style.cssText = "text-align: center; padding: 15px 20px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 15px 0;";
         
-        var html = '<h3 style="margin: 0 0 12px 0; color: #667eea; font-size: 1.1em;">Today\'s Words</h3>';
+        var html = '<h3 style="margin: 0 0 12px 0; color: #667eea; font-size: 1.1em;">Today\'s Word</h3>';
         html += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 10px 20px; max-width: 250px; margin: 0 auto;">';
         
         for (var i = 0; i < roundResults.length; i++) {
@@ -1035,7 +1069,14 @@ function showComeBackMessage() {
         
         html += '</div>';
         wordsDiv.innerHTML = html;
-        buttonGroup.parentNode.insertBefore(wordsDiv, buttonGroup.nextSibling);
+        
+        // Insert after feedback div
+        feedbackDiv.parentNode.insertBefore(wordsDiv, feedbackDiv.nextSibling);
+        
+        var scoreMessage = document.createElement("div");
+        scoreMessage.style.cssText = "text-align: center; margin: 20px 0; font-size: 1.2em; font-weight: 600; color: #667eea;";
+        scoreMessage.textContent = "Your Score: " + totalScore + " points";
+        feedbackDiv.parentNode.insertBefore(scoreMessage, wordsDiv);
     }
 }
 
@@ -1109,14 +1150,14 @@ function showAlreadyPlayedMessage() {
     }
     
     document.getElementById("guessInput").style.display = "none";
-    document.querySelector(".button-group").style.display = "none";
+    document.getElementById("submitBtn").style.display = "none";
     
     var feedbackDiv = document.getElementById("feedback");
     feedbackDiv.innerHTML = '<div id="countdownTimer" style="text-align: center; padding: 25px 30px; font-size: 2em; color: #00ff41; font-weight: 700; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 15px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5), 0 4px 15px rgba(0,0,0,0.3); font-family: \'Courier New\', Courier, monospace; letter-spacing: 0.1em; text-shadow: 0 0 10px rgba(0,255,65,0.5), 0 0 20px rgba(0,255,65,0.3);"></div>';
     startCountdownTimer();
     
     if (roundResults.length > 0) {
-        var buttonGroup = document.querySelector(".button-group");
+        // Create words display below countdown
         var wordsDiv = document.createElement("div");
         wordsDiv.style.cssText = "text-align: center; padding: 15px 20px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 15px 0;";
         
@@ -1134,12 +1175,14 @@ function showAlreadyPlayedMessage() {
         
         html += '</div>';
         wordsDiv.innerHTML = html;
-        buttonGroup.parentNode.insertBefore(wordsDiv, buttonGroup.nextSibling);
+        
+        // Insert after feedback div
+        feedbackDiv.parentNode.insertBefore(wordsDiv, feedbackDiv.nextSibling);
         
         var scoreMessage = document.createElement("div");
         scoreMessage.style.cssText = "text-align: center; margin: 20px 0; font-size: 1.2em; font-weight: 600; color: #667eea;";
         scoreMessage.textContent = "Your Score: " + totalScore + " points";
-        wordsDiv.parentNode.insertBefore(scoreMessage, wordsDiv);
+        feedbackDiv.parentNode.insertBefore(scoreMessage, wordsDiv);
     }
 }
 
@@ -1164,7 +1207,7 @@ function generateShareText() {
         }
     }
     
-    text += "\nScore: " + totalScore + " out of 300\n\n";
+    text += "\nScore: " + totalScore + "\n\n";
     text += "#WW2W " + GAME_URL;
     
     return text;
@@ -1182,7 +1225,10 @@ function toggleShare() {
 
 function toggleHelp() {
     if (typeof gtag === 'function') {
-        gtag('event', 'modal_open', {'modal_type': 'help'});
+        gtag('event', 'modal_open', {
+            'game_version': 'standard',
+            'modal_type': 'help'
+        });
     }
     
     closeAllPanels();
@@ -1196,7 +1242,10 @@ function toggleHelp() {
 
 function toggleStats() {
     if (typeof gtag === 'function') {
-        gtag('event', 'modal_open', {'modal_type': 'stats'});
+        gtag('event', 'modal_open', {
+            'game_version': 'standard',
+            'modal_type': 'stats'
+        });
     }
     
     closeAllPanels();
@@ -1211,7 +1260,10 @@ function toggleStats() {
 
 function toggleInfo() {
     if (typeof gtag === 'function') {
-        gtag('event', 'modal_open', {'modal_type': 'about'});
+        gtag('event', 'modal_open', {
+            'game_version': 'standard',
+            'modal_type': 'about'
+        });
     }
     
     closeAllPanels();
@@ -1281,7 +1333,10 @@ function closeStreakPanel() {
 
 function copyToClipboard() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {'method': 'clipboard'});
+        gtag('event', 'share', {
+            'game_version': 'standard',
+            'method': 'clipboard'
+        });
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1292,7 +1347,10 @@ function copyToClipboard() {
 
 function shareToTwitter() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {'method': 'twitter'});
+        gtag('event', 'share', {
+            'game_version': 'standard',
+            'method': 'twitter'
+        });
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1302,7 +1360,10 @@ function shareToTwitter() {
 
 function shareToBluesky() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {'method': 'bluesky'});
+        gtag('event', 'share', {
+            'game_version': 'standard',
+            'method': 'bluesky'
+        });
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1322,7 +1383,10 @@ function shareToBluesky() {
 
 function shareToFacebook() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {'method': 'facebook'});
+        gtag('event', 'share', {
+            'game_version': 'standard',
+            'method': 'facebook'
+        });
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1350,76 +1414,31 @@ function nextWord() {
     newGameLine.className = "new-game-message";
     newGameLine.innerHTML = "◄ ● Round " + currentRound + " of " + maxRounds + " ● ►";
     feedbackDiv.appendChild(newGameLine);
-
-function closeSuccessShowDaily() {
-    // Just close the modal without advancing to next round
-    // Used by X button and Escape key
-    document.getElementById("successModal").style.display = "none";
-}
-
     
     startNewGame();
     saveGameState();
 }
 
 function showZeroScoreModal() {
+    document.getElementById("zeroModalWord").textContent = targetWord;
     document.getElementById("zeroScoreModal").style.display = "flex";
     document.getElementById("guessInput").disabled = true;
     document.getElementById("submitBtn").disabled = true;
-}
-
-       function skipRound() {
-    document.getElementById("zeroScoreModal").style.display = "none";
-    roundResults.push({
-word: targetWord,
-score: 0,
-guesses: guessCount,
-pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "⚫ ⚫ ⚫ ⚫ ⚫"
-    });
-    nextWord();
-}
-
-function giveUp() {
-    document.getElementById("giveUpModal").style.display = "flex";
-    document.getElementById("guessInput").disabled = true;
-    document.getElementById("submitBtn").disabled = true;
-}
-
-function confirmGiveUp() {
-    if (typeof gtag === 'function') {
-        gtag('event', 'give_up', {
-            'round_number': currentRound,
-            'guesses_used': guessCount
-        });
-    }
     
-    document.getElementById("giveUpModal").style.display = "none";
-    
-    var feedbackDiv = document.getElementById("feedback");
-    var giveUpMessage = document.createElement("div");
-    giveUpMessage.className = "new-game-message";
-    giveUpMessage.innerHTML = "The word was: " + targetWord;
-    feedbackDiv.appendChild(giveUpMessage);
-    
-    showDefinition(targetWord);
-    
-    roundResults.push({
+    // Save zero score result
+    var roundData = {
         word: targetWord,
         score: 0,
         guesses: guessCount,
         pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "⚫ ⚫ ⚫ ⚫ ⚫"
-    });
-    
-    setTimeout(() => {
-        nextWord();
-    }, 4000);
+    };
+    roundResults.push(roundData);
 }
 
-function cancelGiveUp() {
-    document.getElementById("giveUpModal").style.display = "none";
-    document.getElementById("guessInput").disabled = false;
-    document.getElementById("submitBtn").disabled = false;
-    document.getElementById("guessInput").focus();
+function closeZeroShowDaily() {
+    document.getElementById("zeroScoreModal").style.display = "none";
+    clearGameState();
+    showDailyCompleteModal();
 }
 
 function closeDuplicateModal() {
@@ -1445,6 +1464,12 @@ function closeDailyModal() {
     document.getElementById("dailyCompleteModal").style.display = "none";
 }
 
+function closeSuccessShowDaily() {
+    document.getElementById("successModal").style.display = "none";
+    clearGameState();
+    showDailyCompleteModal();
+}
+
 function loadStats() {
     var saved = localStorage.getItem('directionary_standard_Stats');
     if (saved) {
@@ -1458,7 +1483,7 @@ function saveStats() {
 
 function updateStats() {
     playerStats.gamesPlayed++;
-    if (roundResults.length === 1) {  // STANDARD: Single word game
+    if (roundResults.length === 3) {
         playerStats.gamesCompleted++;
     }
     playerStats.totalScore += totalScore;
@@ -1684,25 +1709,14 @@ function reloadDevGame() {
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
-        // Skip if user is typing in the guess input
-        var guessInput = document.getElementById('guessInput');
-        if (document.activeElement === guessInput) {
-            return;  // Let the input handle Enter normally
-        }
-        
-        // duplicateWordModal REMOVED - now uses simple error message
-        
         var successModal = document.getElementById('successModal');
         if (successModal && successModal.style.display === 'flex') {
-            e.preventDefault();  // Prevent any focused button from activating
             nextWord();
             return;
         }
         
         var completeModal = document.getElementById('dailyCompleteModal');
         if (completeModal && completeModal.style.display === 'flex') {
-            e.preventDefault();
-            // Enter activates PRIMARY button (View and Share) in BASE 3-round game
             closeDailyModal();
             toggleStats();
             return;
@@ -1710,167 +1724,78 @@ document.addEventListener('keydown', function(e) {
         
         var zeroScoreModal = document.getElementById('zeroScoreModal');
         if (zeroScoreModal && zeroScoreModal.style.display === 'flex') {
-            e.preventDefault();
             skipRound();
             return;
         }
         
-        var giveUpModal = document.getElementById('giveUpModal');
-        if (giveUpModal && giveUpModal.style.display === 'flex') {
-            e.preventDefault();
-            cancelGiveUp();  // Safe action - cancel the give up
-            return;
-        }
-        
-        var placeholderModal = document.getElementById('placeholderModal');
-        if (placeholderModal && placeholderModal.style.display === 'flex') {
-            e.preventDefault();
-            closePlaceholderModal();
-            return;
-        }
-        
-        // Enter key closes panels (Stats, Share, Help, etc.)
-        var statsPanel = document.getElementById('statsPanel');
-        if (statsPanel && statsPanel.style.display === 'flex') {
-            e.preventDefault();  // Prevent any focused button from activating
-            closeStats();
-            return;
-        }
-        
-        var sharePanel = document.getElementById('sharePanel');
-        if (sharePanel && sharePanel.style.display === 'flex') {
-            e.preventDefault();
-            closeShare();
-            return;
-        }
-        
-        var helpPanel = document.getElementById('helpPanel');
-        if (helpPanel && helpPanel.style.display === 'flex') {
-            e.preventDefault();
-            closeHelp();
-            return;
-        }
-        
-        var aboutPanel = document.getElementById('infoPanel');  // Note: infoPanel, not aboutPanel
-        if (aboutPanel && aboutPanel.style.display === 'flex') {
-            e.preventDefault();
-            closeInfo();
-            return;
-        }
-        
-        var streakPanel = document.getElementById('streakPanel');
-        if (streakPanel && streakPanel.style.display === 'flex') {
-            e.preventDefault();
-            closeStreakPanel();
-            return;
-        }
-        
-        var wordDefPanel = document.getElementById('wordDefPanel');
-        if (wordDefPanel && wordDefPanel.style.display === 'flex') {
-            e.preventDefault();
-            closeWordDefPanel();
+        var duplicateModal = document.getElementById('duplicateWordModal');
+        if (duplicateModal && duplicateModal.style.display === 'flex') {
+            closeDuplicateModal();
             return;
         }
     }
     
     if (e.key === 'Escape') {
-        // Escape key closes panels (same pattern as Enter)
         var statsPanel = document.getElementById('statsPanel');
-        if (statsPanel && statsPanel.style.display === 'flex') {
-            closeStats();
-            return;
-        }
-        
-        var sharePanel = document.getElementById('sharePanel');
-        if (sharePanel && sharePanel.style.display === 'flex') {
-            closeShare();
-            return;
-        }
-        
         var helpPanel = document.getElementById('helpPanel');
-        if (helpPanel && helpPanel.style.display === 'flex') {
-            closeHelp();
-            return;
-        }
-        
-        var aboutPanel = document.getElementById('infoPanel');
-        if (aboutPanel && aboutPanel.style.display === 'flex') {
-            closeInfo();
-            return;
-        }
-        
+        var aboutPanel = document.getElementById('aboutPanel');
+        var sharePanel = document.getElementById('sharePanel');
         var streakPanel = document.getElementById('streakPanel');
-        if (streakPanel && streakPanel.style.display === 'flex') {
-            closeStreakPanel();
-            return;
-        }
-        
         var wordDefPanel = document.getElementById('wordDefPanel');
-        if (wordDefPanel && wordDefPanel.style.display === 'flex') {
+        
+        if (statsPanel && statsPanel.style.display === 'flex') {
+            toggleStats();
+        } else if (helpPanel && helpPanel.style.display === 'flex') {
+            toggleHelp();
+        } else if (aboutPanel && aboutPanel.style.display === 'flex') {
+            toggleAbout();
+        } else if (sharePanel && sharePanel.style.display === 'flex') {
+            toggleShare();
+        } else if (streakPanel && streakPanel.style.display === 'flex') {
+            closeStreakPanel();
+        } else if (wordDefPanel && wordDefPanel.style.display === 'flex') {
             closeWordDefPanel();
-            return;
-        }
-        
-        // Escape also closes modals
-        var successModal = document.getElementById('successModal');
-        if (successModal && successModal.style.display === 'flex') {
-            closeSuccessShowDaily();
-            return;
-        }
-        
-        var zeroScoreModal = document.getElementById('zeroScoreModal');
-        if (zeroScoreModal && zeroScoreModal.style.display === 'flex') {
-            skipRound();
-            return;
-        }
-        
-        var giveUpModal = document.getElementById('giveUpModal');
-        if (giveUpModal && giveUpModal.style.display === 'flex') {
-            cancelGiveUp();  // Safe action - cancel the give up
-            return;
-        }
-        
-        // duplicateWordModal REMOVED - now uses simple error message
-        
-        var placeholderModal = document.getElementById('placeholderModal');
-        if (placeholderModal && placeholderModal.style.display === 'flex') {
-            closePlaceholderModal();
-            return;
-        }
-        
-        var dailyCompleteModal = document.getElementById('dailyCompleteModal');
-        if (dailyCompleteModal && dailyCompleteModal.style.display === 'flex') {
-            closeDailyModal();
-            return;
         }
     }
 });
 
-// BACKDROP CLICK TO CLOSE (Universal GUI Standard)
-// Click outside modal/panel to close it
+// BACKDROP CLICK - Click outside modal/panel to close
 document.addEventListener('DOMContentLoaded', function() {
-    // Get all panels and modals
+    // All panels with backdrop close
     var panels = [
-        { element: 'sharePanel', closeFunc: closeShare },
-        { element: 'statsPanel', closeFunc: closeStats },
-        { element: 'helpPanel', closeFunc: closeHelp },
-        { element: 'infoPanel', closeFunc: closeInfo },
-        { element: 'streakPanel', closeFunc: closeStreakPanel },
-        { element: 'wordDefPanel', closeFunc: closeWordDefPanel },
-        { element: 'successModal', closeFunc: closeSuccessShowDaily },
-        { element: 'zeroScoreModal', closeFunc: skipRound },
-        // duplicateWordModal REMOVED - now uses simple error message
-        { element: 'placeholderModal', closeFunc: closePlaceholderModal },
-        { element: 'dailyCompleteModal', closeFunc: closeDailyModal }
+        {id: 'sharePanel', close: closeShare},
+        {id: 'statsPanel', close: closeStats},
+        {id: 'wordDefPanel', close: closeWordDefPanel},
+        {id: 'infoPanel', close: closeInfo},
+        {id: 'helpPanel', close: closeHelp},
+        {id: 'streakPanel', close: closeStreakPanel}
     ];
     
     panels.forEach(function(panel) {
-        var elem = document.getElementById(panel.element);
-        if (elem) {
-            // Click on backdrop (outer div) closes
-            elem.addEventListener('click', function(e) {
-                if (e.target === elem) {
-                    panel.closeFunc();
+        var el = document.getElementById(panel.id);
+        if (el) {
+            el.addEventListener('click', function(e) {
+                if (e.target === el) {
+                    panel.close();
+                }
+            });
+        }
+    });
+    
+    // All modals with backdrop close
+    var modals = [
+        {id: 'successModal', close: function() { document.getElementById('successModal').style.display = 'none'; }},
+        {id: 'dailyCompleteModal', close: closeDailyModal},
+        {id: 'zeroScoreModal', close: function() { document.getElementById('zeroScoreModal').style.display = 'none'; }},
+        {id: 'placeholderModal', close: function() { document.getElementById('placeholderModal').style.display = 'none'; }}
+    ];
+    
+    modals.forEach(function(modal) {
+        var el = document.getElementById(modal.id);
+        if (el) {
+            el.addEventListener('click', function(e) {
+                if (e.target === el) {
+                    modal.close();
                 }
             });
         }
@@ -1878,7 +1803,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 window.nextWord = nextWord;
-window.closeSuccessShowDaily = closeSuccessShowDaily;
+window.confirmGiveUp = confirmGiveUp;
+window.cancelGiveUp = cancelGiveUp;
+window.closeDuplicateModal = closeDuplicateModal;
 window.skipRound = skipRound;
 window.viewResults = viewResults;
 window.closeDailyModal = closeDailyModal;
