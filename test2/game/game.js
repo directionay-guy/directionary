@@ -1665,11 +1665,6 @@ window.onload = function() {
             submitGuess();
         }
     });
-    
-        if (!this.disabled) {
-            giveUp();
-        }
-    });
 };
 
 function reloadDevGame() {
