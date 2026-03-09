@@ -366,9 +366,9 @@ function initGame() {
 }
 
 function startDayChangeChecker() {
-    console.log("Day change checker started - will check every minute for new day");
+    console.log("Day change checker started - will check every 10 seconds for new day");
     
-    setInterval(function() {
+    function checkDay() {
         var currentDay = getLocalGameDay();
         var storedDay = localStorage.getItem('directionary_base_currentDay');
         
@@ -381,12 +381,23 @@ function startDayChangeChecker() {
         storedDay = parseInt(storedDay);
         
         if (currentDay > storedDay) {
-            console.log("New day detected! Old day:", storedDay, "New day:", currentDay);
+            console.log("🌅 New day detected! Old day:", storedDay, "New day:", currentDay);
             console.log("Reloading for fresh puzzle...");
             localStorage.setItem('directionary_base_currentDay', currentDay);
             location.reload();
         }
-    }, 10000);
+    }
+    
+    // Check every 10 seconds during gameplay
+    setInterval(checkDay, 10000);
+    
+    // iOS Safari fix: Check when tab becomes visible (wakes from background/sleep)
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            console.log("👁️ Tab became visible - checking for day change...");
+            checkDay();
+        }
+    });
 }
 
 function startNewGame() {
