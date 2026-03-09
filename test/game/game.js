@@ -1723,6 +1723,13 @@ document.addEventListener('keydown', function(e) {
             return;
         }
         
+        var giveUpModal = document.getElementById('giveUpModal');
+        if (giveUpModal && giveUpModal.style.display === 'flex') {
+            e.preventDefault();
+            cancelGiveUp();  // Safe action - cancel the give up
+            return;
+        }
+        
         var placeholderModal = document.getElementById('placeholderModal');
         if (placeholderModal && placeholderModal.style.display === 'flex') {
             e.preventDefault();
@@ -1822,6 +1829,12 @@ document.addEventListener('keydown', function(e) {
         var zeroScoreModal = document.getElementById('zeroScoreModal');
         if (zeroScoreModal && zeroScoreModal.style.display === 'flex') {
             skipRound();
+            return;
+        }
+        
+        var giveUpModal = document.getElementById('giveUpModal');
+        if (giveUpModal && giveUpModal.style.display === 'flex') {
+            cancelGiveUp();  // Safe action - cancel the give up
             return;
         }
         
