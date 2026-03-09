@@ -270,8 +270,6 @@ function loadWordList() {
             } catch (e) {
                 console.log("Could not load added words:", e);
             }
-            
-            startNewGame();
         })
         .catch(error => {
             console.log("Could not load word list, using fallback:", error);
@@ -308,7 +306,10 @@ function loadWordList() {
             } catch (e) {
                 console.log("Could not load added words:", e);
             }
-            
+        })
+        .finally(function() {
+            // Start game AFTER word loading completes (success or fallback)
+            // This prevents startNewGame errors from triggering fallback mode
             startNewGame();
         });
 }
@@ -460,12 +461,23 @@ function startNewGame() {
     updateScoreDisplay();
     updateAlphabetDisplay();
     
-    document.getElementById('definitionBox').style.display = 'none';
-    document.getElementById("guessInput").value = "";
-    document.getElementById("guessInput").disabled = false;
-    document.getElementById("submitBtn").disabled = false;
-    document.getElementById("giveUpBtn").disabled = false;
-    document.getElementById("guessInput").focus();
+    // Safe element access with null checks
+    var definitionBox = document.getElementById('definitionBox');
+    if (definitionBox) {
+        definitionBox.style.display = 'none';
+    }
+    
+    var guessInput = document.getElementById("guessInput");
+    if (guessInput) {
+        guessInput.value = "";
+        guessInput.disabled = false;
+        guessInput.focus();
+    }
+    
+    var submitBtn = document.getElementById("submitBtn");
+    if (submitBtn) {
+        submitBtn.disabled = false;
+    }
 }
 
 function submitGuess() {
@@ -894,7 +906,6 @@ function showSuccessModal() {
     
     document.getElementById("guessInput").disabled = true;
     document.getElementById("submitBtn").disabled = true;
-    document.getElementById("giveUpBtn").disabled = true;
 }
 
 function showDailyCompleteModal() {
@@ -1356,7 +1367,6 @@ function showZeroScoreModal() {
     document.getElementById("zeroScoreModal").style.display = "flex";
     document.getElementById("guessInput").disabled = true;
     document.getElementById("submitBtn").disabled = true;
-    document.getElementById("giveUpBtn").disabled = true;
 }
 
        function skipRound() {
@@ -1374,7 +1384,6 @@ function giveUp() {
     document.getElementById("giveUpModal").style.display = "flex";
     document.getElementById("guessInput").disabled = true;
     document.getElementById("submitBtn").disabled = true;
-    document.getElementById("giveUpBtn").disabled = true;
 }
 
 function confirmGiveUp() {
@@ -1411,7 +1420,6 @@ function cancelGiveUp() {
     document.getElementById("giveUpModal").style.display = "none";
     document.getElementById("guessInput").disabled = false;
     document.getElementById("submitBtn").disabled = false;
-    document.getElementById("giveUpBtn").disabled = false;
     document.getElementById("guessInput").focus();
 }
 
@@ -1658,7 +1666,6 @@ window.onload = function() {
         }
     });
     
-    document.getElementById("giveUpBtn").addEventListener("click", function() {
         if (!this.disabled) {
             giveUp();
         }
@@ -1878,9 +1885,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 window.nextWord = nextWord;
 window.closeSuccessShowDaily = closeSuccessShowDaily;
-window.confirmGiveUp = confirmGiveUp;
-window.cancelGiveUp = cancelGiveUp;
-window.closeDuplicateModal = closeDuplicateModal;
 window.skipRound = skipRound;
 window.viewResults = viewResults;
 window.closeDailyModal = closeDailyModal;
