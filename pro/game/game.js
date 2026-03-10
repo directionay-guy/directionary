@@ -1781,7 +1781,6 @@ function updateStatsDisplay() {
         proplusArchiveHtml += '<div class="archive-year">' + year + ': ' + formatNumber(data.total) + '</div>';
     }
     document.getElementById('proplusYearlyArchive').innerHTML = proplusArchiveHtml || '<div class="no-archive">No archived years</div>';
-}
     
     // First played date
     if (playerStats.firstPlayed) {
