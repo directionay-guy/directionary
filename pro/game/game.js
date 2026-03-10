@@ -2501,6 +2501,20 @@ window.openStreakPanel = openStreakPanel;
 window.closeStreakPanel = closeStreakPanel;
 window.showWordDefinitionModal = showWordDefinitionModal;
 window.closeWordDefPanel = closeWordDefPanel;
+window.showPlaceholderModal = showPlaceholderModal;
+window.closePlaceholderModal = closePlaceholderModal;
+window.closeSuccessModal = closeSuccessModal;
+window.closeZeroScoreModal = closeZeroScoreModal;
+window.switchToProMode = switchToProMode;
+window.switchToProPlusMode = switchToProPlusMode;
+window.confirmModeSwitch = confirmModeSwitch;
+window.cancelModeSwitch = cancelModeSwitch;
+window.showAbandonModal = showAbandonModal;
+window.closeAbandonModal = closeAbandonModal;
+window.confirmAbandonGame = confirmAbandonGame;
+window.updateDevConsole = updateDevConsole;
+window.playAgainSameMode = playAgainSameMode;
+window.playAgainOtherMode = playAgainOtherMode;
 
 // Show "Coming Soon!" when PRO link is clicked
 function showComingSoon(event) {
