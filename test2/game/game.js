@@ -748,6 +748,8 @@ function showAlphaHint(position) {
     if (alphahintText) {
         var ordinals = ['1st', '2nd', '3rd', '4th', '5th'];
         alphahintText.textContent = 'Options for the ' + ordinals[position] + ' letter';
+        // Enlarge text like in placeholder demo
+        alphahintText.classList.add('demo-active');
     }
 }
 
@@ -774,6 +776,8 @@ function clearAlphaHint() {
     var alphahintText = document.querySelector('.alphahint-text');
     if (alphahintText) {
         alphahintText.textContent = 'AlphaHint™: Hold arrow for letter options';
+        // Remove enlarged state
+        alphahintText.classList.remove('demo-active');
     }
 }
 
@@ -1194,7 +1198,13 @@ function generateShareText() {
     }
     text += "\n\n";
     
-    for (var i = 0; i < roundResults.length; i++) {
+    // Show last 5 guesses only (or all if ≤5)
+    var startIndex = 0;
+    if (roundResults.length > 5) {
+        startIndex = roundResults.length - 5;
+    }
+    
+    for (var i = startIndex; i < roundResults.length; i++) {
         var result = roundResults[i];
         if (result && result.pattern) {
             var sharePattern = result.pattern
@@ -1727,7 +1737,7 @@ document.addEventListener('keydown', function(e) {
         
         var dailyCompleteModal = document.getElementById('dailyCompleteModal');
         if (dailyCompleteModal && dailyCompleteModal.style.display === 'flex') {
-            closeDailyModal();
+            viewResults(); // Opens share panel (happy path)
             return;
         }
         
