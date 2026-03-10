@@ -1429,12 +1429,13 @@ function toggleInfo() {
 }
 
 function closeAllPanels() {
-    document.getElementById("sharePanel").style.display = "none";
-    document.getElementById("helpPanel").style.display = "none";
-    document.getElementById("statsPanel").style.display = "none";
-    document.getElementById("infoPanel").style.display = "none";
-    document.getElementById("streakPanel").style.display = "none";
-    document.getElementById("wordDefPanel").style.display = "none";
+    var panels = ['sharePanel', 'helpPanel', 'statsPanel', 'infoPanel', 'streakPanel', 'wordDefPanel'];
+    panels.forEach(function(panelId) {
+        var panel = document.getElementById(panelId);
+        if (panel) {
+            panel.style.display = "none";
+        }
+    });
 }
 
 function showShare() {
@@ -2461,7 +2462,7 @@ document.addEventListener('DOMContentLoaded', function() {
         {id: 'zeroScoreModal', close: closeZeroScoreModal},
         {id: 'giveUpModal', close: cancelGiveUp},
         {id: 'modeSwitchModal', close: cancelModeSwitch},
-        {id: 'abandonGameModal', close: cancelAbandonGame},
+        {id: 'abandonGameModal', close: closeAbandonModal},
         {id: 'placeholderModal', close: closePlaceholderModal}
     ];
     
