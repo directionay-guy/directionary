@@ -539,7 +539,7 @@ function submitGuess() {
             word: targetWord,
             score: currentScore,
             guesses: guessCount,
-            pattern: guessCount > 1 ? guessHistory[guessHistory.length - 2] : guessHistory[0]
+            patterns: guessHistory.slice() // Store ALL patterns (copy of array)
         };
         roundResults.push(roundData);
         
@@ -1198,16 +1198,19 @@ function generateShareText() {
     }
     text += "\n\n";
     
-    // Show last 5 guesses only (or all if ≤5)
-    var startIndex = 0;
-    if (roundResults.length > 5) {
-        startIndex = roundResults.length - 5;
-    }
-    
-    for (var i = startIndex; i < roundResults.length; i++) {
-        var result = roundResults[i];
-        if (result && result.pattern) {
-            var sharePattern = result.pattern
+    // Standard game: single round with multiple guess patterns
+    if (roundResults.length > 0) {
+        var result = roundResults[0]; // Single word game
+        var patterns = result.patterns || []; // Array of all guess patterns
+        
+        // Show last 5 guesses only (or all if ≤5)
+        var startIndex = 0;
+        if (patterns.length > 5) {
+            startIndex = patterns.length - 5;
+        }
+        
+        for (var i = startIndex; i < patterns.length; i++) {
+            var sharePattern = patterns[i]
                 .replace(/●/g, "🟢")
                 .replace(/►/g, "▶️")
                 .replace(/▶/g, "▶️")
@@ -1440,7 +1443,7 @@ function showZeroScoreModal() {
         word: targetWord,
         score: 0,
         guesses: guessCount,
-        pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "⚫ ⚫ ⚫ ⚫ ⚫"
+        patterns: guessHistory.slice() // Store ALL patterns (copy of array)
     };
     roundResults.push(roundData);
 }
