@@ -1,3 +1,37 @@
+/*
+ * BASE GAME (3-ROUND VERSION) - STARTING POINT FOR PRO/PRO+ REBUILD
+ * 
+ * This is the working Base game code with 3 rounds (maxRounds = 3).
+ * Standard game (1 round) is working perfectly and will be deployed separately.
+ * Use this 3-round base as the foundation to build Pro/Pro+ features.
+ * 
+ * WHAT THIS HAS (WORKING):
+ * ✅ 3 rounds per game
+ * ✅ Score tracking across rounds
+ * ✅ Word loading and validation
+ * ✅ Guess feedback with arrows
+ * ✅ AlphaHint (bold letters)
+ * ✅ UI elements (placeholder, round indicator)
+ * ✅ Stats tracking
+ * ✅ Share functionality
+ * 
+ * MODIFICATIONS NEEDED FOR PRO:
+ * 1. Add gameMode variable: 'pro' or 'proplus'
+ * 2. Add playCountProPlus variable (keep existing playCount for Pro)
+ * 3. Modify word formula to use different multipliers:
+ *    - Pro: ((day + playCount) * 613) + (round * 997)
+ *    - Pro+: ((day + playCountProPlus) * 751) + (round * 1009)
+ * 4. Add Pro+ arrow validation logic (validateProPlusGuess function)
+ * 5. Add AlphaHint disable for Pro+ mode
+ * 6. Replace countdown timer with Play Again buttons in showDailyCompleteModal()
+ * 7. Add mode toggle buttons in HTML header
+ * 8. Add dev console for testing (3-column layout)
+ * 9. Add clearGameState() call in resetGame() to prevent saved game restoration
+ * 10. Add performModeSwitch() function for Pro ↔ Pro+ switching
+ * 
+ * See PRO-GAME-REBUILD-HANDOFF.md for complete requirements and testing checklist.
+ */
+
 // Game state variables
 var targetWord = "";
 var answerWords = [];
@@ -12,9 +46,12 @@ var roundResults = [];
 var guessHistory = [];
 var guessedWordsThisRound = new Set();
 var lastFetchedDefinition = null; // Store definition for reuse
-var playCount = 0; // PRO MODE: Track number of games played for word selection
-var playCountProPlus = 0; // PRO+ MODE: Separate counter for hard mode
-var gameMode = 'pro'; // 'pro' or 'proplus' - Default to Pro mode
+
+// Pro/Pro+ Mode Variables
+var gameMode = 'pro'; // 'pro' or 'proplus'
+var playCount = 0; // Play counter for Pro mode
+var playCountProPlus = 0; // Separate counter for Pro+ mode
+var pendingModeSwitch = null; // Track pending mode switch during confirmation
 
 // Get game day number based on LOCAL midnight (like Wordle)
 function getLocalGameDay() {
@@ -33,14 +70,88 @@ var usingFallbackMode = false; // Track if using fallback words for testing
 
 // Stats variables
 var playerStats = {
-    gamesPlayed: 0,
-    gamesCompleted: 0,
-    totalScore: 0,
-    bestScore: 0,
-    currentStreak: 0,
-    maxStreak: 0,
-    lastPlayed: null
+    // First play dates (shown under headers)
+    firstProGameDate: null,      // "March 7, 2026" or null
+    firstProPlusGameDate: null,  // "March 10, 2026" or null
+    
+    // PRO MODE STATS
+    pro: {
+        gamesPlayed: 0,
+        bestScore: 0,
+        totalScore: 0,
+        
+        // Time window totals
+        dailyTotal: 0,
+        weeklyTotal: 0,
+        monthlyTotal: 0,
+        annualTotal: 0,
+        
+        // Tracking (to know when to reset)
+        currentDay: null,     // "2026-03-07"
+        currentWeek: null,    // "2026-W10"
+        currentMonth: null,   // "2026-03"
+        currentYear: null,    // "2026"
+        
+        // Archive previous years
+        yearlyArchive: {}  // { "2025": { total: 189450, games: 342 } }
+    },
+    
+    // PRO+ MODE STATS
+    proplus: {
+        gamesPlayed: 0,
+        bestScore: 0,
+        totalScore: 0,
+        
+        // Time window totals
+        dailyTotal: 0,
+        weeklyTotal: 0,
+        monthlyTotal: 0,
+        annualTotal: 0,
+        
+        // Tracking (to know when to reset)
+        currentDay: null,
+        currentWeek: null,
+        currentMonth: null,
+        currentYear: null,
+        
+        // Archive previous years
+        yearlyArchive: {}
+    }
 };
+
+// Helper functions for time periods
+function formatDateForDisplay(dateStr) {
+    if (!dateStr) return "Not played yet";
+    var parts = dateStr.split('-');
+    var d = new Date(parts[0], parts[1] - 1, parts[2]);
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+}
+
+function getDateKey() {
+    var d = new Date();
+    return d.getFullYear() + '-' + 
+           String(d.getMonth() + 1).padStart(2, '0') + '-' + 
+           String(d.getDate()).padStart(2, '0');
+}
+
+function getWeekKey() {
+    var d = new Date();
+    var startOfYear = new Date(d.getFullYear(), 0, 1);
+    var days = Math.floor((d - startOfYear) / (24 * 60 * 60 * 1000));
+    var weekNum = Math.ceil((days + startOfYear.getDay() + 1) / 7);
+    return d.getFullYear() + '-W' + String(weekNum).padStart(2, '0');
+}
+
+function getMonthKey() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+function getYearKey() {
+    return new Date().getFullYear().toString();
+}
+
 
 // Fallback word list
 var fallbackWords = ['ABOUT','ABOVE','ACTOR','ADMIT','ADOPT','ADULT','AFTER','AGAIN','AGENT','AGREE','AHEAD','ALARM','ALBUM','ALERT','ALIKE','ALIVE','ALLOW','ALONE','ALONG','ALTER','ANGEL','ANGER','ANGLE','ANGRY','APART','APPLE','APPLY','ARENA','ARGUE','ARISE','ARRAY','ASIDE','ASSET','AVOID','AWAKE','AWARD','AWARE','BAKER','BASIC','BEACH','BEGAN','BEING','BELOW','BENCH','BIRTH','BLACK','BLAME','BLANK','BLAST','BLEND','BLIND','BLOCK','BLOOD','BOARD','BOOST','BOUND','BRAIN','BRAND','BRAVE','BREAD','BREAK','BRICK','BRIEF','BRING','BROAD','BROKE','BROWN','BUILD','BUILT','BUYER','CABLE','CARRY','CATCH','CAUSE','CHAIN','CHAIR','CHAOS','CHARM','CHART','CHASE','CHEAP','CHECK','CHEST','CHIEF','CHILD','CHOSE','CLAIM','CLASS','CLEAN','CLEAR','CLIMB','CLOCK','CLOSE','CLOUD','COACH','COAST','COULD','COUNT','COURT','COVER','CRAFT','CRASH','CRAZY','CREAM','CRIME','CROSS','CROWD','CROWN','CURVE','CYCLE','DAILY','DANCE','DEALT','DEATH','DELAY','DEPTH','DIGIT','DIRTY','DOUBT','DOZEN','DRAFT','DRAMA','DRANK','DRAWN','DREAM','DRESS','DRINK','DRIVE','EARLY','EARTH','EIGHT','ELECT','EMPTY','ENEMY','ENJOY','ENTER','ENTRY','EQUAL','ERROR','EVENT','EVERY','EXACT','EXIST','EXTRA','FAITH','FALSE','FAULT','FIELD','FIFTH','FIFTY','FIGHT','FINAL','FIRST','FIXED','FLASH','FLEET','FLOAT','FLOOR','FOCUS','FORCE','FORTY','FOUND','FRAME','FRESH','FRONT','FRUIT','FULLY','FUNNY','GIANT','GIVEN','GLASS','GLOBE','GOING','GRACE','GRADE','GRAIN','GRAND','GRANT','GRASS','GREAT','GREEN','GROSS','GROUP','GROWN','GUARD','GUESS','GUEST','GUIDE','HABIT','HAPPY','HEART','HEAVY','HELLO','HORSE','HOTEL','HOUSE','HUMAN','IDEAL','IMAGE','IMPLY','INDEX','INNER','INPUT','ISSUE','JOINT','JUDGE','KNOWN','LABEL','LARGE','LATER','LAUGH','LAYER','LEARN','LEAST','LEAVE','LEGAL','LEMON','LEVEL','LIGHT','LIMIT','LOCAL','LOGIC','LOWER','LUCKY','LUNCH','MAGIC','MAJOR','MAKER','MARCH','MATCH','MAYBE','MAYOR','MEANT','MEDIA','METAL','MIGHT','MINOR','MINUS','MIXED','MODEL','MONEY','MONTH','MORAL','MOTOR','MOUNT','MOUSE','MOUTH','MOVED','MOVIE','MUSIC'];
@@ -167,20 +278,12 @@ function updateAlphabetDisplay() {
     var alphabetDiv = document.getElementById("alphabetDisplay");
     if (!alphabetDiv) return;
     
-    // PRO+ MODE: Don't bold used letters
-    if (gameMode === 'proplus') {
-        var spans = alphabetDiv.getElementsByTagName("span");
-        for (var i = 0; i < spans.length; i++) {
-            spans[i].classList.remove("used-letter");
-        }
-        return;
-    }
-    
     var spans = alphabetDiv.getElementsByTagName("span");
     for (var i = 0; i < spans.length; i++) {
         var span = spans[i];
         var letter = span.textContent;
-        if (usedLetters.has(letter)) {
+        // Only bold used letters in Pro mode, not Pro+
+        if (gameMode !== 'proplus' && usedLetters.has(letter)) {
             span.classList.add("used-letter");
         } else {
             span.classList.remove("used-letter");
@@ -190,7 +293,7 @@ function updateAlphabetDisplay() {
 
 // Beta Banner Management
 function showBetaBannerIfEnabled() {
-    var betaMode = localStorage.getItem('directionary_pro_betaMode') === 'true';
+    var betaMode = localStorage.getItem('directionary_base_betaMode') === 'true';
     
     if (betaMode) {
         // Check if banner already exists
@@ -216,14 +319,9 @@ function showBetaBannerIfEnabled() {
 }
 
 function loadWordList() {
-    console.log(">>> loadWordList CALLED - fetching words.json...");
     fetch('game/words.json')
-        .then(response => {
-            console.log(">>> loadWordList: words.json fetched successfully");
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            console.log(">>> loadWordList: words.json parsed successfully");
             if (data.answers && data.answers.length > 0) {
                 answerWords = data.answers.map(w => w.toUpperCase());
                 console.log("Loaded " + answerWords.length + " answer words");
@@ -235,7 +333,7 @@ function loadWordList() {
             
             // Merge words added via Word Management Dashboard (admin.html)
             try {
-                var addedWordsData = localStorage.getItem('directionary_pro_addedWords');
+                var addedWordsData = localStorage.getItem('directionary_base_addedWords');
                 if (addedWordsData) {
                     var addedWords = JSON.parse(addedWordsData);
                     
@@ -263,9 +361,7 @@ function loadWordList() {
                 console.log("Could not load added words:", e);
             }
             
-            console.log(">>> loadWordList: Calling startNewGame...");
             startNewGame();
-            console.log(">>> loadWordList: startNewGame returned");
         })
         .catch(error => {
             console.log("Could not load word list, using fallback:", error);
@@ -275,7 +371,7 @@ function loadWordList() {
             console.log("FALLBACK MODE ENABLED - words will use rotation");
             
             try {
-                var addedWordsData = localStorage.getItem('directionary_pro_addedWords');
+                var addedWordsData = localStorage.getItem('directionary_base_addedWords');
                 if (addedWordsData) {
                     var addedWords = JSON.parse(addedWordsData);
                     
@@ -308,7 +404,7 @@ function loadWordList() {
 }
 
 function initGame() {
-    console.log("Initializing Directionary...");
+    console.log("Initializing Directionary PRO...");
     
     // Load play counts for both modes
     var storedPlayCountPro = localStorage.getItem('directionary_pro_playCount');
@@ -332,9 +428,7 @@ function initGame() {
         startDayChangeChecker();
     }
     
-    if (!devMode && !testMode) {
-        // PRO MODE: No daily limit - unlimited plays allowed
-    }
+    // PRO MODE: No daily limit - unlimited plays allowed
     
     currentRound = 1;
     totalScore = 0;
@@ -360,10 +454,10 @@ function startDayChangeChecker() {
     
     setInterval(function() {
         var currentDay = getLocalGameDay();
-        var storedDay = localStorage.getItem('directionary_pro_currentDay');
+        var storedDay = localStorage.getItem('directionary_base_currentDay');
         
         if (!storedDay) {
-            localStorage.setItem('directionary_pro_currentDay', currentDay);
+            localStorage.setItem('directionary_base_currentDay', currentDay);
             console.log("🔧 No stored day - initialized to current day:", currentDay);
             return;
         }
@@ -373,17 +467,14 @@ function startDayChangeChecker() {
         if (currentDay > storedDay) {
             console.log("New day detected! Old day:", storedDay, "New day:", currentDay);
             console.log("Reloading for fresh puzzle...");
-            localStorage.setItem('directionary_pro_currentDay', currentDay);
+            localStorage.setItem('directionary_base_currentDay', currentDay);
             location.reload();
         }
     }, 10000);
 }
 
 function startNewGame() {
-    console.log(">>> >>> startNewGame CALLED <<<");
-    console.log(">>> Starting round " + currentRound + "...");
-    console.log(">>> Game mode:", gameMode);
-    console.log(">>> Play counts - Pro:", playCount, "Pro+:", playCountProPlus);
+    console.log("Starting round " + currentRound + "...");
     
     if (currentRound === 1) {
         var savedState = loadGameState();
@@ -401,19 +492,19 @@ function startNewGame() {
         var modeLabel = testMode ? "TEST MODE" : (devMode ? "DEV MODE" : "FALLBACK MODE");
         console.log(modeLabel + ": Random word index:", wordIndex);
     } else {
-        // Use correct playCount and formula based on mode
+        // Pro/Pro+ word formulas (different for each mode)
         if (gameMode === 'proplus') {
             wordIndex = (((dailyNumber + playCountProPlus) * 751) + (currentRound * 1009)) % wordPool.length;
-            console.log("PRO+ MODE: Word index:", wordIndex, "(day:", dailyNumber, "playCount:", playCountProPlus, "round:", currentRound, ")");
+            console.log("PRO+ MODE: Word index:", wordIndex, "| Day:", dailyNumber, "| PlayCount:", playCountProPlus, "| Round:", currentRound);
         } else {
             wordIndex = (((dailyNumber + playCount) * 613) + (currentRound * 997)) % wordPool.length;
-            console.log("PRO MODE: Word index:", wordIndex, "(day:", dailyNumber, "playCount:", playCount, "round:", currentRound, ")");
+            console.log("PRO MODE: Word index:", wordIndex, "| Day:", dailyNumber, "| PlayCount:", playCount, "| Round:", currentRound);
         }
     }
     
     var overrides = {};
     try {
-        var overrideData = localStorage.getItem('directionary_pro_wordOverrides');
+        var overrideData = localStorage.getItem('directionary_base_wordOverrides');
         if (overrideData) {
             overrides = JSON.parse(overrideData);
         }
@@ -432,12 +523,6 @@ function startNewGame() {
         console.log("Using OVERRIDE word for Round " + currentRound + ":", targetWord);
     } else {
         targetWord = wordPool[wordIndex];
-        console.log("=== TARGET WORD ASSIGNED ===");
-        console.log("Mode:", gameMode);
-        console.log("Word Pool Index:", wordIndex);
-        console.log("Target Word:", targetWord);
-        console.log("Formula used: dailyNumber=" + dailyNumber + ", playCount=" + (gameMode === 'proplus' ? playCountProPlus : playCount) + ", round=" + currentRound);
-        console.log("===========================");
     }
     
     if (devMode || testMode) {
@@ -445,10 +530,7 @@ function startNewGame() {
     }
     
     if (devMode) {
-        var wordSource = answerWords.length > 0 ? "JSON words" : "Fallback list";
-        var devDisplay = document.getElementById("devModeDisplay");
-        devDisplay.style.display = "block";
-        devDisplay.innerHTML = '🎯 DEV MODE: <span id="devTargetWord">' + targetWord + '</span> <span style="color: #666; font-size: 0.9em;">(from ' + wordSource + ')</span> <button onclick="reloadDevGame()" style="margin-left: 10px; background: #667eea; color: white; border: none; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9em; font-weight: 600;">🔄 New Game</button>';
+        updateDevConsole();
     }
     
     if (testMode) {
@@ -469,72 +551,65 @@ function startNewGame() {
     document.getElementById("submitBtn").disabled = false;
     document.getElementById("giveUpBtn").disabled = false;
     document.getElementById("guessInput").focus();
+}
+
+// DEV CONSOLE: Show Pro and Pro+ words side-by-side
+function updateDevConsole() {
+    var wordPool = answerWords.length > 0 ? answerWords : fallbackWords;
+    var wordSource = answerWords.length > 0 ? "JSON words" : "Fallback list";
     
-    // Clean up any old round indicators and ensure current one is visible
-    var feedbackDiv = document.getElementById('feedback');
-    var allIndicators = feedbackDiv.querySelectorAll('.new-game-message');
+    // Calculate Pro word
+    var proIndex = (((dailyNumber + playCount) * 613) + (currentRound * 997)) % wordPool.length;
+    var proWord = wordPool[proIndex];
     
-    // Remove old round indicators from previous rounds
-    allIndicators.forEach(function(indicator) {
-        if (indicator.id && indicator.id.match(/^round\d+Indicator$/)) {
-            var indicatorRound = parseInt(indicator.id.replace('round', '').replace('Indicator', ''));
-            if (indicatorRound !== currentRound) {
-                indicator.remove();
-                console.log("startNewGame: Removed old round indicator:", indicator.id);
-            }
-        }
-    });
+    // Calculate Pro+ word
+    var proPlusIndex = (((dailyNumber + playCountProPlus) * 751) + (currentRound * 1009)) % wordPool.length;
+    var proPlusWord = wordPool[proPlusIndex];
     
-    // Ensure current round indicator exists
-    var roundIndicatorId = "round" + currentRound + "Indicator";
-    var roundIndicator = document.getElementById(roundIndicatorId);
-    if (!roundIndicator) {
-        console.warn("startNewGame: Round indicator missing for Round", currentRound, "- adding it");
-        var newIndicator = document.createElement('div');
-        newIndicator.className = 'new-game-message';
-        newIndicator.id = roundIndicatorId;
-        newIndicator.innerHTML = '◄ ● Round ' + currentRound + ' of ' + maxRounds + ' ● ►';
-        feedbackDiv.appendChild(newIndicator);
-    }
+    var devDisplay = document.getElementById("devModeDisplay");
+    devDisplay.style.display = "block";
     
-    // Update dev console
-    if (typeof updateDevConsole === 'function') {
-        updateDevConsole();
-    }
+    var html = '<div style="display: grid; grid-template-columns: auto 1fr 1fr; gap: 10px; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 8px; font-size: 0.9em;">';
+    html += '<div style="font-weight: 700; color: #667eea;">Round ' + currentRound + ':</div>';
+    html += '<div style="text-align: center;"><div style="font-size: 0.8em; color: #666; margin-bottom: 4px;">PRO' + (gameMode === 'pro' ? ' ⬅ Active' : '') + '</div><div style="font-weight: 700; font-size: 1.1em; color: ' + (gameMode === 'pro' ? '#667eea' : '#999') + ';">' + proWord + '</div><div style="font-size: 0.75em; color: #999;">Play #' + playCount + '</div></div>';
+    html += '<div style="text-align: center;"><div style="font-size: 0.8em; color: #666; margin-bottom: 4px;">PRO+' + (gameMode === 'proplus' ? ' ⬅ Active' : '') + '</div><div style="font-weight: 700; font-size: 1.1em; color: ' + (gameMode === 'proplus' ? '#667eea' : '#999') + ';">' + proPlusWord + '</div><div style="font-size: 0.75em; color: #999;">Play #' + playCountProPlus + '</div></div>';
+    html += '</div>';
+    html += '<div style="text-align: center; margin-top: 8px; font-size: 0.85em; color: #666;">' + wordSource + ' | Day ' + dailyNumber + '</div>';
+    html += '<div style="text-align: center; margin-top: 8px;"><button onclick="reloadDevGame()" style="background: #667eea; color: white; border: none; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9em; font-weight: 600;">🔄 New Game</button></div>';
     
-    console.log(">>> >>> startNewGame COMPLETED <<<");
+    devDisplay.innerHTML = html;
 }
 
 // PRO+ MODE: Validate guess respects arrow constraints
 function validateProPlusGuess(guess) {
-    if (gameMode !== 'proplus' || guessHistory.length === 0) {
-        return true; // Not in Pro+ mode or no previous guesses
-    }
+    if (gameMode !== 'proplus') return true; // Not in Pro+ mode
+    if (guessHistory.length === 0) return true; // No previous guesses yet
     
-    // Check the most recent guess for constraints
     var lastGuess = guessHistory[guessHistory.length - 1];
-    if (!lastGuess || !lastGuess.feedback) return true;
+    if (!lastGuess) return true;
+    
+    // Get the last guess word and feedback
+    var feedbackDiv = document.getElementById("feedback");
+    var lastLine = feedbackDiv.querySelector('.feedback-line:first-child');
+    if (!lastLine) return true;
+    
+    var lastWord = lastLine.querySelector('.feedback-word').textContent;
+    var symbols = lastLine.querySelectorAll('.overlay-symbol');
     
     for (var i = 0; i < 5; i++) {
+        var lastLetter = lastWord[i];
         var newLetter = guess[i];
-        var feedback = lastGuess.feedback[i];
-        var oldLetter = lastGuess.word[i];
+        var symbol = symbols[i] ? symbols[i].textContent.trim() : '';
         
-        if (feedback === '●') {
-            // Must use same letter
-            if (newLetter !== oldLetter) {
-                return false;
-            }
-        } else if (feedback === '►') {
-            // Must use later letter
-            if (newLetter <= oldLetter) {
-                return false;
-            }
-        } else if (feedback === '◄') {
-            // Must use earlier letter
-            if (newLetter >= oldLetter) {
-                return false;
-            }
+        if (symbol === '●' || symbol === '🟢') {
+            // Must keep same letter
+            if (newLetter !== lastLetter) return false;
+        } else if (symbol === '►' || symbol === '▶') {
+            // Target is AFTER this letter - new guess must be later in alphabet
+            if (newLetter <= lastLetter) return false;
+        } else if (symbol === '◄' || symbol === '◀') {
+            // Target is BEFORE this letter - new guess must be earlier in alphabet
+            if (newLetter >= lastLetter) return false;
         }
     }
     
@@ -563,16 +638,16 @@ function submitGuess() {
         return;
     }
     
-    // PRO+ MODE: Validate guess respects arrow constraints
-    if (!validateProPlusGuess(guess)) {
-        showError("Guess must follow arrow clues in Pro+");
+    if (guessedWordsThisRound.has(guess)) {
+        document.getElementById("duplicateWordModal").style.display = "flex";
         input.value = "";
         input.focus();
         return;
     }
     
-    if (guessedWordsThisRound.has(guess)) {
-        document.getElementById("duplicateWordModal").style.display = "flex";
+    // Pro+ Mode: Validate guess respects arrow constraints
+    if (!validateProPlusGuess(guess)) {
+        showError("Pro+ Mode: Your guess must follow the arrow clues from your previous guess.");
         input.value = "";
         input.focus();
         return;
@@ -582,10 +657,7 @@ function submitGuess() {
 
     guessCount++;
     
-    // Track first guess for lenient streak system
-    if (!devMode && !testMode && guessCount === 1) {
-        trackFirstGuess();
-    }
+    // PRO MODE: No streak tracking - unlimited play model
     
     usedLetters.clear();
     
@@ -612,13 +684,7 @@ function submitGuess() {
         }
     }
     spacedFeedback = spacedFeedback.trim();
-    
-    // Store both word and feedback for Pro+ validation
-    guessHistory.push({
-        word: guess,
-        feedback: feedback,
-        display: spacedFeedback
-    });
+    guessHistory.push(spacedFeedback);
 
     var feedbackDiv = document.getElementById("feedback");
     var feedbackLine = document.createElement("div");
@@ -644,30 +710,6 @@ function submitGuess() {
         placeholder.remove();
     }
     
-    // Ensure round indicator is visible (for any round)
-    // First, remove ANY old round indicators that might exist
-    var allIndicators = feedbackDiv.querySelectorAll('.new-game-message');
-    allIndicators.forEach(function(indicator) {
-        // Remove if it's a round indicator (has an ID like "roundXIndicator")
-        if (indicator.id && indicator.id.match(/^round\d+Indicator$/)) {
-            var indicatorRound = parseInt(indicator.id.replace('round', '').replace('Indicator', ''));
-            // Keep only the current round's indicator
-            if (indicatorRound !== currentRound) {
-                indicator.remove();
-                console.log("submitGuess: Removed old round indicator:", indicator.id);
-            }
-        }
-    });
-    
-    // Now ensure the current round indicator is at the end
-    var roundIndicatorId = "round" + currentRound + "Indicator";
-    var roundIndicator = document.getElementById(roundIndicatorId);
-    if (roundIndicator) {
-        // Make sure it's at the end of the feedback div
-        feedbackDiv.appendChild(roundIndicator);
-        console.log("submitGuess: Round indicator preserved for Round", currentRound);
-    }
-    
     // Mark all previous guesses as inactive (muted styling)
     var allLines = feedbackDiv.querySelectorAll('.feedback-line');
     allLines.forEach(function(line, index) {
@@ -687,7 +729,7 @@ function submitGuess() {
             word: targetWord,
             score: currentScore,
             guesses: guessCount,
-            pattern: guessCount > 1 ? guessHistory[guessHistory.length - 2].display : guessHistory[0].display
+            pattern: guessCount > 1 ? guessHistory[guessHistory.length - 2] : guessHistory[0]
         };
         roundResults.push(roundData);
         
@@ -715,9 +757,9 @@ function submitGuess() {
 // LENIENT STREAK SYSTEM
 function trackFirstGuess() {
     var today = getLocalGameDay();
-    var gameStartedDay = localStorage.getItem('directionary_pro_gameStartedDay');
-    var gameCompletedDay = localStorage.getItem('directionary_pro_gameCompletedDay');
-    var lastStreakDay = localStorage.getItem('directionary_pro_lastStreakDay');
+    var gameStartedDay = localStorage.getItem('directionary_base_gameStartedDay');
+    var gameCompletedDay = localStorage.getItem('directionary_base_gameCompletedDay');
+    var lastStreakDay = localStorage.getItem('directionary_base_lastStreakDay');
     
     // Check for abandonment from previous day
     if (gameStartedDay && gameStartedDay != today) {
@@ -731,30 +773,28 @@ function trackFirstGuess() {
     }
     
     // Mark game started today
-    localStorage.setItem('directionary_pro_gameStartedDay', today);
-    localStorage.removeItem('directionary_pro_gameCompletedDay');
+    localStorage.setItem('directionary_base_gameStartedDay', today);
+    localStorage.removeItem('directionary_base_gameCompletedDay');
     
     // Increment streak if new day
     if (lastStreakDay != today) {
         playerStats.currentStreak++;
-        localStorage.setItem('directionary_pro_lastStreakDay', today);
+        localStorage.setItem('directionary_base_lastStreakDay', today);
         
         if (playerStats.currentStreak > playerStats.maxStreak) {
             playerStats.maxStreak = playerStats.currentStreak;
         }
         
         saveStats();
-        updateStreakDisplay();
+        // updateStreakDisplay();  // PRO MODE: No streaks - unlimited play model
         console.log("🔥 Streak incremented:", playerStats.currentStreak);
     }
 }
 
 // AlphaHint™ - COMPLETE IMPLEMENTATION
 function attachAlphaHintHandlers() {
-    // PRO+ MODE: Disable AlphaHint entirely
-    if (gameMode === 'proplus') {
-        return;
-    }
+    // AlphaHint not available in Pro+ mode
+    if (gameMode === 'proplus') return;
     
     var feedbackDiv = document.getElementById("feedback");
     var allLines = feedbackDiv.querySelectorAll('.feedback-line');
@@ -901,6 +941,8 @@ function showAlphaHint(position) {
     if (alphahintText) {
         var ordinals = ['1st', '2nd', '3rd', '4th', '5th'];
         alphahintText.textContent = 'Options for the ' + ordinals[position] + ' letter';
+        // Enlarge text like in placeholder demo
+        alphahintText.classList.add('demo-active');
     }
 }
 
@@ -927,6 +969,8 @@ function clearAlphaHint() {
     var alphahintText = document.querySelector('.alphahint-text');
     if (alphahintText) {
         alphahintText.textContent = 'AlphaHint™: Hold arrow for letter options';
+        // Remove enlarged state
+        alphahintText.classList.remove('demo-active');
     }
 }
 
@@ -946,7 +990,6 @@ function showSuccessModal() {
     
     if (typeof gtag === 'function') {
         gtag('event', 'round_complete', {
-            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
             'round_number': currentRound,
             'score': lastRoundScore,
             'guesses_used': roundResults.length > 0 ? roundResults[roundResults.length - 1].guesses : 0,
@@ -1020,51 +1063,48 @@ function showDailyCompleteModal() {
         });
     }
     
-    updateStats();
+    // PRO MODE: No streak tracking - unlimited play model
     
-    if (!devMode && !testMode) {
-        var today = getLocalGameDay();
-        localStorage.setItem('directionary_pro_lastPlayed', today);
-        localStorage.setItem('directionary_pro_gameCompletedDay', today);
-        localStorage.setItem('directionary_pro_dailyState', JSON.stringify({
-            roundResults: roundResults,
-            totalScore: totalScore,
-            completedDate: today
-        }));
-        
-        // Increment correct play count based on mode
-        if (gameMode === 'proplus') {
-            playCountProPlus++;
-            localStorage.setItem('directionary_proplus_playCount', playCountProPlus);
-            console.log("PRO+ MODE: Play count incremented to:", playCountProPlus);
-        } else {
-            playCount++;
-            localStorage.setItem('directionary_pro_playCount', playCount);
-            console.log("PRO MODE: Play count incremented to:", playCount);
-        }
+    // PRO MODE: Increment play count for current mode BEFORE showing buttons
+    if (gameMode === 'proplus') {
+        playCountProPlus++;
+        localStorage.setItem('directionary_proplus_playCount', playCountProPlus);
+        console.log("Pro+ game complete - playCount now:", playCountProPlus);
+    } else {
+        playCount++;
+        localStorage.setItem('directionary_pro_playCount', playCount);
+        console.log("Pro game complete - playCount now:", playCount);
     }
     
-    document.getElementById("finalScore").textContent = totalScore;
+    // Apply Pro+ 2x score multiplier for stats tracking
+    var displayScore = totalScore;
+    if (gameMode === 'proplus') {
+        displayScore = totalScore * 2;
+    }
+    
+    // Update stats with the final score (including Pro+ multiplier)
+    updateStats(displayScore);
+    
+    // Clear game state so Play Again starts fresh
+    clearGameState();
+    if (gameMode === 'proplus') {
+        displayScore = totalScore * 2;
+    }
+    
+    document.getElementById("finalScore").textContent = displayScore;
     
     var modalTitle = document.querySelector("#dailyCompleteModal .success-title");
-    var modeLabel = gameMode === 'proplus' ? 'PRO+' : 'PRO';
-    
     if (totalScore === 0) {
-        modalTitle.textContent = "Game Over - Try Again!";
+        modalTitle.textContent = "Game Over!";
         modalTitle.style.background = "linear-gradient(135deg, #dc3545 0%, #c82333 100%)";
         modalTitle.style.webkitBackgroundClip = "text";
         modalTitle.style.webkitTextFillColor = "transparent";
-        
-        // Reset streak for catastrophic failure
-        if (!devMode && !testMode) {
-            playerStats.currentStreak = 0;
-            saveStats();
-            updateStreakDisplay();
-        }
+    } else if (gameMode === 'proplus') {
+        modalTitle.textContent = "🏆 PRO+ Game Complete!";
     } else if (totalScore < 150) {
-        modalTitle.textContent = modeLabel + " Game Complete";
+        modalTitle.textContent = "PRO Game Complete";
     } else {
-        modalTitle.textContent = "🏆 " + modeLabel + " Game Complete!";
+        modalTitle.textContent = "🏆 PRO Game Complete!";
     }
     
     var summary = "";
@@ -1090,153 +1130,68 @@ function showDailyCompleteModal() {
         summary += '<div style="text-align: right; font-weight: 700; color: #667eea; border-top: 2px solid #ddd; padding-top: 10px; margin-top: 5px;">' + totalGuesses + '</div>';
         
         summary += '</div>';
+        
+        // Pro+ score display (show 2x multiplier)
+        if (gameMode === 'proplus' && totalScore > 0) {
+            summary += '<div style="margin-top: 20px; padding: 15px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 12px;">';
+            summary += '<div style="font-weight: 700; color: #667eea; margin-bottom: 8px;">🏆 PRO+ Bonus</div>';
+            summary += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; max-width: 200px; margin: 0 auto;">';
+            summary += '<div>Base Score:</div><div style="font-weight: 600;">' + totalScore + '</div>';
+            summary += '<div>PRO+ Multiplier:</div><div style="font-weight: 600;">×2</div>';
+            summary += '<div style="border-top: 2px solid #667eea; padding-top: 8px; font-weight: 700; color: #667eea;">Final Score:</div>';
+            summary += '<div style="border-top: 2px solid #667eea; padding-top: 8px; font-weight: 700; color: #667eea;">' + displayScore + '</div>';
+            summary += '</div></div>';
+        }
+        
+        // Add Play Again buttons
+        var currentMode = gameMode === 'proplus' ? 'PRO+' : 'PRO';
+        var otherMode = gameMode === 'proplus' ? 'PRO' : 'PRO+';
+        
+        summary += '<div style="margin-top: 25px; display: flex; flex-direction: column; gap: 12px;">';
+        summary += '<button onclick="playAgainSameMode()" style="padding: 16px 24px; font-size: 1.1em; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">▶ Play Another ' + currentMode + ' Game</button>';
+        summary += '<button onclick="playAgainOtherMode()" style="padding: 14px 24px; font-size: 1em; font-weight: 600; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 12px; cursor: pointer;">Try ' + otherMode + ' Mode</button>';
+        summary += '</div>';
     } else {
         summary = "No rounds completed<br>";
     }
     document.getElementById("roundSummary").innerHTML = summary;
     
-    showPlayAgainButtons();
-    
-    // Update dev console with new play counts
-    if (typeof updateDevConsole === 'function') {
-        updateDevConsole();
-    }
-    
     document.getElementById("dailyCompleteModal").style.display = "flex";
 }
 
-function showPlayAgainButtons() {
-    var instructions = document.querySelector(".instructions-brief");
-    if (!instructions) {
-        instructions = document.querySelector(".instructions");
-    }
-    if (instructions) {
-        var modeLabel = gameMode === 'proplus' ? 'PRO+' : 'PRO';
-        instructions.innerHTML = "<strong>✨ " + modeLabel + " game complete! Play as many times as you want.</strong>";
-        instructions.style.background = "linear-gradient(135deg, #667eea15 0%, #764ba215 100%)";
-    }
-    
-    usedLetters.clear();
-    var alphabetDiv = document.getElementById("alphabetDisplay");
-    if (alphabetDiv) {
-        var spans = alphabetDiv.getElementsByTagName("span");
-        for (var i = 0; i < spans.length; i++) {
-            spans[i].classList.remove("used-letter");
-        }
-    }
-    
-    document.getElementById("guessInput").style.display = "none";
-    document.querySelector(".button-group").style.display = "none";
-    
-    // Create play again buttons instead of countdown
-    var feedbackDiv = document.getElementById("feedback");
-    var currentMode = gameMode === 'proplus' ? 'PRO+' : 'PRO';
-    var otherMode = gameMode === 'proplus' ? 'PRO' : 'PRO+';
-    
-    feedbackDiv.innerHTML = `
-        <div style="display: flex; flex-direction: column; gap: 12px; padding: 20px;">
-            <button onclick="playAgainSameMode()" style="
-                padding: 16px 24px;
-                font-size: 1.1em;
-                font-weight: 700;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border: none;
-                border-radius: 12px;
-                cursor: pointer;
-                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-                transition: all 0.3s ease;
-            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.5)';" 
-               onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)';">
-                ▶ Play Another ${currentMode} Game
-            </button>
-            <button onclick="playAgainOtherMode()" style="
-                padding: 14px 24px;
-                font-size: 1em;
-                font-weight: 600;
-                background: white;
-                color: #667eea;
-                border: 2px solid #667eea;
-                border-radius: 12px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-            " onmouseover="this.style.background='rgba(102, 126, 234, 0.1)';" 
-               onmouseout="this.style.background='white';">
-                Try ${otherMode} Mode
-            </button>
-        </div>
-    `;
-    
-    if (roundResults.length > 0) {
-        var buttonGroup = document.querySelector(".button-group");
-        var wordsDiv = document.createElement("div");
-        wordsDiv.id = "yourWordsDisplay";
-        wordsDiv.style.cssText = "text-align: center; padding: 15px 20px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 15px 0;";
-        
-        var html = '<h3 style="margin: 0 0 12px 0; color: #667eea; font-size: 1.1em;">Your Words</h3>';
-        html += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 10px 20px; max-width: 250px; margin: 0 auto;">';
-        
-        for (var i = 0; i < roundResults.length; i++) {
-            var word = roundResults[i].word;
-            var guesses = roundResults[i].guesses;
-            var dictUrl = 'https://www.dictionary.com/browse/' + word.toLowerCase();
-            
-            html += '<div style="text-align: left;"><a href="' + dictUrl + '" target="_blank" style="text-decoration: underline; color: #667eea; font-weight: 600; font-size: 1.1em;">' + word + '</a></div>';
-            html += '<div style="text-align: right; color: #666; font-size: 0.95em;">' + guesses + ' guess' + (guesses !== 1 ? 'es' : '') + '</div>';
-        }
-        
-        html += '</div>';
-        wordsDiv.innerHTML = html;
-        buttonGroup.parentNode.insertBefore(wordsDiv, buttonGroup.nextSibling);
-    }
-}
-
 function playAgainSameMode() {
-    try {
-        console.log("=== PLAY AGAIN SAME MODE BUTTON CLICKED ===");
-        console.log("Current mode:", gameMode);
-        console.log("Current playCount (Pro):", playCount);
-        console.log("Current playCount (Pro+):", playCountProPlus);
-        
-        console.log("Step 1: Closing daily modal...");
-        closeDailyModal();
-        console.log("Step 1: Modal closed");
-        
-        console.log("Step 2: Calling resetGame...");
-        resetGame();
-        console.log("Step 2: resetGame completed");
-        
-        console.log("=== PLAY AGAIN SAME MODE COMPLETED ===");
-    } catch (error) {
-        console.error("ERROR in playAgainSameMode:", error);
-        alert("Error starting new game: " + error.message);
+    console.log("Play Again: Same mode (" + gameMode + ")");
+    
+    // Close modal
+    document.getElementById("dailyCompleteModal").style.display = "none";
+    
+    // Play counts already incremented in showDailyCompleteModal
+    // Just reset and start new game
+    resetGame();
+    
+    if (typeof gtag === 'function') {
+        gtag('event', 'play_again_same_mode', {
+            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
+            'play_count': gameMode === 'proplus' ? playCountProPlus : playCount
+        });
     }
 }
 
 function playAgainOtherMode() {
-    try {
-        var targetMode = gameMode === 'proplus' ? 'pro' : 'proplus';
-        console.log("=== PLAY AGAIN OTHER MODE BUTTON CLICKED ===");
-        console.log("Switching from", gameMode, "to", targetMode);
-        console.log("Current playCount (Pro):", playCount);
-        console.log("Current playCount (Pro+):", playCountProPlus);
-        
-        console.log("Step 1: Closing daily modal...");
-        closeDailyModal();
-        console.log("Step 1: Modal closed");
-        
-        console.log("Step 2: Switching mode to", targetMode);
-        performModeSwitch(targetMode);
-        console.log("Step 2: Mode switched");
-        
-        console.log("Step 3: Calling resetGame...");
-        resetGame();
-        console.log("Step 3: resetGame completed");
-        
-        console.log("=== PLAY AGAIN OTHER MODE COMPLETED ===");
-    } catch (error) {
-        console.error("ERROR in playAgainOtherMode:", error);
-        alert("Error starting new game: " + error.message);
+    console.log("Play Again: Switching to other mode");
+    
+    // Close modal
+    document.getElementById("dailyCompleteModal").style.display = "none";
+    
+    // Switch to other mode
+    var newMode = (gameMode === 'proplus') ? 'pro' : 'proplus';
+    performModeSwitch(newMode);
+    
+    if (typeof gtag === 'function') {
+        gtag('event', 'play_again_switch_mode', {
+            'from_mode': gameMode,
+            'to_mode': newMode
+        });
     }
 }
 
@@ -1300,7 +1255,7 @@ function startCountdownTimer() {
             console.log("⏰ Midnight reached! Reloading for new puzzle...");
             // Set to TOMORROW's day (current + 1) since we're reloading into the new day
             var tomorrowDay = getLocalGameDay() + 1;
-            localStorage.setItem('directionary_pro_currentDay', tomorrowDay);
+            localStorage.setItem('directionary_base_currentDay', tomorrowDay);
             location.reload();
             return;
         }
@@ -1324,7 +1279,7 @@ function startCountdownTimer() {
 
 function showAlreadyPlayedMessage() {
     loadStats();
-    var savedState = localStorage.getItem('directionary_pro_dailyState');
+    var savedState = localStorage.getItem('directionary_base_dailyState');
     if (savedState) {
         var state = JSON.parse(savedState);
         roundResults = state.roundResults || [];
@@ -1352,7 +1307,7 @@ function showAlreadyPlayedMessage() {
         }
     }
     
-    updateStreakDisplay();
+    // updateStreakDisplay();  // PRO MODE: No streaks - unlimited play model
     
     // Hide AlphaHint instruction text since game is complete
     var alphahintText = document.querySelector(".alphahint-text");
@@ -1396,12 +1351,9 @@ function showAlreadyPlayedMessage() {
 }
 
 function generateShareText() {
-    var modeLabel = gameMode === 'proplus' ? 'PRO+' : 'PRO';
-    var text = "Directionary " + modeLabel + " #" + (dailyNumber % 1000);
-    
-    if (playerStats.currentStreak > 0) {
-        text += " - 🔥 " + playerStats.currentStreak + " day streak";
-    }
+    // PRO MODE: Show mode in share text, no streak (unlimited play model)
+    var modeLabel = gameMode === 'proplus' ? ' PRO+' : ' PRO';
+    var text = "Directionary" + modeLabel + " #" + (dailyNumber % 1000);
     text += "\n\n";
     
     for (var i = 0; i < roundResults.length; i++) {
@@ -1435,10 +1387,7 @@ function toggleShare() {
 
 function toggleHelp() {
     if (typeof gtag === 'function') {
-        gtag('event', 'modal_open', {
-            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
-            'modal_type': 'help'
-        });
+        gtag('event', 'modal_open', {'modal_type': 'help'});
     }
     
     closeAllPanels();
@@ -1452,10 +1401,7 @@ function toggleHelp() {
 
 function toggleStats() {
     if (typeof gtag === 'function') {
-        gtag('event', 'modal_open', {
-            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
-            'modal_type': 'stats'
-        });
+        gtag('event', 'modal_open', {'modal_type': 'stats'});
     }
     
     closeAllPanels();
@@ -1470,10 +1416,7 @@ function toggleStats() {
 
 function toggleInfo() {
     if (typeof gtag === 'function') {
-        gtag('event', 'modal_open', {
-            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
-            'modal_type': 'about'
-        });
+        gtag('event', 'modal_open', {'modal_type': 'about'});
     }
     
     closeAllPanels();
@@ -1543,10 +1486,7 @@ function closeStreakPanel() {
 
 function copyToClipboard() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {
-            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
-            'method': 'clipboard'
-        });
+        gtag('event', 'share', {'method': 'clipboard'});
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1557,10 +1497,7 @@ function copyToClipboard() {
 
 function shareToTwitter() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {
-            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
-            'method': 'twitter'
-        });
+        gtag('event', 'share', {'method': 'twitter'});
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1570,10 +1507,7 @@ function shareToTwitter() {
 
 function shareToBluesky() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {
-            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
-            'method': 'bluesky'
-        });
+        gtag('event', 'share', {'method': 'bluesky'});
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1593,10 +1527,7 @@ function shareToBluesky() {
 
 function shareToFacebook() {
     if (typeof gtag === 'function') {
-        gtag('event', 'share', {
-            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
-            'method': 'facebook'
-        });
+        gtag('event', 'share', {'method': 'facebook'});
     }
     
     var shareText = document.getElementById("sharePreview").textContent;
@@ -1620,24 +1551,10 @@ function nextWord() {
     document.getElementById("feedback").innerHTML = "";
     
     var feedbackDiv = document.getElementById("feedback");
-    
-    // Clean up any lingering round indicators from previous rounds (safety check)
-    var allIndicators = document.querySelectorAll('.new-game-message');
-    allIndicators.forEach(function(indicator) {
-        if (indicator.id && indicator.id.match(/^round\d+Indicator$/)) {
-            indicator.remove();
-            console.log("nextWord: Cleaned up lingering indicator:", indicator.id);
-        }
-    });
-    
-    // Create new round indicator
     var newGameLine = document.createElement("div");
     newGameLine.className = "new-game-message";
-    newGameLine.id = "round" + currentRound + "Indicator"; // Add ID for each round
     newGameLine.innerHTML = "◄ ● Round " + currentRound + " of " + maxRounds + " ● ►";
     feedbackDiv.appendChild(newGameLine);
-    
-    console.log("nextWord: Round indicator added for Round", currentRound);
     
     startNewGame();
     saveGameState();
@@ -1653,15 +1570,21 @@ function showZeroScoreModal() {
        function skipRound() {
     document.getElementById("zeroScoreModal").style.display = "none";
     roundResults.push({
-        word: targetWord,
-        score: 0,
-        guesses: guessCount,
-        pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1].display : "⚫ ⚫ ⚫ ⚫ ⚫"
+word: targetWord,
+score: 0,
+guesses: guessCount,
+pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "⚫ ⚫ ⚫ ⚫ ⚫"
     });
     nextWord();
 }
 
 function giveUp() {
+    // Pro+ Mode: Cannot skip rounds
+    if (gameMode === 'proplus') {
+        console.log("Pro+ Mode: Skipping not allowed");
+        return;
+    }
+    
     document.getElementById("giveUpModal").style.display = "flex";
     document.getElementById("guessInput").disabled = true;
     document.getElementById("submitBtn").disabled = true;
@@ -1671,7 +1594,6 @@ function giveUp() {
 function confirmGiveUp() {
     if (typeof gtag === 'function') {
         gtag('event', 'give_up', {
-            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
             'round_number': currentRound,
             'guesses_used': guessCount
         });
@@ -1691,7 +1613,7 @@ function confirmGiveUp() {
         word: targetWord,
         score: 0,
         guesses: guessCount,
-        pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1].display : "⚫ ⚫ ⚫ ⚫ ⚫"
+        pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "⚫ ⚫ ⚫ ⚫ ⚫"
     });
     
     setTimeout(() => {
@@ -1721,6 +1643,16 @@ function closePlaceholderModal() {
     document.getElementById("guessInput").focus();
 }
 
+function closeSuccessModal() {
+    document.getElementById("successModal").style.display = "none";
+    document.getElementById("guessInput").focus();
+}
+
+function closeZeroScoreModal() {
+    document.getElementById("zeroScoreModal").style.display = "none";
+    document.getElementById("guessInput").focus();
+}
+
 function viewResults() {
     document.getElementById("dailyCompleteModal").style.display = "none";
     toggleShare();
@@ -1731,39 +1663,181 @@ function closeDailyModal() {
 }
 
 function loadStats() {
-    var saved = localStorage.getItem('directionary_pro_Stats');
+    var saved = localStorage.getItem('directionary_base_Stats');
     if (saved) {
         playerStats = JSON.parse(saved);
     }
 }
 
 function saveStats() {
-    localStorage.setItem('directionary_pro_Stats', JSON.stringify(playerStats));
+    localStorage.setItem('directionary_base_Stats', JSON.stringify(playerStats));
 }
 
-function updateStats() {
-    playerStats.gamesPlayed++;
-    if (roundResults.length === 3) {
-        playerStats.gamesCompleted++;
-    }
-    playerStats.totalScore += totalScore;
-    playerStats.bestScore = Math.max(playerStats.bestScore, totalScore);
+function updateStats(score) {
+    // Determine which mode's stats to update
+    var modeStats = gameMode === 'proplus' ? playerStats.proplus : playerStats.pro;
+    var firstDateKey = gameMode === 'proplus' ? 'firstProPlusGameDate' : 'firstProGameDate';
     
-    var today = Math.floor(Date.now() / 86400000);
-    playerStats.lastPlayed = today;
+    // Set first played date if not set
+    if (!playerStats[firstDateKey]) {
+        playerStats[firstDateKey] = getDateKey();
+    }
+    
+    // Get current time keys
+    var dayKey = getDateKey();
+    var weekKey = getWeekKey();
+    var monthKey = getMonthKey();
+    var yearKey = getYearKey();
+    
+    // Check if we need to reset any time windows
+    if (modeStats.currentDay !== dayKey) {
+        modeStats.dailyTotal = 0;
+        modeStats.currentDay = dayKey;
+    }
+    
+    if (modeStats.currentWeek !== weekKey) {
+        modeStats.weeklyTotal = 0;
+        modeStats.currentWeek = weekKey;
+    }
+    
+    if (modeStats.currentMonth !== monthKey) {
+        modeStats.monthlyTotal = 0;
+        modeStats.currentMonth = monthKey;
+    }
+    
+    if (modeStats.currentYear !== yearKey) {
+        // Archive previous year before resetting
+        if (modeStats.currentYear && modeStats.annualTotal > 0) {
+            modeStats.yearlyArchive[modeStats.currentYear] = {
+                total: modeStats.annualTotal,
+                games: modeStats.gamesPlayed  // Snapshot of games at year end
+            };
+        }
+        modeStats.annualTotal = 0;
+        modeStats.currentYear = yearKey;
+    }
+    
+    // Add score to all time windows
+    modeStats.dailyTotal += score;
+    modeStats.weeklyTotal += score;
+    modeStats.monthlyTotal += score;
+    modeStats.annualTotal += score;
+    modeStats.totalScore += score;
+    modeStats.gamesPlayed++;
+    
+    // Update best score
+    if (score > modeStats.bestScore) {
+        modeStats.bestScore = score;
+    }
     
     saveStats();
     updateStatsDisplay();
-    updateStreakDisplay();
 }
 
 function updateStatsDisplay() {
-    document.getElementById('statGamesPlayed').textContent = playerStats.gamesPlayed;
-    document.getElementById('statBestScore').textContent = playerStats.bestScore;
-    var avg = playerStats.gamesPlayed > 0 ? Math.round(playerStats.totalScore / playerStats.gamesPlayed) : 0;
-    document.getElementById('statAvgScore').textContent = avg;
-    document.getElementById('statStreak').textContent = playerStats.currentStreak;
-    document.getElementById('statMaxStreak').textContent = playerStats.maxStreak;
+    // Format number with commas
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    
+    // Update first played dates
+    document.getElementById('firstProDate').textContent = formatDateForDisplay(playerStats.firstProGameDate);
+    document.getElementById('firstProPlusDate').textContent = formatDateForDisplay(playerStats.firstProPlusGameDate);
+    
+    // PRO MODE stats
+    document.getElementById('proGamesPlayed').textContent = formatNumber(playerStats.pro.gamesPlayed);
+    document.getElementById('proBestScore').textContent = formatNumber(playerStats.pro.bestScore);
+    document.getElementById('proTotalScore').textContent = formatNumber(playerStats.pro.totalScore);
+    document.getElementById('proDailyTotal').textContent = formatNumber(playerStats.pro.dailyTotal);
+    document.getElementById('proWeeklyTotal').textContent = formatNumber(playerStats.pro.weeklyTotal);
+    document.getElementById('proMonthlyTotal').textContent = formatNumber(playerStats.pro.monthlyTotal);
+    document.getElementById('proAnnualTotal').textContent = formatNumber(playerStats.pro.annualTotal);
+    
+    // PRO MODE yearly archive
+    var proArchiveHtml = '';
+    var proYears = Object.keys(playerStats.pro.yearlyArchive).sort().reverse();
+    for (var i = 0; i < proYears.length; i++) {
+        var year = proYears[i];
+        var data = playerStats.pro.yearlyArchive[year];
+        proArchiveHtml += '<div class="archive-year">' + year + ': ' + formatNumber(data.total) + '</div>';
+    }
+    document.getElementById('proYearlyArchive').innerHTML = proArchiveHtml || '<div class="no-archive">No archived years</div>';
+    
+    // PRO+ MODE stats
+    document.getElementById('proplusGamesPlayed').textContent = formatNumber(playerStats.proplus.gamesPlayed);
+    document.getElementById('proplusBestScore').textContent = formatNumber(playerStats.proplus.bestScore);
+    document.getElementById('proplusTotalScore').textContent = formatNumber(playerStats.proplus.totalScore);
+    document.getElementById('proplusDailyTotal').textContent = formatNumber(playerStats.proplus.dailyTotal);
+    document.getElementById('proplusWeeklyTotal').textContent = formatNumber(playerStats.proplus.weeklyTotal);
+    document.getElementById('proplusMonthlyTotal').textContent = formatNumber(playerStats.proplus.monthlyTotal);
+    document.getElementById('proplusAnnualTotal').textContent = formatNumber(playerStats.proplus.annualTotal);
+    
+    // PRO+ MODE yearly archive
+    var proplusArchiveHtml = '';
+    var proplusYears = Object.keys(playerStats.proplus.yearlyArchive).sort().reverse();
+    for (var i = 0; i < proplusYears.length; i++) {
+        var year = proplusYears[i];
+        var data = playerStats.proplus.yearlyArchive[year];
+        proplusArchiveHtml += '<div class="archive-year">' + year + ': ' + formatNumber(data.total) + '</div>';
+    }
+    document.getElementById('proplusYearlyArchive').innerHTML = proplusArchiveHtml || '<div class="no-archive">No archived years</div>';
+}
+    
+    // First played date
+    if (playerStats.firstPlayed) {
+        document.getElementById('statFirstPlayed').textContent = formatDate(playerStats.firstPlayed);
+    }
+    
+    // Daily total (today)
+    var dayKey = getDateKey();
+    var dailyStats = playerStats.daily[dayKey] || { games: 0, score: 0, best: 0 };
+    document.getElementById('statDailyGames').textContent = dailyStats.games;
+    document.getElementById('statDailyScore').textContent = dailyStats.score;
+    document.getElementById('statDailyBest').textContent = dailyStats.best;
+    
+    // Weekly total
+    var weekKey = getWeekKey();
+    var weeklyStats = playerStats.weekly[weekKey] || { games: 0, score: 0, best: 0 };
+    document.getElementById('statWeeklyGames').textContent = weeklyStats.games;
+    document.getElementById('statWeeklyScore').textContent = weeklyStats.score;
+    document.getElementById('statWeeklyBest').textContent = weeklyStats.best;
+    
+    // Monthly total
+    var monthKey = getMonthKey();
+    var monthlyStats = playerStats.monthly[monthKey] || { games: 0, score: 0, best: 0 };
+    document.getElementById('statMonthlyGames').textContent = monthlyStats.games;
+    document.getElementById('statMonthlyScore').textContent = monthlyStats.score;
+    document.getElementById('statMonthlyBest').textContent = monthlyStats.best;
+    
+    // Annual totals (all years, newest first)
+    var yearsContainer = document.getElementById('annualStatsContainer');
+    if (yearsContainer) {
+        var years = Object.keys(playerStats.annual).sort().reverse(); // Newest first
+        var html = '';
+        years.forEach(function(year) {
+            var stats = playerStats.annual[year];
+            var avgScore = stats.games > 0 ? Math.round(stats.score / stats.games) : 0;
+            html += '<div class="annual-year-block">';
+            html += '<h4>' + year + '</h4>';
+            html += '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center;">';
+            html += '<div><strong>' + stats.games + '</strong><br>Games</div>';
+            html += '<div><strong>' + stats.score + '</strong><br>Total Score</div>';
+            html += '<div><strong>' + stats.best + '</strong><br>Best Score</div>';
+            html += '</div>';
+            html += '</div>';
+        });
+        yearsContainer.innerHTML = html || '<p style="color: #999;">No annual stats yet</p>';
+    }
+}
+
+function formatDate(dateStr) {
+    // Input: "YYYY-MM-DD", Output: "Jan 15, 2026"
+    var parts = dateStr.split('-');
+    var year = parts[0];
+    var month = parseInt(parts[1]) - 1;
+    var day = parseInt(parts[2]);
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months[month] + ' ' + day + ', ' + year;
 }
 
 function updateStreakDisplay() {
@@ -1789,7 +1863,7 @@ function saveGameState() {
     };
     
     try {
-        localStorage.setItem('directionary_pro_gameState', JSON.stringify(state));
+        localStorage.setItem('directionary_base_gameState', JSON.stringify(state));
         console.log("💾 Game state saved");
     } catch (e) {
         console.log("Could not save game state:", e);
@@ -1800,7 +1874,7 @@ function loadGameState() {
     if (devMode || testMode) return null;
     
     try {
-        var saved = localStorage.getItem('directionary_pro_gameState');
+        var saved = localStorage.getItem('directionary_base_gameState');
         if (!saved) return null;
         
         var state = JSON.parse(saved);
@@ -1811,7 +1885,7 @@ function loadGameState() {
             return null;
         }
         
-        var lastPlayed = localStorage.getItem('directionary_pro_lastPlayed');
+        var lastPlayed = localStorage.getItem('directionary_base_lastPlayed');
         if (lastPlayed == dailyNumber) {
             console.log("Game already completed today");
             return null;
@@ -1827,7 +1901,7 @@ function loadGameState() {
 
 function clearGameState() {
     try {
-        localStorage.removeItem('directionary_pro_gameState');
+        localStorage.removeItem('directionary_base_gameState');
         console.log("🗑️ Game state cleared");
     } catch (e) {
         console.log("Could not clear game state:", e);
@@ -1861,24 +1935,282 @@ function restoreGameState(state) {
     console.log("✅ Game state restored: Round " + currentRound + ", Score " + totalScore + ", " + guessCount + " guesses");
 }
 
+function resetGame() {
+    console.log("resetGame: Starting game reset");
+    
+    // Clear game state variables
+    currentRound = 1;
+    totalScore = 0;
+    guessCount = 0;
+    roundResults = [];
+    guessHistory = [];
+    guessedWordsThisRound.clear();
+    usedLetters.clear();
+    
+    // CRITICAL: Clear saved game state from localStorage
+    // Otherwise startNewGame() will restore old game with wrong mode's word!
+    clearGameState();
+    console.log("resetGame: Saved game state cleared");
+    
+    // Clear UI
+    var feedbackEl = document.getElementById("feedback");
+    if (feedbackEl) feedbackEl.innerHTML = "";
+    
+    var guessInputEl = document.getElementById("guessInput");
+    if (guessInputEl) guessInputEl.value = "";
+    
+    var guessCountEl = document.getElementById("guessCount");
+    if (guessCountEl) guessCountEl.textContent = "0";
+    
+    var currentScoreEl = document.getElementById("currentScore");
+    if (currentScoreEl) currentScoreEl.textContent = "100";
+    
+    var totalScoreEl = document.getElementById("totalScore");
+    if (totalScoreEl) totalScoreEl.textContent = "0";
+    
+    var errorMessageEl = document.getElementById("errorMessage");
+    if (errorMessageEl) errorMessageEl.innerHTML = "";
+    
+    console.log("resetGame: UI elements cleared");
+    
+    // Re-enable input and buttons
+    var inputEl = document.getElementById("guessInput");
+    if (inputEl) inputEl.disabled = false;
+    
+    var submitBtnEl = document.getElementById("submitBtn");
+    if (submitBtnEl) submitBtnEl.disabled = false;
+    
+    var giveUpBtnEl = document.getElementById("giveUpBtn");
+    if (giveUpBtnEl) giveUpBtnEl.disabled = false;
+    
+    console.log("resetGame: Controls re-enabled");
+    
+    // Then load new word
+    console.log("resetGame: Calling loadWordList...");
+    loadWordList();
+}
+
+// MODE SWITCHING FUNCTIONS
+
+function switchToProMode() {
+    if (gameMode === 'pro') return; // Already in Pro mode
+    
+    if (guessCount > 0) {
+        // User has made guesses - show confirmation
+        pendingModeSwitch = 'pro';
+        document.getElementById('modeSwitchModal').style.display = 'flex';
+    } else {
+        // No guesses yet - switch immediately
+        performModeSwitch('pro');
+    }
+}
+
+function switchToProPlusMode() {
+    if (gameMode === 'proplus') return; // Already in Pro+ mode
+    
+    if (guessCount > 0) {
+        // User has made guesses - show confirmation
+        pendingModeSwitch = 'proplus';
+        document.getElementById('modeSwitchModal').style.display = 'flex';
+    } else {
+        // No guesses yet - switch immediately
+        performModeSwitch('proplus');
+    }
+}
+
+function confirmModeSwitch() {
+    console.log("Confirm mode switch clicked, pending mode:", pendingModeSwitch);
+    
+    // Close modal immediately
+    var modal = document.getElementById('modeSwitchModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    
+    // Then perform the switch
+    if (pendingModeSwitch) {
+        performModeSwitch(pendingModeSwitch);
+    }
+    
+    pendingModeSwitch = null;
+    
+    // Focus input after switch
+    setTimeout(function() {
+        document.getElementById("guessInput").focus();
+    }, 100);
+}
+
+function cancelModeSwitch() {
+    console.log("Cancel mode switch clicked");
+    document.getElementById('modeSwitchModal').style.display = 'none';
+    pendingModeSwitch = null;
+    document.getElementById("guessInput").focus();
+}
+
+// ABANDON GAME FUNCTIONS (escape hatch for stuck players)
+
+function showAbandonModal() {
+    console.log("Abandon game modal opened");
+    document.getElementById('abandonGameModal').style.display = 'flex';
+    
+    if (typeof gtag === 'function') {
+        gtag('event', 'abandon_modal_opened', {
+            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
+            'current_round': currentRound,
+            'total_guesses': guessCount,
+            'current_score': currentScore
+        });
+    }
+}
+
+function closeAbandonModal() {
+    console.log("Abandon game modal closed - cancelled");
+    document.getElementById('abandonGameModal').style.display = 'none';
+    document.getElementById("guessInput").focus();
+}
+
+function confirmAbandonGame() {
+    console.log("Abandon game confirmed - restarting");
+    
+    // Close modal
+    document.getElementById('abandonGameModal').style.display = 'none';
+    
+    // Track abandonment (but don't increment play count!)
+    if (typeof gtag === 'function') {
+        gtag('event', 'game_abandoned', {
+            'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
+            'rounds_completed': roundResults.length,
+            'current_round': currentRound,
+            'total_guesses': guessCount,
+            'total_score': totalScore
+        });
+    }
+    
+    // Reset game WITHOUT incrementing play count
+    // This is key: they didn't complete the game, so don't count it
+    console.log("Abandoning game - play count NOT incremented");
+    resetGame();
+}
+
+function performModeSwitch(newMode) {
+    console.log("Performing mode switch from", gameMode, "to", newMode);
+    
+    gameMode = newMode;
+    
+    // Update button states
+    if (newMode === 'pro') {
+        document.getElementById('proModeBtn').classList.add('active');
+        document.getElementById('proPlusModeBtn').classList.remove('active');
+        document.getElementById('modeDescription').innerHTML = '<strong>PRO Mode:</strong> AlphaHint enabled, bold letters, any guess allowed';
+    } else {
+        document.getElementById('proPlusModeBtn').classList.add('active');
+        document.getElementById('proModeBtn').classList.remove('active');
+        document.getElementById('modeDescription').innerHTML = '<strong>PRO+ Mode:</strong> ⭐ <strong>DOUBLE POINTS</strong> ⭐ | No AlphaHint | No skipping rounds | Must follow arrow clues';
+    }
+    
+    // Update AlphaHint text
+    updateAlphaHintText(newMode);
+    
+    // Update Skip button styling
+    updateSkipButtonStyling(newMode);
+    
+    // ALWAYS reload the game when switching modes (word formula is different!)
+    console.log("Mode switch: Reloading game with new word formula...");
+    resetGame();
+    
+    // Update alphabet display (safe to do immediately)
+    updateAlphabetDisplay();
+}
+
+function updateSkipButtonStyling(mode) {
+    var giveUpBtn = document.getElementById('giveUpBtn');
+    if (giveUpBtn) {
+        if (mode === 'proplus') {
+            giveUpBtn.style.textDecoration = 'line-through';
+            giveUpBtn.style.opacity = '0.5';
+            giveUpBtn.style.cursor = 'not-allowed';
+            giveUpBtn.title = 'Skipping rounds not allowed in Pro+ mode';
+        } else {
+            giveUpBtn.style.textDecoration = 'none';
+            giveUpBtn.style.opacity = '1';
+            giveUpBtn.style.cursor = 'pointer';
+            giveUpBtn.title = '';
+        }
+    }
+}
+
+function updateAlphaHintText(mode) {
+    var alphaHintText = document.querySelector('.alphahint-text');
+    if (alphaHintText) {
+        if (mode === 'proplus') {
+            alphaHintText.textContent = 'AlphaHint™: Not available in Pro+ mode';
+            alphaHintText.style.color = '#999';
+            alphaHintText.style.fontStyle = 'italic';
+        } else {
+            alphaHintText.textContent = 'AlphaHint™: Hold arrow for letter options';
+            alphaHintText.style.color = '#666';
+            alphaHintText.style.fontStyle = 'normal';
+        }
+    }
+}
+
 window.onload = function() {
     console.log("Directionary loading... [Version: Jan 18, 2026 - Phase 1 Master Base]");
     loadStats();
-    updateStreakDisplay();
+    // updateStreakDisplay();  // PRO MODE: No streaks - unlimited play model
     initGame();
     
-    // Initialize mode description and AlphaHint text for default Pro mode
-    updateAlphaHintText('pro');
-    
-    // Attach placeholder event handlers
-    attachPlaceholderHandlers();
-    
-    // Initialize dev console
-    setTimeout(function() {
-        if (typeof updateDevConsole === 'function') {
-            updateDevConsole();
-        }
-    }, 500);
+    // Placeholder dots demo - highlight AlphaHint text when held
+    var placeholder = document.getElementById("placeholderGuess");
+    if (placeholder) {
+        var placeholderDots = placeholder.querySelectorAll('.symbol-with-letter');
+        var alphahintText = document.querySelector('.alphahint-text');
+        
+        placeholderDots.forEach(function(dot) {
+            // Mouse events
+            dot.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                if (alphahintText) {
+                    alphahintText.classList.add('demo-active');
+                }
+            });
+            
+            dot.addEventListener('mouseup', function() {
+                if (alphahintText) {
+                    alphahintText.classList.remove('demo-active');
+                }
+            });
+            
+            dot.addEventListener('mouseleave', function() {
+                if (alphahintText) {
+                    alphahintText.classList.remove('demo-active');
+                }
+            });
+            
+            // Touch events
+            dot.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                if (alphahintText) {
+                    alphahintText.classList.add('demo-active');
+                }
+            });
+            
+            dot.addEventListener('touchend', function() {
+                if (alphahintText) {
+                    alphahintText.classList.remove('demo-active');
+                }
+            });
+            
+            dot.addEventListener('touchcancel', function() {
+                if (alphahintText) {
+                    alphahintText.classList.remove('demo-active');
+                }
+            });
+            
+            // Add cursor pointer to show it's interactive
+            dot.style.cursor = 'pointer';
+        });
+    }
     
     // Input validation - only allow A-Z letters
     var guessInput = document.getElementById("guessInput");
@@ -1935,7 +2267,18 @@ function reloadDevGame() {
 }
 
 document.addEventListener('keydown', function(e) {
+    // ENTER KEY - Check input first, then handle modals/panels
     if (e.key === 'Enter') {
+        var guessInput = document.getElementById('guessInput');
+        
+        // If input has focus and is enabled, let it submit naturally
+        if (guessInput && document.activeElement === guessInput && !guessInput.disabled) {
+            return;
+        }
+        
+        e.preventDefault(); // Prevent any default Enter behavior
+        
+        // Check all modals (in priority order)
         var successModal = document.getElementById('successModal');
         if (successModal && successModal.style.display === 'flex') {
             nextWord();
@@ -1944,8 +2287,7 @@ document.addEventListener('keydown', function(e) {
         
         var completeModal = document.getElementById('dailyCompleteModal');
         if (completeModal && completeModal.style.display === 'flex') {
-            closeDailyModal();
-            toggleStats();
+            // Don't auto-close - has Play Again buttons
             return;
         }
         
@@ -1955,35 +2297,185 @@ document.addEventListener('keydown', function(e) {
             return;
         }
         
-        var duplicateModal = document.getElementById('duplicateWordModal');
-        if (duplicateModal && duplicateModal.style.display === 'flex') {
-            closeDuplicateModal();
+        var giveUpModal = document.getElementById('giveUpModal');
+        if (giveUpModal && giveUpModal.style.display === 'flex') {
+            cancelGiveUp();
+            return;
+        }
+        
+        var modeSwitchModal = document.getElementById('modeSwitchModal');
+        if (modeSwitchModal && modeSwitchModal.style.display === 'flex') {
+            cancelModeSwitch();
+            return;
+        }
+        
+        var abandonModal = document.getElementById('abandonGameModal');
+        if (abandonModal && abandonModal.style.display === 'flex') {
+            closeAbandonModal();
+            return;
+        }
+        
+        var placeholderModal = document.getElementById('placeholderModal');
+        if (placeholderModal && placeholderModal.style.display === 'flex') {
+            closePlaceholderModal();
+            return;
+        }
+        
+        // Check all panels
+        var statsPanel = document.getElementById('statsPanel');
+        if (statsPanel && statsPanel.style.display === 'flex') {
+            closeStats();
+            return;
+        }
+        
+        var helpPanel = document.getElementById('helpPanel');
+        if (helpPanel && helpPanel.style.display === 'flex') {
+            closeHelp();
+            return;
+        }
+        
+        var infoPanel = document.getElementById('infoPanel');
+        if (infoPanel && infoPanel.style.display === 'flex') {
+            closeInfo();
+            return;
+        }
+        
+        var sharePanel = document.getElementById('sharePanel');
+        if (sharePanel && sharePanel.style.display === 'flex') {
+            closeShare();
+            return;
+        }
+        
+        var wordDefPanel = document.getElementById('wordDefPanel');
+        if (wordDefPanel && wordDefPanel.style.display === 'flex') {
+            closeWordDefPanel();
             return;
         }
     }
     
+    // ESCAPE KEY - Close any open modal/panel using close() functions
     if (e.key === 'Escape') {
-        var statsPanel = document.getElementById('statsPanel');
-        var helpPanel = document.getElementById('helpPanel');
-        var aboutPanel = document.getElementById('aboutPanel');
-        var sharePanel = document.getElementById('sharePanel');
-        var streakPanel = document.getElementById('streakPanel');
-        var wordDefPanel = document.getElementById('wordDefPanel');
+        e.preventDefault();
         
+        // Check modals first (higher priority)
+        var successModal = document.getElementById('successModal');
+        if (successModal && successModal.style.display === 'flex') {
+            closeSuccessModal();
+            return;
+        }
+        
+        var completeModal = document.getElementById('dailyCompleteModal');
+        if (completeModal && completeModal.style.display === 'flex') {
+            closeDailyModal();
+            return;
+        }
+        
+        var zeroScoreModal = document.getElementById('zeroScoreModal');
+        if (zeroScoreModal && zeroScoreModal.style.display === 'flex') {
+            closeZeroScoreModal();
+            return;
+        }
+        
+        var giveUpModal = document.getElementById('giveUpModal');
+        if (giveUpModal && giveUpModal.style.display === 'flex') {
+            cancelGiveUp();
+            return;
+        }
+        
+        var modeSwitchModal = document.getElementById('modeSwitchModal');
+        if (modeSwitchModal && modeSwitchModal.style.display === 'flex') {
+            cancelModeSwitch();
+            return;
+        }
+        
+        var abandonModal = document.getElementById('abandonGameModal');
+        if (abandonModal && abandonModal.style.display === 'flex') {
+            closeAbandonModal();
+            return;
+        }
+        
+        var placeholderModal = document.getElementById('placeholderModal');
+        if (placeholderModal && placeholderModal.style.display === 'flex') {
+            closePlaceholderModal();
+            return;
+        }
+        
+        // Check panels
+        var statsPanel = document.getElementById('statsPanel');
         if (statsPanel && statsPanel.style.display === 'flex') {
-            toggleStats();
-        } else if (helpPanel && helpPanel.style.display === 'flex') {
-            toggleHelp();
-        } else if (aboutPanel && aboutPanel.style.display === 'flex') {
-            toggleAbout();
-        } else if (sharePanel && sharePanel.style.display === 'flex') {
-            toggleShare();
-        } else if (streakPanel && streakPanel.style.display === 'flex') {
-            closeStreakPanel();
-        } else if (wordDefPanel && wordDefPanel.style.display === 'flex') {
+            closeStats();
+            return;
+        }
+        
+        var helpPanel = document.getElementById('helpPanel');
+        if (helpPanel && helpPanel.style.display === 'flex') {
+            closeHelp();
+            return;
+        }
+        
+        var infoPanel = document.getElementById('infoPanel');
+        if (infoPanel && infoPanel.style.display === 'flex') {
+            closeInfo();
+            return;
+        }
+        
+        var sharePanel = document.getElementById('sharePanel');
+        if (sharePanel && sharePanel.style.display === 'flex') {
+            closeShare();
+            return;
+        }
+        
+        var wordDefPanel = document.getElementById('wordDefPanel');
+        if (wordDefPanel && wordDefPanel.style.display === 'flex') {
             closeWordDefPanel();
+            return;
         }
     }
+});
+
+// BACKDROP CLICK - Click outside modal/panel to close
+document.addEventListener('DOMContentLoaded', function() {
+    // All panels with backdrop close
+    var panels = [
+        {id: 'sharePanel', close: closeShare},
+        {id: 'statsPanel', close: closeStats},
+        {id: 'wordDefPanel', close: closeWordDefPanel},
+        {id: 'infoPanel', close: closeInfo},
+        {id: 'helpPanel', close: closeHelp}
+    ];
+    
+    panels.forEach(function(panel) {
+        var el = document.getElementById(panel.id);
+        if (el) {
+            el.addEventListener('click', function(e) {
+                if (e.target === el) {
+                    panel.close();
+                }
+            });
+        }
+    });
+    
+    // All modals with backdrop close
+    var modals = [
+        {id: 'successModal', close: closeSuccessModal},
+        {id: 'dailyCompleteModal', close: closeDailyModal},
+        {id: 'zeroScoreModal', close: closeZeroScoreModal},
+        {id: 'giveUpModal', close: cancelGiveUp},
+        {id: 'modeSwitchModal', close: cancelModeSwitch},
+        {id: 'abandonGameModal', close: cancelAbandonGame},
+        {id: 'placeholderModal', close: closePlaceholderModal}
+    ];
+    
+    modals.forEach(function(modal) {
+        var el = document.getElementById(modal.id);
+        if (el) {
+            el.addEventListener('click', function(e) {
+                if (e.target === el) {
+                    modal.close();
+                }
+            });
+        }
+    });
 });
 
 window.nextWord = nextWord;
@@ -2010,422 +2502,6 @@ window.openStreakPanel = openStreakPanel;
 window.closeStreakPanel = closeStreakPanel;
 window.showWordDefinitionModal = showWordDefinitionModal;
 window.closeWordDefPanel = closeWordDefPanel;
-
-// Pro/Pro+ Mode Switching
-var pendingModeSwitch = null; // Track which mode user wants to switch to
-
-function switchToProMode() {
-    // If already in Pro mode, do nothing
-    if (gameMode === 'pro') return;
-    
-    // Check if game is in progress
-    if (guessCount > 0) {
-        // Show confirmation modal
-        pendingModeSwitch = 'pro';
-        document.getElementById('modeSwitchTitle').textContent = 'Switch to PRO Mode?';
-        document.getElementById('modeSwitchMessage').textContent = 'This will restart your current game.';
-        document.getElementById('modeSwitchDescription').textContent = 'PRO mode: AlphaHint enabled, bold letters show used letters, any guess allowed.';
-        document.getElementById('modeSwitchModal').style.display = 'flex';
-    } else {
-        // No game in progress, just switch
-        performModeSwitch('pro');
-    }
-}
-
-function switchToProPlusMode() {
-    // If already in Pro+ mode, do nothing
-    if (gameMode === 'proplus') return;
-    
-    // Check if game is in progress
-    if (guessCount > 0) {
-        // Show confirmation modal
-        pendingModeSwitch = 'proplus';
-        document.getElementById('modeSwitchTitle').textContent = 'Switch to PRO+ Mode?';
-        document.getElementById('modeSwitchMessage').textContent = 'This will restart your current game.';
-        document.getElementById('modeSwitchDescription').textContent = 'PRO+ mode removes AlphaHint and all guesses must adhere to arrow clues.';
-        document.getElementById('modeSwitchModal').style.display = 'flex';
-    } else {
-        // No game in progress, just switch
-        performModeSwitch('proplus');
-    }
-}
-
-function confirmModeSwitch() {
-    console.log("Confirm mode switch clicked, pending mode:", pendingModeSwitch);
-    
-    // Close modal immediately
-    var modal = document.getElementById('modeSwitchModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    
-    // Then perform the switch
-    if (pendingModeSwitch) {
-        performModeSwitch(pendingModeSwitch);
-    }
-    
-    pendingModeSwitch = null;
-    
-    // Focus input after switch
-    setTimeout(function() {
-        document.getElementById("guessInput").focus();
-    }, 100);
-}
-
-function cancelModeSwitch() {
-    console.log("Cancel mode switch clicked");
-    var modal = document.getElementById('modeSwitchModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    pendingModeSwitch = null;
-    
-    // Focus input after cancel
-    setTimeout(function() {
-        document.getElementById("guessInput").focus();
-    }, 100);
-}
-
-function performModeSwitch(newMode) {
-    gameMode = newMode;
-    
-    // Update button states
-    if (newMode === 'pro') {
-        document.getElementById('proModeBtn').classList.add('active');
-        document.getElementById('proPlusModeBtn').classList.remove('active');
-        document.getElementById('modeDescription').innerHTML = '<strong>PRO Mode:</strong> AlphaHint enabled, bold letters, any guess allowed';
-        updateAlphaHintText('pro');
-        console.log("Switched to PRO mode");
-    } else {
-        document.getElementById('proPlusModeBtn').classList.add('active');
-        document.getElementById('proModeBtn').classList.remove('active');
-        document.getElementById('modeDescription').innerHTML = '<strong>PRO+ Mode:</strong> Removes AlphaHint, all guesses must adhere to arrow clues';
-        updateAlphaHintText('proplus');
-        console.log("Switched to PRO+ mode (Hard Mode)");
-    }
-    
-    // ALWAYS reload the game when switching modes (word formula is different!)
-    console.log("Mode switch: Reloading game with new word formula...");
-    resetGame();
-    
-    // Update alphabet display (safe to do immediately)
-    updateAlphabetDisplay();
-    
-    // NOTE: Don't call updateDevConsole() here! 
-    // resetGame() → loadWordList() is ASYNC
-    // startNewGame() will call updateDevConsole() after new word loads
-}
-
-function updateAlphaHintText(mode) {
-    var alphaHintText = document.querySelector('.alphahint-text');
-    if (alphaHintText) {
-        if (mode === 'proplus') {
-            alphaHintText.textContent = 'AlphaHint™: Not available in Pro+ mode';
-            alphaHintText.style.color = '#999';
-            alphaHintText.style.fontStyle = 'italic';
-        } else {
-            alphaHintText.textContent = 'AlphaHint™: Hold arrow for letter options';
-            alphaHintText.style.color = '';
-            alphaHintText.style.fontStyle = '';
-        }
-    }
-}
-
-function attachPlaceholderHandlers() {
-    var placeholder = document.getElementById("placeholderGuess");
-    if (!placeholder) return;
-    
-    var placeholderDots = placeholder.querySelectorAll('.symbol-with-letter');
-    var alphahintText = document.querySelector('.alphahint-text');
-    
-    placeholderDots.forEach(function(dot) {
-        // Mouse events
-        dot.addEventListener('mousedown', function(e) {
-            e.preventDefault();
-            if (alphahintText && gameMode !== 'proplus') {
-                alphahintText.classList.add('demo-active');
-            }
-        });
-        
-        dot.addEventListener('mouseup', function() {
-            if (alphahintText) {
-                alphahintText.classList.remove('demo-active');
-            }
-        });
-        
-        dot.addEventListener('mouseleave', function() {
-            if (alphahintText) {
-                alphahintText.classList.remove('demo-active');
-            }
-        });
-        
-        // Touch events
-        dot.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            if (alphahintText && gameMode !== 'proplus') {
-                alphahintText.classList.add('demo-active');
-            }
-        });
-        
-        dot.addEventListener('touchend', function() {
-            if (alphahintText) {
-                alphahintText.classList.remove('demo-active');
-            }
-        });
-        
-        dot.addEventListener('touchcancel', function() {
-            if (alphahintText) {
-                alphahintText.classList.remove('demo-active');
-            }
-        });
-        
-        // Add cursor pointer to show it's interactive (but not in Pro+ mode)
-        dot.style.cursor = gameMode !== 'proplus' ? 'pointer' : 'default';
-    });
-}
-
-function resetGame() {
-    console.log("resetGame: Starting game reset");
-    
-    // Clear game state variables
-    currentRound = 1;
-    totalScore = 0;
-    guessCount = 0;
-    roundResults = [];
-    guessHistory = [];
-    guessedWordsThisRound.clear();
-    usedLetters.clear();
-    
-    // CRITICAL: Clear saved game state from localStorage
-    // Otherwise startNewGame() will restore old game with wrong mode's word!
-    clearGameState();
-    console.log("resetGame: Saved game state cleared");
-    
-    // Clear UI - with null checks
-    var feedbackEl = document.getElementById("feedback");
-    if (feedbackEl) feedbackEl.innerHTML = "";
-    
-    var guessInputEl = document.getElementById("guessInput");
-    if (guessInputEl) guessInputEl.value = "";
-    
-    var guessCountEl = document.getElementById("guessCount");
-    if (guessCountEl) {
-        guessCountEl.textContent = "0";
-    } else {
-        console.error("resetGame: guessCount element not found!");
-    }
-    
-    var currentScoreEl = document.getElementById("currentScore");
-    if (currentScoreEl) {
-        currentScoreEl.textContent = "100";
-    } else {
-        console.error("resetGame: currentScore element not found!");
-    }
-    
-    var totalScoreEl = document.getElementById("totalScore");
-    if (totalScoreEl) {
-        totalScoreEl.textContent = "0";
-    } else {
-        console.error("resetGame: totalScore element not found!");
-    }
-    
-    var errorMessageEl = document.getElementById("errorMessage");
-    if (errorMessageEl) errorMessageEl.innerHTML = "";
-    
-    console.log("resetGame: UI elements cleared");
-    
-    // Restore placeholder and round indicator
-    var feedbackDiv = document.getElementById("feedback");
-    if (!feedbackDiv) {
-        console.error("resetGame: feedback div not found!");
-        return;
-    }
-    feedbackDiv.innerHTML = `
-        <div class="feedback-line placeholder-guess" id="placeholderGuess">
-            <span style="color: #bbb; margin-right: 8px;">1)</span>
-            <span class="feedback-word" onclick="showPlaceholderModal()" style="cursor: pointer; color: #999;">GUESS</span>
-            <div class="feedback-arrows">
-                <div class="symbol-with-letter">
-                    <span class="background-letter" style="color: #ccc;">G</span>
-                    <span class="overlay-symbol" style="color: #333;">◄</span>
-                </div>
-                <div class="symbol-with-letter">
-                    <span class="background-letter" style="color: #ccc;">U</span>
-                    <span class="overlay-symbol" style="color: #333;">►</span>
-                </div>
-                <div class="symbol-with-letter">
-                    <span class="background-letter" style="color: #ccc;">E</span>
-                    <span class="overlay-symbol" style="color: #333;">◄</span>
-                </div>
-                <div class="symbol-with-letter">
-                    <span class="background-letter" style="color: #ccc;">S</span>
-                    <span class="overlay-symbol" style="color: #333;">►</span>
-                </div>
-                <div class="symbol-with-letter">
-                    <span class="background-letter" style="color: #ccc;">S</span>
-                    <span class="overlay-symbol" style="color: #333;">►</span>
-                </div>
-            </div>
-        </div>
-        <div class="new-game-message" id="round1Indicator">◄ ● Round 1 of 3 ● ►</div>
-    `;
-    
-    console.log("resetGame: HTML restored, round indicator should be present");
-    
-    console.log("resetGame: Re-showing input and buttons...");
-    // Re-show input and buttons (hidden by showPlayAgainButtons) - with null checks
-    var inputEl = document.getElementById("guessInput");
-    if (inputEl) {
-        inputEl.style.display = "";
-        console.log("resetGame: Input display:", inputEl.style.display);
-    } else {
-        console.error("resetGame: guessInput element not found!");
-    }
-    
-    var buttonGroupEl = document.querySelector(".button-group");
-    if (buttonGroupEl) {
-        buttonGroupEl.style.display = "";
-        console.log("resetGame: Button group display:", buttonGroupEl.style.display);
-    } else {
-        console.error("resetGame: button-group element not found!");
-    }
-    
-    // Re-enable input and buttons - with null checks
-    if (inputEl) inputEl.disabled = false;
-    
-    var submitBtnEl = document.getElementById("submitBtn");
-    if (submitBtnEl) {
-        submitBtnEl.disabled = false;
-    } else {
-        console.error("resetGame: submitBtn element not found!");
-    }
-    
-    var giveUpBtnEl = document.getElementById("giveUpBtn");
-    if (giveUpBtnEl) {
-        giveUpBtnEl.disabled = false;
-    } else {
-        console.error("resetGame: giveUpBtn element not found!");
-    }
-    console.log("resetGame: Controls re-enabled");
-    
-    // Update instructions to default
-    var instructions = document.querySelector(".instructions-brief");
-    if (!instructions) {
-        instructions = document.querySelector(".instructions");
-    }
-    if (instructions) {
-        var modeLabel = gameMode === 'proplus' ? 'PRO+' : 'PRO';
-        instructions.innerHTML = "<strong>Guess the 5-letter word!</strong> Use the arrows to guide you.";
-        instructions.style.background = "";
-        console.log("resetGame: Instructions updated");
-    }
-    
-    // Remove "Your Words" display if it exists
-    var wordsDisplay = document.getElementById("yourWordsDisplay");
-    if (wordsDisplay) {
-        wordsDisplay.remove();
-        console.log("resetGame: Your Words display removed");
-    }
-    
-    // Re-attach placeholder event handlers
-    console.log("resetGame: Attaching placeholder handlers...");
-    attachPlaceholderHandlers();
-    console.log("resetGame: Placeholder handlers attached");
-    
-    // Reset alphabet
-    console.log("resetGame: Updating alphabet display...");
-    updateAlphabetDisplay();
-    console.log("resetGame: Alphabet display updated");
-    
-    // Load new word for current mode
-    console.log("resetGame: Calling loadWordList...");
-    loadWordList();
-    console.log("resetGame: loadWordList called - COMPLETED");
-}
-
-window.switchToProMode = switchToProMode;
-window.switchToProPlusMode = switchToProPlusMode;
-window.confirmModeSwitch = confirmModeSwitch;
-window.cancelModeSwitch = cancelModeSwitch;
-window.playAgainSameMode = playAgainSameMode;
-window.playAgainOtherMode = playAgainOtherMode;
-
-// DEV CONSOLE - REMOVE BEFORE PUBLIC LAUNCH
-function updateDevConsole() {
-    var devConsole = document.getElementById('devConsole');
-    if (!devConsole) return;
-    
-    console.log("=== DEV CONSOLE UPDATE ===");
-    console.log("Current Mode:", gameMode);
-    console.log("DailyNumber:", dailyNumber);
-    console.log("PlayCount (Pro):", playCount);
-    console.log("PlayCount (Pro+):", playCountProPlus);
-    console.log("Current Round:", currentRound);
-    
-    // Update active mode display
-    var modeLabel = gameMode === 'proplus' ? 'PRO+' : 'PRO';
-    document.getElementById('devActiveMode').textContent = modeLabel;
-    
-    // Update round
-    document.getElementById('devRound').textContent = currentRound;
-    
-    // Update play counts in left column
-    document.getElementById('devPlayCountPro').textContent = playCount;
-    document.getElementById('devPlayCountProPlus').textContent = playCountProPlus;
-    
-    // Get word pool
-    var wordPool = answerWords.length > 0 ? answerWords : fallbackWords;
-    
-    // Calculate PRO words (all 3 rounds)
-    var proWords = ['-----', '-----', '-----'];
-    if (!testMode && !devMode && !usingFallbackMode && wordPool.length > 0) {
-        for (var r = 1; r <= 3; r++) {
-            var proIndex = (((dailyNumber + playCount) * 613) + (r * 997)) % wordPool.length;
-            proWords[r - 1] = wordPool[proIndex];
-            console.log("PRO R" + r + " calc: ((" + dailyNumber + " + " + playCount + ") * 613) + (" + r + " * 997) = index " + proIndex + " = " + proWords[r - 1]);
-        }
-    }
-    
-    // Calculate PRO+ words (all 3 rounds)
-    var proPlusWords = ['-----', '-----', '-----'];
-    if (!testMode && !devMode && !usingFallbackMode && wordPool.length > 0) {
-        for (var r = 1; r <= 3; r++) {
-            var proPlusIndex = (((dailyNumber + playCountProPlus) * 751) + (r * 1009)) % wordPool.length;
-            proPlusWords[r - 1] = wordPool[proPlusIndex];
-            console.log("PRO+ R" + r + " calc: ((" + dailyNumber + " + " + playCountProPlus + ") * 751) + (" + r + " * 1009) = index " + proPlusIndex + " = " + proPlusWords[r - 1]);
-        }
-    }
-    
-    // Update PRO column
-    document.getElementById('devProWord1').textContent = proWords[0];
-    document.getElementById('devProWord2').textContent = proWords[1];
-    document.getElementById('devProWord3').textContent = proWords[2];
-    document.getElementById('devProPlayCount').textContent = playCount;
-    
-    // Update PRO+ column
-    document.getElementById('devProPlusWord1').textContent = proPlusWords[0];
-    document.getElementById('devProPlusWord2').textContent = proPlusWords[1];
-    document.getElementById('devProPlusWord3').textContent = proPlusWords[2];
-    document.getElementById('devProPlusPlayCount').textContent = playCountProPlus;
-    
-    // Highlight active mode column
-    var proColumn = document.getElementById('devProColumn');
-    var proPlusColumn = document.getElementById('devProPlusColumn');
-    
-    if (gameMode === 'proplus') {
-        // Dim Pro, brighten Pro+
-        proColumn.style.opacity = '0.5';
-        proPlusColumn.style.opacity = '1';
-    } else {
-        // Brighten Pro, dim Pro+
-        proColumn.style.opacity = '1';
-        proPlusColumn.style.opacity = '0.5';
-    }
-    
-    console.log("=========================");
-}
-
-window.updateDevConsole = updateDevConsole;
 
 // Show "Coming Soon!" when PRO link is clicked
 function showComingSoon(event) {
