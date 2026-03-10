@@ -319,7 +319,7 @@ function showBetaBannerIfEnabled() {
 }
 
 function loadWordList() {
-    fetch('game/words.json')
+    fetch('words.json')
         .then(response => response.json())
         .then(data => {
             if (data.answers && data.answers.length > 0) {
