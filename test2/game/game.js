@@ -11,6 +11,7 @@ var maxRounds = 1; // Phase 2: Standard single-word daily game
 var roundResults = [];
 var guessHistory = [];
 var guessedWordsThisRound = new Set();
+var allGuessedWordsToday = new Set(); // Track ALL words guessed across entire day
 var lastFetchedDefinition = null; // Store definition for reuse
 
 // Get game day number based on LOCAL midnight (like Wordle)
@@ -461,6 +462,7 @@ function submitGuess() {
     }
     
     guessedWordsThisRound.add(guess);
+    allGuessedWordsToday.add(guess); // Track for end-of-day display
 
     guessCount++;
     
@@ -1057,21 +1059,37 @@ function showComeBackMessage() {
         // Create words display below countdown
         var wordsDiv = document.createElement("div");
         wordsDiv.id = "todaysWordsDisplay";
-        wordsDiv.style.cssText = "text-align: center; padding: 15px 20px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 15px 0;";
+        wordsDiv.style.cssText = "text-align: center; padding: 20px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 15px 0;";
         
-        var html = '<h3 style="margin: 0 0 12px 0; color: #667eea; font-size: 1.1em;">Today\'s Word</h3>';
-        html += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 10px 20px; max-width: 250px; margin: 0 auto;">';
+        var targetWord = roundResults[0].word;
+        var guesses = roundResults[0].guesses;
         
-        for (var i = 0; i < roundResults.length; i++) {
-            var word = roundResults[i].word;
-            var guesses = roundResults[i].guesses;
-            var dictUrl = 'https://www.dictionary.com/browse/' + word.toLowerCase();
+        var html = '<h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 1.1em;">Today\'s Words</h3>';
+        
+        // Target word in GREEN (non-clickable)
+        html += '<div style="margin-bottom: 15px;">';
+        html += '<div style="font-size: 1.3em; font-weight: 700; color: #28a745; text-shadow: 0 1px 2px rgba(40,167,69,0.2);">' + targetWord + '</div>';
+        html += '<div style="font-size: 0.9em; color: #666; margin-top: 4px;">' + guesses + ' guess' + (guesses !== 1 ? 'es' : '') + '</div>';
+        html += '</div>';
+        
+        // All guessed words as BLUE clickable links
+        var guessedWords = Array.from(allGuessedWordsToday);
+        // Remove target word from guessed words list
+        guessedWords = guessedWords.filter(function(word) { return word !== targetWord; });
+        
+        if (guessedWords.length > 0) {
+            html += '<div style="padding-top: 15px; border-top: 1px solid rgba(102, 126, 234, 0.2);">';
+            html += '<div style="font-size: 0.9em; color: #888; margin-bottom: 10px;">Your other guesses:</div>';
+            html += '<div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 400px; margin: 0 auto;">';
             
-            html += '<div style="text-align: left;"><a href="' + dictUrl + '" target="_blank" style="text-decoration: underline; color: #667eea; font-weight: 600; font-size: 1.1em;">' + word + '</a></div>';
-            html += '<div style="text-align: right; color: #666; font-size: 0.95em;">' + guesses + ' guess' + (guesses !== 1 ? 'es' : '') + '</div>';
+            guessedWords.forEach(function(word) {
+                var dictUrl = 'https://www.dictionary.com/browse/' + word.toLowerCase();
+                html += '<a href="' + dictUrl + '" target="_blank" onclick="showWordDefinitionModal(\'' + word + '\'); return false;" style="color: #667eea; text-decoration: none; font-weight: 600; font-size: 0.95em; padding: 4px 10px; background: rgba(102, 126, 234, 0.1); border-radius: 8px; transition: all 0.2s; display: inline-block;" onmouseover="this.style.background=\'rgba(102, 126, 234, 0.2)\'; this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.background=\'rgba(102, 126, 234, 0.1)\'; this.style.transform=\'translateY(0)\'">' + word + '</a>';
+            });
+            
+            html += '</div></div>';
         }
         
-        html += '</div>';
         wordsDiv.innerHTML = html;
         
         // Insert after feedback div
@@ -1538,6 +1556,7 @@ function saveGameState() {
         roundResults: roundResults,
         usedLetters: Array.from(usedLetters),
         guessedWordsThisRound: Array.from(guessedWordsThisRound),
+        allGuessedWordsToday: Array.from(allGuessedWordsToday),
         timestamp: Date.now()
     };
     
@@ -1597,6 +1616,7 @@ function restoreGameState(state) {
     roundResults = state.roundResults || [];
     usedLetters = new Set(state.usedLetters || []);
     guessedWordsThisRound = new Set(state.guessedWordsThisRound || []);
+    allGuessedWordsToday = new Set(state.allGuessedWordsToday || []);
     
     updateScoreDisplay();
     updateAlphabetDisplay();
@@ -1614,11 +1634,44 @@ function restoreGameState(state) {
     console.log("✅ Game state restored: Round " + currentRound + ", Score " + totalScore + ", " + guessCount + " guesses");
 }
 
+// WHAT'S NEW MODAL SYSTEM
+function checkWhatsNew() {
+    // Don't show in dev or test mode
+    if (devMode || testMode) return;
+    
+    var dismissed = localStorage.getItem('directionary_whatsNew_dismissed');
+    
+    // Show to anyone who hasn't dismissed it yet (no time limit)
+    if (!dismissed) {
+        // Show modal after a brief delay so page loads first
+        setTimeout(function() {
+            showWhatsNew();
+        }, 1000);
+    }
+}
+
+function showWhatsNew() {
+    var modal = document.getElementById('whatsNewModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+function closeWhatsNew() {
+    var modal = document.getElementById('whatsNewModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    // Mark as dismissed
+    localStorage.setItem('directionary_whatsNew_dismissed', 'true');
+}
+
 window.onload = function() {
     console.log("Directionary loading... [Version: Jan 18, 2026 - Phase 1 Master Base]");
     loadStats();
     updateStreakDisplay();
     initGame();
+    checkWhatsNew(); // Show What's New modal if appropriate
     
     // Placeholder dots demo - highlight AlphaHint text when held
     var placeholder = document.getElementById("placeholderGuess");
@@ -1823,6 +1876,12 @@ document.addEventListener('keydown', function(e) {
             return;
         }
         
+        var whatsNewModal = document.getElementById('whatsNewModal');
+        if (whatsNewModal && whatsNewModal.style.display === 'flex') {
+            closeWhatsNew();
+            return;
+        }
+        
         // Check ALL 6 PANELS
         var statsPanel = document.getElementById('statsPanel');
         if (statsPanel && statsPanel.style.display === 'flex') {
@@ -1932,6 +1991,8 @@ window.openStreakPanel = openStreakPanel;
 window.closeStreakPanel = closeStreakPanel;
 window.showWordDefinitionModal = showWordDefinitionModal;
 window.closeWordDefPanel = closeWordDefPanel;
+window.showWhatsNew = showWhatsNew;
+window.closeWhatsNew = closeWhatsNew;
 
 // Show "Coming Soon!" when PRO link is clicked
 function showComingSoon(event) {
