@@ -1068,9 +1068,10 @@ function showComeBackMessage() {
         
         // Target word in GREEN - clickable to show definition
         html += '<div style="margin-bottom: 15px;">';
-        html += '<a href="#" onclick="showWordDefinitionModal(\'' + targetWord + '\'); return false;" style="text-decoration: none; color: #28a745; cursor: pointer;">';
-        html += '<div style="font-size: 1.3em; font-weight: 700; text-shadow: 0 1px 2px rgba(40,167,69,0.2); transition: all 0.2s;" onmouseover="this.style.transform=\'scale(1.05)\'; this.style.textShadow=\'0 2px 4px rgba(40,167,69,0.4)\'" onmouseout="this.style.transform=\'scale(1)\'; this.style.textShadow=\'0 1px 2px rgba(40,167,69,0.2)\'">' + targetWord + '</div>';
+        html += '<a href="#" onclick="showWordDefinitionModal(\'' + targetWord + '\'); return false;" style="text-decoration: underline; text-decoration-style: dotted; text-decoration-color: #28a745; color: #28a745; cursor: pointer;">';
+        html += '<div style="font-size: 1.3em; font-weight: 700; text-shadow: 0 1px 2px rgba(40,167,69,0.2); transition: all 0.2s;" onmouseover="this.style.transform=\'scale(1.05)\'; this.style.textDecoration=\'underline solid\'" onmouseout="this.style.transform=\'scale(1)\'; this.style.textDecoration=\'underline dotted\'">' + targetWord + '</div>';
         html += '</a>';
+        html += '<div style="font-size: 0.85em; color: #999; margin-top: 2px; font-style: italic;">Click to see definition</div>';
         html += '<div style="font-size: 0.9em; color: #666; margin-top: 4px;">' + guesses + ' guess' + (guesses !== 1 ? 'es' : '') + '</div>';
         html += '</div>';
         
@@ -1081,12 +1082,12 @@ function showComeBackMessage() {
         
         if (guessedWords.length > 0) {
             html += '<div style="padding-top: 15px; border-top: 1px solid rgba(102, 126, 234, 0.2);">';
-            html += '<div style="font-size: 0.9em; color: #888; margin-bottom: 10px;">Your other guesses:</div>';
+            html += '<div style="font-size: 0.9em; color: #888; margin-bottom: 10px;">Your other guesses: <span style="font-size: 0.85em; color: #aaa; font-style: italic;">(click any word)</span></div>';
             html += '<div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 400px; margin: 0 auto;">';
             
             guessedWords.forEach(function(word) {
                 var dictUrl = 'https://www.dictionary.com/browse/' + word.toLowerCase();
-                html += '<a href="' + dictUrl + '" target="_blank" onclick="showWordDefinitionModal(\'' + word + '\'); return false;" style="color: #667eea; text-decoration: none; font-weight: 600; font-size: 0.95em; padding: 4px 10px; background: rgba(102, 126, 234, 0.1); border-radius: 8px; transition: all 0.2s; display: inline-block;" onmouseover="this.style.background=\'rgba(102, 126, 234, 0.2)\'; this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.background=\'rgba(102, 126, 234, 0.1)\'; this.style.transform=\'translateY(0)\'">' + word + '</a>';
+                html += '<a href="' + dictUrl + '" target="_blank" onclick="showWordDefinitionModal(\'' + word + '\'); return false;" style="color: #667eea; text-decoration: underline; text-decoration-style: dotted; font-weight: 600; font-size: 0.95em; padding: 4px 10px; background: rgba(102, 126, 234, 0.1); border-radius: 8px; transition: all 0.2s; display: inline-block; cursor: pointer;" onmouseover="this.style.background=\'rgba(102, 126, 234, 0.2)\'; this.style.transform=\'translateY(-2px)\'; this.style.textDecoration=\'underline solid\'" onmouseout="this.style.background=\'rgba(102, 126, 234, 0.1)\'; this.style.transform=\'translateY(0)\'; this.style.textDecoration=\'underline dotted\'">' + word + '</a>';
             });
             
             html += '</div></div>';
