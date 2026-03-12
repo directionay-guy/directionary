@@ -1066,9 +1066,11 @@ function showComeBackMessage() {
         
         var html = '<h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 1.1em;">Today\'s Words</h3>';
         
-        // Target word in GREEN (non-clickable)
+        // Target word in GREEN - clickable to show definition
         html += '<div style="margin-bottom: 15px;">';
-        html += '<div style="font-size: 1.3em; font-weight: 700; color: #28a745; text-shadow: 0 1px 2px rgba(40,167,69,0.2);">' + targetWord + '</div>';
+        html += '<a href="#" onclick="showWordDefinitionModal(\'' + targetWord + '\'); return false;" style="text-decoration: none; color: #28a745; cursor: pointer;">';
+        html += '<div style="font-size: 1.3em; font-weight: 700; text-shadow: 0 1px 2px rgba(40,167,69,0.2); transition: all 0.2s;" onmouseover="this.style.transform=\'scale(1.05)\'; this.style.textShadow=\'0 2px 4px rgba(40,167,69,0.4)\'" onmouseout="this.style.transform=\'scale(1)\'; this.style.textShadow=\'0 1px 2px rgba(40,167,69,0.2)\'">' + targetWord + '</div>';
+        html += '</a>';
         html += '<div style="font-size: 0.9em; color: #666; margin-top: 4px;">' + guesses + ' guess' + (guesses !== 1 ? 'es' : '') + '</div>';
         html += '</div>';
         
