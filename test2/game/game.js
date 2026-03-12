@@ -1809,6 +1809,12 @@ document.addEventListener('keydown', function(e) {
             return;
         }
         
+        var whatsNewModal = document.getElementById('whatsNewModal');
+        if (whatsNewModal && whatsNewModal.style.display === 'flex') {
+            closeWhatsNew();
+            return;
+        }
+        
         // Check ALL 6 PANELS
         var statsPanel = document.getElementById('statsPanel');
         if (statsPanel && statsPanel.style.display === 'flex') {
