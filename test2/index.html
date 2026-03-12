@@ -444,6 +444,13 @@
             <p><img src="images/email-feedback.png" alt="feedback@directionary.net" style="vertical-align: middle; height: 24px;"></p>
         </div>
         
+        <div style="text-align: center; margin: 20px 0; padding: 15px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 10px;">
+            <a href="#" onclick="closeHelp(); showWhatsNew(); return false;" style="color: #667eea; text-decoration: none; font-weight: 600; font-size: 1.05em; display: inline-flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.2em;">🎉</span>
+                <span>What's New in Directionary</span>
+            </a>
+        </div>
+        
         <button class="close-panel-btn" onclick="closeHelp()">Got it!</button>
         </div>
     </div>
@@ -526,6 +533,46 @@
                 Use these clues to narrow down the answer!
             </div>
             <button class="success-btn" onclick="closePlaceholderModal()">Got it!</button>
+        </div>
+    </div>
+
+    <!-- WHAT'S NEW MODAL -->
+    <div class="success-modal" id="whatsNewModal" style="display: none;" onclick="closeWhatsNew()">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px; padding: 30px;">
+            <button class="modal-close" onclick="closeWhatsNew()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999; line-height: 1; padding: 0; width: 30px; height: 30px;">&times;</button>
+            
+            <h2 style="margin: 0 0 20px 0; color: #667eea; font-size: 1.5em; text-align: center;">🎉 What's New in Directionary!</h2>
+            
+            <div style="text-align: left; line-height: 1.6;">
+                <div style="margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 10px; border-left: 4px solid #667eea;">
+                    <div style="font-weight: 700; color: #667eea; margin-bottom: 8px; font-size: 1.05em;">🎯 One Word Per Day</div>
+                    <div style="color: #666; font-size: 0.95em;">We've simplified the daily game! Now it's just one focused word puzzle each day instead of three. Take your time, enjoy the challenge!</div>
+                </div>
+                
+                <div style="margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 10px; border-left: 4px solid #667eea;">
+                    <div style="font-weight: 700; color: #667eea; margin-bottom: 8px; font-size: 1.05em;">💡 AlphaHint</div>
+                    <div style="color: #666; font-size: 0.95em;">See arrows on your guesses? Hold them down to reveal which letters are possible for that position! A helpful hint without spoiling the fun.</div>
+                </div>
+                
+                <div style="margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 10px; border-left: 4px solid #667eea;">
+                    <div style="font-weight: 700; color: #667eea; margin-bottom: 8px; font-size: 1.05em;">🔥 New Streak System</div>
+                    <div style="color: #666; font-size: 0.95em;">Your streak now continues as long as you make at least one guess each day—you don't have to solve it! More forgiving, more fun.</div>
+                </div>
+                
+                <div style="margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 10px; border-left: 4px solid #667eea;">
+                    <div style="font-weight: 700; color: #667eea; margin-bottom: 8px; font-size: 1.05em;">📖 Word Definitions</div>
+                    <div style="color: #666; font-size: 0.95em;">Click any word you've guessed to see its definition! Learning is built right into the game.</div>
+                </div>
+                
+                <div style="margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 10px; border-left: 4px solid #667eea;">
+                    <div style="font-weight: 700; color: #667eea; margin-bottom: 8px; font-size: 1.05em;">⏰ Midnight Auto-Reload</div>
+                    <div style="color: #666; font-size: 0.95em;">The game now automatically refreshes at midnight with the new puzzle. No more manual reloading needed!</div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 25px;">
+                <button onclick="closeWhatsNew()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 30px; border-radius: 10px; cursor: pointer; font-size: 1.05em; font-weight: 600; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.3s;">Got it, let's play!</button>
+            </div>
         </div>
     </div>
 
