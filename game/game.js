@@ -918,7 +918,8 @@ function showDailyCompleteModal() {
         localStorage.setItem('directionary_standard_dailyState', JSON.stringify({
             roundResults: roundResults,
             totalScore: totalScore,
-            completedDate: today
+            completedDate: today,
+            allGuessedWordsToday: Array.from(allGuessedWordsToday)
         }));
     }
     
@@ -1064,7 +1065,13 @@ function showComeBackMessage() {
         var targetWord = roundResults[0].word;
         var guesses = roundResults[0].guesses;
         
-        var html = '<h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 1.1em;">Today\'s Words</h3>';
+        // Check if there are other guessed words besides target
+        var guessedWords = Array.from(allGuessedWordsToday);
+        guessedWords = guessedWords.filter(function(word) { return word !== targetWord; });
+        
+        // Use singular "Word" if only target word, plural "Words" if there are others
+        var titleText = guessedWords.length > 0 ? "Today's Words" : "Today's Word";
+        var html = '<h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 1.1em;">' + titleText + '</h3>';
         
         // Target word in GREEN - clickable to show definition
         html += '<div style="margin-bottom: 15px;">';
@@ -1076,10 +1083,6 @@ function showComeBackMessage() {
         html += '</div>';
         
         // All guessed words as BLUE clickable links
-        var guessedWords = Array.from(allGuessedWordsToday);
-        // Remove target word from guessed words list
-        guessedWords = guessedWords.filter(function(word) { return word !== targetWord; });
-        
         if (guessedWords.length > 0) {
             html += '<div style="padding-top: 15px; border-top: 1px solid rgba(102, 126, 234, 0.2);">';
             html += '<div style="font-size: 0.9em; color: #888; margin-bottom: 10px;">Your other guesses: <span style="font-size: 0.85em; color: #aaa; font-style: italic;">(click any word)</span></div>';
@@ -1144,6 +1147,7 @@ function showAlreadyPlayedMessage() {
         roundResults = state.roundResults || [];
         totalScore = state.totalScore || 0;
         currentScore = 0; // Set to 0 since game is complete
+        allGuessedWordsToday = new Set(state.allGuessedWordsToday || []);
     }
     
     updateScoreDisplay(); // Update the score display with correct totals
