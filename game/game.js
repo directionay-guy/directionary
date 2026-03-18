@@ -13,6 +13,7 @@ var guessHistory = [];
 var guessedWordsThisRound = new Set();
 var allGuessedWordsToday = new Set(); // Track ALL words guessed across entire day
 var lastFetchedDefinition = null; // Store definition for reuse
+var lastReloadTime = 0; // Prevent cascading reloads
 
 // Get game day number based on LOCAL midnight (like Wordle)
 function getLocalGameDay() {
@@ -24,6 +25,19 @@ function getLocalGameDay() {
     
     var daysSinceLaunch = Math.floor((localMidnight - launchDate) / 86400000);
     return daysSinceLaunch + 1; // Start at Day 1
+}
+
+// Safe reload function - prevents cascading reloads
+function safeReload() {
+    var now = Date.now();
+    // If we reloaded less than 5 seconds ago, skip this reload
+    if (now - lastReloadTime < 5000) {
+        console.log("⏸️ Reload skipped - too soon after last reload (preventing cascade)");
+        return;
+    }
+    console.log("✅ Safe to reload - proceeding...");
+    lastReloadTime = now;
+    location.reload();
 }
 
 var dailyNumber = getLocalGameDay();
@@ -340,7 +354,7 @@ function startDayChangeChecker() {
             console.log("🌅 New day detected! Old day:", storedDay, "New day:", currentDay);
             console.log("Reloading for fresh puzzle...");
             localStorage.setItem('directionary_standard_currentDay', currentDay);
-            location.reload();
+            safeReload();
         }
     }
     
@@ -1118,7 +1132,7 @@ function startCountdownTimer() {
             console.log("⏰ Midnight reached! Reloading for new puzzle...");
             // Update stored day to current (new) day before reload
             localStorage.setItem('directionary_standard_currentDay', getLocalGameDay());
-            location.reload();
+            safeReload();
             return;
         }
         
