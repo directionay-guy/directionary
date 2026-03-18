@@ -523,7 +523,7 @@ function submitGuess() {
         return;
     }
     if (guessedWordsThisRound.has(guess)) {
-        document.getElementById("duplicateWordModal").style.display = "flex";
+        showError("You already guessed that word this round!");
         input.value = "";
         input.focus();
         return;
