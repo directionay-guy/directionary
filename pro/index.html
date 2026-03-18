@@ -76,11 +76,6 @@
     <!-- Rotate overlay for tablets in landscape -->
     <div class="main-wrapper">
     <div class="game-container">
-        <!-- Dev mode target word display -->
-        <div id="devModeDisplay" style="display: none; background: #fff3cd; color: #856404; padding: 8px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9em; font-weight: 600; text-align: center;">
-            🎯 DEV MODE: Target = <span id="devTargetWord"></span>
-        </div>
-        
         <!-- Test mode indicator -->
         <div id="testModeDisplay" style="display: none; background: #d1ecf1; color: #0c5460; padding: 8px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9em; font-weight: 600; text-align: center;">
             🧪 TEST MODE: Random words enabled
@@ -680,6 +675,7 @@
 
     <!-- DEV CONSOLE - REMOVE BEFORE PUBLIC LAUNCH -->
     <div id="devConsole" style="
+        display: none;
         position: fixed;
         bottom: 0;
         left: 0;
@@ -705,7 +701,7 @@
                     <div style="margin-left: 10px;">Pro+: <span id="devPlayCountProPlus">0</span></div>
                 </div>
                 <div style="margin-top: 10px;">
-                    <button onclick="updateDevConsole()" style="
+                    <button onclick="updateFullDevConsole()" style="
                         background: #00ff41;
                         color: #000;
                         border: none;
