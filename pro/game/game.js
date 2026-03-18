@@ -169,7 +169,7 @@ var testMode = false;
 
 // Check for dev mode and test mode in URL
 var urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('dev') === DEV_PASSWORD) {
+if (urlParams.get('dev') === 'true') {
     devMode = true;
     console.log("🎯 DEV MODE ENABLED");
 }
@@ -530,7 +530,7 @@ function startNewGame() {
     }
     
     if (devMode) {
-        updateDevConsole();
+        updateFullDevConsole();
     }
     
     if (testMode) {
@@ -554,31 +554,73 @@ function startNewGame() {
 }
 
 // DEV CONSOLE: Show Pro and Pro+ words side-by-side
-function updateDevConsole() {
+// DEV CONSOLE: Show all 3 rounds for both PRO and PRO+ modes
+function updateFullDevConsole() {
+    if (!devMode) return; // Only runs in dev mode
+    
     var wordPool = answerWords.length > 0 ? answerWords : fallbackWords;
-    var wordSource = answerWords.length > 0 ? "JSON words" : "Fallback list";
+    var devConsole = document.getElementById("devConsole");
     
-    // Calculate Pro word
-    var proIndex = (((dailyNumber + playCount) * 613) + (currentRound * 997)) % wordPool.length;
-    var proWord = wordPool[proIndex];
+    // Show the console
+    if (devConsole) {
+        devConsole.style.display = "block";
+    }
     
-    // Calculate Pro+ word
-    var proPlusIndex = (((dailyNumber + playCountProPlus) * 751) + (currentRound * 1009)) % wordPool.length;
-    var proPlusWord = wordPool[proPlusIndex];
+    // Update current game info
+    document.getElementById("devActiveMode").textContent = gameMode === 'proplus' ? 'PRO+' : 'PRO';
+    document.getElementById("devRound").textContent = currentRound;
+    document.getElementById("devPlayCountPro").textContent = playCount;
+    document.getElementById("devPlayCountProPlus").textContent = playCountProPlus;
     
-    var devDisplay = document.getElementById("devModeDisplay");
-    devDisplay.style.display = "block";
+    // Calculate and display ALL 3 PRO words
+    for (var round = 1; round <= 3; round++) {
+        var proIndex = (((dailyNumber + playCount) * 613) + (round * 997)) % wordPool.length;
+        var proWord = wordPool[proIndex];
+        var proSpan = document.getElementById("devProWord" + round);
+        if (proSpan) {
+            proSpan.textContent = proWord;
+            // Highlight current round
+            if (round === currentRound && gameMode === 'pro') {
+                proSpan.style.color = '#00ff41';
+                proSpan.style.textDecoration = 'underline';
+            } else {
+                proSpan.style.color = '#ff6b6b';
+                proSpan.style.textDecoration = 'none';
+            }
+        }
+    }
     
-    var html = '<div style="display: grid; grid-template-columns: auto 1fr 1fr; gap: 10px; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 8px; font-size: 0.9em;">';
-    html += '<div style="font-weight: 700; color: #667eea;">Round ' + currentRound + ':</div>';
-    html += '<div style="text-align: center;"><div style="font-size: 0.8em; color: #666; margin-bottom: 4px;">PRO' + (gameMode === 'pro' ? ' ⬅ Active' : '') + '</div><div style="font-weight: 700; font-size: 1.1em; color: ' + (gameMode === 'pro' ? '#667eea' : '#999') + ';">' + proWord + '</div><div style="font-size: 0.75em; color: #999;">Play #' + playCount + '</div></div>';
-    html += '<div style="text-align: center;"><div style="font-size: 0.8em; color: #666; margin-bottom: 4px;">PRO+' + (gameMode === 'proplus' ? ' ⬅ Active' : '') + '</div><div style="font-weight: 700; font-size: 1.1em; color: ' + (gameMode === 'proplus' ? '#667eea' : '#999') + ';">' + proPlusWord + '</div><div style="font-size: 0.75em; color: #999;">Play #' + playCountProPlus + '</div></div>';
-    html += '</div>';
-    html += '<div style="text-align: center; margin-top: 8px; font-size: 0.85em; color: #666;">' + wordSource + ' | Day ' + dailyNumber + '</div>';
-    html += '<div style="text-align: center; margin-top: 8px;"><button onclick="reloadDevGame()" style="background: #667eea; color: white; border: none; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9em; font-weight: 600;">🔄 New Game</button></div>';
+    // Calculate and display ALL 3 PRO+ words
+    for (var round = 1; round <= 3; round++) {
+        var proPlusIndex = (((dailyNumber + playCountProPlus) * 751) + (round * 1009)) % wordPool.length;
+        var proPlusWord = wordPool[proPlusIndex];
+        var proPlusSpan = document.getElementById("devProPlusWord" + round);
+        if (proPlusSpan) {
+            proPlusSpan.textContent = proPlusWord;
+            // Highlight current round
+            if (round === currentRound && gameMode === 'proplus') {
+                proPlusSpan.style.color = '#00ff41';
+                proPlusSpan.style.textDecoration = 'underline';
+            } else {
+                proPlusSpan.style.color = '#ff6b6b';
+                proPlusSpan.style.textDecoration = 'none';
+            }
+        }
+    }
     
-    devDisplay.innerHTML = html;
+    // Update play counts in columns
+    var proPlayCountSpan = document.getElementById("devProPlayCount");
+    var proPlusPlayCountSpan = document.getElementById("devProPlusPlayCount");
+    if (proPlayCountSpan) proPlayCountSpan.textContent = playCount;
+    if (proPlusPlayCountSpan) proPlusPlayCountSpan.textContent = playCountProPlus;
+    
+    // Dim the inactive mode column
+    var proColumn = document.getElementById("devProColumn");
+    var proPlusColumn = document.getElementById("devProPlusColumn");
+    if (proColumn) proColumn.style.opacity = gameMode === 'pro' ? '1' : '0.5';
+    if (proPlusColumn) proPlusColumn.style.opacity = gameMode === 'proplus' ? '1' : '0.5';
 }
+
 
 // PRO+ MODE: Validate guess respects arrow constraints
 function validateProPlusGuess(guess) {
@@ -1782,52 +1824,6 @@ function updateStatsDisplay() {
         proplusArchiveHtml += '<div class="archive-year">' + year + ': ' + formatNumber(data.total) + '</div>';
     }
     document.getElementById('proplusYearlyArchive').innerHTML = proplusArchiveHtml || '<div class="no-archive">No archived years</div>';
-    
-    // First played date
-    if (playerStats.firstPlayed) {
-        document.getElementById('statFirstPlayed').textContent = formatDate(playerStats.firstPlayed);
-    }
-    
-    // Daily total (today)
-    var dayKey = getDateKey();
-    var dailyStats = playerStats.daily[dayKey] || { games: 0, score: 0, best: 0 };
-    document.getElementById('statDailyGames').textContent = dailyStats.games;
-    document.getElementById('statDailyScore').textContent = dailyStats.score;
-    document.getElementById('statDailyBest').textContent = dailyStats.best;
-    
-    // Weekly total
-    var weekKey = getWeekKey();
-    var weeklyStats = playerStats.weekly[weekKey] || { games: 0, score: 0, best: 0 };
-    document.getElementById('statWeeklyGames').textContent = weeklyStats.games;
-    document.getElementById('statWeeklyScore').textContent = weeklyStats.score;
-    document.getElementById('statWeeklyBest').textContent = weeklyStats.best;
-    
-    // Monthly total
-    var monthKey = getMonthKey();
-    var monthlyStats = playerStats.monthly[monthKey] || { games: 0, score: 0, best: 0 };
-    document.getElementById('statMonthlyGames').textContent = monthlyStats.games;
-    document.getElementById('statMonthlyScore').textContent = monthlyStats.score;
-    document.getElementById('statMonthlyBest').textContent = monthlyStats.best;
-    
-    // Annual totals (all years, newest first)
-    var yearsContainer = document.getElementById('annualStatsContainer');
-    if (yearsContainer) {
-        var years = Object.keys(playerStats.annual).sort().reverse(); // Newest first
-        var html = '';
-        years.forEach(function(year) {
-            var stats = playerStats.annual[year];
-            var avgScore = stats.games > 0 ? Math.round(stats.score / stats.games) : 0;
-            html += '<div class="annual-year-block">';
-            html += '<h4>' + year + '</h4>';
-            html += '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center;">';
-            html += '<div><strong>' + stats.games + '</strong><br>Games</div>';
-            html += '<div><strong>' + stats.score + '</strong><br>Total Score</div>';
-            html += '<div><strong>' + stats.best + '</strong><br>Best Score</div>';
-            html += '</div>';
-            html += '</div>';
-        });
-        yearsContainer.innerHTML = html || '<p style="color: #999;">No annual stats yet</p>';
-    }
 }
 
 function formatDate(dateStr) {
@@ -1995,27 +1991,33 @@ function resetGame() {
 function switchToProMode() {
     if (gameMode === 'pro') return; // Already in Pro mode
     
-    if (guessCount > 0) {
-        // User has made guesses - show confirmation
-        pendingModeSwitch = 'pro';
-        document.getElementById('modeSwitchModal').style.display = 'flex';
-    } else {
-        // No guesses yet - switch immediately
-        performModeSwitch('pro');
+    // Check if game is in progress (any rounds completed or guesses made)
+    var gameInProgress = roundResults.length > 0 || guessCount > 0;
+    
+    if (gameInProgress) {
+        // Game in progress - show error message
+        showError("⚠️ Finish or abandon your current game before switching modes");
+        return;
     }
+    
+    // No game in progress - switch immediately
+    performModeSwitch('pro');
 }
 
 function switchToProPlusMode() {
     if (gameMode === 'proplus') return; // Already in Pro+ mode
     
-    if (guessCount > 0) {
-        // User has made guesses - show confirmation
-        pendingModeSwitch = 'proplus';
-        document.getElementById('modeSwitchModal').style.display = 'flex';
-    } else {
-        // No guesses yet - switch immediately
-        performModeSwitch('proplus');
+    // Check if game is in progress (any rounds completed or guesses made)
+    var gameInProgress = roundResults.length > 0 || guessCount > 0;
+    
+    if (gameInProgress) {
+        // Game in progress - show error message
+        showError("⚠️ Finish or abandon your current game before switching modes");
+        return;
     }
+    
+    // No game in progress - switch immediately
+    performModeSwitch('proplus');
 }
 
 function confirmModeSwitch() {
@@ -2117,6 +2119,11 @@ function performModeSwitch(newMode) {
     // ALWAYS reload the game when switching modes (word formula is different!)
     console.log("Mode switch: Reloading game with new word formula...");
     resetGame();
+    
+    // Update dev console with new mode
+    if (devMode) {
+        updateFullDevConsole();
+    }
     
     // Update alphabet display (safe to do immediately)
     updateAlphabetDisplay();
@@ -2513,7 +2520,7 @@ window.cancelModeSwitch = cancelModeSwitch;
 window.showAbandonModal = showAbandonModal;
 window.closeAbandonModal = closeAbandonModal;
 window.confirmAbandonGame = confirmAbandonGame;
-window.updateDevConsole = updateDevConsole;
+window.updateFullDevConsole = updateFullDevConsole;
 window.playAgainSameMode = playAgainSameMode;
 window.playAgainOtherMode = playAgainOtherMode;
 
