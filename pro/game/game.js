@@ -1077,7 +1077,13 @@ function closePlaceholderModal() { document.getElementById("placeholderModal").s
 function closeSuccessModal() { document.getElementById("successModal").style.display = "none"; document.getElementById("guessInput").focus(); }
 function closeZeroScoreModal() { document.getElementById("zeroScoreModal").style.display = "none"; document.getElementById("guessInput").focus(); }
 function viewResults() { document.getElementById("dailyCompleteModal").style.display = "none"; toggleShare(); }
-function closeDailyModal() { document.getElementById("dailyCompleteModal").style.display = "none"; }
+function closeDailyModal() {
+    document.getElementById("dailyCompleteModal").style.display = "none";
+    // Game is over - closing the modal starts a new game in same mode
+    if (roundResults.length >= maxRounds) {
+        resetGame();
+    }
+}
 
 function loadStats() {
     var saved = localStorage.getItem('directionary_base_Stats');
