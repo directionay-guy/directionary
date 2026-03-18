@@ -957,7 +957,13 @@ function showShare() {
     document.getElementById("sharePreview").textContent = shareText;
     document.getElementById("sharePanel").style.display = "flex";
 }
-function closeShare() { document.getElementById("sharePanel").style.display = "none"; }
+function closeShare() {
+    document.getElementById("sharePanel").style.display = "none";
+    // If game is complete, bring back the completion modal so Play Again buttons are accessible
+    if (roundResults.length >= maxRounds) {
+        document.getElementById("dailyCompleteModal").style.display = "flex";
+    }
+}
 function showHelp() { document.getElementById("helpPanel").style.display = "flex"; }
 function closeHelp() { document.getElementById("helpPanel").style.display = "none"; }
 function closeStats() { document.getElementById("statsPanel").style.display = "none"; }
