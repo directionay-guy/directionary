@@ -162,38 +162,45 @@ function initFeedbackDisplay() {
 
     feedbackDiv.innerHTML = placeholderHTML;
 
-    // Reattach placeholder demo AlphaHint handlers
-    var placeholder = document.getElementById("placeholderGuess");
-    if (placeholder) {
-        var placeholderDots = placeholder.querySelectorAll('.symbol-with-letter');
-        var alphahintText = document.querySelector('.alphahint-text');
-        placeholderDots.forEach(function(dot) {
-            dot.style.cursor = 'pointer';
-            dot.addEventListener('mousedown', function(e) {
-                e.preventDefault();
-                if (alphahintText) alphahintText.classList.add('demo-active');
-            });
-            dot.addEventListener('mouseup', function() {
-                if (alphahintText) alphahintText.classList.remove('demo-active');
-            });
-            dot.addEventListener('mouseleave', function() {
-                if (alphahintText) alphahintText.classList.remove('demo-active');
-            });
-            dot.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                if (alphahintText) alphahintText.classList.add('demo-active');
-            });
-            dot.addEventListener('touchend', function() {
-                if (alphahintText) alphahintText.classList.remove('demo-active');
-            });
-            dot.addEventListener('touchcancel', function() {
-                if (alphahintText) alphahintText.classList.remove('demo-active');
-            });
-        });
-    }
+    // Attach handlers via shared function
+    attachPlaceholderHandlers();
 }
 
-function showDefinition(word) {
+// Attach alphahint demo handlers to placeholder (called on reload too)
+function attachPlaceholderHandlers() {
+    var placeholder = document.getElementById("placeholderGuess");
+    if (!placeholder) return;
+    var placeholderDots = placeholder.querySelectorAll('.symbol-with-letter');
+    var alphahintText = document.querySelector('.alphahint-text');
+    placeholderDots.forEach(function(dot) {
+        dot.style.cursor = 'pointer';
+        // Clone to remove any old handlers before re-attaching
+        var newDot = dot.cloneNode(true);
+        dot.parentNode.replaceChild(newDot, dot);
+        newDot.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            if (alphahintText) alphahintText.classList.add('demo-active');
+        });
+        newDot.addEventListener('mouseup', function() {
+            if (alphahintText) alphahintText.classList.remove('demo-active');
+        });
+        newDot.addEventListener('mouseleave', function() {
+            if (alphahintText) alphahintText.classList.remove('demo-active');
+        });
+        newDot.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            if (alphahintText) alphahintText.classList.add('demo-active');
+        });
+        newDot.addEventListener('touchend', function() {
+            if (alphahintText) alphahintText.classList.remove('demo-active');
+        });
+        newDot.addEventListener('touchcancel', function() {
+            if (alphahintText) alphahintText.classList.remove('demo-active');
+        });
+    });
+}
+
+
     var defBox = document.getElementById('definitionBox');
     var defWord = document.getElementById('defWord');
     var defText = document.getElementById('defText');
@@ -438,6 +445,9 @@ function startNewGame() {
     var hasContent = feedbackDiv && feedbackDiv.querySelector('.feedback-line, .new-game-message');
     if (!hasContent) {
         initFeedbackDisplay();
+    } else {
+        // Even if content exists, always reattach placeholder handlers (fixes reload bug)
+        attachPlaceholderHandlers();
     }
 }
 
@@ -567,12 +577,9 @@ function submitGuess() {
     feedbackLine.innerHTML = "<span style=\"color: #bbb; margin-right: 8px;\">" + guessCount + ")</span> <span class=\"feedback-word\" onclick=\"showWordDefinitionModal('" + guess + "')\">" + guess + "</span> <div class=\"feedback-arrows\">" + arrowSpans + "</div>";
     feedbackDiv.insertBefore(feedbackLine, feedbackDiv.firstChild);
 
-    // Remove placeholder after first real guess
+    // Remove placeholder after first real guess (but keep round indicator)
     var placeholder = document.getElementById("placeholderGuess");
     if (placeholder) placeholder.remove();
-    // Remove round indicator after first guess too
-    var roundIndicator = document.getElementById("round1Indicator");
-    if (roundIndicator) roundIndicator.remove();
 
     var allLines = feedbackDiv.querySelectorAll('.feedback-line');
     allLines.forEach(function(line, index) {
