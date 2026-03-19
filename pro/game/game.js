@@ -200,7 +200,7 @@ function attachPlaceholderHandlers() {
     });
 }
 
-
+function showDefinition(word) {
     var defBox = document.getElementById('definitionBox');
     var defWord = document.getElementById('defWord');
     var defText = document.getElementById('defText');
