@@ -1395,6 +1395,38 @@ function updateAlphaHintText(mode) {
     }
 }
 
+// Expose tab functions immediately so HTML onclick attributes work
+// even if called before window.onload fires
+window.switchToInfoTab = function() {
+    var infoTab = document.getElementById('infoTab');
+    var gameTab = document.getElementById('gameTab');
+    var infoBtn = document.getElementById('infoTabBtn');
+    var gameBtn = document.getElementById('gameTabBtn');
+    if (infoTab) infoTab.classList.add('active');
+    if (gameTab) gameTab.classList.remove('active');
+    if (infoBtn) infoBtn.classList.add('active');
+    if (gameBtn) gameBtn.classList.remove('active');
+    hideKeyboard();
+};
+
+window.switchToGameTab = function() {
+    var infoTab = document.getElementById('infoTab');
+    var gameTab = document.getElementById('gameTab');
+    var infoBtn = document.getElementById('infoTabBtn');
+    var gameBtn = document.getElementById('gameTabBtn');
+    if (gameTab) gameTab.classList.add('active');
+    if (infoTab) infoTab.classList.remove('active');
+    if (gameBtn) gameBtn.classList.add('active');
+    if (infoBtn) infoBtn.classList.remove('active');
+    if (isTouchDevice) showKeyboard();
+    if (!isTouchDevice) {
+        setTimeout(function() {
+            var inp = document.getElementById('guessInput');
+            if (inp && !inp.disabled) inp.focus();
+        }, 100);
+    }
+};
+
 window.onload = function() {
     console.log("Directionary PRO loading... [Version: March 19, 2026 - Bug fixes: dev mode formula + blank feedback]");
     loadStats();
