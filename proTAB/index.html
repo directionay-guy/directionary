@@ -1,1 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-M5WHQLMFV3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-M5WHQLMFV3');
+</script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Directionary™ Pro - Unlimited Word Puzzles</title>
+    
+    <meta name="description" content="Directionary™ Pro: Unlimited word puzzles using directional clues. Guess 5-letter words using alphabetical arrows. Play as much as you want!">
+    <meta name="keywords" content="directionary, word game, daily puzzle, alphabetical clues, wordle alternative, logic puzzle, word definitions, #WW2W, which way to words">
+    <meta name="author" content="Joel Pickard">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://directionary.net">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://directionary.net">
+    <meta property="og:title" content="Directionary™ Pro - Unlimited Word Puzzle Game">
+    <meta property="og:description" content="Unlimited word puzzles with directional clues. A unique logic game using alphabetical reasoning.">
+    <meta property="og:image" content="https://directionary.net/og-image.png">
+    <meta property="og:site_name" content="Directionary">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://directionary.net">
+    <meta name="twitter:title" content="Directionary™ Pro - Unlimited Puzzles">
+    <meta name="twitter:description" content="Unlimited word puzzles with directional clues. A unique logic game using alphabetical reasoning.">
+    <meta name="twitter:image" content="https://directionary.net/twitter-card.png">
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "Directionary",
+      "alternateName": "Directionary™ - \"Which Way To Words?",
+      "description": "Unlimited word puzzle game with directional alphabet clues.",
+      "url": "https://directionary.net",
+      "gamePlatform": ["Web Browser", "iOS Safari", "Android Chrome"],
+      "genre": ["Puzzle", "Word Game"],
+      "playMode": "SinglePlayer",
+      "author": { "@type": "Person", "name": "Joel Pickard" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    }
+    </script>
+    
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
+    <link rel="stylesheet" href="game/styles.css">
+</head>
+<body>
+    <div class="main-wrapper">
+    <div class="game-container">
 
+        <!-- Test mode indicator -->
+        <div id="testModeDisplay" style="display: none; background: #d1ecf1; color: #0c5460; padding: 8px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9em; font-weight: 600; text-align: center;">
+            🧪 TEST MODE: Random words enabled
+        </div>
+
+        <!-- Always visible: Title + Tagline -->
+        <h1 class="game-title">
+            <span class="title-arrow title-arrow-left">◄</span>
+            <span class="title-arrow">●</span>
+            <span class="title-text">Directionary Pro</span>
+            <span class="title-arrow">●</span>
+            <span class="title-arrow title-arrow-right">►</span>
+        </h1>
+        <p class="tagline">Which Way To Words?<sup style="font-size: 0.5em; opacity: 0.6; margin-left: 2px; color: #666;">™</sup></p>
+
+        <!-- Tab Buttons -->
+        <div class="pro-tabs">
+            <button class="pro-tab-btn" id="infoTabBtn" onclick="switchToInfoTab()">ℹ️ Info</button>
+            <button class="pro-tab-btn" id="gameTabBtn" onclick="switchToGameTab()">🎮 Play</button>
+        </div>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- INFO TAB                                -->
+        <!-- ═══════════════════════════════════════ -->
+        <div id="infoTab" class="pro-tab-content">
+
+            <div class="instructions">
+                Reveal 3 words in 10 tries per round. <button onclick="toggleHelp()" style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; cursor: pointer; font-size: 0.85em; font-weight: 700; margin-left: 4px; vertical-align: middle; box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="How to Play">?</button><br>
+                <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #28a745;">●</span> <span style="color: #000;">= correct</span></span>
+                <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">◄</span> <span style="color: #000;">= before</span></span>
+                <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">►</span> <span style="color: #000;">= after</span></span>
+            </div>
+
+            <!-- Pro/Pro+ Mode Toggle -->
+            <div class="mode-toggle-container">
+                <div class="mode-toggle-buttons">
+                    <button class="mode-toggle-btn active" id="proModeBtn" onclick="switchToProMode()">PRO</button>
+                    <button class="mode-toggle-btn" id="proPlusModeBtn" onclick="switchToProPlusMode()">PRO+</button>
+                </div>
+                <div class="mode-description" id="modeDescription">
+                    <strong>PRO Mode:</strong> AlphaHint enabled, bold letters, any guess allowed
+                </div>
+                <div class="free-game-link">
+                    Play <a href="https://directionary.net" target="_blank">Directionary</a>, the free daily game.
+                    &nbsp;|&nbsp;
+                    <a href="javascript:void(0)" onclick="showAbandonModal()" style="font-size: 0.85em; color: #999; text-decoration: none; cursor: pointer;">Abandon Game</a>
+                </div>
+            </div>
+
+            <!-- Start Playing button -->
+            <button onclick="switchToGameTab()" style="width: 100%; margin-top: 15px; padding: 14px; font-size: 1.1em; font-weight: 700; background: linear-gradient(135deg, #1e5c38 0%, #2d8a55 100%); color: white; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(30, 92, 56, 0.4); transition: all 0.3s;">
+                ▶ Start Playing
+            </button>
+
+            <!-- Bottom buttons inside info tab -->
+            <div class="bottom-buttons-container" style="margin-top: 20px;">
+                <button class="panel-btn share-btn" onclick="toggleShare()">📤 Share</button>
+                <button class="panel-btn stats-btn" onclick="toggleStats()">📊 Stats</button>
+                <button class="panel-btn info-btn" onclick="toggleInfo()">ℹ️ About</button>
+                <button class="panel-btn help-btn" onclick="toggleHelp()">❓ Help</button>
+            </div>
+
+        </div><!-- end infoTab -->
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- GAME TAB                                -->
+        <!-- ═══════════════════════════════════════ -->
+        <div id="gameTab" class="pro-tab-content">
+
+            <!-- Current mode indicator (subtle) -->
+            <div id="gameModeIndicator" style="text-align: center; font-size: 0.8em; color: #999; margin-bottom: 8px; font-style: italic;">PRO Mode</div>
+
+            <div class="score-display">
+                <div class="score-item">
+                    <div class="score-label">Guesses</div>
+                    <div class="score-value" id="guessCount">0</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Score</div>
+                    <div class="score-value" id="currentScore">100/300</div>
+                </div>
+            </div>
+
+            <!-- Definition box (hidden until word is solved) -->
+            <div class="definition-box" id="definitionBox">
+                <div class="definition-word" id="defWord"></div>
+                <div class="definition-text" id="defText"></div>
+                <div class="definition-credit">Powered by Free Dictionary API</div>
+            </div>
+
+            <!-- Guess input - inputmode="none" prevents native keyboard on mobile -->
+            <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-form-type="other" inputmode="none">
+
+            <!-- Submit button (desktop only - hidden on touch devices) -->
+            <div class="button-group" id="desktopSubmitGroup">
+                <button id="submitBtn">Submit</button>
+                <button class="give-up-btn" id="giveUpBtn" onclick="showAbandonModal()">Abandon Game</button>
+            </div>
+
+            <div class="alphabet-display" id="alphabetDisplay">
+                <span>A</span> <span>B</span> <span>C</span> <span>D</span> <span>E</span> <span>F</span> <span>G</span> <span>H</span> <span>I</span> <span>J</span> <span>K</span> <span>L</span> <span>M</span> <span>N</span> <span>O</span> <span>P</span> <span>Q</span> <span>R</span> <span>S</span> <span>T</span> <span>U</span> <span>V</span> <span>W</span> <span>X</span> <span>Y</span> <span>Z</span>
+            </div>
+
+            <div class="alphahint-text" id="alphahintText">AlphaHint™: Hold arrow for letter options</div>
+
+            <div id="errorMessage"></div>
+
+            <div class="feedback" id="feedback">
+                <div class="feedback-line placeholder-guess" id="placeholderGuess">
+                    <span style="color: #bbb; margin-right: 8px;">1)</span>
+                    <span class="feedback-word" onclick="showPlaceholderModal()" style="cursor: pointer; color: #999;">GUESS</span>
+                    <div class="feedback-arrows">
+                        <div class="symbol-with-letter">
+                            <span class="background-letter" style="color: #ccc;">G</span>
+                            <span class="overlay-symbol" style="color: #333;">◄</span>
+                        </div>
+                        <div class="symbol-with-letter">
+                            <span class="background-letter" style="color: #ccc;">U</span>
+                            <span class="overlay-symbol" style="color: #333;">►</span>
+                        </div>
+                        <div class="symbol-with-letter">
+                            <span class="background-letter" style="color: #ccc;">E</span>
+                            <span class="overlay-symbol" style="color: #333;">◄</span>
+                        </div>
+                        <div class="symbol-with-letter">
+                            <span class="background-letter" style="color: #ccc;">S</span>
+                            <span class="overlay-symbol" style="color: #333;">►</span>
+                        </div>
+                        <div class="symbol-with-letter">
+                            <span class="background-letter" style="color: #ccc;">S</span>
+                            <span class="overlay-symbol" style="color: #333;">►</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="new-game-message" id="round1Indicator">◄ ● Round 1 of 3 ● ►</div>
+            </div>
+
+            <!-- Bottom buttons inside game tab -->
+            <div class="bottom-buttons-container">
+                <button class="panel-btn share-btn" onclick="toggleShare()">📤 Share</button>
+                <button class="panel-btn stats-btn" onclick="toggleStats()">📊 Stats</button>
+                <button class="panel-btn info-btn" onclick="toggleInfo()">ℹ️ About</button>
+                <button class="panel-btn help-btn" onclick="toggleHelp()">❓ Help</button>
+            </div>
+
+        </div><!-- end gameTab -->
+
+    </div><!-- end game-container -->
+    </div><!-- end main-wrapper -->
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- CUSTOM KEYBOARD (fixed, mobile only)           -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div id="customKeyboard" class="custom-keyboard" style="display: none;">
+        <div class="keyboard-row">
+            <button class="key-btn" id="key-A" onclick="keyboardTap('A')">A</button>
+            <button class="key-btn" id="key-B" onclick="keyboardTap('B')">B</button>
+            <button class="key-btn" id="key-C" onclick="keyboardTap('C')">C</button>
+            <button class="key-btn" id="key-D" onclick="keyboardTap('D')">D</button>
+            <button class="key-btn" id="key-E" onclick="keyboardTap('E')">E</button>
+            <button class="key-btn" id="key-F" onclick="keyboardTap('F')">F</button>
+            <button class="key-btn" id="key-G" onclick="keyboardTap('G')">G</button>
+            <button class="key-btn" id="key-H" onclick="keyboardTap('H')">H</button>
+            <button class="key-btn" id="key-I" onclick="keyboardTap('I')">I</button>
+        </div>
+        <div class="keyboard-row">
+            <button class="key-btn" id="key-J" onclick="keyboardTap('J')">J</button>
+            <button class="key-btn" id="key-K" onclick="keyboardTap('K')">K</button>
+            <button class="key-btn" id="key-L" onclick="keyboardTap('L')">L</button>
+            <button class="key-btn" id="key-M" onclick="keyboardTap('M')">M</button>
+            <button class="key-btn" id="key-N" onclick="keyboardTap('N')">N</button>
+            <button class="key-btn" id="key-O" onclick="keyboardTap('O')">O</button>
+            <button class="key-btn" id="key-P" onclick="keyboardTap('P')">P</button>
+            <button class="key-btn" id="key-Q" onclick="keyboardTap('Q')">Q</button>
+            <button class="key-btn" id="key-R" onclick="keyboardTap('R')">R</button>
+        </div>
+        <div class="keyboard-row">
+            <button class="key-btn" id="key-S" onclick="keyboardTap('S')">S</button>
+            <button class="key-btn" id="key-T" onclick="keyboardTap('T')">T</button>
+            <button class="key-btn" id="key-U" onclick="keyboardTap('U')">U</button>
+            <button class="key-btn" id="key-V" onclick="keyboardTap('V')">V</button>
+            <button class="key-btn" id="key-W" onclick="keyboardTap('W')">W</button>
+            <button class="key-btn" id="key-X" onclick="keyboardTap('X')">X</button>
+            <button class="key-btn" id="key-Y" onclick="keyboardTap('Y')">Y</button>
+            <button class="key-btn" id="key-Z" onclick="keyboardTap('Z')">Z</button>
+            <button class="key-btn key-back" onclick="keyboardBackspace()">⌫</button>
+            <button class="key-btn key-submit" onclick="keyboardSubmit()">GO</button>
+        </div>
+    </div>
+
+    <!-- Share panel -->
+    <div class="info-panel" id="sharePanel">
+        <div style="position: relative;">
+        <button class="modal-close-x" onclick="closeShare()">×</button>
+        <h2>Share Your Results</h2>
+        <div class="share-preview" id="sharePreview">Your results will appear here after playing!</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
+        <button class="copy-btn" onclick="copyToClipboard()">Clipboard</button>
+        <button class="copy-btn" onclick="shareToTwitter()">X</button>
+        <button class="copy-btn" onclick="shareToBluesky()">Bluesky</button>
+        <button class="copy-btn" onclick="shareToFacebook()">Facebook</button>
+        </div>
+        <button class="close-panel-btn" onclick="closeShare()">Close</button>
+        </div>
+    </div>
+
+    <!-- Stats panel -->
+    <div class="info-panel" id="statsPanel">
+        <div style="position: relative;">
+        <button class="modal-close-x" onclick="closeStats()">×</button>
+        <h2>Your PRO Statistics</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 15px; font-size: 0.85em;">
+                <h3 style="margin: 0 0 8px 0; color: #667eea; font-size: 1em;">PRO MODE</h3>
+                <div style="font-size: 0.85em; color: #666; margin-bottom: 10px;">First: <span id="firstProDate">Not played yet</span></div>
+                <div style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #ddd;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span style="color: #666;">Games:</span><span style="font-weight: 600; color: #667eea;" id="proGamesPlayed">0</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span style="color: #666;">Best:</span><span style="font-weight: 600; color: #667eea;" id="proBestScore">0</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span style="color: #666;">All-Time:</span><span style="font-weight: 600; color: #667eea;" id="proTotalScore">0</span></div>
+                </div>
+                <div style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #ddd;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span style="color: #666;">Today:</span><span style="font-weight: 600;" id="proDailyTotal">0</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span style="color: #666;">This Week:</span><span style="font-weight: 600;" id="proWeeklyTotal">0</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span style="color: #666;">This Month:</span><span style="font-weight: 600;" id="proMonthlyTotal">0</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span style="color: #666;">This Year:</span><span style="font-weight: 600;" id="proAnnualTotal">0</span></div>
+                </div>
+                <div>
+                    <div style="font-size: 0.9em; font-weight: 600; color: #667eea; margin-bottom: 8px;">PAST YEARS</div>
+                    <div id="proYearlyArchive" style="font-size: 0.85em; color: #666;"><div class="no-archive">No archived years</div></div>
+                </div>
+            </div>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 15px; font-size: 0.85em;">
+                <h3 style="margin: 0 0 8px 0; color: #667eea; font-size: 1em;">PRO+ MODE</h3>
+                <div style="font-size: 0.85em; color: #666; margin-bottom: 10px;">First: <span id="firstProPlusDate">Not played yet</span></div>
+                <div style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #ddd;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span style="color: #666;">Games:</span><span style="font-weight: 600; color: #667eea;" id="proplusGamesPlayed">0</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span style="color: #666;">Best:</span><span style="font-weight: 600; color: #667eea;" id="proplusBestScore">0</span><span style="font-size: 0.8em; color: #999; margin-left: 4px;">(2x)</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span style="color: #666;">All-Time:</span><span style="font-weight: 600; color: #667eea;" id="proplusTotalScore">0</span></div>
+                </div>
+                <div style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #ddd;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span style="color: #666;">Today:</span><span style="font-weight: 600;" id="proplusDailyTotal">0</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span style="color: #666;">This Week:</span><span style="font-weight: 600;" id="proplusWeeklyTotal">0</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span style="color: #666;">This Month:</span><span style="font-weight: 600;" id="proplusMonthlyTotal">0</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span style="color: #666;">This Year:</span><span style="font-weight: 600;" id="proplusAnnualTotal">0</span></div>
+                </div>
+                <div>
+                    <div style="font-size: 0.9em; font-weight: 600; color: #667eea; margin-bottom: 8px;">PAST YEARS</div>
+                    <div id="proplusYearlyArchive" style="font-size: 0.85em; color: #666;"><div class="no-archive">No archived years</div></div>
+                </div>
+            </div>
+        </div>
+        <button class="close-panel-btn" onclick="closeStats()">Close</button>
+        </div>
+    </div>
+
+    <!-- Word Definition Modal -->
+    <div class="info-panel" id="wordDefPanel">
+        <div style="position: relative;">
+        <button class="modal-close-x" onclick="closeWordDefPanel()">×</button>
+        <h2 id="wordDefTitle">Word Definition</h2>
+        <div class="help-section" style="background: #f8f9fa; padding: 20px; border-radius: 12px;">
+            <h3 id="wordDefWord" style="color: #667eea; font-size: 1.5em; margin-bottom: 15px;">Loading...</h3>
+            <p id="wordDefText" style="font-size: 1em; line-height: 1.6; color: #555;">Fetching definition...</p>
+            <p style="font-size: 0.8em; color: #999; margin-top: 10px; font-style: italic;">Powered by Free Dictionary API</p>
+            <p id="wordDefLink" style="margin-top: 12px; font-size: 0.9em;"><a href="#" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 600;">See full definition →</a></p>
+        </div>
+        <button class="close-panel-btn" onclick="closeWordDefPanel()">Close</button>
+        </div>
+    </div>
+
+    <!-- Info/About panel -->
+    <div class="info-panel" id="infoPanel">
+        <div style="position: relative;">
+        <button class="modal-close-x" onclick="closeInfo()">×</button>
+        <h2>About Directionary™</h2>
+        <div class="help-section"><h3>About</h3><p>Created by Joel Pickard<br>© 2025 All Rights Reserved<br>A word puzzle where arrows guide you to the solution.</p></div>
+        <div class="help-section"><h3>Contact</h3><p>Email: <img src="images/email-info.png" alt="info@directionary.net" style="vertical-align: middle; height: 24px;"></p></div>
+        <div class="help-section"><h3>Licensing</h3><p>Directionary™ is available for sale or licensing.<br>Contact us at: <img src="images/email-business.png" alt="business@directionary.net" style="vertical-align: middle; height: 24px;"></p></div>
+        <div class="help-section"><h3>Accessibility</h3><p>Directionary PRO includes keyboard navigation support (Enter, Escape, Tab), visible focus indicators, and unlimited play without daily pressure.</p></div>
+        <div class="help-section"><h3>Did you find any bugs?</h3><p><img src="images/email-feedback.png" alt="feedback@directionary.net" style="vertical-align: middle; height: 24px;"></p></div>
+        <button class="close-panel-btn" onclick="closeInfo()">Close</button>
+        </div>
+    </div>
+
+    <!-- Help panel -->
+    <div class="info-panel" id="helpPanel">
+        <div style="position: relative;">
+        <button class="modal-close-x" onclick="closeHelp()">×</button>
+        <h2>How to Play Directionary™</h2>
+        <div class="help-section"><h3>Goal</h3><p>Complete 3 word puzzles using directional clues. Each guess shows whether letters should come earlier or later in the alphabet. Play as many times as you want!</p></div>
+        <div class="help-section">
+            <h3>Symbols Guide</h3>
+            <div class="help-symbols">
+                <div class="help-symbol"><span style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">●</span><span>Correct letter in the right position</span></div>
+                <div class="help-symbol"><span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">◄</span><span>Go earlier in the alphabet (your letter is too late)</span></div>
+                <div class="help-symbol"><span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">►</span><span>Go later in the alphabet (your letter is too early)</span></div>
+            </div>
+        </div>
+        <div class="help-section"><h3>Example</h3><p>If the target word is HOUSE and you guess GREAT:</p><p>G ► (H comes after G in alphabet)<br>R ◄ (O comes before R in alphabet)<br>E ► (U comes after E in alphabet)<br>A ► (S comes after A in alphabet)<br>T ◄ (E comes before T in alphabet)</p></div>
+        <div class="help-section">
+            <h3>AlphaHint™ (PRO Mode Only)</h3>
+            <p>Hold any arrow in your most recent guess to see which letters are still possible.</p>
+            <p><strong>Notes:</strong><br>• Only works on your most recent guess<br>• Green dots ● are already solved<br>• ⚠️ <strong>PRO+ Mode:</strong> AlphaHint is disabled</p>
+        </div>
+        <div class="help-section"><h3>PRO Mode</h3><p>✓ AlphaHint enabled<br>✓ Bold letters — used letters highlighted<br>✓ Any valid guess accepted</p><p><strong>Scoring:</strong> Start with 100 points per word, lose 10 per incorrect guess.</p></div>
+        <div class="help-section"><h3>PRO+ Mode (Hard Mode)</h3><p>⭐ <strong>DOUBLE POINTS</strong> ⭐<br>✗ No AlphaHint<br>✗ No bold letters<br>✗ Arrow constraints enforced — invalid guesses rejected</p><p><strong>Scoring:</strong> All scores ×2!</p></div>
+        <div class="help-section"><h3>Word Definitions</h3><p>Click any word you've guessed to see its definition!</p></div>
+        <div class="help-section"><h3>Scoring</h3><p><strong>PRO Mode:</strong> 10 guesses per round, start with 100 points, lose 10 per incorrect guess, 3 rounds per game.</p><p><strong>PRO+ Mode:</strong> Same rules but all scores ×2!</p></div>
+        <div class="help-section"><h3>Abandon Game</h3><p>Use the Abandon Game button or link to end your current game and start fresh. Does not count toward stats.</p></div>
+        <div class="help-section"><h3>Tips</h3><p>• Start with words using middle alphabet letters (L-M-N-O) to eliminate half the alphabet at once.<br>• Pay attention to the arrows — they show which direction to move through the alphabet.</p></div>
+        <div class="help-section"><h3>Found a bug?</h3><p><img src="images/email-feedback.png" alt="feedback@directionary.net" style="vertical-align: middle; height: 24px;"></p></div>
+        <button class="close-panel-btn" onclick="closeHelp()">Got it!</button>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="success-modal" id="successModal">
+        <div class="success-content">
+            <button class="modal-close-x" onclick="closeSuccessModal()">×</button>
+            <div class="success-title">Correct!</div>
+            <div class="success-word">The word was: <span id="modalWord"></span></div>
+            <div class="success-score">You scored <strong id="modalScore"></strong> points!<br>Total: <strong id="modalTotal"></strong> points</div>
+            <button class="success-btn" onclick="nextWord()">Next Round →</button>
+            <div class="modal-definition" id="modalDefinition">
+                <div class="modal-definition-word" id="modalDefWord"></div>
+                <div class="modal-definition-text" id="modalDefText"></div>
+                <div class="modal-definition-credit">Powered by Free Dictionary API</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Complete Modal -->
+    <div class="success-modal" id="dailyCompleteModal">
+        <div class="success-content">
+            <button class="modal-close-x" onclick="closeDailyModal()">×</button>
+            <div class="success-title">🏆 Game Complete!</div>
+            <div class="success-score">Final Score: <strong id="finalScore"></strong> points<br><br><div id="roundSummary" style="text-align: left; margin: 10px 0;"></div></div>
+            <button class="success-btn" onclick="viewResults()">View & Share Results</button>
+            <button class="success-btn" onclick="closeDailyModal()" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">Close</button>
+        </div>
+    </div>
+
+    <!-- Zero Score Modal -->
+    <div class="success-modal" id="zeroScoreModal" style="display: none;">
+        <div class="success-content">
+            <button class="modal-close-x" onclick="closeZeroScoreModal()">×</button>
+            <div class="success-title">🎯 Out of Tries!</div>
+            <div class="success-score">You've used all 10 guesses for this round.<br>Score: 0 points</div>
+            <button class="success-btn" onclick="skipRound()">Next Round →</button>
+        </div>
+    </div>
+
+    <!-- Give Up Modal -->
+    <div class="success-modal" id="giveUpModal">
+        <div class="success-content">
+            <button class="modal-close-x" onclick="cancelGiveUp()">×</button>
+            <div class="success-title">Skip This Round?</div>
+            <div class="success-score" style="margin: 20px 0;">Reveal this answer and move to next round?</div>
+            <button class="success-btn" onclick="confirmGiveUp()" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">Yes, Reveal Answer</button>
+            <button class="success-btn" onclick="cancelGiveUp()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Mode Switch Confirmation Modal -->
+    <div class="success-modal" id="modeSwitchModal" style="display: none;">
+        <div class="success-content" onclick="event.stopPropagation()">
+            <button class="modal-close-x" onclick="cancelModeSwitch(); event.stopPropagation()">×</button>
+            <div class="success-title" id="modeSwitchTitle">Switch Mode?</div>
+            <div class="success-score" style="margin: 20px 0; line-height: 1.6;">
+                <p id="modeSwitchMessage">This will restart your current game.</p>
+                <p style="margin-top: 10px; font-size: 0.9em; color: #666;" id="modeSwitchDescription"></p>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button class="success-btn" onclick="confirmModeSwitch(); event.stopPropagation();" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-width: 140px;">YES - Switch Mode</button>
+                <button class="success-btn" onclick="cancelModeSwitch(); event.stopPropagation();" style="background: #999; min-width: 140px;">NO - Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Abandon Game Confirmation Modal -->
+    <div class="success-modal" id="abandonGameModal" style="display: none;">
+        <div class="success-content" onclick="event.stopPropagation()">
+            <button class="modal-close-x" onclick="closeAbandonModal(); event.stopPropagation()">×</button>
+            <div class="success-title" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">⚠️ Abandon Current Game?</div>
+            <div class="success-score" style="margin: 20px 0; line-height: 1.6; text-align: left;">
+                <p><strong>This will:</strong></p>
+                <ul style="margin: 10px 0 10px 20px; text-align: left;">
+                    <li>End your current game immediately</li>
+                    <li>Not count toward your stats or play count</li>
+                    <li>Start a fresh game with new words</li>
+                </ul>
+                <p style="margin-top: 15px; color: #dc3545; font-weight: 600;">Your current progress will be lost.</p>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button class="success-btn" onclick="closeAbandonModal(); event.stopPropagation();" style="background: #667eea; min-width: 140px;">Cancel</button>
+                <button class="success-btn" onclick="confirmAbandonGame(); event.stopPropagation();" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); min-width: 140px;">Yes, Abandon Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Placeholder Modal -->
+    <div class="success-modal" id="placeholderModal">
+        <div class="success-content">
+            <button class="modal-close-x" onclick="closePlaceholderModal()">×</button>
+            <div class="success-title">How Guesses Work</div>
+            <div class="success-score" style="margin: 20px 0; text-align: left; line-height: 1.6;">
+                Your guesses appear here with directional clues for each letter:<br><br>
+                <strong>◄</strong> means the correct letter is <strong>earlier</strong> in the alphabet<br>
+                <strong>►</strong> means the correct letter is <strong>later</strong> in the alphabet<br>
+                <strong>●</strong> means you found the <strong>correct letter!</strong><br><br>
+                Use these clues to narrow down the answer!
+            </div>
+            <button class="success-btn" onclick="closePlaceholderModal()">Got it!</button>
+        </div>
+    </div>
+
+    <footer style="text-align: center; padding: 20px 0; color: #e8e8e8; font-size: 0.9em; margin-top: 40px;">
+        <p>Directionary<sup style="font-size: 0.5em; opacity: 0.8; margin-left: 2px; color: #e8e8e8;">™</sup> - Which Way To Words?<sup style="font-size: 0.5em; opacity: 0.8; margin-left: 2px; color: #e8e8e8;">™</sup></p>
+        <p><span style="font-size: 0.9em; opacity: 0.8; color: #e8e8e8;">© 2025 Joel Pickard. All rights reserved.</span></p>
+    </footer>
+
+    <!-- DEV CONSOLE -->
+    <div id="devConsole" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.95); color: #00ff41; padding: 15px 20px; font-family: 'Courier New', monospace; font-size: 0.85em; border-top: 2px solid #00ff41; z-index: 10000;">
+        <div style="max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 25px;">
+            <div>
+                <div style="color: #fff; font-weight: 700; margin-bottom: 8px; border-bottom: 1px solid #00ff41; padding-bottom: 4px;">CURRENT GAME</div>
+                <div style="margin-bottom: 4px;">Active: <span id="devActiveMode" style="color: #ffff00; font-weight: 700;">PRO</span></div>
+                <div style="margin-bottom: 4px;">Round: <span id="devRound">1</span> of 3</div>
+                <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #333;">
+                    <div style="color: #aaa; font-size: 0.9em; margin-bottom: 4px;">Play Counts:</div>
+                    <div style="margin-left: 10px;">Pro: <span id="devPlayCountPro">0</span></div>
+                    <div style="margin-left: 10px;">Pro+: <span id="devPlayCountProPlus">0</span></div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <button onclick="updateFullDevConsole()" style="background: #00ff41; color: #000; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 700; font-family: 'Courier New', monospace; font-size: 0.9em;">↻ REFRESH</button>
+                </div>
+            </div>
+            <div id="devProColumn" style="transition: opacity 0.3s;">
+                <div style="color: #fff; font-weight: 700; margin-bottom: 8px; border-bottom: 1px solid #00ff41; padding-bottom: 4px;">PRO MODE</div>
+                <div style="margin-bottom: 4px;">R1: <span id="devProWord1" style="color: #ff6b6b; font-weight: 700;">-----</span></div>
+                <div style="margin-bottom: 4px;">R2: <span id="devProWord2" style="color: #ff6b6b; font-weight: 700;">-----</span></div>
+                <div style="margin-bottom: 4px;">R3: <span id="devProWord3" style="color: #ff6b6b; font-weight: 700;">-----</span></div>
+                <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #333; color: #aaa; font-size: 0.9em;">Count: <span id="devProPlayCount">0</span></div>
+            </div>
+            <div id="devProPlusColumn" style="transition: opacity 0.3s;">
+                <div style="color: #fff; font-weight: 700; margin-bottom: 8px; border-bottom: 1px solid #00ff41; padding-bottom: 4px;">PRO+ MODE</div>
+                <div style="margin-bottom: 4px;">R1: <span id="devProPlusWord1" style="color: #ff6b6b; font-weight: 700;">-----</span></div>
+                <div style="margin-bottom: 4px;">R2: <span id="devProPlusWord2" style="color: #ff6b6b; font-weight: 700;">-----</span></div>
+                <div style="margin-bottom: 4px;">R3: <span id="devProPlusWord3" style="color: #ff6b6b; font-weight: 700;">-----</span></div>
+                <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #333; color: #aaa; font-size: 0.9em;">Count: <span id="devProPlusPlayCount">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game/game.js"></script>
+</body>
+</html>
