@@ -20,6 +20,9 @@ var roundResults = [];
 var lastCompletedResults = []; // Persists after reset so share still works
 var lastCompletedScore = 0;
 var lastCompletedMode = 'pro';
+
+// Detect touch device early so tab/keyboard init works correctly
+var isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 var guessHistory = [];
 var guessedWordsThisRound = new Set();
 var lastFetchedDefinition = null;
@@ -1534,8 +1537,6 @@ window.playAgainOtherMode = playAgainOtherMode;
 // ============================================
 // TAB SYSTEM
 // ============================================
-
-var isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 
 function switchToInfoTab() {
     document.getElementById('infoTab').classList.add('active');
