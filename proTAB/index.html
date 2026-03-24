@@ -75,14 +75,14 @@
 
         <!-- Tab Buttons -->
         <div class="pro-tabs">
-            <button class="pro-tab-btn" id="infoTabBtn" onclick="switchToInfoTab()">ℹ️ Info</button>
+            <button class="pro-tab-btn active" id="infoTabBtn" onclick="switchToInfoTab()">ℹ️ Info</button>
             <button class="pro-tab-btn" id="gameTabBtn" onclick="switchToGameTab()">🎮 Play</button>
         </div>
 
         <!-- ═══════════════════════════════════════ -->
         <!-- INFO TAB                                -->
         <!-- ═══════════════════════════════════════ -->
-        <div id="infoTab" class="pro-tab-content">
+        <div id="infoTab" class="pro-tab-content active">
 
             <div class="instructions">
                 Reveal 3 words in 10 tries per round. <button onclick="toggleHelp()" style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; cursor: pointer; font-size: 0.85em; font-weight: 700; margin-left: 4px; vertical-align: middle; box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="How to Play">?</button><br>
