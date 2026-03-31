@@ -1133,35 +1133,29 @@ body.keyboard-active {
 }
 
 /* Abandon as third score box */
-.score-item.score-abandon {
-    cursor: pointer;
-    background: rgba(0,0,0,0.06);
-    border-radius: 8px;
-    padding: 4px 10px;
-    transition: all 0.2s ease;
-    border: 1px solid rgba(0,0,0,0.08);
-}
+        .score-item.score-abandon {
+            cursor: pointer;
+            background: rgba(220,53,69,0.08);
+            border-radius: 8px;
+            padding: 4px 10px;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(220,53,69,0.2);
+        }
 
-.score-item.score-abandon .score-label {
-    color: #999;
-}
+        .score-item.score-abandon .score-label {
+            color: #dc3545;
+        }
 
-.score-item.score-abandon:hover {
-    background: rgba(0,0,0,0.1);
-    transform: translateY(-1px);
-}
+        .score-item.score-abandon:hover {
+            background: rgba(220,53,69,0.15);
+            transform: translateY(-1px);
+        }
 
-.score-abandon-x {
-    font-size: 1em;
-    font-weight: 600;
-    background: none !important;
-    -webkit-background-clip: initial !important;
-    -webkit-text-fill-color: #999 !important;
-    color: #999 !important;
-    margin-top: auto;
-}
-
-/* Shorter score display */
-.score-item {
-    min-height: 48px;
-}
+        .score-item.score-abandon .score-value {
+            font-size: 1.4em;
+            font-weight: 700;
+            background: none !important;
+            -webkit-background-clip: initial !important;
+            -webkit-text-fill-color: #dc3545 !important;
+            color: #dc3545 !important;
+        }
