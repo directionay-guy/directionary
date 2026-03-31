@@ -1468,10 +1468,10 @@ function initTabs() {
     } else {
         switchToInfoTab();
     }
-    // Hide desktop submit group on touch devices
+    // On touch devices hide Submit (replaced by GO key) but keep Abandon Game visible
     if (isTouchDevice) {
-        var dsg = document.getElementById('desktopSubmitGroup');
-        if (dsg) dsg.style.display = 'none';
+        var submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) submitBtn.style.display = 'none';
     }
 }
 
