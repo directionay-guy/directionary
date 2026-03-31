@@ -1202,15 +1202,11 @@ function resetGame() {
 
 function switchToProMode() {
     if (gameMode === 'pro') return;
-    var gameInProgress = roundResults.length > 0 || guessCount > 0;
-    if (gameInProgress) { showError("⚠️ Finish or abandon your current game before switching modes"); return; }
     performModeSwitch('pro');
 }
 
 function switchToProPlusMode() {
     if (gameMode === 'proplus') return;
-    var gameInProgress = roundResults.length > 0 || guessCount > 0;
-    if (gameInProgress) { showError("⚠️ Finish or abandon your current game before switching modes"); return; }
     performModeSwitch('proplus');
 }
 
