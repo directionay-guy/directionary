@@ -340,16 +340,7 @@ function initGame() {
     playCountProPlus = storedPlayCountProPlus ? parseInt(storedPlayCountProPlus) : 0;
     console.log("PRO play count:", playCount, "| PRO+ play count:", playCountProPlus);
 
-    // CRITICAL: Set current day in localStorage FIRST, before day checker starts
-    // Use PRO-specific key to avoid cross-contamination with Standard game
-    if (!devMode && !testMode) {
-        localStorage.setItem('directionary_pro_currentDay', getLocalGameDay());
-    }
-    
-    // Record page load time for grace period (prevents false reload on fresh load)
-    var pageLoadTime = Date.now();
     showBetaBannerIfEnabled();
-    if (!devMode && !testMode) startDayChangeChecker();
 
     // Initialize tab system and keyboard
     initTabs();
@@ -369,39 +360,6 @@ function initGame() {
         });
     }
     setTimeout(function() { document.getElementById("guessInput").focus(); }, 100);
-}
-
-function startDayChangeChecker() {
-    var pageLoadTime = Date.now();
-    var GRACE_PERIOD_MS = 15000; // 15 seconds - won't reload within 15s of page load
-    
-    function checkDay() {
-        // Don't reload if we just loaded the page
-        if (Date.now() - pageLoadTime < GRACE_PERIOD_MS) {
-            console.log("⏳ Grace period active - skipping day check");
-            return;
-        }
-        
-        var currentDay = getLocalGameDay();
-        var storedDay = localStorage.getItem('directionary_pro_currentDay'); // PRO-specific key
-        if (!storedDay) { localStorage.setItem('directionary_pro_currentDay', currentDay); return; }
-        storedDay = parseInt(storedDay);
-        if (currentDay > storedDay) {
-            console.log("🌅 New day detected - reloading PRO game...");
-            localStorage.setItem('directionary_pro_currentDay', currentDay);
-            location.reload();
-        }
-    }
-    
-    setInterval(checkDay, 10000);
-    
-    // iOS Safari fix: check when tab becomes visible after sleep/background
-    document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) {
-            console.log("👁️ Tab visible - checking for day change...");
-            checkDay();
-        }
-    });
 }
 
 function startNewGame() {
@@ -904,48 +862,6 @@ function playAgainOtherMode() {
     }
 }
 
-function showComeBackMessage() {
-    var instructions = document.querySelector(".instructions-brief") || document.querySelector(".instructions");
-    if (instructions) {
-        instructions.innerHTML = "<strong>✨ You've completed today's challenge! Return after midnight for tomorrow's game.</strong>";
-        instructions.style.background = "linear-gradient(135deg, #667eea15 0%, #764ba215 100%)";
-    }
-    usedLetters.clear();
-    var alphabetDiv = document.getElementById("alphabetDisplay");
-    if (alphabetDiv) {
-        var spans = alphabetDiv.getElementsByTagName("span");
-        for (var i = 0; i < spans.length; i++) spans[i].classList.remove("used-letter");
-    }
-    document.getElementById("guessInput").style.display = "none";
-    document.querySelector(".button-group").style.display = "none";
-    var feedbackDiv = document.getElementById("feedback");
-    feedbackDiv.innerHTML = '<div id="countdownTimer" style="text-align: center; padding: 25px 30px; font-size: 2em; color: #00ff41; font-weight: 700; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 15px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5), 0 4px 15px rgba(0,0,0,0.3); font-family: \'Courier New\', Courier, monospace; letter-spacing: 0.1em; text-shadow: 0 0 10px rgba(0,255,65,0.5), 0 0 20px rgba(0,255,65,0.3);"></div>';
-    startCountdownTimer();
-}
-
-function startCountdownTimer() {
-    function updateCountdown() {
-        var now = new Date();
-        var tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-        var timeLeft = tomorrow - now;
-        if (timeLeft <= 1000) {
-            localStorage.setItem('directionary_base_currentDay', getLocalGameDay() + 1);
-            location.reload();
-            return;
-        }
-        var hours = Math.floor(timeLeft / (1000 * 60 * 60));
-        var minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-        var seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-        var countdownEl = document.getElementById("countdownTimer");
-        if (countdownEl) {
-            countdownEl.innerHTML = '<span style="color: #FF9F00; font-size: 0.5em; text-shadow: 0 0 8px rgba(255,159,0,0.4);">Next puzzle in:</span><br>' +
-                String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
-        }
-    }
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
-}
-
 function generateShareText() {
     // Use lastCompletedResults so share works even after new game starts
     var results = lastCompletedResults.length > 0 ? lastCompletedResults : roundResults;
@@ -1359,24 +1275,17 @@ function performModeSwitch(newMode) {
     if (devMode) updateFullDevConsole();
     updateAlphabetDisplay();
     resetGame();
-    // Switch to game tab after mode change
-    switchToGameTab();
+    // Stay on Info tab so player can read the mode description before playing
 }
 
 function updateSkipButtonStyling(mode) {
+    // Abandon Game works in both modes - no strikethrough needed
     var giveUpBtn = document.getElementById('giveUpBtn');
     if (giveUpBtn) {
-        if (mode === 'proplus') {
-            giveUpBtn.style.textDecoration = 'line-through';
-            giveUpBtn.style.opacity = '0.5';
-            giveUpBtn.style.cursor = 'not-allowed';
-            giveUpBtn.title = 'Skipping rounds not allowed in Pro+ mode';
-        } else {
-            giveUpBtn.style.textDecoration = 'none';
-            giveUpBtn.style.opacity = '1';
-            giveUpBtn.style.cursor = 'pointer';
-            giveUpBtn.title = '';
-        }
+        giveUpBtn.style.textDecoration = 'none';
+        giveUpBtn.style.opacity = '1';
+        giveUpBtn.style.cursor = 'pointer';
+        giveUpBtn.title = '';
     }
 }
 
@@ -1615,6 +1524,14 @@ function updateGameModeIndicator() {
         el.style.color = gameMode === 'proplus' ? '#667eea' : '#999';
         el.style.fontWeight = gameMode === 'proplus' ? '600' : 'normal';
     }
+    updateStartPlayingButton();
+}
+
+function updateStartPlayingButton() {
+    var btn = document.getElementById('startPlayingBtn');
+    if (btn) {
+        btn.textContent = gameMode === 'proplus' ? '▶ Start Playing PRO+' : '▶ Start Playing PRO';
+    }
 }
 
 // ============================================
@@ -1657,17 +1574,7 @@ function keyboardSubmit() {
 }
 
 function updateKeyboardDisplay() {
-    var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    for (var i = 0; i < alphabet.length; i++) {
-        var letter = alphabet[i];
-        var keyEl = document.getElementById('key-' + letter);
-        if (!keyEl) continue;
-        if (gameMode !== 'proplus' && usedLetters.has(letter)) {
-            keyEl.classList.add('key-used');
-        } else {
-            keyEl.classList.remove('key-used');
-        }
-    }
+    // No used-letter styling on keyboard - distracting during play
 }
 
 window.switchToInfoTab = switchToInfoTab;
