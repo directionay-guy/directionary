@@ -1129,3 +1129,41 @@ body.keyboard-active {
 #submitBtn:hover:not(:disabled) {
     box-shadow: 0 4px 12px rgba(30, 92, 56, 0.5);
 }
+
+/* Abandon as third score box */
+.score-item.score-abandon {
+    cursor: pointer;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border-radius: 8px;
+    padding: 4px 10px;
+    transition: all 0.2s ease;
+}
+
+.score-item.score-abandon .score-label {
+    color: rgba(255,255,255,0.85);
+}
+
+.score-item.score-abandon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+.score-abandon-x {
+    font-size: 1.4em;
+    font-weight: bold;
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    -webkit-text-fill-color: white !important;
+    color: white !important;
+    margin-top: auto;
+}
+
+/* Shorter score display */
+.score-display {
+    margin: 10px 0;
+    padding: 8px 10px;
+}
+
+.score-item {
+    min-height: 48px;
+}
