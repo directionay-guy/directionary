@@ -102,14 +102,12 @@
                 </div>
                 <div class="free-game-link">
                     Play <a href="https://directionary.net" target="_blank">Directionary</a>, the free daily game.
-                    &nbsp;|&nbsp;
-                    <a href="javascript:void(0)" onclick="showAbandonModal()" style="font-size: 0.85em; color: #999; text-decoration: none; cursor: pointer;">Abandon Game</a>
                 </div>
             </div>
 
             <!-- Start Playing button -->
-            <button onclick="switchToGameTab()" style="width: 100%; margin-top: 15px; padding: 14px; font-size: 1.1em; font-weight: 700; background: linear-gradient(135deg, #1e5c38 0%, #2d8a55 100%); color: white; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(30, 92, 56, 0.4); transition: all 0.3s;">
-                ▶ Start Playing
+            <button id="startPlayingBtn" onclick="switchToGameTab()" style="width: 100%; margin-top: 15px; padding: 14px; font-size: 1.1em; font-weight: 700; background: linear-gradient(135deg, #1e5c38 0%, #2d8a55 100%); color: white; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(30, 92, 56, 0.4); transition: all 0.3s;">
+                ▶ Start Playing PRO
             </button>
 
             <!-- Bottom buttons inside info tab -->
@@ -213,36 +211,36 @@
     <!-- ═══════════════════════════════════════════════ -->
     <div id="customKeyboard" class="custom-keyboard" style="display: none;">
         <div class="keyboard-row">
-            <button class="key-btn" id="key-A" onclick="keyboardTap('A')">A</button>
-            <button class="key-btn" id="key-B" onclick="keyboardTap('B')">B</button>
-            <button class="key-btn" id="key-C" onclick="keyboardTap('C')">C</button>
-            <button class="key-btn" id="key-D" onclick="keyboardTap('D')">D</button>
+            <button class="key-btn" id="key-Q" onclick="keyboardTap('Q')">Q</button>
+            <button class="key-btn" id="key-W" onclick="keyboardTap('W')">W</button>
             <button class="key-btn" id="key-E" onclick="keyboardTap('E')">E</button>
+            <button class="key-btn" id="key-R" onclick="keyboardTap('R')">R</button>
+            <button class="key-btn" id="key-T" onclick="keyboardTap('T')">T</button>
+            <button class="key-btn" id="key-Y" onclick="keyboardTap('Y')">Y</button>
+            <button class="key-btn" id="key-U" onclick="keyboardTap('U')">U</button>
+            <button class="key-btn" id="key-I" onclick="keyboardTap('I')">I</button>
+            <button class="key-btn" id="key-O" onclick="keyboardTap('O')">O</button>
+            <button class="key-btn" id="key-P" onclick="keyboardTap('P')">P</button>
+        </div>
+        <div class="keyboard-row">
+            <button class="key-btn" id="key-A" onclick="keyboardTap('A')">A</button>
+            <button class="key-btn" id="key-S" onclick="keyboardTap('S')">S</button>
+            <button class="key-btn" id="key-D" onclick="keyboardTap('D')">D</button>
             <button class="key-btn" id="key-F" onclick="keyboardTap('F')">F</button>
             <button class="key-btn" id="key-G" onclick="keyboardTap('G')">G</button>
             <button class="key-btn" id="key-H" onclick="keyboardTap('H')">H</button>
-            <button class="key-btn" id="key-I" onclick="keyboardTap('I')">I</button>
-        </div>
-        <div class="keyboard-row">
             <button class="key-btn" id="key-J" onclick="keyboardTap('J')">J</button>
             <button class="key-btn" id="key-K" onclick="keyboardTap('K')">K</button>
             <button class="key-btn" id="key-L" onclick="keyboardTap('L')">L</button>
-            <button class="key-btn" id="key-M" onclick="keyboardTap('M')">M</button>
-            <button class="key-btn" id="key-N" onclick="keyboardTap('N')">N</button>
-            <button class="key-btn" id="key-O" onclick="keyboardTap('O')">O</button>
-            <button class="key-btn" id="key-P" onclick="keyboardTap('P')">P</button>
-            <button class="key-btn" id="key-Q" onclick="keyboardTap('Q')">Q</button>
-            <button class="key-btn" id="key-R" onclick="keyboardTap('R')">R</button>
         </div>
         <div class="keyboard-row">
-            <button class="key-btn" id="key-S" onclick="keyboardTap('S')">S</button>
-            <button class="key-btn" id="key-T" onclick="keyboardTap('T')">T</button>
-            <button class="key-btn" id="key-U" onclick="keyboardTap('U')">U</button>
-            <button class="key-btn" id="key-V" onclick="keyboardTap('V')">V</button>
-            <button class="key-btn" id="key-W" onclick="keyboardTap('W')">W</button>
-            <button class="key-btn" id="key-X" onclick="keyboardTap('X')">X</button>
-            <button class="key-btn" id="key-Y" onclick="keyboardTap('Y')">Y</button>
             <button class="key-btn" id="key-Z" onclick="keyboardTap('Z')">Z</button>
+            <button class="key-btn" id="key-X" onclick="keyboardTap('X')">X</button>
+            <button class="key-btn" id="key-C" onclick="keyboardTap('C')">C</button>
+            <button class="key-btn" id="key-V" onclick="keyboardTap('V')">V</button>
+            <button class="key-btn" id="key-B" onclick="keyboardTap('B')">B</button>
+            <button class="key-btn" id="key-N" onclick="keyboardTap('N')">N</button>
+            <button class="key-btn" id="key-M" onclick="keyboardTap('M')">M</button>
             <button class="key-btn key-back" onclick="keyboardBackspace()">⌫</button>
             <button class="key-btn key-submit" onclick="keyboardSubmit()">GO</button>
         </div>
