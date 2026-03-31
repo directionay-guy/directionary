@@ -1468,7 +1468,7 @@ function initTabs() {
     } else {
         switchToInfoTab();
     }
-    // On touch devices hide Submit (replaced by GO key) but keep Abandon Game visible
+    // On touch devices hide Submit button (replaced by GO key on custom keyboard)
     if (isTouchDevice) {
         var submitBtn = document.getElementById('submitBtn');
         if (submitBtn) submitBtn.style.display = 'none';
