@@ -1038,9 +1038,11 @@ body {
 .custom-keyboard {
     position: fixed;
     bottom: 12px;
-    left: 12px;
-    right: 12px;
-    background: rgba(210, 215, 210, 0.88);
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 24px);
+    max-width: 500px;
+    background: rgba(210, 215, 210, 0.72);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     padding: 12px 8px 14px 8px;
@@ -1133,37 +1135,33 @@ body.keyboard-active {
 /* Abandon as third score box */
 .score-item.score-abandon {
     cursor: pointer;
-    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    background: rgba(0,0,0,0.06);
     border-radius: 8px;
     padding: 4px 10px;
     transition: all 0.2s ease;
+    border: 1px solid rgba(0,0,0,0.08);
 }
 
 .score-item.score-abandon .score-label {
-    color: rgba(255,255,255,0.85);
+    color: #999;
 }
 
 .score-item.score-abandon:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+    background: rgba(0,0,0,0.1);
+    transform: translateY(-1px);
 }
 
 .score-abandon-x {
-    font-size: 1.4em;
-    font-weight: bold;
+    font-size: 1em;
+    font-weight: 600;
     background: none !important;
     -webkit-background-clip: initial !important;
-    -webkit-text-fill-color: white !important;
-    color: white !important;
+    -webkit-text-fill-color: #999 !important;
+    color: #999 !important;
     margin-top: auto;
 }
 
 /* Shorter score display */
-.score-display {
-    margin: 10px 0;
-    padding: 8px 10px;
-}
-
 .score-item {
     min-height: 48px;
 }
