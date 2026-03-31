@@ -1346,7 +1346,7 @@ window.onload = function() {
         if (event.key === "Enter" && !this.disabled) { event.preventDefault(); submitGuess(); }
     });
     document.getElementById("submitBtn").addEventListener("click", function() { if (!this.disabled) submitGuess(); });
-    document.getElementById("giveUpBtn").addEventListener("click", function() { if (!this.disabled) giveUp(); });
+    document.getElementById("giveUpBtn").addEventListener("click", function() { if (!this.disabled) showAbandonModal(); });
 };
 
 function reloadDevGame() {
