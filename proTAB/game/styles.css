@@ -1037,14 +1037,17 @@ body {
 
 .custom-keyboard {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(180deg, #e8e8e8 0%, #d0d0d0 100%);
-    padding: 10px 6px 12px 6px;
-    border-top: 1px solid #bbb;
+    bottom: 20px;
+    left: 12px;
+    right: 12px;
+    background: rgba(210, 215, 210, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 12px 8px 14px 8px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
     z-index: 5000;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .keyboard-row {
@@ -1080,11 +1083,7 @@ body {
     box-shadow: 0 0 0 #aaa;
 }
 
-.key-btn.key-used {
-    background: #2d3748;
-    color: #aaa;
-    box-shadow: 0 2px 0 #1a202c;
-}
+
 
 .key-btn.key-back {
     background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
@@ -1108,9 +1107,9 @@ body {
     transform: translateY(2px);
 }
 
-/* Body padding when keyboard is visible */
+/* Body padding when floating keyboard is visible */
 body.keyboard-active {
-    padding-bottom: 175px;
+    padding-bottom: 200px;
 }
 
 /* On larger phones, keys can be bigger */
@@ -1119,4 +1118,14 @@ body.keyboard-active {
         min-width: 34px;
         height: 46px;
     }
+}
+
+/* Submit button - green to match Start Playing */
+#submitBtn {
+    background: linear-gradient(135deg, #1e5c38 0%, #2d8a55 100%);
+    box-shadow: 0 2px 8px rgba(30, 92, 56, 0.4);
+}
+
+#submitBtn:hover:not(:disabled) {
+    box-shadow: 0 4px 12px rgba(30, 92, 56, 0.5);
 }
