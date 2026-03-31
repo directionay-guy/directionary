@@ -1004,40 +1004,6 @@ function skipRound() {
     nextWord();
 }
 
-function giveUp() {
-    if (gameMode === 'proplus') { console.log("Pro+ Mode: Skipping not allowed"); return; }
-    document.getElementById("giveUpModal").style.display = "flex";
-    document.getElementById("guessInput").disabled = true;
-    document.getElementById("submitBtn").disabled = true;
-    document.getElementById("giveUpBtn").disabled = true;
-}
-
-function confirmGiveUp() {
-    if (typeof gtag === 'function') gtag('event', 'give_up', {'round_number': currentRound, 'guesses_used': guessCount});
-    document.getElementById("giveUpModal").style.display = "none";
-    var feedbackDiv = document.getElementById("feedback");
-    var giveUpMessage = document.createElement("div");
-    giveUpMessage.className = "new-game-message";
-    giveUpMessage.innerHTML = "The word was: " + targetWord;
-    feedbackDiv.appendChild(giveUpMessage);
-    showDefinition(targetWord);
-    roundResults.push({
-        word: targetWord,
-        score: 0,
-        guesses: guessCount,
-        pattern: guessHistory.length > 0 ? guessHistory[guessHistory.length - 1] : "⚫ ⚫ ⚫ ⚫ ⚫"
-    });
-    setTimeout(() => { nextWord(); }, 4000);
-}
-
-function cancelGiveUp() {
-    document.getElementById("giveUpModal").style.display = "none";
-    document.getElementById("guessInput").disabled = false;
-    document.getElementById("submitBtn").disabled = false;
-    document.getElementById("giveUpBtn").disabled = false;
-    document.getElementById("guessInput").focus();
-}
-
 function closeDuplicateModal() { document.getElementById("duplicateWordModal").style.display = "none"; document.getElementById("guessInput").focus(); }
 function showPlaceholderModal() { document.getElementById("placeholderModal").style.display = "flex"; }
 function closePlaceholderModal() { document.getElementById("placeholderModal").style.display = "none"; document.getElementById("guessInput").focus(); }
@@ -1368,7 +1334,6 @@ document.addEventListener('keydown', function(e) {
         var checks = [
             {id: 'successModal', fn: nextWord},
             {id: 'zeroScoreModal', fn: skipRound},
-            {id: 'giveUpModal', fn: cancelGiveUp},
             {id: 'modeSwitchModal', fn: cancelModeSwitch},
             {id: 'abandonGameModal', fn: closeAbandonModal},
             {id: 'placeholderModal', fn: closePlaceholderModal},
@@ -1389,7 +1354,7 @@ document.addEventListener('keydown', function(e) {
             {id: 'successModal', fn: closeSuccessModal},
             {id: 'dailyCompleteModal', fn: closeDailyModal},
             {id: 'zeroScoreModal', fn: closeZeroScoreModal},
-            {id: 'giveUpModal', fn: cancelGiveUp},
+            {id: 'giveUpModal', fn: closeAbandonModal},
             {id: 'modeSwitchModal', fn: cancelModeSwitch},
             {id: 'abandonGameModal', fn: closeAbandonModal},
             {id: 'placeholderModal', fn: closePlaceholderModal},
@@ -1422,7 +1387,6 @@ document.addEventListener('DOMContentLoaded', function() {
         {id: 'successModal', close: closeSuccessModal},
         {id: 'dailyCompleteModal', close: closeDailyModal},
         {id: 'zeroScoreModal', close: closeZeroScoreModal},
-        {id: 'giveUpModal', close: cancelGiveUp},
         {id: 'modeSwitchModal', close: cancelModeSwitch},
         {id: 'abandonGameModal', close: closeAbandonModal},
         {id: 'placeholderModal', close: closePlaceholderModal}
@@ -1435,8 +1399,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Window assignments
 window.nextWord = nextWord;
-window.confirmGiveUp = confirmGiveUp;
-window.cancelGiveUp = cancelGiveUp;
 window.closeDuplicateModal = closeDuplicateModal;
 window.skipRound = skipRound;
 window.viewResults = viewResults;
