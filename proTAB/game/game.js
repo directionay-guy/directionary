@@ -1216,6 +1216,14 @@ function confirmAbandonGame() {
             'total_score': totalScore
         });
     }
+    // Increment play counter so new words load - but don't update stats
+    if (gameMode === 'proplus') {
+        playCountProPlus++;
+        localStorage.setItem('directionary_proplus_playCount', playCountProPlus);
+    } else {
+        playCount++;
+        localStorage.setItem('directionary_pro_playCount', playCount);
+    }
     resetGame();
 }
 
