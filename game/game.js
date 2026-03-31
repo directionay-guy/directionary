@@ -338,7 +338,16 @@ function initGame() {
 function startDayChangeChecker() {
     console.log("Day change checker started - will check every 10 seconds for new day");
     
+    var pageLoadTime = Date.now();
+    var GRACE_PERIOD_MS = 15000; // Won't reload within 15s of page load
+    
     function checkDay() {
+        // Grace period prevents false reload on fresh page load
+        if (Date.now() - pageLoadTime < GRACE_PERIOD_MS) {
+            console.log("⏳ Grace period active - skipping day check");
+            return;
+        }
+        
         var currentDay = getLocalGameDay();
         var storedDay = localStorage.getItem('directionary_standard_currentDay');
         
