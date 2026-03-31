@@ -137,6 +137,10 @@
                     <div class="score-label">Score</div>
                     <div class="score-value" id="currentScore">100/300</div>
                 </div>
+                <div class="score-item score-abandon" onclick="showAbandonModal()">
+                    <div class="score-label">Abandon</div>
+                    <div class="score-value score-abandon-x">✕</div>
+                </div>
             </div>
 
             <!-- Definition box (hidden until word is solved) -->
@@ -146,13 +150,10 @@
                 <div class="definition-credit">Powered by Free Dictionary API</div>
             </div>
 
-            <!-- Guess input - inputmode="none" prevents native keyboard on mobile -->
-            <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-form-type="other" inputmode="none">
-
-            <!-- Submit button (desktop only - hidden on touch devices) -->
-            <div class="button-group" id="desktopSubmitGroup">
-                <button id="submitBtn">Submit</button>
-                <button class="give-up-btn" id="giveUpBtn" onclick="showAbandonModal()">Abandon Game</button>
+            <!-- Input + Submit in a row -->
+            <div style="display: flex; gap: 10px; align-items: stretch; margin: 15px 0;">
+                <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-form-type="other" inputmode="none" style="flex: 1; margin: 0;">
+                <button id="submitBtn" style="flex: 0 0 auto; white-space: nowrap;">Submit</button>
             </div>
 
             <div class="alphabet-display" id="alphabetDisplay">
