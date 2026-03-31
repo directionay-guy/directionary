@@ -1037,7 +1037,7 @@ body {
 
 .custom-keyboard {
     position: fixed;
-    bottom: 20px;
+    bottom: 12px;
     left: 12px;
     right: 12px;
     background: rgba(210, 215, 210, 0.88);
