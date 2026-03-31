@@ -1229,7 +1229,7 @@ function performModeSwitch(newMode) {
     } else {
         document.getElementById('proPlusModeBtn').classList.add('active');
         document.getElementById('proModeBtn').classList.remove('active');
-        document.getElementById('modeDescription').innerHTML = '<strong>PRO+ Mode:</strong> ⭐ <strong>DOUBLE POINTS</strong> ⭐ | No AlphaHint | No skipping rounds | Must follow arrow clues';
+        document.getElementById('modeDescription').innerHTML = '<strong>PRO+ Mode:</strong> ⭐ <strong>DOUBLE POINTS</strong> ⭐ | No AlphaHint | Must follow arrow clues';
     }
     updateAlphaHintText(newMode);
     updateSkipButtonStyling(newMode);
@@ -1312,7 +1312,8 @@ window.onload = function() {
         if (event.key === "Enter" && !this.disabled) { event.preventDefault(); submitGuess(); }
     });
     document.getElementById("submitBtn").addEventListener("click", function() { if (!this.disabled) submitGuess(); });
-    document.getElementById("giveUpBtn").addEventListener("click", function() { if (!this.disabled) showAbandonModal(); });
+    var _gub = document.getElementById("giveUpBtn");
+    if (_gub) _gub.addEventListener("click", function() { if (!this.disabled) showAbandonModal(); });
 };
 
 function reloadDevGame() {
