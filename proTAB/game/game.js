@@ -21,8 +21,8 @@ var lastCompletedResults = []; // Persists after reset so share still works
 var lastCompletedScore = 0;
 var lastCompletedMode = 'pro';
 
-// Detect touch device early so tab/keyboard init works correctly
-var isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+// Detect touch device - use pointer media query for reliability across browsers
+var isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
 var guessHistory = [];
 var guessedWordsThisRound = new Set();
 var lastFetchedDefinition = null;
@@ -1229,7 +1229,7 @@ function performModeSwitch(newMode) {
     } else {
         document.getElementById('proPlusModeBtn').classList.add('active');
         document.getElementById('proModeBtn').classList.remove('active');
-        document.getElementById('modeDescription').innerHTML = '<strong>PRO+ Mode:</strong> ⭐ <strong>DOUBLE POINTS</strong> ⭐ | No AlphaHint | Must follow arrow clues';
+        document.getElementById('modeDescription').innerHTML = '<strong>PRO+ Mode:</strong> ⭐ <strong>DOUBLE POINTS</strong> ⭐<br><span style="font-size:0.9em;">No AlphaHint | Must follow arrow clues</span>';
     }
     updateAlphaHintText(newMode);
     updateSkipButtonStyling(newMode);
