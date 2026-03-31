@@ -431,7 +431,7 @@ function startNewGame() {
     document.getElementById("guessInput").value = "";
     document.getElementById("guessInput").disabled = false;
     document.getElementById("submitBtn").disabled = false;
-    document.getElementById("giveUpBtn").disabled = false;
+    var _gb1 = document.getElementById("giveUpBtn"); if (_gb1) _gb1.disabled = false;
     document.getElementById("guessInput").focus();
 
     // FIX #2: Always ensure feedback area has placeholder + round indicator
@@ -749,7 +749,7 @@ function showSuccessModal() {
     document.getElementById("successModal").style.display = "flex";
     document.getElementById("guessInput").disabled = true;
     document.getElementById("submitBtn").disabled = true;
-    document.getElementById("giveUpBtn").disabled = true;
+    (function(){ var _g = document.getElementById("giveUpBtn"); if (_g) _g.disabled = true; })();
 }
 
 function showDailyCompleteModal() {
@@ -990,7 +990,7 @@ function showZeroScoreModal() {
     document.getElementById("zeroScoreModal").style.display = "flex";
     document.getElementById("guessInput").disabled = true;
     document.getElementById("submitBtn").disabled = true;
-    document.getElementById("giveUpBtn").disabled = true;
+    (function(){ var _g = document.getElementById("giveUpBtn"); if (_g) _g.disabled = true; })();
 }
 
 function skipRound() {
