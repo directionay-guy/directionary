@@ -1031,7 +1031,8 @@ function showResultsPanel() {
     var submitBtn = document.getElementById("submitBtn");
     if (submitBtn) submitBtn.disabled = true;
 
-    html += '<div style="text-align: center; padding: 15px 10px;">';
+    // Build results HTML
+    var html = '<div style="text-align: center; padding: 15px 10px;">';
     html += '<div style="font-size: 1em; font-weight: 700; color: #667eea; margin-bottom: 12px;">Game Complete — Final Score: ' + score + '</div>';
     html += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 8px 15px; max-width: 280px; margin: 0 auto 15px auto;">';
 
