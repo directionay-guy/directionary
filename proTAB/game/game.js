@@ -1032,26 +1032,25 @@ function showResultsPanel() {
     if (submitBtn) submitBtn.disabled = true;
 
     // Build results HTML
-    var html = '<div style="text-align: center; padding: 15px 10px;">';
-    html += '<div style="font-size: 1em; font-weight: 700; color: #667eea; margin-bottom: 12px;">Game Complete — Final Score: ' + score + '</div>';
-    html += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 8px 15px; max-width: 280px; margin: 0 auto 15px auto;">';
+    var html = '<div style="text-align: center; padding: 20px 10px;">';
+    html += '<div style="font-size: 1.2em; font-weight: 700; color: #667eea; margin-bottom: 15px;">Game Complete — Final Score: ' + score + '</div>';
+    html += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 10px 20px; max-width: 280px; margin: 0 auto 20px auto;">';
 
     for (var i = 0; i < results.length; i++) {
         var result = results[i];
         var dictUrl = 'https://www.dictionary.com/browse/' + result.word.toLowerCase();
-        html += '<div style="text-align: left;"><a href="' + dictUrl + '" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 700; font-size: 1em;">' + result.word + '</a></div>';
+        html += '<div style="text-align: left;"><a href="' + dictUrl + '" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 700; font-size: 1.1em;">' + result.word + '</a></div>';
         if (result.score === 0) {
-            html += '<div style="text-align: right; color: #e53e3e; font-size: 0.85em;">0 pts</div>';
+            html += '<div style="text-align: right; color: #e53e3e; font-size: 0.9em;">0 pts</div>';
         } else {
-            html += '<div style="text-align: right; color: #666; font-size: 0.85em;">' + result.score + ' pts</div>';
+            html += '<div style="text-align: right; color: #666; font-size: 0.9em;">' + result.score + ' pts</div>';
         }
     }
     html += '</div>';
 
-    // Play Again buttons
-    html += '<div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">';
-    html += '<button onclick="playAgainFromPanel(\'' + mode + '\')" style="padding: 11px 20px; font-size: 0.95em; font-weight: 700; background: linear-gradient(135deg, #1e5c38 0%, #2d8a55 100%); color: white; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(30, 92, 56, 0.3);">▶ Play Another ' + currentMode + ' Game</button>';
-    html += '<button onclick="playAgainFromPanel(\'' + (mode === 'proplus' ? 'pro' : 'proplus') + '\')" style="padding: 10px 20px; font-size: 0.9em; font-weight: 600; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 12px; cursor: pointer;">Try ' + otherMode + ' Mode</button>';
+    html += '<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">';
+    html += '<button onclick="playAgainFromPanel(\'' + mode + '\')" style="padding: 14px 24px; font-size: 1em; font-weight: 700; background: linear-gradient(135deg, #1e5c38 0%, #2d8a55 100%); color: white; border: none; border-radius: 12px; cursor: pointer;">&#9654; Play Another ' + currentMode + ' Game</button>';
+    html += '<button onclick="playAgainFromPanel(\'' + (mode === 'proplus' ? 'pro' : 'proplus') + '\')" style="padding: 12px 24px; font-size: 0.95em; font-weight: 600; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 12px; cursor: pointer;">Try ' + otherMode + ' Mode</button>';
     html += '</div>';
     html += '</div>';
 
