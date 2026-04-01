@@ -1183,3 +1183,23 @@ body.keyboard-active {
             -webkit-text-fill-color: #aaa !important;
             color: #aaa !important;
         }
+
+        /* Pro freedom line - animated shimmer */
+        .pro-freedom-line {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(30, 92, 56, 0.2);
+            font-size: 0.95em;
+            font-weight: 700;
+            background: linear-gradient(90deg, #1e5c38 0%, #2d8a55 40%, #52c47a 60%, #1e5c38 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: pro-shimmer 3s linear infinite;
+        }
+
+        @keyframes pro-shimmer {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
