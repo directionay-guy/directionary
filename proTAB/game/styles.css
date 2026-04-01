@@ -1204,10 +1204,14 @@ body.keyboard-active {
             100% { background-position: 200% center; }
         }
 
-        /* Sparkle animation */
+        /* Sparkle animation - reset gradient clip so emoji shows */
         .sparkle {
             display: inline-block;
             animation: sparkle-pop 2s ease-in-out infinite;
+            -webkit-text-fill-color: initial;
+            background: none;
+            -webkit-background-clip: initial;
+            background-clip: initial;
         }
 
         .sparkle-delay {
