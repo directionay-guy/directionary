@@ -1180,8 +1180,8 @@ body.keyboard-active {
         .overlay-symbol.placeholder-dot {
             background: none !important;
             -webkit-background-clip: initial !important;
-            -webkit-text-fill-color: #aaa !important;
-            color: #aaa !important;
+            -webkit-text-fill-color: #666 !important;
+            color: #666 !important;
         }
 
         /* Pro freedom line - animated shimmer */
@@ -1189,7 +1189,7 @@ body.keyboard-active {
             margin-top: 10px;
             padding-top: 10px;
             border-top: 1px solid rgba(30, 92, 56, 0.2);
-            font-size: 0.95em;
+            font-size: 1.05em;
             font-weight: 700;
             background: linear-gradient(90deg, #1e5c38 0%, #2d8a55 40%, #52c47a 60%, #1e5c38 100%);
             background-size: 200% auto;
@@ -1202,4 +1202,21 @@ body.keyboard-active {
         @keyframes pro-shimmer {
             0% { background-position: 0% center; }
             100% { background-position: 200% center; }
+        }
+
+        /* Sparkle animation */
+        .sparkle {
+            display: inline-block;
+            animation: sparkle-pop 2s ease-in-out infinite;
+        }
+
+        .sparkle-delay {
+            animation-delay: 1s;
+        }
+
+        @keyframes sparkle-pop {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+            25% { transform: scale(1.4) rotate(-15deg); opacity: 0.8; }
+            50% { transform: scale(0.8) rotate(10deg); opacity: 0.6; }
+            75% { transform: scale(1.2) rotate(-5deg); opacity: 0.9; }
         }
