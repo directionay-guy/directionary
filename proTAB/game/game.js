@@ -1012,8 +1012,57 @@ function closeZeroScoreModal() { document.getElementById("zeroScoreModal").style
 function viewResults() { document.getElementById("dailyCompleteModal").style.display = "none"; toggleShare(); }
 function closeDailyModal() {
     document.getElementById("dailyCompleteModal").style.display = "none";
-    // Game is over - closing the modal starts a new game in same mode
-    if (roundResults.length >= maxRounds) {
+    showResultsPanel();
+}
+
+function showResultsPanel() {
+    var results = lastCompletedResults.length > 0 ? lastCompletedResults : roundResults;
+    var score = lastCompletedScore > 0 ? lastCompletedScore : totalScore;
+    var mode = lastCompletedMode || gameMode;
+    var currentMode = mode === 'proplus' ? 'PRO+' : 'PRO';
+    var otherMode = mode === 'proplus' ? 'PRO' : 'PRO+';
+
+    // Switch to game tab so results show there
+    switchToGameTab();
+
+    // Disable input area
+    var guessInput = document.getElementById("guessInput");
+    if (guessInput) guessInput.disabled = true;
+    var submitBtn = document.getElementById("submitBtn");
+    if (submitBtn) submitBtn.disabled = true;
+
+    // Build results HTML
+    var html = '<div style="text-align: center; padding: 20px 10px;">';
+    html += '<div style="font-size: 1.2em; font-weight: 700; color: #667eea; margin-bottom: 15px;">Game Complete — Final Score: ' + score + '</div>';
+    html += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 10px 20px; max-width: 280px; margin: 0 auto 20px auto;">';
+
+    for (var i = 0; i < results.length; i++) {
+        var result = results[i];
+        var dictUrl = 'https://www.dictionary.com/browse/' + result.word.toLowerCase();
+        html += '<div style="text-align: left;"><a href="' + dictUrl + '" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 700; font-size: 1.1em;">' + result.word + '</a></div>';
+        if (result.score === 0) {
+            html += '<div style="text-align: right; color: #e53e3e; font-size: 0.9em;">0 pts</div>';
+        } else {
+            html += '<div style="text-align: right; color: #666; font-size: 0.9em;">' + result.score + ' pts</div>';
+        }
+    }
+    html += '</div>';
+
+    // Play Again buttons
+    html += '<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">';
+    html += '<button onclick="playAgainFromPanel(\'' + mode + '\')" style="padding: 14px 24px; font-size: 1em; font-weight: 700; background: linear-gradient(135deg, #1e5c38 0%, #2d8a55 100%); color: white; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(30, 92, 56, 0.3);">▶ Play Another ' + currentMode + ' Game</button>';
+    html += '<button onclick="playAgainFromPanel(\'' + (mode === 'proplus' ? 'pro' : 'proplus') + '\')" style="padding: 12px 24px; font-size: 0.95em; font-weight: 600; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 12px; cursor: pointer;">Try ' + otherMode + ' Mode</button>';
+    html += '</div>';
+    html += '</div>';
+
+    var feedbackDiv = document.getElementById("feedback");
+    if (feedbackDiv) feedbackDiv.innerHTML = html;
+}
+
+function playAgainFromPanel(mode) {
+    if (mode !== gameMode) {
+        performModeSwitch(mode);
+    } else {
         resetGame();
     }
 }
@@ -1441,6 +1490,7 @@ window.confirmAbandonGame = confirmAbandonGame;
 window.updateFullDevConsole = updateFullDevConsole;
 window.playAgainSameMode = playAgainSameMode;
 window.playAgainOtherMode = playAgainOtherMode;
+window.playAgainFromPanel = playAgainFromPanel;
 
 // ============================================
 // TAB SYSTEM
