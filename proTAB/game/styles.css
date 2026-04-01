@@ -1048,7 +1048,7 @@ body {
     padding: 12px 8px 14px 8px;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.5);
-    z-index: 5000;
+    z-index: 1000;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
@@ -1112,6 +1112,22 @@ body {
 /* Body padding when floating keyboard is visible */
 body.keyboard-active {
     padding-bottom: 200px;
+}
+
+/* Keyboard landscape fix - keep margins on all sides */
+@media (orientation: landscape) and (max-width: 1024px) {
+    .custom-keyboard {
+        bottom: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 24px);
+        max-width: 600px;
+        padding: 8px 6px 10px 6px;
+    }
+    
+    body.keyboard-active {
+        padding-bottom: 160px;
+    }
 }
 
 /* On larger phones, keys can be bigger */
