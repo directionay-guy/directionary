@@ -143,23 +143,23 @@ function initFeedbackDisplay() {
             <div class="feedback-arrows">
                 <div class="symbol-with-letter">
                     <span class="background-letter" style="color: #ccc;">G</span>
-                    <span class="overlay-symbol" style="color: #333;">◄</span>
+                    <span class="overlay-symbol placeholder-dot" style="color: #999;">●</span>
                 </div>
                 <div class="symbol-with-letter">
                     <span class="background-letter" style="color: #ccc;">U</span>
-                    <span class="overlay-symbol" style="color: #333;">►</span>
+                    <span class="overlay-symbol placeholder-dot" style="color: #999;">●</span>
                 </div>
                 <div class="symbol-with-letter">
                     <span class="background-letter" style="color: #ccc;">E</span>
-                    <span class="overlay-symbol" style="color: #333;">◄</span>
+                    <span class="overlay-symbol placeholder-dot" style="color: #999;">●</span>
                 </div>
                 <div class="symbol-with-letter">
                     <span class="background-letter" style="color: #ccc;">S</span>
-                    <span class="overlay-symbol" style="color: #333;">►</span>
+                    <span class="overlay-symbol placeholder-dot" style="color: #999;">●</span>
                 </div>
                 <div class="symbol-with-letter">
                     <span class="background-letter" style="color: #ccc;">S</span>
-                    <span class="overlay-symbol" style="color: #333;">►</span>
+                    <span class="overlay-symbol placeholder-dot" style="color: #999;">●</span>
                 </div>
             </div>
         </div>
