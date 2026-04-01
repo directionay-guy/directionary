@@ -1175,3 +1175,11 @@ body.keyboard-active {
             -webkit-text-fill-color: #dc3545 !important;
             color: #dc3545 !important;
         }
+
+        /* Placeholder grey dots - neutral, no directional meaning */
+        .overlay-symbol.placeholder-dot {
+            background: none !important;
+            -webkit-background-clip: initial !important;
+            -webkit-text-fill-color: #aaa !important;
+            color: #aaa !important;
+        }
