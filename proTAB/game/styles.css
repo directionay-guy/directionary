@@ -150,35 +150,36 @@ body {
         .score-display {
             display: flex;
             justify-content: space-around;
-            margin: 15px 0;
-            padding: 10px;
+            margin: 8px 0;
+            padding: 6px 10px;
             background: linear-gradient(135deg, #667eea30 0%, #764ba230 100%);
-            border-radius: 12px;
-            align-items: stretch;
+            border-radius: 10px;
+            align-items: center;
         }
         
         .score-item {
             text-align: center;
             display: flex;
             flex-direction: column;
-            min-height: 60px;
+            min-height: 36px;
+            justify-content: center;
         }
         
         .score-label {
-            font-size: 0.8em;
+            font-size: 0.65em;
             color: #666;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
         
         .score-value {
-            font-size: 1.8em;
+            font-size: 1.2em;
             font-weight: bold;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-top: auto;
+            margin-top: 0;
         }
         
         .instructions {
@@ -869,7 +870,7 @@ body {
             input:not(:placeholder-shown) { letter-spacing: 6px; }
             button { font-size: 0.9em; padding: 10px 18px; }
             .score-display { font-size: 0.9em; gap: 8px; }
-            .score-item { min-height: 50px; }
+            .score-item { min-height: 36px; }
             .info-panel { padding-top: 20px; align-items: flex-start; }
             .info-panel > div { padding: 20px; margin-bottom: 20px; max-height: calc(100vh - 40px); overflow-y: auto; }
             .modal-close-x { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.95); border-radius: 50%; width: 35px; height: 35px; font-size: 1.3em; color: #666; }
@@ -882,7 +883,7 @@ body {
             .daily-indicator { font-size: 0.65em; }
             .instructions { font-size: 0.7em; }
             .instructions-brief { font-size: 0.75em; }
-            .score-item { min-height: 45px; }
+            .score-item { min-height: 32px; }
             .info-panel { padding-top: 15px; }
             .info-panel > div { padding: 15px; font-size: 0.9em; }
             .modal-close-x { top: 20px; right: 15px; width: 32px; height: 32px; font-size: 1.2em; }
