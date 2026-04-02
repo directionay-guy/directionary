@@ -1040,14 +1040,15 @@ body {
 .custom-keyboard {
     position: fixed;
     bottom: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(100% - 24px);
-    max-width: 500px;
-    background: rgba(210, 215, 210, 0.72);
+    left: 12px;
+    right: 12px;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+    background: rgba(210, 215, 210, 0.82);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    padding: 12px 8px 14px 8px;
+    padding: 12px 10px 16px 10px;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.5);
     z-index: 1000;
@@ -1057,8 +1058,8 @@ body {
 .keyboard-row {
     display: flex;
     justify-content: center;
-    gap: 4px;
-    margin-bottom: 5px;
+    gap: 5px;
+    margin-bottom: 6px;
 }
 
 .keyboard-row:last-child {
@@ -1066,20 +1067,21 @@ body {
 }
 
 .key-btn {
-    min-width: 30px;
-    height: 44px;
+    min-width: 32px;
+    height: 48px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     background: white;
     color: #333;
-    font-size: 0.95em;
+    font-size: 1em;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 2px 0 #aaa;
+    box-shadow: 0 3px 0 #999;
     transition: all 0.1s ease;
-    padding: 0 6px;
+    padding: 0 4px;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    flex: 1;
 }
 
 .key-btn:active {
@@ -1135,8 +1137,9 @@ body.keyboard-active {
 /* On larger phones, keys can be bigger */
 @media (min-width: 400px) {
     .key-btn {
-        min-width: 34px;
-        height: 46px;
+        min-width: 36px;
+        height: 50px;
+        font-size: 1.05em;
     }
 }
 
