@@ -1167,6 +1167,7 @@ body.keyboard-active {
 
         .score-item.score-abandon .score-label {
             color: #dc3545;
+            margin-bottom: 0px;
         }
 
         .score-item.score-abandon:hover {
