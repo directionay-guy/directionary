@@ -552,6 +552,8 @@ body {
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             animation: slideUp 0.3s ease;
             position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
         @keyframes slideUp {
