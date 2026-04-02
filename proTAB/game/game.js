@@ -254,9 +254,8 @@ function updateScoreDisplay() {
     var totalGuesses = guessCount;
     for (var i = 0; i < roundResults.length; i++) totalGuesses += roundResults[i].guesses;
     document.getElementById("guessCount").textContent = totalGuesses;
-    var multiplier = gameMode === 'proplus' ? 2 : 1;
-    var totalPossible = maxRounds * 100 * multiplier;
-    var currentTotal = (totalScore + currentScore) * multiplier;
+    var totalPossible = gameMode === 'proplus' ? 600 : 300;
+    var currentTotal = totalScore + currentScore;
     document.getElementById("currentScore").textContent = currentTotal + "/" + totalPossible;
 }
 
@@ -420,7 +419,7 @@ function startNewGame() {
     if (devMode) updateFullDevConsole();
     if (testMode) document.getElementById("testModeDisplay").style.display = "block";
 
-    currentScore = 100;
+    currentScore = gameMode === 'proplus' ? 200 : 100;
     guessCount = 0;
     guessHistory = [];
     guessedWordsThisRound = new Set();
@@ -600,8 +599,9 @@ function submitGuess() {
         setTimeout(() => { showSuccessModal(); }, 1500);
     } else {
         var maxGuesses = gameMode === 'proplus' ? 7 : 10;
-        var pointsPerGuess = gameMode === 'proplus' ? Math.floor(100 / 7) : 10;
-        currentScore = Math.max(0, 100 - guessCount * pointsPerGuess);
+        var pointsPerGuess = gameMode === 'proplus' ? 20 : 10;
+        var startScore = gameMode === 'proplus' ? 200 : 100;
+        currentScore = Math.max(0, startScore - guessCount * pointsPerGuess);
         updateScoreDisplay();
         saveGameState();
         if (currentScore === 0 || guessCount >= maxGuesses) {
@@ -777,7 +777,7 @@ function showDailyCompleteModal() {
         console.log("Pro game complete - playCount now:", playCount);
     }
 
-    var displayScore = gameMode === 'proplus' ? totalScore * 2 : totalScore;
+    var displayScore = totalScore; // Already doubled at source for PRO+
     updateStats(displayScore);
     
     // Save completed game data so Share works even after new game starts
@@ -805,7 +805,6 @@ function showDailyCompleteModal() {
 
     var summary = "";
     var totalGuesses = 0;
-    var multiplier = gameMode === 'proplus' ? 2 : 1;
     if (roundResults.length > 0) {
         summary += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: center; max-width: 300px; margin: 0 auto;">';
         for (var i = 0; i < roundResults.length; i++) {
@@ -815,7 +814,7 @@ function showDailyCompleteModal() {
             if (result.score === 0) {
                 summary += '<div style="text-align: right; color: #e53e3e;">0 pts</div>';
             } else {
-                summary += '<div style="text-align: right; color: #666;">' + (result.score * multiplier) + ' pts</div>';
+                summary += '<div style="text-align: right; color: #666;">' + result.score + ' pts</div>';
             }
         }
         summary += '<div style="text-align: left; font-weight: 700; color: #667eea; border-top: 2px solid #ddd; padding-top: 10px; margin-top: 5px;">TOTAL GUESSES</div>';
@@ -1034,7 +1033,7 @@ function showResultsPanel() {
     html += '<div style="font-size: 1.2em; font-weight: 700; color: #667eea; margin-bottom: 15px;">Score: ' + score + ' pts</div>';
     html += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 10px 20px; max-width: 280px; margin: 0 auto 20px auto;">';
 
-    var multiplier = mode === 'proplus' ? 2 : 1;
+    var multiplier = 1; // Scores already stored doubled for PRO+
     for (var i = 0; i < results.length; i++) {
         var result = results[i];
         var dictUrl = 'https://www.dictionary.com/browse/' + result.word.toLowerCase();
@@ -1042,7 +1041,7 @@ function showResultsPanel() {
         if (result.score === 0) {
             html += '<div style="text-align: right; color: #e53e3e; font-size: 0.9em;">0 pts</div>';
         } else {
-            html += '<div style="text-align: right; color: #666; font-size: 0.9em;">' + (result.score * multiplier) + ' pts</div>';
+            html += '<div style="text-align: right; color: #666; font-size: 0.9em;">' + result.score + ' pts</div>';
         }
     }
     html += '</div>';
