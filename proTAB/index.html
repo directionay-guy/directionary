@@ -99,7 +99,7 @@
                     <button class="mode-toggle-btn" id="proPlusModeBtn" onclick="switchToProPlusMode()">PRO+</button>
                 </div>
                 <div class="mode-description" id="modeDescription">
-                    <strong>PRO Mode:</strong> AlphaHint enabled, bold letters, any guess allowed
+                    <strong>PRO Mode:</strong> AlphaHint enabled | Bold letters | Any guess allowed | 10 guesses
                 </div>
                 <div class="free-game-link">
                     Play <a href="https://directionary.net" target="_blank">Directionary</a>, the free daily game.
@@ -362,10 +362,10 @@
             <p>Hold any arrow in your most recent guess to see which letters are still possible.</p>
             <p><strong>Notes:</strong><br>• Only works on your most recent guess<br>• Green dots ● are already solved<br>• ⚠️ <strong>PRO+ Mode:</strong> AlphaHint is disabled</p>
         </div>
-        <div class="help-section"><h3>PRO Mode</h3><p>✓ AlphaHint enabled<br>✓ Bold letters — used letters highlighted<br>✓ Any valid guess accepted</p><p><strong>Scoring:</strong> Start with 100 points per word, lose 10 per incorrect guess.</p></div>
-        <div class="help-section"><h3>PRO+ Mode (Hard Mode)</h3><p>⭐ <strong>DOUBLE POINTS</strong> ⭐<br>✗ No AlphaHint<br>✗ No bold letters<br>✗ Arrow constraints enforced — invalid guesses rejected</p><p><strong>Scoring:</strong> All scores ×2!</p></div>
+        <div class="help-section"><h3>PRO Mode</h3><p>✓ AlphaHint enabled | Bold letters | Any valid guess | 10 guesses per round</p><p><strong>Scoring:</strong> Start with 100 points per word. Lose 10 points per incorrect guess.</p></div>
+        <div class="help-section"><h3>PRO+ Mode (Hard Mode)</h3><p>⭐ <strong>DOUBLE POINTS</strong> ⭐<br>✗ No AlphaHint | No bold letters | 7 guesses per round | Must follow arrow clues</p><p><strong>Scoring:</strong> All scores ×2! Start with 200 points per word, scoring decreases with each guess.</p></div>
         <div class="help-section"><h3>Word Definitions</h3><p>Click any word you've guessed to see its definition!</p></div>
-        <div class="help-section"><h3>Scoring</h3><p><strong>PRO Mode:</strong> 10 guesses per round, start with 100 points, lose 10 per incorrect guess, 3 rounds per game.</p><p><strong>PRO+ Mode:</strong> Same rules but all scores ×2!</p></div>
+        <div class="help-section"><h3>Scoring</h3><p><strong>PRO Mode:</strong> 10 guesses per round, start with 100 points, lose 10 per incorrect guess, 3 rounds per game. Max score: 300.</p><p><strong>PRO+ Mode:</strong> 7 guesses per round, all scores doubled. Max score: 600.</p></div>
         <div class="help-section"><h3>Abandon Game</h3><p>Use the Abandon Game button or link to end your current game and start fresh. Does not count toward stats.</p></div>
         <div class="help-section"><h3>Tips</h3><p>• Start with words using middle alphabet letters (L-M-N-O) to eliminate half the alphabet at once.<br>• Pay attention to the arrows — they show which direction to move through the alphabet.</p></div>
         <div class="help-section"><h3>Found a bug?</h3><p><img src="images/email-feedback.png" alt="feedback@directionary.net" style="vertical-align: middle; height: 24px;"></p></div>
@@ -405,7 +405,7 @@
         <div class="success-content">
             <button class="modal-close-x" onclick="closeZeroScoreModal()">×</button>
             <div class="success-title">🎯 Out of Tries!</div>
-            <div class="success-score">You've used all 10 guesses for this round.<br>Score: 0 points</div>
+            <div class="success-score" id="zeroScoreText">You've used all your guesses for this round.<br>Score: 0 points</div>
             <button class="success-btn" onclick="skipRound()">Next Round →</button>
         </div>
     </div>
