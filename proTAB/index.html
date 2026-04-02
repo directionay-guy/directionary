@@ -101,9 +101,11 @@
                 <div class="mode-description" id="modeDescription">
                     <strong>PRO Mode:</strong> AlphaHint enabled | Bold letters | Any guess allowed | 10 guesses
                 </div>
-                <div class="free-game-link">
-                    Play <a href="https://directionary.net" target="_blank">Directionary</a>, the free daily game.
-                </div>
+            </div>
+
+            <!-- Free game link - between the two blue segments -->
+            <div style="text-align: center; padding: 10px 0; font-size: 0.88em; color: #888;">
+                Also play <a href="https://directionary.net" target="_blank" style="color: #667eea; font-weight: 600; text-decoration: underline;">Directionary</a>, the one-word free daily game.
             </div>
 
             <!-- Start Playing button -->
@@ -153,7 +155,7 @@
 
             <!-- Input + Submit in a row -->
             <div style="display: flex; gap: 10px; align-items: stretch; margin: 15px 0;">
-                <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-form-type="other" inputmode="none" style="flex: 1; margin: 0;">
+                <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-form-type="other" inputmode="none" style="flex: 1; margin: 0;">
                 <button id="submitBtn" style="flex: 0 0 auto; white-space: nowrap;">Submit</button>
             </div>
 
