@@ -46,6 +46,7 @@ var roundResults = [];
 var guessHistory = [];
 var guessedWordsThisRound = new Set();
 var lastFetchedDefinition = null; // Store definition for reuse
+var lastReloadTime = 0; // Prevent cascading reloads
 
 // Get game day number based on LOCAL midnight (like Wordle)
 function getLocalGameDay() {
@@ -57,6 +58,19 @@ function getLocalGameDay() {
     
     var daysSinceLaunch = Math.floor((localMidnight - launchDate) / 86400000);
     return daysSinceLaunch + 1; // Start at Day 1
+}
+
+// Safe reload function - prevents cascading reloads
+function safeReload() {
+    var now = Date.now();
+    // If we reloaded less than 5 seconds ago, skip this reload
+    if (now - lastReloadTime < 5000) {
+        console.log("⏸️ Reload skipped - too soon after last reload (preventing cascade)");
+        return;
+    }
+    console.log("✅ Safe to reload - proceeding...");
+    lastReloadTime = now;
+    location.reload();
 }
 
 var dailyNumber = getLocalGameDay();
@@ -368,7 +382,16 @@ function initGame() {
 function startDayChangeChecker() {
     console.log("Day change checker started - will check every 10 seconds for new day");
     
+    var pageLoadTime = Date.now();
+    var GRACE_PERIOD_MS = 15000; // Won't reload within 15s of page load
+    
     function checkDay() {
+        // Grace period prevents false reload on fresh page load
+        if (Date.now() - pageLoadTime < GRACE_PERIOD_MS) {
+            console.log("⏳ Grace period active - skipping day check");
+            return;
+        }
+        
         var currentDay = getLocalGameDay();
         var storedDay = localStorage.getItem('directionary_base_currentDay');
         
@@ -384,7 +407,7 @@ function startDayChangeChecker() {
             console.log("🌅 New day detected! Old day:", storedDay, "New day:", currentDay);
             console.log("Reloading for fresh puzzle...");
             localStorage.setItem('directionary_base_currentDay', currentDay);
-            location.reload();
+            safeReload();
         }
     }
     
@@ -1048,7 +1071,7 @@ function startCountdownTimer() {
             // Set to TOMORROW's day (current + 1) since we're reloading into the new day
             var tomorrowDay = getLocalGameDay() + 1;
             localStorage.setItem('directionary_base_currentDay', tomorrowDay);
-            location.reload();
+            safeReload();
             return;
         }
         
