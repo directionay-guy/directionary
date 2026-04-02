@@ -1365,6 +1365,15 @@ window.onload = function() {
     guessInput.addEventListener("keypress", function(event) {
         if (event.key === "Enter" && !this.disabled) { event.preventDefault(); submitGuess(); }
     });
+    // On touch devices: blur immediately on focus to prevent Android keyboard
+    if (isTouchDevice) {
+        guessInput.addEventListener("focus", function() {
+            this.blur();
+        });
+        guessInput.addEventListener("touchstart", function(e) {
+            e.preventDefault();
+        });
+    }
     document.getElementById("submitBtn").addEventListener("click", function() { if (!this.disabled) submitGuess(); });
     var _gub = document.getElementById("giveUpBtn");
     if (_gub) _gub.addEventListener("click", function() { if (!this.disabled) showAbandonModal(); });
