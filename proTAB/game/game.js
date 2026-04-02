@@ -254,8 +254,9 @@ function updateScoreDisplay() {
     var totalGuesses = guessCount;
     for (var i = 0; i < roundResults.length; i++) totalGuesses += roundResults[i].guesses;
     document.getElementById("guessCount").textContent = totalGuesses;
-    var totalPossible = maxRounds * 100;
-    var currentTotal = totalScore + currentScore;
+    var multiplier = gameMode === 'proplus' ? 2 : 1;
+    var totalPossible = maxRounds * 100 * multiplier;
+    var currentTotal = (totalScore + currentScore) * multiplier;
     document.getElementById("currentScore").textContent = currentTotal + "/" + totalPossible;
 }
 
@@ -598,10 +599,14 @@ function submitGuess() {
         updateScoreDisplay();
         setTimeout(() => { showSuccessModal(); }, 1500);
     } else {
-        currentScore = Math.max(0, 100 - guessCount * 10);
+        var maxGuesses = gameMode === 'proplus' ? 7 : 10;
+        var pointsPerGuess = gameMode === 'proplus' ? Math.floor(100 / 7) : 10;
+        currentScore = Math.max(0, 100 - guessCount * pointsPerGuess);
         updateScoreDisplay();
         saveGameState();
-        if (currentScore === 0) {
+        if (currentScore === 0 || guessCount >= maxGuesses) {
+            currentScore = 0;
+            updateScoreDisplay();
             setTimeout(() => { showZeroScoreModal(); }, 500);
         }
     }
@@ -800,6 +805,7 @@ function showDailyCompleteModal() {
 
     var summary = "";
     var totalGuesses = 0;
+    var multiplier = gameMode === 'proplus' ? 2 : 1;
     if (roundResults.length > 0) {
         summary += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: center; max-width: 300px; margin: 0 auto;">';
         for (var i = 0; i < roundResults.length; i++) {
@@ -807,25 +813,14 @@ function showDailyCompleteModal() {
             totalGuesses += result.guesses;
             summary += '<div style="text-align: left;"><a href="https://www.dictionary.com/browse/' + result.word.toLowerCase() + '" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 600;">' + result.word + '</a></div>';
             if (result.score === 0) {
-                summary += '<div style="text-align: right; color: #e53e3e;">Skipped</div>';
+                summary += '<div style="text-align: right; color: #e53e3e;">0 pts</div>';
             } else {
-                summary += '<div style="text-align: right; color: #666;">' + result.guesses + ' guess' + (result.guesses === 1 ? '' : 'es') + '</div>';
+                summary += '<div style="text-align: right; color: #666;">' + (result.score * multiplier) + ' pts</div>';
             }
         }
         summary += '<div style="text-align: left; font-weight: 700; color: #667eea; border-top: 2px solid #ddd; padding-top: 10px; margin-top: 5px;">TOTAL GUESSES</div>';
         summary += '<div style="text-align: right; font-weight: 700; color: #667eea; border-top: 2px solid #ddd; padding-top: 10px; margin-top: 5px;">' + totalGuesses + '</div>';
         summary += '</div>';
-
-        if (gameMode === 'proplus' && totalScore > 0) {
-            summary += '<div style="margin-top: 20px; padding: 15px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 12px;">';
-            summary += '<div style="font-weight: 700; color: #667eea; margin-bottom: 8px;">🏆 PRO+ Bonus</div>';
-            summary += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; max-width: 200px; margin: 0 auto;">';
-            summary += '<div>Base Score:</div><div style="font-weight: 600;">' + totalScore + '</div>';
-            summary += '<div>PRO+ Multiplier:</div><div style="font-weight: 600;">×2</div>';
-            summary += '<div style="border-top: 2px solid #667eea; padding-top: 8px; font-weight: 700; color: #667eea;">Final Score:</div>';
-            summary += '<div style="border-top: 2px solid #667eea; padding-top: 8px; font-weight: 700; color: #667eea;">' + displayScore + '</div>';
-            summary += '</div></div>';
-        }
 
         var currentMode = gameMode === 'proplus' ? 'PRO+' : 'PRO';
         var otherMode = gameMode === 'proplus' ? 'PRO' : 'PRO+';
@@ -987,6 +982,9 @@ function nextWord() {
 }
 
 function showZeroScoreModal() {
+    var maxGuesses = gameMode === 'proplus' ? 7 : 10;
+    var zeroText = document.getElementById('zeroScoreText');
+    if (zeroText) zeroText.innerHTML = 'You\'ve used all ' + maxGuesses + ' guesses for this round.<br>Score: 0 points';
     document.getElementById("zeroScoreModal").style.display = "flex";
     document.getElementById("guessInput").disabled = true;
     document.getElementById("submitBtn").disabled = true;
@@ -1036,6 +1034,7 @@ function showResultsPanel() {
     html += '<div style="font-size: 1.2em; font-weight: 700; color: #667eea; margin-bottom: 15px;">Score: ' + score + ' pts</div>';
     html += '<div style="display: grid; grid-template-columns: 1fr auto; gap: 10px 20px; max-width: 280px; margin: 0 auto 20px auto;">';
 
+    var multiplier = mode === 'proplus' ? 2 : 1;
     for (var i = 0; i < results.length; i++) {
         var result = results[i];
         var dictUrl = 'https://www.dictionary.com/browse/' + result.word.toLowerCase();
@@ -1043,7 +1042,7 @@ function showResultsPanel() {
         if (result.score === 0) {
             html += '<div style="text-align: right; color: #e53e3e; font-size: 0.9em;">0 pts</div>';
         } else {
-            html += '<div style="text-align: right; color: #666; font-size: 0.9em;">' + result.score + ' pts</div>';
+            html += '<div style="text-align: right; color: #666; font-size: 0.9em;">' + (result.score * multiplier) + ' pts</div>';
         }
     }
     html += '</div>';
@@ -1281,11 +1280,11 @@ function performModeSwitch(newMode) {
     if (newMode === 'pro') {
         document.getElementById('proModeBtn').classList.add('active');
         document.getElementById('proPlusModeBtn').classList.remove('active');
-        document.getElementById('modeDescription').innerHTML = '<strong>PRO Mode:</strong> AlphaHint enabled, bold letters, any guess allowed';
+        document.getElementById('modeDescription').innerHTML = '<strong>PRO Mode:</strong> AlphaHint enabled | Bold letters | Any guess allowed | 10 guesses';
     } else {
         document.getElementById('proPlusModeBtn').classList.add('active');
         document.getElementById('proModeBtn').classList.remove('active');
-        document.getElementById('modeDescription').innerHTML = '<strong>PRO+ Mode:</strong> ⭐ <strong>DOUBLE POINTS</strong> ⭐<br><span style="font-size:0.9em;">No AlphaHint | Must follow arrow clues</span>';
+        document.getElementById('modeDescription').innerHTML = '<strong>PRO+ Mode:</strong> ⭐ <strong>DOUBLE POINTS</strong> ⭐<br><span style="font-size:0.9em;">No AlphaHint | No bold letters | 7 guesses | Must follow arrow clues</span>';
     }
     updateAlphaHintText(newMode);
     updateSkipButtonStyling(newMode);
