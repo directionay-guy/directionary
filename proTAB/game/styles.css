@@ -235,7 +235,7 @@ body {
             padding: 12px;
             font-size: 1.2em;
             margin: 15px 0;
-            border: 2px solid #e1e4e8;
+            border: 2px solid #1e5c38;
             border-radius: 10px;
             transition: all 0.3s ease;
             background: white;
@@ -257,8 +257,8 @@ body {
         
         input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #1e5c38;
+            box-shadow: 0 0 0 3px rgba(30, 92, 56, 0.15);
         }
         
         .button-group {
@@ -983,7 +983,7 @@ body {
         button:focus-visible, .success-btn:focus-visible { outline: 3px solid #667eea; outline-offset: 2px; }
         .panel-btn:focus-visible { outline: 3px solid white; outline-offset: 2px; }
         .close-panel-btn:focus-visible, .modal-close-x:focus-visible { outline: 3px solid #667eea; outline-offset: 2px; }
-        input:focus-visible { outline: 3px solid #667eea; outline-offset: 2px; }
+        input:focus-visible { outline: 3px solid #1e5c38; outline-offset: 2px; }
 
 /* ============================================
    TAB SYSTEM
