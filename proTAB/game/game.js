@@ -1049,6 +1049,7 @@ function showResultsPanel() {
     html += '<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">';
     html += '<button onclick="playAgainFromPanel(\'' + mode + '\')" style="padding: 14px 24px; font-size: 1em; font-weight: 700; background: linear-gradient(135deg, #1e5c38 0%, #2d8a55 100%); color: white; border: none; border-radius: 12px; cursor: pointer;">&#9654; Play Another ' + currentMode + ' Game</button>';
     html += '<button onclick="playAgainFromPanel(\'' + (mode === 'proplus' ? 'pro' : 'proplus') + '\')" style="padding: 12px 24px; font-size: 0.95em; font-weight: 600; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 12px; cursor: pointer;">Try ' + otherMode + ' Mode</button>';
+    html += '<div style="margin-top: 8px; font-size: 0.82em; color: #999; text-align: center;">Also play <a href="https://directionary.net" target="_blank" style="color: #667eea; font-weight: 600; text-decoration: underline;">Directionary</a>, the one-word free daily game.</div>';
     html += '</div>';
     html += '</div>';
 
