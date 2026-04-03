@@ -826,7 +826,7 @@ function showDailyCompleteModal() {
         summary += '<div style="margin-top: 25px; display: flex; flex-direction: column; gap: 12px;">';
         summary += '<button onclick="playAgainSameMode()" style="padding: 16px 24px; font-size: 1.1em; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">▶ Play Another ' + currentMode + ' Game</button>';
         summary += '<button onclick="playAgainOtherMode()" style="padding: 14px 24px; font-size: 1em; font-weight: 600; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 12px; cursor: pointer;">Try ' + otherMode + ' Mode</button>';
-        summary += '<a href="https://directionary.net" target="_blank" style="display: block; padding: 8px 20px; font-size: 0.85em; font-weight: 600; background: white; color: #888; border: 2px solid #ddd; border-radius: 12px; cursor: pointer; text-decoration: none; white-space: nowrap;">Also play Directionary — free daily game</a>';
+        summary += '<a href="https://directionary.net" target="_blank" style="display: block; padding: 6px 10px; font-size: 0.72em; font-weight: 600; background: white; color: #888; border: 2px solid #ddd; border-radius: 12px; cursor: pointer; text-decoration: none; text-align: center;">Also play Directionary — free daily game</a>';
         summary += '</div>';
     } else {
         summary = "No rounds completed<br>";
@@ -1050,7 +1050,7 @@ function showResultsPanel() {
     html += '<div style="display: flex; flex-direction: column; gap: 7px; margin-top: 8px;">';
     html += '<button onclick="playAgainFromPanel(\'' + mode + '\')" style="padding: 10px 20px; font-size: 0.95em; font-weight: 700; background: linear-gradient(135deg, #1e5c38 0%, #2d8a55 100%); color: white; border: none; border-radius: 12px; cursor: pointer;">&#9654; Play Another ' + currentMode + ' Game</button>';
     html += '<button onclick="playAgainFromPanel(\'' + (mode === 'proplus' ? 'pro' : 'proplus') + '\')" style="padding: 9px 20px; font-size: 0.9em; font-weight: 600; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 12px; cursor: pointer;">Try ' + otherMode + ' Mode</button>';
-    html += '<a href="https://directionary.net" target="_blank" style="display: block; padding: 8px 20px; font-size: 0.85em; font-weight: 600; background: white; color: #888; border: 2px solid #ddd; border-radius: 12px; cursor: pointer; text-decoration: none; white-space: nowrap;">Also play Directionary — free daily game</a>';
+    html += '<a href="https://directionary.net" target="_blank" style="display: block; padding: 8px 12px; font-size: 0.75em; font-weight: 600; background: white; color: #888; border: 2px solid #ddd; border-radius: 12px; cursor: pointer; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Also play Directionary — free daily game</a>';
     html += '</div>';
     html += '</div>';
 
