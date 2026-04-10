@@ -1406,7 +1406,7 @@ function performModeSwitch(newMode) {
     if (newMode === 'pro') {
         document.getElementById('proModeBtn').classList.add('active');
         document.getElementById('proPlusModeBtn').classList.remove('active');
-        document.getElementById('modeDescription').innerHTML = '<strong>PRO Mode:</strong> AlphaHint enabled | Bold letters | Any guess allowed | 10 guesses';
+        document.getElementById('modeDescription').innerHTML = '<strong>PRO Mode:</strong><br><span style="font-size:0.9em;">AlphaHint enabled | Bold letters | Any guess allowed | 10 guesses</span>';
     } else {
         document.getElementById('proPlusModeBtn').classList.add('active');
         document.getElementById('proModeBtn').classList.remove('active');
