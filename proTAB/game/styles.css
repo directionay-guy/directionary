@@ -848,7 +848,7 @@ body {
         }
         
         @media (max-width: 480px) {
-            .game-container { padding: 10px 20px 20px 20px; }
+            .game-container { padding: 10px 20px 10px 20px; }
             .tagline { font-size: 0.8em; }
             .alphabet-display { font-size: 0.58em; letter-spacing: 0.5px; }
             .daily-indicator { font-size: 0.7em; display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap; white-space: nowrap; }
