@@ -129,8 +129,8 @@
             <div class="definition-credit">Powered by Free Dictionary API</div>
         </div>
         
-        <div style="display: flex; gap: 10px; align-items: stretch; margin-bottom: 20px;">
-            <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-form-type="other" style="flex: 1; margin-bottom: 0;">
+        <div style="display: flex; gap: 10px; align-items: stretch; margin: 15px 0;">
+            <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-form-type="other" inputmode="none" style="flex: 1; margin: 0;">
             <button id="submitBtn" style="flex: 0 0 auto; white-space: nowrap; font-size: 1.2em; border: 2px solid transparent;">Submit</button>
         </div>
         
@@ -172,14 +172,16 @@
                 </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Bottom buttons with text labels -->
-    <div class="bottom-buttons-container">
-        <button class="panel-btn share-btn" onclick="toggleShare()">📤 Share</button>
-        <button class="panel-btn stats-btn" onclick="toggleStats()">📊 Stats</button>
-        <button class="panel-btn info-btn" onclick="toggleInfo()">ℹ️ About</button>
-        <button class="panel-btn help-btn" onclick="toggleHelp()">❓ Help</button>
+        
+        <!-- Bottom buttons - footer row inside game card -->
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(102, 126, 234, 0.15);">
+            <div class="bottom-buttons-container">
+                <button class="panel-btn share-btn" onclick="toggleShare()">📤 Share</button>
+                <button class="panel-btn stats-btn" onclick="toggleStats()">📊 Stats</button>
+                <button class="panel-btn info-btn" onclick="toggleInfo()">ℹ️ About</button>
+                <button class="panel-btn help-btn" onclick="toggleHelp()">❓ Help</button>
+            </div>
+        </div>
     </div>
     </div> <!-- End main-wrapper -->
     
@@ -575,6 +577,44 @@
         <p>Directionary<sup style="font-size: 0.5em; opacity: 0.8; margin-left: 2px; color: #e8e8e8;">™</sup> - Which Way To Words?<sup style="font-size: 0.5em; opacity: 0.8; margin-left: 2px; color: #e8e8e8;">™</sup></p>
         <p><span style="font-size: 0.9em; opacity: 0.8; color: #e8e8e8;">© 2025 Joel Pickard. All rights reserved.</span></p>
     </footer>
+
+    <!-- Custom mobile keyboard -->
+    <div id="customKeyboard" class="custom-keyboard" style="display: none;">
+        <div class="keyboard-row">
+            <button class="key-btn" onclick="keyboardTap('Q')">Q</button>
+            <button class="key-btn" onclick="keyboardTap('W')">W</button>
+            <button class="key-btn" onclick="keyboardTap('E')">E</button>
+            <button class="key-btn" onclick="keyboardTap('R')">R</button>
+            <button class="key-btn" onclick="keyboardTap('T')">T</button>
+            <button class="key-btn" onclick="keyboardTap('Y')">Y</button>
+            <button class="key-btn" onclick="keyboardTap('U')">U</button>
+            <button class="key-btn" onclick="keyboardTap('I')">I</button>
+            <button class="key-btn" onclick="keyboardTap('O')">O</button>
+            <button class="key-btn" onclick="keyboardTap('P')">P</button>
+        </div>
+        <div class="keyboard-row">
+            <button class="key-btn" onclick="keyboardTap('A')">A</button>
+            <button class="key-btn" onclick="keyboardTap('S')">S</button>
+            <button class="key-btn" onclick="keyboardTap('D')">D</button>
+            <button class="key-btn" onclick="keyboardTap('F')">F</button>
+            <button class="key-btn" onclick="keyboardTap('G')">G</button>
+            <button class="key-btn" onclick="keyboardTap('H')">H</button>
+            <button class="key-btn" onclick="keyboardTap('J')">J</button>
+            <button class="key-btn" onclick="keyboardTap('K')">K</button>
+            <button class="key-btn" onclick="keyboardTap('L')">L</button>
+        </div>
+        <div class="keyboard-row">
+            <button class="key-btn" onclick="keyboardTap('Z')">Z</button>
+            <button class="key-btn" onclick="keyboardTap('X')">X</button>
+            <button class="key-btn" onclick="keyboardTap('C')">C</button>
+            <button class="key-btn" onclick="keyboardTap('V')">V</button>
+            <button class="key-btn" onclick="keyboardTap('B')">B</button>
+            <button class="key-btn" onclick="keyboardTap('N')">N</button>
+            <button class="key-btn" onclick="keyboardTap('M')">M</button>
+            <button class="key-btn key-back" onclick="keyboardBackspace()">⌫</button>
+            <button class="key-btn key-submit" onclick="keyboardSubmit()">GO</button>
+        </div>
+    </div>
 
     <script src="game/game.js"></script>
 </body>
