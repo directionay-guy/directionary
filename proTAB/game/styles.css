@@ -631,7 +631,7 @@ body {
         
         .bottom-buttons-container {
             margin-top: 15px;
-            margin-bottom: 25px;
+            margin-bottom: 0;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 10px;
@@ -954,7 +954,7 @@ body {
             background: rgba(255, 255, 255, 0.7);
             border-radius: 6px;
             border-left: 3px solid #667eea;
-            min-height: 52px;
+            min-height: 72px;
             box-sizing: border-box;
         }
 
