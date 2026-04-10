@@ -32,7 +32,7 @@ body {
         .game-container {
             background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
             border-radius: 20px;
-            padding: 15px 25px 25px 25px;
+            padding: 15px 25px 10px 25px;
             width: 100%;
             box-shadow: 0 15px 35px rgba(0,0,0,0.2), 0 5px 15px rgba(0,0,0,0.1);
             text-align: center;
@@ -189,18 +189,19 @@ body {
         .score-display {
             display: flex;
             justify-content: space-around;
-            margin: 15px 0;
-            padding: 10px;
+            margin: 8px 0;
+            padding: 6px 10px;
             background: linear-gradient(135deg, #667eea30 0%, #764ba230 100%);
-            border-radius: 12px;
-            align-items: stretch;
+            border-radius: 10px;
+            align-items: center;
         }
         
         .score-item {
             text-align: center;
             display: flex;
             flex-direction: column;
-            min-height: 60px;
+            min-height: 36px;
+            justify-content: center;
         }
         
         /* Streak button - clickable indicator */
@@ -243,20 +244,20 @@ body {
         }
         
         .score-label {
-            font-size: 0.8em;
+            font-size: 0.65em;
             color: #666;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
         
         .score-value {
-            font-size: 1.8em;
+            font-size: 1.2em;
             font-weight: bold;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-top: auto;
+            margin-top: 0;
         }
         
         .instructions {
@@ -776,7 +777,7 @@ body {
         /* Bottom buttons container */
         .bottom-buttons-container {
             margin-top: 15px;
-            margin-bottom: 25px;
+            margin-bottom: 0;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 10px;
@@ -1032,7 +1033,7 @@ body {
         
         @media (max-width: 480px) {
             .game-container {
-                padding: 10px 20px 20px 20px;
+                padding: 10px 20px 10px 20px;
             }
             
             .tagline {
@@ -1159,7 +1160,7 @@ body {
             }
             
             .score-item {
-                min-height: 50px;
+                min-height: 36px;
             }
             
             /* Share modal mobile improvements */
@@ -1245,7 +1246,7 @@ body {
             }
             
             .score-item {
-                min-height: 45px;
+                min-height: 32px;
             }
             
             /* Share modal extra small improvements */
@@ -1309,3 +1310,110 @@ body {
 }
 
 /* Rotate device overlay - Directionary style */
+
+/* ── CUSTOM KEYBOARD ── */
+
+.custom-keyboard {
+    position: fixed;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+    background: rgba(210, 215, 210, 0.82);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 12px 10px 16px 10px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    z-index: 1000;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.keyboard-row {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 6px;
+}
+
+.keyboard-row:last-child {
+    margin-bottom: 0;
+}
+
+.key-btn {
+    min-width: 32px;
+    height: 48px;
+    border: none;
+    border-radius: 8px;
+    background: white;
+    color: #333;
+    font-size: 1em;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #999;
+    transition: all 0.1s ease;
+    padding: 0 4px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    flex: 1;
+}
+
+.key-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 #aaa;
+}
+
+.key-btn.key-back {
+    background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+    color: white;
+    min-width: 44px;
+    box-shadow: 0 2px 0 #c0399e;
+    font-size: 1.1em;
+}
+
+.key-btn.key-submit {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    min-width: 44px;
+    box-shadow: 0 2px 0 #4a3580;
+    font-size: 0.9em;
+    letter-spacing: 1px;
+}
+
+/* Body padding so content isn't hidden behind keyboard */
+body.keyboard-active {
+    padding-bottom: 200px;
+}
+
+/* Larger keys on bigger phones */
+@media (min-width: 400px) {
+    .key-btn {
+        min-width: 36px;
+        height: 50px;
+        font-size: 1.05em;
+    }
+}
+
+/* Landscape mode adjustments */
+@media (orientation: landscape) and (max-width: 1024px) {
+    .custom-keyboard {
+        bottom: 8px;
+        padding: 8px 6px 10px 6px;
+    }
+    body.keyboard-active {
+        padding-bottom: 160px;
+    }
+}
+
+/* Mobile-specific: Tighten Daily Complete modal spacing */
+@media (max-width: 600px) {
+    #dailyCompleteModal .success-content {
+        padding: 20px 15px;
+    }
+    
+    #dailyCompleteModal .success-score {
+        margin: 10px 0;
+    }
+}
