@@ -57,6 +57,9 @@ var playerStats = {
 // Fallback word list
 var fallbackWords = ['ABOUT','ABOVE','ACTOR','ADMIT','ADOPT','ADULT','AFTER','AGAIN','AGENT','AGREE','AHEAD','ALARM','ALBUM','ALERT','ALIKE','ALIVE','ALLOW','ALONE','ALONG','ALTER','ANGEL','ANGER','ANGLE','ANGRY','APART','APPLE','APPLY','ARENA','ARGUE','ARISE','ARRAY','ASIDE','ASSET','AVOID','AWAKE','AWARD','AWARE','BAKER','BASIC','BEACH','BEGAN','BEING','BELOW','BENCH','BIRTH','BLACK','BLAME','BLANK','BLAST','BLEND','BLIND','BLOCK','BLOOD','BOARD','BOOST','BOUND','BRAIN','BRAND','BRAVE','BREAD','BREAK','BRICK','BRIEF','BRING','BROAD','BROKE','BROWN','BUILD','BUILT','BUYER','CABLE','CARRY','CATCH','CAUSE','CHAIN','CHAIR','CHAOS','CHARM','CHART','CHASE','CHEAP','CHECK','CHEST','CHIEF','CHILD','CHOSE','CLAIM','CLASS','CLEAN','CLEAR','CLIMB','CLOCK','CLOSE','CLOUD','COACH','COAST','COULD','COUNT','COURT','COVER','CRAFT','CRASH','CRAZY','CREAM','CRIME','CROSS','CROWD','CROWN','CURVE','CYCLE','DAILY','DANCE','DEALT','DEATH','DELAY','DEPTH','DIGIT','DIRTY','DOUBT','DOZEN','DRAFT','DRAMA','DRANK','DRAWN','DREAM','DRESS','DRINK','DRIVE','EARLY','EARTH','EIGHT','ELECT','EMPTY','ENEMY','ENJOY','ENTER','ENTRY','EQUAL','ERROR','EVENT','EVERY','EXACT','EXIST','EXTRA','FAITH','FALSE','FAULT','FIELD','FIFTH','FIFTY','FIGHT','FINAL','FIRST','FIXED','FLASH','FLEET','FLOAT','FLOOR','FOCUS','FORCE','FORTY','FOUND','FRAME','FRESH','FRONT','FRUIT','FULLY','FUNNY','GIANT','GIVEN','GLASS','GLOBE','GOING','GRACE','GRADE','GRAIN','GRAND','GRANT','GRASS','GREAT','GREEN','GROSS','GROUP','GROWN','GUARD','GUESS','GUEST','GUIDE','HABIT','HAPPY','HEART','HEAVY','HELLO','HORSE','HOTEL','HOUSE','HUMAN','IDEAL','IMAGE','IMPLY','INDEX','INNER','INPUT','ISSUE','JOINT','JUDGE','KNOWN','LABEL','LARGE','LATER','LAUGH','LAYER','LEARN','LEAST','LEAVE','LEGAL','LEMON','LEVEL','LIGHT','LIMIT','LOCAL','LOGIC','LOWER','LUCKY','LUNCH','MAGIC','MAJOR','MAKER','MARCH','MATCH','MAYBE','MAYOR','MEANT','MEDIA','METAL','MIGHT','MINOR','MINUS','MIXED','MODEL','MONEY','MONTH','MORAL','MOTOR','MOUNT','MOUSE','MOUTH','MOVED','MOVIE','MUSIC'];
 
+// Detect touch device - reliable across all browsers including Firefox
+var isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+
 // CHANGE THIS TO YOUR ACTUAL GAME URL
 var GAME_URL = "https://directionary.net";
 
@@ -1020,7 +1023,7 @@ function showDailyCompleteModal() {
         
         // Show guessed words as links
         if (allGuesses.length > 1) {
-            summary += '<div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">';
+            summary += '<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #ddd;">';
             summary += '<div style="font-size: 0.9em; color: #666; margin-bottom: 10px;">All guesses:</div>';
             summary += '<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">';
             allGuesses.forEach(function(word) {
@@ -1030,7 +1033,7 @@ function showDailyCompleteModal() {
         }
         
         // Add cross-promotion
-        summary += '<div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; font-size: 0.9em; color: #666;">';
+        summary += '<div style="margin-top: 12px; padding: 12px; background: #f8f9fa; border-radius: 12px; font-size: 0.9em; color: #666;">';
         summary += '<p>Want more challenge right now?<br><span class="cross-promo-link" onclick="showComingSoon(event)" style="color: #667eea; text-decoration: underline; font-weight: 600; cursor: pointer;">Directionary PRO</span> - unlimited 3-word puzzles</p>';
         summary += '</div>';
     } else {
@@ -1810,6 +1813,21 @@ window.onload = function() {
             submitGuess();
         }
     });
+    
+    // Show keyboard on touch devices, prevent Android native keyboard
+    if (isTouchDevice) {
+        showKeyboard();
+        
+        var guessInput = document.getElementById("guessInput");
+        
+        // Prevent native keyboard appearing on focus (Android fix)
+        guessInput.addEventListener("focus", function() {
+            this.blur();
+        });
+        guessInput.addEventListener("touchstart", function(e) {
+            e.preventDefault();
+        });
+    }
 };
 
 function reloadDevGame() {
@@ -2025,6 +2043,42 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Custom keyboard functions
+function keyboardTap(letter) {
+    var input = document.getElementById('guessInput');
+    if (!input || input.disabled) return;
+    if (input.value.length < 5) {
+        input.value += letter;
+        input.dispatchEvent(new Event('input'));
+    }
+}
+
+function keyboardBackspace() {
+    var input = document.getElementById('guessInput');
+    if (!input || input.disabled) return;
+    input.value = input.value.slice(0, -1);
+}
+
+function keyboardSubmit() {
+    submitGuess();
+}
+
+function showKeyboard() {
+    var kb = document.getElementById('customKeyboard');
+    if (kb) {
+        kb.style.display = 'block';
+        document.body.classList.add('keyboard-active');
+    }
+}
+
+function hideKeyboard() {
+    var kb = document.getElementById('customKeyboard');
+    if (kb) {
+        kb.style.display = 'none';
+        document.body.classList.remove('keyboard-active');
+    }
+}
+
 window.nextWord = nextWord;
 window.confirmGiveUp = confirmGiveUp;
 window.cancelGiveUp = cancelGiveUp;
@@ -2054,6 +2108,9 @@ window.showWordDefinitionModal = showWordDefinitionModal;
 window.closeWordDefPanel = closeWordDefPanel;
 window.showWhatsNew = showWhatsNew;
 window.closeWhatsNew = closeWhatsNew;
+window.keyboardTap = keyboardTap;
+window.keyboardBackspace = keyboardBackspace;
+window.keyboardSubmit = keyboardSubmit;
 
 // Show "Coming Soon!" when PRO link is clicked
 function showComingSoon(event) {
