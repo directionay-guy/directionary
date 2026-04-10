@@ -85,7 +85,7 @@
         <div id="infoTab" class="pro-tab-content active">
 
             <div class="instructions">
-                Reveal 3 words in 10 tries per round. <button onclick="toggleHelp()" style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; cursor: pointer; font-size: 0.85em; font-weight: 700; margin-left: 4px; vertical-align: middle; box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="How to Play">?</button><br>
+                <span id="instructionsText">Reveal 3 words in 10 tries per round.</span> <button onclick="toggleHelp()" style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; cursor: pointer; font-size: 0.85em; font-weight: 700; margin-left: 4px; vertical-align: middle; box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="How to Play">?</button><br>
                 <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #28a745;">●</span> <span style="color: #000;">= correct</span></span>
                 <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">◄</span> <span style="color: #000;">= before</span></span>
                 <span class="legend"><span style="font-size: 1.4em; vertical-align: middle; position: relative; top: -3px; color: #667eea;">►</span> <span style="color: #000;">= after</span></span>
@@ -113,12 +113,14 @@
                 ▶ Start Playing PRO
             </button>
 
-            <!-- Bottom buttons inside info tab -->
-            <div class="bottom-buttons-container" style="margin-top: 20px;">
-                <button class="panel-btn share-btn" onclick="toggleShare()">📤 Share</button>
-                <button class="panel-btn stats-btn" onclick="toggleStats()">📊 Stats</button>
-                <button class="panel-btn info-btn" onclick="toggleInfo()">ℹ️ About</button>
-                <button class="panel-btn help-btn" onclick="toggleHelp()">❓ Help</button>
+            <!-- Bottom buttons inside info tab - pushed to bottom with spacer -->
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(102, 126, 234, 0.15);">
+                <div class="bottom-buttons-container">
+                    <button class="panel-btn share-btn" onclick="toggleShare()">📤 Share</button>
+                    <button class="panel-btn stats-btn" onclick="toggleStats()">📊 Stats</button>
+                    <button class="panel-btn info-btn" onclick="toggleInfo()">ℹ️ About</button>
+                    <button class="panel-btn help-btn" onclick="toggleHelp()">❓ Help</button>
+                </div>
             </div>
 
         </div><!-- end infoTab -->
@@ -197,12 +199,14 @@
                 <div class="new-game-message" id="round1Indicator">◄ ● Round 1 of 3 ● ►</div>
             </div>
 
-            <!-- Bottom buttons inside game tab -->
-            <div class="bottom-buttons-container">
-                <button class="panel-btn share-btn" onclick="toggleShare()">📤 Share</button>
-                <button class="panel-btn stats-btn" onclick="toggleStats()">📊 Stats</button>
-                <button class="panel-btn info-btn" onclick="toggleInfo()">ℹ️ About</button>
-                <button class="panel-btn help-btn" onclick="toggleHelp()">❓ Help</button>
+            <!-- Bottom buttons inside game tab - pushed to bottom with spacer -->
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(102, 126, 234, 0.15);">
+                <div class="bottom-buttons-container">
+                    <button class="panel-btn share-btn" onclick="toggleShare()">📤 Share</button>
+                    <button class="panel-btn stats-btn" onclick="toggleStats()">📊 Stats</button>
+                    <button class="panel-btn info-btn" onclick="toggleInfo()">ℹ️ About</button>
+                    <button class="panel-btn help-btn" onclick="toggleHelp()">❓ Help</button>
+                </div>
             </div>
 
         </div><!-- end gameTab -->
@@ -441,9 +445,14 @@
                     <li>Start a fresh game with new words</li>
                 </ul>
                 <p style="margin-top: 15px; color: #dc3545; font-weight: 600;">Your current progress will be lost.</p>
+                <!-- Peek at word -->
+                <div id="abandonPeekWord" style="display: none; margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 10px; text-align: center; font-size: 1.1em; font-weight: 700; color: #333;"></div>
+                <div id="abandonPeekBtn" style="text-align: center; margin-top: 12px;">
+                    <button onclick="peekAtWord(); event.stopPropagation();" style="background: none; border: none; color: #999; font-size: 0.85em; cursor: pointer; text-decoration: underline; padding: 4px 8px;">👁 Peek at the word (ends game)</button>
+                </div>
             </div>
             <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-                <button class="success-btn" onclick="closeAbandonModal(); event.stopPropagation();" style="background: #667eea; min-width: 140px;">Cancel</button>
+                <button id="abandonCancelBtn" class="success-btn" onclick="closeAbandonModal(); event.stopPropagation();" style="background: #667eea; min-width: 140px;">Cancel</button>
                 <button class="success-btn" onclick="confirmAbandonGame(); event.stopPropagation();" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); min-width: 140px;">Yes, Abandon Game</button>
             </div>
         </div>
