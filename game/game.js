@@ -1139,8 +1139,11 @@ function startCountdownTimer() {
 
         if (timeUntilMidnight <= 1000) {
             console.log("⏰ Midnight reached! Reloading for new puzzle...");
-            // Update stored day to current (new) day before reload
-            localStorage.setItem('directionary_standard_currentDay', getLocalGameDay());
+            // Set to TOMORROW's day explicitly to avoid race condition
+            // (getLocalGameDay() at this exact moment might return today or tomorrow)
+            var currentDay = getLocalGameDay();
+            var tomorrowDay = currentDay + 1;
+            localStorage.setItem('directionary_standard_currentDay', tomorrowDay);
             safeReload();
             return;
         }
