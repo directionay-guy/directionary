@@ -492,23 +492,60 @@ function updateFullDevConsole() {
 function validateProPlusGuess(guess) {
     if (gameMode !== 'proplus') return true;
     if (guessHistory.length === 0) return true;
+
     var feedbackDiv = document.getElementById("feedback");
-    var lastLine = feedbackDiv.querySelector('.feedback-line:first-child');
-    if (!lastLine) return true;
-    var lastWord = lastLine.querySelector('.feedback-word').textContent;
-    var symbols = lastLine.querySelectorAll('.overlay-symbol');
+    var allLines = feedbackDiv.querySelectorAll('.feedback-line');
+    if (!allLines || allLines.length === 0) return true;
+
+    // Build cumulative constraints for each position from ALL previous guesses
+    // lowerBound[i] = highest letter guessed with ► (target must be STRICTLY after this)
+    // upperBound[i] = lowest letter guessed with ◄ (target must be STRICTLY before this)
+    var lowerBound = ['', '', '', '', '']; // must guess strictly above this
+    var upperBound = ['', '', '', '', '']; // must guess strictly below this
+    var exactMatch = ['', '', '', '', '']; // must match exactly (●)
+
+    allLines.forEach(function(line) {
+        var wordSpan = line.querySelector('.feedback-word');
+        if (!wordSpan) return;
+        var word = wordSpan.textContent.trim();
+        var symbols = line.querySelectorAll('.overlay-symbol');
+
+        for (var i = 0; i < 5; i++) {
+            if (!symbols[i]) continue;
+            var symbol = symbols[i].textContent.trim();
+            var letter = word[i];
+
+            if (symbol === '●' || symbol === '🟢') {
+                exactMatch[i] = letter;
+            } else if (symbol === '►' || symbol === '▶') {
+                // Target is after this letter — update lower bound if this is higher
+                if (!lowerBound[i] || letter > lowerBound[i]) {
+                    lowerBound[i] = letter;
+                }
+            } else if (symbol === '◄' || symbol === '◀') {
+                // Target is before this letter — update upper bound if this is lower
+                if (!upperBound[i] || letter < upperBound[i]) {
+                    upperBound[i] = letter;
+                }
+            }
+        }
+    });
+
+    // Now validate the new guess against cumulative constraints
     for (var i = 0; i < 5; i++) {
-        var lastLetter = lastWord[i];
         var newLetter = guess[i];
-        var symbol = symbols[i] ? symbols[i].textContent.trim() : '';
-        if (symbol === '●' || symbol === '🟢') {
-            if (newLetter !== lastLetter) return false;
-        } else if (symbol === '►' || symbol === '▶') {
-            if (newLetter <= lastLetter) return false;
-        } else if (symbol === '◄' || symbol === '◀') {
-            if (newLetter >= lastLetter) return false;
+
+        if (exactMatch[i]) {
+            // Must match exactly
+            if (newLetter !== exactMatch[i]) return false;
+        } else {
+            // Must be strictly above lower bound
+            if (lowerBound[i] && newLetter <= lowerBound[i]) return false;
+            // Must be strictly below upper bound
+            if (upperBound[i] && newLetter >= upperBound[i]) return false;
         }
     }
+
     return true;
 }
 
@@ -613,7 +650,46 @@ function submitGuess() {
 }
 
 function attachAlphaHintHandlers() {
-    if (gameMode === 'proplus') return;
+    if (gameMode === 'proplus') {
+        // In PRO+ mode: attach handlers that just pulse the "not available" text
+        var feedbackDiv = document.getElementById("feedback");
+        var allLines = feedbackDiv.querySelectorAll('.feedback-line');
+        allLines.forEach(function(line) {
+            var containers = line.querySelectorAll('.symbol-with-letter');
+            containers.forEach(function(container) {
+                var symbol = container.querySelector('.overlay-symbol');
+                if (!symbol || symbol.textContent.trim() === '●') return;
+                container.style.cursor = 'default';
+                container.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    var el = document.querySelector('.alphahint-text');
+                    if (el) el.classList.add('demo-active');
+                });
+                container.addEventListener('mouseup', function() {
+                    var el = document.querySelector('.alphahint-text');
+                    if (el) el.classList.remove('demo-active');
+                });
+                container.addEventListener('mouseleave', function() {
+                    var el = document.querySelector('.alphahint-text');
+                    if (el) el.classList.remove('demo-active');
+                });
+                container.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                    var el = document.querySelector('.alphahint-text');
+                    if (el) el.classList.add('demo-active');
+                });
+                container.addEventListener('touchend', function() {
+                    var el = document.querySelector('.alphahint-text');
+                    if (el) el.classList.remove('demo-active');
+                });
+                container.addEventListener('touchcancel', function() {
+                    var el = document.querySelector('.alphahint-text');
+                    if (el) el.classList.remove('demo-active');
+                });
+            });
+        });
+        return;
+    }
     var feedbackDiv = document.getElementById("feedback");
     var allLines = feedbackDiv.querySelectorAll('.feedback-line');
     allLines.forEach(function(line, index) {
@@ -875,7 +951,8 @@ function generateShareText() {
             text += sharePattern + "\n";
         }
     }
-    text += "\nScore: " + score + " out of 300\n\n";
+    var maxScore = lastCompletedMode === 'proplus' ? 600 : 300;
+    text += "\nScore: " + score + " out of " + maxScore + "\n\n";
     text += "#WW2W " + GAME_URL;
     return text;
 }
@@ -1216,12 +1293,24 @@ function resetGame() {
 
 function switchToProMode() {
     if (gameMode === 'pro') return;
-    performModeSwitch('pro');
+    var gameInProgress = guessCount > 0 || roundResults.length > 0;
+    if (gameInProgress) {
+        pendingModeSwitch = 'pro';
+        showAbandonModal();
+    } else {
+        performModeSwitch('pro');
+    }
 }
 
 function switchToProPlusMode() {
     if (gameMode === 'proplus') return;
-    performModeSwitch('proplus');
+    var gameInProgress = guessCount > 0 || roundResults.length > 0;
+    if (gameInProgress) {
+        pendingModeSwitch = 'proplus';
+        showAbandonModal();
+    } else {
+        performModeSwitch('proplus');
+    }
 }
 
 function confirmModeSwitch() {
@@ -1249,13 +1338,16 @@ function showAbandonModal() {
     }
 }
 
-function closeAbandonModal() {
-    document.getElementById('abandonGameModal').style.display = 'none';
-    document.getElementById("guessInput").focus();
-}
-
 function confirmAbandonGame() {
     document.getElementById('abandonGameModal').style.display = 'none';
+    // Reset peek state
+    var peekBtn = document.getElementById('abandonPeekBtn');
+    var peekWord = document.getElementById('abandonPeekWord');
+    var cancelBtn = document.getElementById('abandonCancelBtn');
+    if (peekBtn) peekBtn.style.display = 'block';
+    if (peekWord) peekWord.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+
     if (typeof gtag === 'function') {
         gtag('event', 'game_abandoned', {
             'game_version': gameMode === 'proplus' ? 'proplus' : 'pro',
@@ -1272,7 +1364,40 @@ function confirmAbandonGame() {
         playCount++;
         localStorage.setItem('directionary_pro_playCount', playCount);
     }
-    resetGame();
+    // If abandoning to switch mode, do that instead of plain reset
+    if (pendingModeSwitch) {
+        var modeToSwitch = pendingModeSwitch;
+        pendingModeSwitch = null;
+        performModeSwitch(modeToSwitch);
+    } else {
+        resetGame();
+    }
+}
+
+function closeAbandonModal() {
+    document.getElementById('abandonGameModal').style.display = 'none';
+    // Reset peek state
+    var peekBtn = document.getElementById('abandonPeekBtn');
+    var peekWord = document.getElementById('abandonPeekWord');
+    var cancelBtn = document.getElementById('abandonCancelBtn');
+    if (peekBtn) peekBtn.style.display = 'block';
+    if (peekWord) peekWord.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+    // Clear pending mode switch
+    pendingModeSwitch = null;
+    document.getElementById("guessInput").focus();
+}
+
+function peekAtWord() {
+    var peekBtn = document.getElementById('abandonPeekBtn');
+    var peekWord = document.getElementById('abandonPeekWord');
+    var cancelBtn = document.getElementById('abandonCancelBtn');
+    if (peekWord) {
+        peekWord.textContent = 'The word was: ' + targetWord;
+        peekWord.style.display = 'block';
+    }
+    if (peekBtn) peekBtn.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
 }
 
 function performModeSwitch(newMode) {
@@ -1495,6 +1620,7 @@ window.cancelModeSwitch = cancelModeSwitch;
 window.showAbandonModal = showAbandonModal;
 window.closeAbandonModal = closeAbandonModal;
 window.confirmAbandonGame = confirmAbandonGame;
+window.peekAtWord = peekAtWord;
 window.updateFullDevConsole = updateFullDevConsole;
 window.playAgainSameMode = playAgainSameMode;
 window.playAgainOtherMode = playAgainOtherMode;
@@ -1535,10 +1661,18 @@ function initTabs() {
     } else {
         switchToInfoTab();
     }
-    // On touch devices hide Submit button (replaced by GO key on custom keyboard)
+    // On touch devices keyboard GO button also submits - Submit button stays visible too
     if (isTouchDevice) {
-        var submitBtn = document.getElementById('submitBtn');
-        if (submitBtn) submitBtn.style.display = 'none';
+        // Nothing to hide - Submit button visible on all devices
+    }
+}
+
+function updateInstructionsText(mode) {
+    var el = document.getElementById('instructionsText');
+    if (el) {
+        el.textContent = mode === 'proplus'
+            ? 'Reveal 3 words in 7 tries per round.'
+            : 'Reveal 3 words in 10 tries per round.';
     }
 }
 
@@ -1546,10 +1680,11 @@ function updateGameModeIndicator() {
     var el = document.getElementById('gameModeIndicator');
     if (el) {
         el.textContent = gameMode === 'proplus' ? 'PRO+ Mode — Double Points' : 'PRO Mode';
-        el.style.color = gameMode === 'proplus' ? '#667eea' : '#999';
-        el.style.fontWeight = gameMode === 'proplus' ? '600' : 'normal';
+        el.style.color = gameMode === 'proplus' ? '#667eea' : '#667eea';
+        el.style.fontWeight = '600';
     }
     updateStartPlayingButton();
+    updateInstructionsText(gameMode);
 }
 
 function updateStartPlayingButton() {
