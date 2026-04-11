@@ -14,6 +14,7 @@ var guessedWordsThisRound = new Set();
 var allGuessedWordsToday = new Set(); // Track ALL words guessed across entire day
 var lastFetchedDefinition = null; // Store definition for reuse
 var lastReloadTime = 0; // Prevent cascading reloads
+var reloadInProgress = false; // Prevent multiple simultaneous reload attempts
 
 // Get game day number based on LOCAL midnight (like Wordle)
 function getLocalGameDay() {
@@ -29,13 +30,21 @@ function getLocalGameDay() {
 
 // Safe reload function - prevents cascading reloads
 function safeReload() {
+    // If reload already in progress, skip
+    if (reloadInProgress) {
+        console.log("⏸️ Reload already in progress - skipping");
+        return;
+    }
+    
     var now = Date.now();
     // If we reloaded less than 5 seconds ago, skip this reload
     if (now - lastReloadTime < 5000) {
         console.log("⏸️ Reload skipped - too soon after last reload (preventing cascade)");
         return;
     }
+    
     console.log("✅ Safe to reload - proceeding...");
+    reloadInProgress = true;
     lastReloadTime = now;
     location.reload();
 }
@@ -126,10 +135,10 @@ function showWordDefinitionModal(word) {
     document.getElementById('wordDefWord').textContent = word.toLowerCase();
     document.getElementById('wordDefText').textContent = 'Fetching definition...';
     
-    // Update the "See full definition" link to Dictionary.com
+    // Update the "See full definition" link to Wiktionary
     var linkElement = document.querySelector('#wordDefLink a');
     if (linkElement) {
-        linkElement.href = 'https://www.dictionary.com/browse/' + word.toLowerCase();
+        linkElement.href = 'https://en.wiktionary.org/wiki/' + word.toLowerCase();
     }
     
     document.getElementById('wordDefPanel').style.display = 'flex';
@@ -981,7 +990,7 @@ function showDailyCompleteModal() {
         document.getElementById("guessCountLine").textContent = guessCountText;
         
         // Show winning word as clickable link
-        var wordDisplay = '<a href="https://www.dictionary.com/browse/' + result.word.toLowerCase() + '" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 600;">' + result.word + '</a>';
+        var wordDisplay = '<a href="https://en.wiktionary.org/wiki/' + result.word.toLowerCase() + '" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 600;">' + result.word + '</a>';
         document.getElementById("winningWordDisplay").innerHTML = wordDisplay;
         
         // Fetch and display definition
@@ -1000,7 +1009,7 @@ function showDailyCompleteModal() {
                 defHTML += '<br>' + defData.definition;
                 
                 defElement.innerHTML = defHTML;
-                creditElement.innerHTML = '<a href="https://dictionaryapi.dev/" target="_blank" style="color: #888; text-decoration: none;">Powered by Free Dictionary API</a>';
+                creditElement.innerHTML = '<span style="color: #888; font-size: 0.9em;">Definitions from <a href="https://dictionaryapi.dev/" target="_blank" style="color: #888; text-decoration: underline;">Free Dictionary API</a>. Links to <a href="https://www.wiktionary.org/" target="_blank" style="color: #888; text-decoration: underline;">Wiktionary</a>.</span>';
             } else {
                 defElement.innerHTML = '';
                 creditElement.innerHTML = '';
@@ -1027,7 +1036,7 @@ function showDailyCompleteModal() {
             summary += '<div style="font-size: 0.9em; color: #666; margin-bottom: 10px;">All guesses:</div>';
             summary += '<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">';
             allGuesses.forEach(function(word) {
-                summary += '<a href="https://www.dictionary.com/browse/' + word.toLowerCase() + '" target="_blank" style="color: #667eea; text-decoration: underline; font-size: 0.9em;">' + word + '</a>';
+                summary += '<a href="https://en.wiktionary.org/wiki/' + word.toLowerCase() + '" target="_blank" style="color: #667eea; text-decoration: underline; font-size: 0.9em;">' + word + '</a>';
             });
             summary += '</div></div>';
         }
@@ -1115,7 +1124,7 @@ function showComeBackMessage() {
             html += '<div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 400px; margin: 0 auto;">';
             
             guessedWords.forEach(function(word) {
-                var dictUrl = 'https://www.dictionary.com/browse/' + word.toLowerCase();
+                var dictUrl = 'https://en.wiktionary.org/wiki/' + word.toLowerCase();
                 html += '<a href="' + dictUrl + '" target="_blank" onclick="showWordDefinitionModal(\'' + word + '\'); return false;" style="color: #667eea; text-decoration: underline; text-decoration-style: dotted; font-weight: 600; font-size: 0.95em; padding: 4px 10px; background: rgba(102, 126, 234, 0.1); border-radius: 8px; transition: all 0.2s; display: inline-block; cursor: pointer;" onmouseover="this.style.background=\'rgba(102, 126, 234, 0.2)\'; this.style.transform=\'translateY(-2px)\'; this.style.textDecoration=\'underline solid\'" onmouseout="this.style.background=\'rgba(102, 126, 234, 0.1)\'; this.style.transform=\'translateY(0)\'; this.style.textDecoration=\'underline dotted\'">' + word + '</a>';
             });
             
@@ -1142,11 +1151,16 @@ function startCountdownTimer() {
 
         if (timeUntilMidnight <= 1000) {
             console.log("⏰ Midnight reached! Reloading for new puzzle...");
-            // Set to TOMORROW's day explicitly to avoid race condition
-            // (getLocalGameDay() at this exact moment might return today or tomorrow)
-            var currentDay = getLocalGameDay();
-            var tomorrowDay = currentDay + 1;
-            localStorage.setItem('directionary_standard_currentDay', tomorrowDay);
+            // Get the STORED day and increment it (don't use getLocalGameDay which might be tomorrow already)
+            var storedDay = localStorage.getItem('directionary_standard_currentDay');
+            var nextDay;
+            if (storedDay) {
+                nextDay = parseInt(storedDay) + 1;
+            } else {
+                // Fallback: use current day if no stored day exists
+                nextDay = getLocalGameDay();
+            }
+            localStorage.setItem('directionary_standard_currentDay', nextDay);
             safeReload();
             return;
         }
@@ -1247,7 +1261,7 @@ function showAlreadyPlayedMessage() {
             html += '<div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 400px; margin: 0 auto;">';
             
             guessedWords.forEach(function(word) {
-                var dictUrl = 'https://www.dictionary.com/browse/' + word.toLowerCase();
+                var dictUrl = 'https://en.wiktionary.org/wiki/' + word.toLowerCase();
                 html += '<a href="' + dictUrl + '" target="_blank" onclick="showWordDefinitionModal(\'' + word + '\'); return false;" style="color: #667eea; text-decoration: underline; text-decoration-style: dotted; font-weight: 600; font-size: 0.95em; padding: 4px 10px; background: rgba(102, 126, 234, 0.1); border-radius: 8px; transition: all 0.2s; display: inline-block; cursor: pointer;" onmouseover="this.style.background=\'rgba(102, 126, 234, 0.2)\'; this.style.transform=\'translateY(-2px)\'; this.style.textDecoration=\'underline solid\'" onmouseout="this.style.background=\'rgba(102, 126, 234, 0.1)\'; this.style.transform=\'translateY(0)\'; this.style.textDecoration=\'underline dotted\'">' + word + '</a>';
             });
             
