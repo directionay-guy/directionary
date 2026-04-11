@@ -467,18 +467,11 @@
         <div class="success-content" onclick="event.stopPropagation()">
             <button class="modal-close-x" onclick="closeSuccessShowDaily()">×</button>
             <div class="success-title">Correct!</div>
-            <div class="success-word">The word was: <span id="modalWord"></span></div>
+            <div class="success-word">The word was: <a href="#" id="modalWordLink" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 600;"><span id="modalWord"></span></a></div>
             <div class="success-score">
                 You scored <strong id="modalScore"></strong> points!
             </div>
             <button class="success-btn" onclick="closeSuccessShowDaily()">Continue →</button>
-            
-            <!-- Definition in modal -->
-            <div class="modal-definition" id="modalDefinition">
-                <div class="modal-definition-word" id="modalDefWord"></div>
-                <div class="modal-definition-text" id="modalDefText"></div>
-                <div class="modal-definition-credit">Powered by Free Dictionary API</div>
-            </div>
         </div>
     </div>
     
@@ -508,7 +501,7 @@
         <div class="success-score">
             You've used all 10 guesses.<br>
             Score: 0 points<br><br>
-            The word was: <strong id="zeroModalWord"></strong>
+            The word was: <a href="#" id="zeroModalWordLink" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 600;"><strong id="zeroModalWord"></strong></a>
         </div>
         <button class="success-btn" onclick="closeZeroShowDaily()">Continue →</button>
     </div>
