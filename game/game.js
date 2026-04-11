@@ -867,7 +867,12 @@ function showSuccessModal() {
     
     document.getElementById("modalWord").textContent = targetWord;
     document.getElementById("modalScore").textContent = lastRoundScore;
-    // modalTotal doesn't exist in Standard game (no "Total: X/300" line)
+    
+    // Set Wiktionary link
+    var modalWordLink = document.getElementById("modalWordLink");
+    if (modalWordLink) {
+        modalWordLink.href = 'https://en.wiktionary.org/wiki/' + targetWord.toLowerCase();
+    }
     
     if (typeof gtag === 'function') {
         gtag('event', 'round_complete', {
@@ -885,42 +890,6 @@ function showSuccessModal() {
     } else {
         titleElement.textContent = "Correct!";
     }
-    
-    // Fetch and store definition
-    document.getElementById("modalDefWord").textContent = targetWord.toLowerCase();
-    document.getElementById("modalDefText").textContent = 'Loading definition...';
-    
-    fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + targetWord.toLowerCase())
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Definition not found');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data && data[0] && data[0].meanings && data[0].meanings[0]) {
-                var meaning = data[0].meanings[0];
-                var partOfSpeech = meaning.partOfSpeech || '';
-                var definition = meaning.definitions[0].definition || 'Definition not available';
-                
-                var fullDef = (partOfSpeech ? '(' + partOfSpeech + ') ' : '') + definition;
-                document.getElementById("modalDefText").textContent = fullDef;
-                
-                // Store for reuse in daily complete modal
-                lastFetchedDefinition = {
-                    word: targetWord,
-                    text: fullDef
-                };
-            } else {
-                document.getElementById("modalDefText").textContent = 'Definition not available';
-                lastFetchedDefinition = null;
-            }
-        })
-        .catch(error => {
-            console.log('Dictionary API error:', error);
-            document.getElementById("modalDefText").textContent = 'Definition not available';
-            lastFetchedDefinition = null;
-        });
     
     if (currentRound >= maxRounds) {
         document.querySelector("#successModal .success-btn").textContent = "View Results";
@@ -993,28 +962,12 @@ function showDailyCompleteModal() {
         var wordDisplay = '<a href="https://en.wiktionary.org/wiki/' + result.word.toLowerCase() + '" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 600;">' + result.word + '</a>';
         document.getElementById("winningWordDisplay").innerHTML = wordDisplay;
         
-        // Fetch and display definition
-        fetchWordDefinition(result.word, function(defData) {
-            var defElement = document.getElementById("winningWordDefinition");
-            var creditElement = document.getElementById("definitionCredit");
-            
-            if (defData && defData.word) {
-                var defHTML = '<strong>' + defData.word + '</strong>';
-                if (defData.phonetic) {
-                    defHTML += ' | ' + defData.phonetic;
-                }
-                if (defData.partOfSpeech) {
-                    defHTML += ' | <em>' + defData.partOfSpeech + '</em>';
-                }
-                defHTML += '<br>' + defData.definition;
-                
-                defElement.innerHTML = defHTML;
-                creditElement.innerHTML = '<span style="color: #888; font-size: 0.9em;">Definitions from <a href="https://dictionaryapi.dev/" target="_blank" style="color: #888; text-decoration: underline;">Free Dictionary API</a>. Links to <a href="https://www.wiktionary.org/" target="_blank" style="color: #888; text-decoration: underline;">Wiktionary</a>.</span>';
-            } else {
-                defElement.innerHTML = '';
-                creditElement.innerHTML = '';
-            }
-        });
+        // Clear definition elements (no inline definition in modal)
+        document.getElementById("winningWordDefinition").innerHTML = '';
+        
+        // Show credit
+        var creditElement = document.getElementById("definitionCredit");
+        creditElement.innerHTML = '<span style="color: #888; font-size: 0.9em;">Definitions from <a href="https://dictionaryapi.dev/" target="_blank" style="color: #888; text-decoration: underline;">Free Dictionary API</a>. Links to <a href="https://www.wiktionary.org/" target="_blank" style="color: #888; text-decoration: underline;">Wiktionary</a>.</span>';
         
         // Collect all guessed words
         var allGuesses = [];
@@ -1524,6 +1477,13 @@ function nextWord() {
 
 function showZeroScoreModal() {
     document.getElementById("zeroModalWord").textContent = targetWord;
+    
+    // Set Wiktionary link
+    var zeroModalWordLink = document.getElementById("zeroModalWordLink");
+    if (zeroModalWordLink) {
+        zeroModalWordLink.href = 'https://en.wiktionary.org/wiki/' + targetWord.toLowerCase();
+    }
+    
     document.getElementById("zeroScoreModal").style.display = "flex";
     document.getElementById("guessInput").disabled = true;
     document.getElementById("submitBtn").disabled = true;
