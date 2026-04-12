@@ -231,7 +231,7 @@ function showWordDefinitionModal(word) {
     document.getElementById('wordDefWord').textContent = word.toLowerCase();
     document.getElementById('wordDefText').textContent = 'Fetching definition...';
     var linkElement = document.querySelector('#wordDefLink a');
-    if (linkElement) linkElement.href = 'https://www.dictionary.com/browse/' + word.toLowerCase();
+    if (linkElement) linkElement.href = 'https://en.wiktionary.org/wiki/' + word.toLowerCase();
     document.getElementById('wordDefPanel').style.display = 'flex';
     fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + word.toLowerCase())
         .then(response => { if (!response.ok) throw new Error('Not found'); return response.json(); })
@@ -886,7 +886,7 @@ function showDailyCompleteModal() {
         for (var i = 0; i < roundResults.length; i++) {
             var result = roundResults[i];
             totalGuesses += result.guesses;
-            summary += '<div style="text-align: left;"><a href="https://www.dictionary.com/browse/' + result.word.toLowerCase() + '" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 600;">' + result.word + '</a></div>';
+            summary += '<div style="text-align: left;"><a href="https://en.wiktionary.org/wiki/' + result.word.toLowerCase() + '" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 600;">' + result.word + '</a></div>';
             if (result.score === 0) {
                 summary += '<div style="text-align: right; color: #e53e3e;">0 pts</div>';
             } else {
@@ -1114,7 +1114,7 @@ function showResultsPanel() {
     var multiplier = 1; // Scores already stored doubled for PRO+
     for (var i = 0; i < results.length; i++) {
         var result = results[i];
-        var dictUrl = 'https://www.dictionary.com/browse/' + result.word.toLowerCase();
+        var dictUrl = 'https://en.wiktionary.org/wiki/' + result.word.toLowerCase();
         html += '<div style="text-align: left;"><a href="' + dictUrl + '" target="_blank" style="color: #667eea; text-decoration: underline; font-weight: 700; font-size: 0.9em;">' + result.word + '</a></div>';
         if (result.score === 0) {
             html += '<div style="text-align: right; color: #e53e3e; font-size: 0.8em;">0 pts</div>';
