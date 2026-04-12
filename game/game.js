@@ -15,6 +15,7 @@ var allGuessedWordsToday = new Set(); // Track ALL words guessed across entire d
 var lastFetchedDefinition = null; // Store definition for reuse
 var lastReloadTime = 0; // Prevent cascading reloads
 var reloadInProgress = false; // Prevent multiple simultaneous reload attempts
+var countdownInterval = null; // Store countdown interval to prevent duplicates
 
 // Get game day number based on LOCAL midnight (like Wordle)
 function getLocalGameDay() {
@@ -311,6 +312,23 @@ function loadWordList() {
 
 function initGame() {
     console.log("Initializing Directionary...");
+    
+    // Sync stored day on page load to prevent delayed reload
+    // If page loads after midnight with stale stored day, update it silently
+    if (!devMode && !testMode) {
+        var currentDay = getLocalGameDay();
+        var storedDay = localStorage.getItem('directionary_standard_currentDay');
+        
+        if (!storedDay) {
+            // First time - initialize stored day
+            localStorage.setItem('directionary_standard_currentDay', currentDay);
+            console.log("📅 Initialized stored day to", currentDay);
+        } else if (parseInt(storedDay) < currentDay) {
+            // Already a new day - update stored day WITHOUT reloading
+            console.log("📅 Day already changed (stored:", storedDay, "→ current:", currentDay, ") - updating silently");
+            localStorage.setItem('directionary_standard_currentDay', currentDay);
+        }
+    }
     
     showBetaBannerIfEnabled();
     
@@ -1097,6 +1115,12 @@ function showComeBackMessage() {
 }
 
 function startCountdownTimer() {
+    // Clear any existing countdown interval to prevent duplicates
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        console.log("⏹️ Cleared existing countdown interval");
+    }
+    
     function updateCountdown() {
         var now = new Date();
         var tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
@@ -1132,7 +1156,7 @@ function startCountdownTimer() {
     }
     
     updateCountdown();
-    setInterval(updateCountdown, 1000);
+    countdownInterval = setInterval(updateCountdown, 1000);
 }
 
 function showAlreadyPlayedMessage() {
