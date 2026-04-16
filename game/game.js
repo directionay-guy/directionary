@@ -2063,17 +2063,25 @@ function keyboardSubmit() {
 
 function showKeyboard() {
     var kb = document.getElementById('customKeyboard');
+    var input = document.getElementById('guessInput');
     if (kb) {
         kb.style.display = 'block';
         document.body.classList.add('keyboard-active');
+    }
+    if (input) {
+        input.classList.add('keyboard-focus');
     }
 }
 
 function hideKeyboard() {
     var kb = document.getElementById('customKeyboard');
+    var input = document.getElementById('guessInput');
     if (kb) {
         kb.style.display = 'none';
         document.body.classList.remove('keyboard-active');
+    }
+    if (input) {
+        input.classList.remove('keyboard-focus');
     }
 }
 
