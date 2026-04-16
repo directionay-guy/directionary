@@ -1387,6 +1387,12 @@ body.keyboard-active {
     padding-bottom: 200px;
 }
 
+/* Input focus state when keyboard is visible (mobile) */
+.keyboard-focus {
+    border: 2px solid #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
 /* Larger keys on bigger phones */
 @media (min-width: 400px) {
     .key-btn {
