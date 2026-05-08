@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pockets - Victorian Dice Game</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Georgia', serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+        .hidden { display: none !important; }
+        .dice { transition: all 0.3s ease; cursor: pointer; }
+        .dice:hover { transform: translateY(-3px); }
+        .pocket { transition: all 0.3s ease; cursor: pointer; }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Theme switcher */
+        select.theme-subtitle {
+            appearance: none; -webkit-appearance: none; -moz-appearance: none;
+            background-color: transparent; border: none; color: inherit;
+            font: inherit; text-align: center; text-align-last: center;
+            cursor: pointer; padding: 4px 26px 4px 10px; margin: 0 auto;
+            display: block;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'><path fill='currentColor' opacity='0.95' d='M1 1l5 6 5-6'/></svg>") !important;
+            background-repeat: no-repeat; background-position: right 6px center;
+            background-size: 12px !important; outline: none; transition: opacity 0.2s ease;
+        }
+        select.theme-subtitle:hover { opacity: 0.82; }
+        select.theme-subtitle:focus { outline: 1px dotted currentColor; outline-offset: 4px; }
+        select.theme-subtitle option { background: #f5f3ee; color: #1a1a1a; font-weight: normal; }
+
+        /* ==================================================
+           MODAL OVERLAY — centred, all modals use this class
+           ================================================== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 600;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.75);
+        }
+        .modal-overlay.hidden { display: none !important; }
+        .modal-content {
+            max-height: 88vh;
+            overflow-y: auto;
+            padding: 0;
+            border-radius: 8px;
+            width: min(640px, 100%);
+            position: relative;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+        }
+        .modal-header h2 { margin: 0; }
+        .modal-body { padding: 20px 24px; }
+        .modal-close {
+            background: transparent; border: none; cursor: pointer;
+            font-size: 1.2em; padding: 4px 8px; border-radius: 4px;
+        }
+
+        /* Confirm modal */
+        .modal-confirm { width: min(440px, 100%); }
+        .confirm-buttons {
+            display: flex; justify-content: center; gap: 12px; margin-top: 18px;
+        }
+        .confirm-buttons .btn { min-width: 110px; padding: 10px 22px; }
+
+        /* ==================================================
+           UNIFIED ACTION PANEL
+           ================================================== */
+        .action-panel {
+            position: relative;
+            height: 96px;
+            margin-bottom: 12px;
+        }
+        .action-panel > .controls,
+        .action-panel > .coin-flip,
+        .action-panel > .action-status {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .action-panel > .coin-flip { flex-direction: column; gap: 4px; }
+        .action-panel > .hidden { display: none; }
+        .action-status { font-size: 1.05em; }
+
+        /* Selected die — dramatic gold lift */
+        .dice.selected {
+            transform: translateY(-14px) scale(1.06) !important;
+            filter:
+                drop-shadow(0 0 8px rgba(255, 215, 0, 0.95))
+                drop-shadow(0 0 18px rgba(255, 180, 0, 0.65))
+                drop-shadow(0 8px 14px rgba(0, 0, 0, 0.65)) !important;
+            transition: transform 0.15s ease, filter 0.15s ease !important;
+            z-index: 10;
+        }
+
+        /* Confirm modal */
+        .modal-confirm { width: min(440px, 100%); }
+        .confirm-buttons {
+            display: flex; justify-content: center; gap: 12px; margin-top: 18px;
+        }
+        .confirm-buttons .btn { min-width: 110px; padding: 10px 22px; }
+
+        /* Dice animations */
+        @keyframes diceRoll {
+            0%   { transform: rotate(0deg)   scale(1); }
+            25%  { transform: rotate(90deg)  scale(1.1); }
+            50%  { transform: rotate(180deg) scale(0.9); }
+            75%  { transform: rotate(270deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        @keyframes diceJitter {
+            0%, 100% { transform: translate(0,0)     rotate(0deg); }
+            20%      { transform: translate(-2px,-1px) rotate(-2deg); }
+            40%      { transform: translate( 2px,-2px) rotate( 1deg); }
+            60%      { transform: translate(-1px, 2px) rotate(-1deg); }
+            80%      { transform: translate( 1px,-1px) rotate( 2deg); }
+        }
+        .dice.rolling { animation: diceRoll   0.8s ease-in-out; }
+        .dice.jitter  { animation: diceJitter 0.4s ease-in-out; }
+
+        /* Rolloff die buttons */
+        .rolloff-die {
+            width: 64px; height: 64px;
+            background: transparent; border: none; padding: 0;
+            cursor: pointer; display: inline-flex;
+            align-items: center; justify-content: center;
+            transition: transform 0.2s ease, filter 0.2s ease;
+            font: inherit;
+        }
+        .rolloff-die svg.dice { width: 56px !important; height: 56px !important; }
+        .rolloff-die.faded svg.dice { opacity: 0.45; }
+        .rolloff-die:hover:not(:disabled) {
+            transform: translateY(-2px);
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+        }
+        .rolloff-die:disabled { cursor: default; }
+
+        /* Header ornaments */
+        .game-header { position: relative; }
+        .header-ornament { position: absolute; z-index: 2; }
+        .header-ornament.top-left     { top: 10px;    left: 14px;  }
+        .header-ornament.top-right    { top: 10px;    right: 14px; }
+        .header-ornament.bottom-left  { bottom: 10px; left: 14px;  }
+        .header-ornament.bottom-right { bottom: 10px; right: 14px; }
+
+        body.theme-victorian .header-ornament::before  { content: "❦"; }
+        body.theme-steampunk .header-ornament::before  { content: "⚙"; }
+        body.theme-art-deco  .header-ornament::before  { content: "✦"; }
+        body.theme-cosmic    .header-ornament::before  { content: "❂"; }
+
+        body.theme-steampunk .header-ornament {
+            width: auto; height: auto; background: none; border: none;
+            border-radius: 0; box-shadow: none; font-size: 2em;
+            color: var(--brass-aged, #c9a961);
+            text-shadow: 0 0 8px rgba(201,169,97,0.45);
+        }
+        body.theme-steampunk .header-ornament.top-left     { top: 8px;    left: 12px;  bottom: auto; right: auto; }
+        body.theme-steampunk .header-ornament.top-right    { top: 8px;    right: 12px; bottom: auto; left: auto;  }
+        body.theme-steampunk .header-ornament.bottom-left  { bottom: 8px; left: 12px;  top: auto;    right: auto; }
+        body.theme-steampunk .header-ornament.bottom-right { bottom: 8px; right: 12px; top: auto;    left: auto;  }
+
+        body.theme-victorian .header-ornament.top-left     { transform: rotate(135deg); }
+        body.theme-victorian .header-ornament.top-right    { transform: rotate(-135deg); }
+        body.theme-victorian .header-ornament.bottom-left  { transform: rotate(45deg); }
+        body.theme-victorian .header-ornament.bottom-right { transform: rotate(-45deg); }
+
+        @media (max-width: 768px) { .game-board { grid-template-columns: 1fr; } }
+
+        .game-mode {
+            display: flex; flex-wrap: wrap; align-items: center;
+            gap: 14px; padding: 10px 16px !important; margin-bottom: 14px !important;
+        }
+        .game-mode .gm-label { font-weight: bold; font-size: 0.95em; opacity: 0.85; letter-spacing: 0.5px; }
+        .game-mode .gm-group { display: inline-flex; gap: 6px; }
+        .game-mode .mode-btn,
+        .game-mode .difficulty-btn { padding: 7px 14px !important; font-size: 0.92em !important; margin: 0 !important; }
+        .game-mode .ai-difficulty {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 0 !important; margin: 0 !important; border: none !important; background: transparent !important;
+        }
+        .game-mode .ai-difficulty.hidden { display: none !important; }
+
+        /* Rolloff layout */
+        .first-player-rolloff { text-align: center; padding: 16px 12px 12px; }
+        .first-player-rolloff.hidden { display: none !important; }
+        .rolloff-prompt { font-size: 1.05em; margin-bottom: 14px; opacity: 0.92; }
+        .rolloff-arena { display: inline-flex; align-items: center; justify-content: center; gap: 22px; }
+        .rolloff-vs { font-weight: bold; font-size: 1em; opacity: 0.6; letter-spacing: 3px; }
+        .rolloff-result { font-size: 1em; margin-top: 14px; min-height: 24px; font-weight: bold; }
+        .rolloff-result.winner { font-size: 1.15em; }
+
+        .player-rolls { display: flex; gap: 16px; justify-content: center; padding: 8px; }
+        .player-rolls.hidden { display: none !important; }
+
+        /* New-game section */
+        .new-game-section {
+            display: flex; justify-content: center; align-items: stretch;
+            gap: 12px; flex-wrap: wrap;
+        }
+        .new-game-section .btn {
+            min-height: 40px; padding: 8px 22px;
+            display: inline-flex; align-items: center; justify-content: center; line-height: 1.2;
+        }
+
+        /* Pre-final screen */
+        .pre-final-screen {
+            position: fixed; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 500;
+            background: rgba(10, 5, 2, 0.90);
+            backdrop-filter: blur(4px);
+            padding: 16px;
+        }
+        .pre-final-inner {
+            text-align: center;
+            max-width: 520px;
+            width: 100%;
+        }
+        .pre-final-ornament { font-size: 2.8em; margin-bottom: 12px; }
+        .pre-final-title { font-size: 1.9em; font-weight: bold; margin: 0 0 16px; }
+        .pre-final-flavour { font-style: italic; line-height: 1.7; margin-bottom: 24px; font-size: 1.05em; }
+        .pre-final-saved-reminder { border-radius: 8px; padding: 12px 20px; margin-bottom: 32px; font-size: 0.95em; }
+
+        /* Final roll modal */
+        .final-roll-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15,15,20,0.94);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2000; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); padding: 20px;
+        }
+        .final-roll-content {
+            background: linear-gradient(145deg, rgba(40,40,40,0.97), rgba(20,20,20,0.99));
+            border: 3px solid #ffd700; border-radius: 20px; padding: 36px;
+            max-width: 820px; width: 100%; text-align: center; color: #fff;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.85), 0 0 60px rgba(255,215,0,0.28);
+            max-height: 92vh; overflow-y: auto;
+        }
+        .final-roll-title { font-size: 2.3em; color: #ffd700; margin: 0 0 24px; text-shadow: 0 0 20px rgba(255,215,0,0.5); }
+        .final-scores-display { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin: 24px 0; }
+        .player-final-score { padding: 20px; border: 2px solid #666; border-radius: 15px; background: rgba(0,0,0,0.3); transition: box-shadow 0.4s ease, transform 0.2s ease; }
+        .player-final-score.blue { border-color: #4a90e2; background: rgba(74,144,226,0.12); }
+        .player-final-score.red  { border-color: #e24a4a; background: rgba(226,74,74,0.12); }
+        .player-final-score.active-turn { box-shadow: 0 0 24px rgba(255,215,0,0.55); transform: translateY(-2px); }
+        .player-name { font-size: 1.3em; font-weight: bold; margin-bottom: 12px; letter-spacing: 0.5px; }
+        .saved-die-display { font-size: 1.6em; margin: 8px auto; padding: 8px 14px; background: rgba(255,255,255,0.1); border-radius: 10px; display: inline-block; min-width: 50px; }
+        .saved-die-display .saved-label { font-size: 0.55em; color: #ccc; display: block; margin-bottom: 2px; letter-spacing: 1px; }
+        .saved-die-display svg.dice { width: 36px !important; height: 36px !important; display: block; margin: 4px auto 0; }
+        .running-total { font-size: 3em; font-weight: bold; color: #ffd700; margin: 14px 0 6px; text-shadow: 0 0 15px rgba(255,215,0,0.6); transition: transform 0.25s ease; }
+        .running-total.bumped { transform: scale(1.18); }
+        .running-total-label { font-size: 0.7em; color: #aaa; letter-spacing: 2px; margin-bottom: -6px; }
+        .dice-rolled-container { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; min-height: 44px; margin-top: 10px; }
+        .dice-rolled { width: 38px !important; height: 38px !important; animation: rollIn 0.7s ease-out; }
+        @keyframes rollIn {
+            0%   { transform: rotate(0deg)   scale(0.4); opacity: 0; }
+            55%  { transform: rotate(200deg) scale(1.25); opacity: 0.9; }
+            100% { transform: rotate(360deg) scale(1); opacity: 1; }
+        }
+        .player-combo-bonus { font-size: 0.95em; margin-top: 8px; min-height: 20px; font-weight: bold; }
+        .player-combo-bonus:empty { min-height: 0; }
+        .drama-message { font-size: 1.3em; color: #fff; margin: 18px 0 6px; min-height: 28px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .current-turn { font-size: 1em; color: #ccc; margin: 6px 0 18px; min-height: 22px; }
+        .roll-die-btn {
+            background: linear-gradient(145deg, #ffd700, #e6c200); color: #000;
+            border: 2px solid #ccac00; padding: 14px 32px; border-radius: 10px;
+            font-size: 1.15em; font-weight: bold; cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4); font-family: inherit;
+        }
+        .roll-die-btn:hover:not(:disabled) { background: linear-gradient(145deg,#ffed4e,#ffd700); transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
+        .roll-die-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+        .final-celebration { margin-top: 26px; padding: 22px; background: rgba(255,215,0,0.08); border: 2px solid #ffd700; border-radius: 15px; animation: celebrationFadeIn 0.6s ease-out; }
+        @keyframes celebrationFadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .winner-announcement { font-size: 1.8em; font-weight: bold; color: #ffd700; margin-bottom: 12px; text-shadow: 0 0 20px rgba(255,215,0,0.8); }
+        .final-margin { font-size: 1.1em; color: #ddd; margin-bottom: 18px; line-height: 1.5; }
+        .final-celebration .btn { margin: 4px 6px; }
+
+        @media (max-width: 768px) {
+            .final-roll-content { padding: 24px 18px; }
+            .final-roll-title { font-size: 1.7em; }
+            .final-scores-display { grid-template-columns: 1fr; gap: 16px; }
+            .running-total { font-size: 2.4em; }
+        }
+
+        .loading-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; color: #fff; display: flex;
+            align-items: center; justify-content: center; z-index: 9999; font-size: 1.5em;
+        }
+
+        /* Rules modal body typography */
+        .help-section { margin-bottom: 20px; }
+        .help-section h3 { margin: 0 0 8px; font-size: 1.05em; }
+        .help-section ul, .help-section ol { padding-left: 20px; margin: 4px 0; }
+        .help-section li { margin-bottom: 4px; line-height: 1.6; }
+        .help-combo-table { border-collapse: collapse; margin: 8px 0; font-size: 0.95em; }
+        .help-combo-table td { padding: 4px 12px; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        .help-combo-table td:last-child { font-weight: bold; text-align: right; }
+    </style>
+    <link id="theme-css" rel="stylesheet" href="themes/victorian.css">
+</head>
+<body class="theme-victorian">
+    <div class="loading-screen" id="loadingScreen">🎲 Loading Pockets Game… 🎲</div>
+
+    <div class="game-container">
+        <!-- Header -->
+        <div class="game-header">
+            <!-- top-left ornament intentionally omitted (was indistinguishable at small size) -->
+            <div class="header-ornament top-right"></div>
+            <div class="header-ornament bottom-left"></div>
+            <div class="header-ornament bottom-right"></div>
+            <h1 class="game-title">🎲 POCKETS 🎲</h1>
+            <p class="subtitle">An Original Dice Game for Two Players</p>
+            <select class="theme-subtitle" id="themeSelector" aria-label="Choose theme">
+                <option value="victorian">🎩 Victorian Edition</option>
+                <option value="steampunk">⚙️ Steampunk Edition</option>
+                <option value="art-deco">🏛️ Art Deco Edition</option>
+                <option value="cosmic">🌌 Cosmic Edition</option>
+            </select>
+        </div>
+
+        <!-- Game Mode bar -->
+        <div class="game-mode" id="gameMode">
+            <span class="gm-label">Mode:</span>
+            <div class="gm-group">
+                <button class="mode-btn active" id="twoPlayerMode">👥 2 Players</button>
+                <button class="mode-btn" id="aiMode">🤖 vs AI</button>
+            </div>
+            <div class="ai-difficulty hidden" id="aiDifficulty">
+                <span class="gm-label">Difficulty:</span>
+                <div class="gm-group">
+                    <button class="difficulty-btn active" id="easyAI">Easy</button>
+                    <button class="difficulty-btn" id="mediumAI">Medium</button>
+                    <button class="difficulty-btn" id="hardAI">Hard</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Round info bar -->
+        <div class="round-info">
+            <strong>Round <span id="currentRound">1</span> of 10</strong>
+            <button class="btn help-btn" id="helpBtn">📖 Rules</button>
+        </div>
+
+        <!-- Unified action panel -->
+        <div class="action-panel" id="actionPanel">
+            <div class="controls" id="gameControls">
+                <button class="btn start-btn" id="startRound">Start Round 1</button>
+            </div>
+
+            <div class="coin-flip hidden" id="coinFlip">
+                <div class="first-player-rolloff" id="firstPlayerRolloff">
+                    <div class="rolloff-prompt" id="rolloffPrompt">Tap your die — higher number goes first!</div>
+                    <div class="rolloff-arena">
+                        <button class="rolloff-die" id="blueRolloffDie" aria-label="Blue: roll for first player"></button>
+                        <div class="rolloff-vs">VS</div>
+                        <button class="rolloff-die" id="redRolloffDie" aria-label="Red: roll for first player"></button>
+                    </div>
+                    <div class="rolloff-result" id="rolloffResult"></div>
+                </div>
+                <div class="player-rolls hidden" id="playerRolls">
+                    <button class="btn blue-btn" id="blueRoll">🔵 Blue Roll Dice</button>
+                    <button class="btn red-btn"  id="redRoll">🔴 Red Roll Dice</button>
+                </div>
+            </div>
+
+            <div class="action-status hidden" id="actionStatus">
+                <span id="turnInfo"></span>
+            </div>
+        </div>
+
+        <!-- Share difference (kept in DOM but always hidden — result now in action bar) -->
+        <div class="share-difference hidden" id="shareDifference"></div>
+
+        <!-- Pre-Final Screen — dramatic overlay, single Proceed button -->
+        <div class="pre-final-screen hidden" id="preFinalScreen">
+            <div class="pre-final-inner">
+                <div class="pre-final-ornament">⚜</div>
+                <h2 class="pre-final-title">The Grand Finale Approaches</h2>
+                <p class="pre-final-flavour">
+                    Ten rounds of cunning play draw to a close.<br>
+                    Now comes the final reckoning — your saved die enters the arena.
+                </p>
+                <div class="pre-final-saved-reminder">
+                    💎 Your <strong>Save One</strong> die carries forward into the Grand Finale
+                </div>
+                <button class="btn proceed-btn" id="proceedFinalBtn">Proceed to the Grand Finale →</button>
+            </div>
+        </div>
+
+        <!-- Final Roll Drama Modal -->
+        <div class="final-roll-modal hidden" id="finalRollModal" role="dialog" aria-modal="true" aria-labelledby="finalRollTitle">
+            <div class="final-roll-content">
+                <h2 class="final-roll-title" id="finalRollTitle">🎬 FINAL ROUND 🎬</h2>
+                <div class="final-scores-display">
+                    <div class="player-final-score blue" id="blueFinalCard">
+                        <div class="player-name">🔵 BLUE PLAYER</div>
+                        <div class="saved-die-display" id="blueSavedDie">
+                            <span class="saved-label">SAVED</span>
+                            <span id="blueSavedDieValue">—</span>
+                        </div>
+                        <div class="running-total-label">RUNNING TOTAL</div>
+                        <div class="running-total" id="blueRunningTotal">0</div>
+                        <div class="dice-rolled-container" id="blueDiceRolled"></div>
+                        <div class="player-combo-bonus" id="blueComboBonusDisplay"></div>
+                    </div>
+                    <div class="player-final-score red" id="redFinalCard">
+                        <div class="player-name">🔴 RED PLAYER</div>
+                        <div class="saved-die-display" id="redSavedDie">
+                            <span class="saved-label">SAVED</span>
+                            <span id="redSavedDieValue">—</span>
+                        </div>
+                        <div class="running-total-label">RUNNING TOTAL</div>
+                        <div class="running-total" id="redRunningTotal">0</div>
+                        <div class="dice-rolled-container" id="redDiceRolled"></div>
+                        <div class="player-combo-bonus" id="redComboBonusDisplay"></div>
+                    </div>
+                </div>
+                <div class="drama-message" id="dramaMessage">Get ready for the final showdown!</div>
+                <div class="current-turn" id="currentTurnMessage">Tap "Roll Die" to begin</div>
+                <button class="roll-die-btn" id="rollFinalDie">🎲 Roll Die</button>
+                <div class="final-celebration hidden" id="finalCelebration">
+                    <div class="winner-announcement" id="winnerAnnouncement"></div>
+                    <div class="final-margin" id="finalMargin"></div>
+                    <button class="btn" id="shareResult">📱 Share Result</button>
+                    <button class="btn start-btn" id="closeFinalModal">Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Board -->
+        <div class="game-board">
+            <div class="player-area blue">
+                <div class="player-header blue-player">BLUE PLAYER</div>
+                <div class="dice-area" id="blueDiceArea"></div>
+                <div class="pockets">
+                    <div class="pocket" id="blueKeep1" data-player="blue" data-pocket="keep1">
+                        <div class="pocket-label">Keep Two #1</div>
+                        <div class="pocket-dice"></div>
+                    </div>
+                    <div class="pocket" id="blueKeep2" data-player="blue" data-pocket="keep2">
+                        <div class="pocket-label">Keep Two #2</div>
+                        <div class="pocket-dice"></div>
+                    </div>
+                    <div class="pocket share-pocket" id="blueShare" data-player="blue" data-pocket="share">
+                        <div class="pocket-label">Share One</div>
+                        <div class="pocket-dice"></div>
+                        <div class="pocket-score hidden" id="blueShareScore"></div>
+                    </div>
+                    <div class="pocket save-pocket" id="blueSave" data-player="blue" data-pocket="save">
+                        <div class="pocket-label">Save One</div>
+                        <div class="pocket-dice"></div>
+                    </div>
+                </div>
+                <div class="bonus-info" id="blueBonus">Round Bonus: 0 pts</div>
+            </div>
+
+            <div class="player-area red">
+                <div class="player-header red-player" id="redPlayerHeader">RED PLAYER</div>
+                <div class="dice-area" id="redDiceArea"></div>
+                <div class="pockets">
+                    <div class="pocket" id="redKeep1" data-player="red" data-pocket="keep1">
+                        <div class="pocket-label">Keep Two #1</div>
+                        <div class="pocket-dice"></div>
+                    </div>
+                    <div class="pocket" id="redKeep2" data-player="red" data-pocket="keep2">
+                        <div class="pocket-label">Keep Two #2</div>
+                        <div class="pocket-dice"></div>
+                    </div>
+                    <div class="pocket share-pocket" id="redShare" data-player="red" data-pocket="share">
+                        <div class="pocket-label">Share One</div>
+                        <div class="pocket-dice"></div>
+                        <div class="pocket-score hidden" id="redShareScore"></div>
+                    </div>
+                    <div class="pocket save-pocket" id="redSave" data-player="red" data-pocket="save">
+                        <div class="pocket-label">Save One</div>
+                        <div class="pocket-dice"></div>
+                    </div>
+                </div>
+                <div class="bonus-info" id="redBonus">Round Bonus: 0 pts</div>
+            </div>
+        </div>
+
+        <!-- Bonus Legend -->
+        <div class="bonus-legend">
+            <h4>Bonus Points for Share One Winners:</h4>
+            1 pair = 1pt | 2 pair = 2pts | 3 of a kind = 3pts | 4 of a kind = 4pts | full house = 7pts | 5 of a kind = 10pts
+        </div>
+
+        <!-- Scores -->
+        <div class="scores">
+            <div class="score-area" id="blueScoreArea">
+                <h3 class="blue-player">Blue Player Score</h3>
+                <div class="score-display" id="blueScore">0</div>
+            </div>
+            <div class="score-area" id="redScoreArea">
+                <h3 class="red-player">Red Player Score</h3>
+                <div class="score-display" id="redScore">0</div>
+            </div>
+        </div>
+
+        <!-- Stats Panel -->
+        <div class="stats-panel hidden" id="statsPanel">
+            <h3>Player Statistics</h3>
+            <div id="statsContent"></div>
+            <button class="btn" id="exportStats">📥 Export Stats</button>
+            <button class="btn" id="clearStats">🗑️ Clear Stats</button>
+        </div>
+
+        <!-- New Game Section -->
+        <div class="new-game-section">
+            <button class="btn" id="newGame">New Game</button>
+            <button class="btn" id="viewStats">📊 View Stats</button>
+        </div>
+
+        <!-- Confirm Modal (New Game / Clear Stats) -->
+        <div class="modal-overlay hidden" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+            <div class="modal-content modal-confirm">
+                <div class="modal-header">
+                    <h2 id="confirmTitle">Are you sure?</h2>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmMessage">This action can't be undone.</p>
+                    <div class="confirm-buttons">
+                        <button class="btn confirm-cancel" id="confirmCancel">Cancel</button>
+                        <button class="btn confirm-ok" id="confirmOk">Confirm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rules / Help Modal -->
+        <div class="modal-overlay hidden" id="helpModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>How to Play Pockets</h2>
+                    <button class="modal-close" id="closeHelp">✕</button>
+                </div>
+                <div class="modal-body" id="helpContent">
+                    <!-- Populated by loadGameRules() below -->
+                </div>
+            </div>
+        </div>
+
+        <div class="copyright">Copyright Joel Pickard 2025</div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/scoring.js"></script>
+    <script src="js/ai-player.js"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/game-engine.js"></script>
+
+    <script>
+        // ── Theme switching ──────────────────────────────────────
+        const themeSelector = document.getElementById('themeSelector');
+        const themeCss      = document.getElementById('theme-css');
+
+        function loadSavedTheme() {
+            const saved = localStorage.getItem('pockets-theme') || 'victorian';
+            themeSelector.value = saved;
+            switchTheme(saved);
+        }
+        themeSelector.addEventListener('change', e => {
+            switchTheme(e.target.value);
+            localStorage.setItem('pockets-theme', e.target.value);
+        });
+        function switchTheme(theme) {
+            themeCss.href = `themes/${theme}.css`;
+            document.body.className = `theme-${theme}`;
+        }
+
+        // ── Rules modal ─────────────────────────────────────────
+        document.getElementById('helpBtn').addEventListener('click', () => {
+            document.getElementById('helpModal').classList.remove('hidden');
+            loadGameRules();
+        });
+        document.getElementById('closeHelp').addEventListener('click', () => {
+            document.getElementById('helpModal').classList.add('hidden');
+        });
+        document.getElementById('helpModal').addEventListener('click', e => {
+            if (e.target.id === 'helpModal') document.getElementById('helpModal').classList.add('hidden');
+        });
+
+        function loadGameRules() {
+            document.getElementById('helpContent').innerHTML = `
+<div class="help-section">
+  <h3>📋 Game Overview</h3>
+  <p>Pockets is a strategic dice game for 2 players. Each round, players roll dice and place them into "pockets" to score points. Highest total after 10 rounds plus a Grand Finale wins!</p>
+</div>
+<div class="help-section">
+  <h3>🎯 Game Setup</h3>
+  <ul>
+    <li><strong>10 Regular Rounds:</strong> 4 dice in Round 1, then 3 dice + 1 saved die each subsequent round.</li>
+    <li><strong>Grand Finale (Round 11):</strong> 4 new dice + your saved die — all 5 count toward your score.</li>
+    <li><strong>Four Pockets:</strong> Keep Two #1, Keep Two #2, Share One, Save One.</li>
+  </ul>
+</div>
+<div class="help-section">
+  <h3>🎲 Round Structure</h3>
+  <ol>
+    <li><strong>Roll-Off:</strong> Each player taps their die — higher number goes first. Ties roll again.</li>
+    <li><strong>Roll Dice:</strong> Both players roll.</li>
+    <li><strong>Place Dice:</strong> Players alternate placing one die at a time into pockets.</li>
+    <li><strong>Score Round:</strong> Points calculated, round ends.</li>
+  </ol>
+</div>
+<div class="help-section">
+  <h3>📦 The Four Pockets</h3>
+  <ul>
+    <li><strong>🎯 Keep Two #1 &amp; #2:</strong> Each holds 1 die. Both dice added to your score each round.</li>
+    <li><strong>⚔️ Share One:</strong> Holds 1 die. Higher die wins bonus points equal to the difference, plus a combo bonus.</li>
+    <li><strong>💎 Save One:</strong> Holds 1 die. Doesn't score this round — becomes your 4th die next round and carries into the Grand Finale.</li>
+  </ul>
+</div>
+<div class="help-section">
+  <h3>🏆 Scoring</h3>
+  <ul>
+    <li><strong>Keep Points:</strong> Sum of both Keep pocket dice.</li>
+    <li><strong>Share Battle:</strong> Winner scores (their die − opponent's die) points.</li>
+    <li><strong>Combo Bonus</strong> (Share winner only, based on original 4-die roll):</li>
+  </ul>
+  <table class="help-combo-table">
+    <tr><td>1 Pair</td><td>+1 pt</td></tr>
+    <tr><td>Two Pair</td><td>+2 pts</td></tr>
+    <tr><td>3 of a Kind</td><td>+3 pts</td></tr>
+    <tr><td>4 of a Kind</td><td>+4 pts</td></tr>
+    <tr><td>Full House</td><td>+7 pts</td></tr>
+    <tr><td>5 of a Kind</td><td>+10 pts</td></tr>
+  </table>
+</div>
+<div class="help-section">
+  <h3>🎊 Grand Finale (Round 11)</h3>
+  <p>After 10 rounds, each player rolls 4 new dice plus their saved die (5 total). All 5 dice score. Combo bonuses apply. No pockets — pure dice scoring!</p>
+  <p><em>💡 What you Save in Round 10 matters most.</em></p>
+</div>
+<div class="help-section">
+  <h3>🧠 Strategy Tips</h3>
+  <ul>
+    <li><strong>Keep:</strong> Put your highest dice in Keep pockets for guaranteed points.</li>
+    <li><strong>Share:</strong> High dice win Share battles — especially valuable if you have matching dice for combo bonuses.</li>
+    <li><strong>Save:</strong> A saved 6 compounds over the whole game. Save high early.</li>
+    <li><strong>Watch your opponent's Save pocket</strong> — it tells you their strategy.</li>
+  </ul>
+</div>
+<div class="help-section">
+  <h3>🤖 AI Opponents</h3>
+  <ul>
+    <li><strong>Easy:</strong> Random moves with basic preferences.</li>
+    <li><strong>Medium:</strong> Moderate strategy and planning.</li>
+    <li><strong>Hard:</strong> Advanced strategy with opponent modelling.</li>
+  </ul>
+</div>
+<div class="help-section">
+  <h3>🎨 Themes</h3>
+  <ul>
+    <li>🎩 <strong>Victorian</strong> — Rich browns and golds with ornate detail.</li>
+    <li>⚙️ <strong>Steampunk</strong> — Brass and copper with mechanical elements.</li>
+    <li>🏛️ <strong>Art Deco</strong> — Black and gold with geometric patterns.</li>
+    <li>🌌 <strong>Cosmic</strong> — Deep space with cyan and blue accents.</li>
+  </ul>
+</div>`;
+        }
+
+        // ── Initialisation ───────────────────────────────────────
+        function handleScriptError(n) { console.warn(`${n} not loaded`); }
+
+        function initializeGameSystem() {
+            try {
+                loadSavedTheme();
+                if (typeof initializeGame === 'function') initializeGame();
+                else handleScriptError('game-engine.js');
+
+                if (typeof pocketsStats !== 'undefined') {
+                    const saved = pocketsStats.getPreference('aiDifficulty');
+                    if (saved && typeof updateAIDifficulty === 'function') updateAIDifficulty(saved);
+                } else handleScriptError('stats.js');
+
+                document.getElementById('loadingScreen').style.display = 'none';
+            } catch (err) {
+                console.error('Game init error:', err);
+                document.getElementById('loadingScreen').innerHTML = '❌ Game failed to load. Check all files are present.';
+            }
+        }
+
+        window.addEventListener('load', () => setTimeout(initializeGameSystem, 100));
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (document.getElementById('loadingScreen').style.display !== 'none')
+                    initializeGameSystem();
+            }, 500);
+        });
+        window.addEventListener('error', e => {
+            console.error('Global error:', e.error);
+            if (e.filename?.includes('.js'))
+                console.warn(`Script error in ${e.filename.split('/').pop()}`);
+        });
+    </script>
+</body>
+</html>

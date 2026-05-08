@@ -1,0 +1,1333 @@
+/* POCKETS - COSMIC THEME (1950s-60s atomic age retrofuturism) */
+/* Aesthetic: Sputnik chandeliers, Googie motel signs, atomic starbursts.
+   References: Las Vegas neon at midnight, mid-century cocktail lounges,
+   Tomorrowland 1967, sci-fi pulp magazine covers, atomic-age fabrics.
+   Design ethos: deep teal-black field, atomic accent colors that GLOW
+   not GLARE, rounded boomerang geometry, asymmetric starbursts used
+   sparingly, neon-tube typography. Adult, swanky, never childish. */
+
+@import url('https://fonts.googleapis.com/css2?family=Monoton&family=Comfortaa:wght@400;500;700&display=swap');
+
+/* ==========================================================
+   THEME TOKENS
+   ========================================================== */
+body.theme-cosmic {
+    --bg-deep:        #0a1f2e;        /* deep teal-black, has cool warmth */
+    --bg-mid:         #0f2a3d;        /* surface panels */
+    --bg-panel:       #143a52;        /* lighter panel */
+    --bg-panel-soft:  #1a4661;
+
+    --orange:         #ff7e3e;        /* atomic orange — dominant accent */
+    --orange-bright:  #ff9555;
+    --orange-glow:    rgba(255, 126, 62, 0.4);
+
+    --teal:           #3dd6c4;        /* atomic teal — cool counterpoint */
+    --teal-bright:    #5fe5d6;
+    --teal-glow:      rgba(61, 214, 196, 0.4);
+
+    --mustard:        #f0c14b;        /* mustard yellow — neon glow */
+    --mustard-bright: #f8d365;
+    --mustard-glow:   rgba(240, 193, 75, 0.45);
+
+    --salmon:         #f08885;        /* rare warm pop */
+    --chartreuse:     #bcd64b;        /* rare special states */
+
+    --cream:          #f5e9d0;        /* text, dice */
+    --cream-soft:     #ede0c0;
+    --ink:            #0a0a14;        /* dice dots, deep contrast */
+
+    --line-thin:      rgba(245, 233, 208, 0.12);
+    --line-mid:       rgba(245, 233, 208, 0.28);
+    --line-strong:    rgba(245, 233, 208, 0.55);
+
+    --shadow-deep:    0 8px 22px rgba(0, 0, 0, 0.6);
+    --shadow-soft:    0 4px 12px rgba(0, 0, 0, 0.4);
+
+    /* Boomerang radius — asymmetric heavy rounding on opposite corners */
+    --boomerang: 22px 6px 22px 6px;
+    --boomerang-r: 6px 22px 6px 22px;
+
+    background: var(--bg-deep);
+    color: var(--cream);
+    font-family: 'Comfortaa', 'Avenir', 'Helvetica Neue', sans-serif;
+    letter-spacing: 0.01em;
+}
+
+/* Page-level atmosphere: faint starfield + subtle nebula wash */
+body.theme-cosmic::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        /* tiny scattered stars (static, very subtle) */
+        radial-gradient(0.8px 0.8px at 8%  12%, rgba(245,233,208,0.7), transparent 100%),
+        radial-gradient(0.6px 0.6px at 22% 38%, rgba(245,233,208,0.5), transparent 100%),
+        radial-gradient(1px   1px   at 41% 8%,  rgba(245,233,208,0.8), transparent 100%),
+        radial-gradient(0.6px 0.6px at 58% 28%, rgba(245,233,208,0.5), transparent 100%),
+        radial-gradient(0.8px 0.8px at 73% 18%, rgba(245,233,208,0.7), transparent 100%),
+        radial-gradient(0.6px 0.6px at 88% 44%, rgba(245,233,208,0.5), transparent 100%),
+        radial-gradient(1px   1px   at 12% 62%, rgba(245,233,208,0.8), transparent 100%),
+        radial-gradient(0.6px 0.6px at 32% 78%, rgba(245,233,208,0.5), transparent 100%),
+        radial-gradient(0.8px 0.8px at 51% 88%, rgba(245,233,208,0.7), transparent 100%),
+        radial-gradient(0.6px 0.6px at 68% 72%, rgba(245,233,208,0.5), transparent 100%),
+        radial-gradient(1px   1px   at 84% 86%, rgba(245,233,208,0.8), transparent 100%),
+        radial-gradient(0.8px 0.8px at 96% 64%, rgba(245,233,208,0.6), transparent 100%),
+        /* slight teal nebula wash from upper-left */
+        radial-gradient(ellipse 70% 50% at 15% 25%,
+            rgba(61, 214, 196, 0.05) 0%, transparent 60%),
+        /* slight orange wash from lower-right */
+        radial-gradient(ellipse 60% 45% at 85% 80%,
+            rgba(255, 126, 62, 0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ==========================================================
+   CONTAINER
+   ========================================================== */
+.theme-cosmic .game-container {
+    position: relative;
+    background: var(--bg-mid);
+    border: 1px solid rgba(61, 214, 196, 0.25);
+    border-radius: 14px;
+    padding: 30px;
+    box-shadow:
+        var(--shadow-deep),
+        0 0 60px rgba(61, 214, 196, 0.08),
+        inset 0 1px 0 rgba(245, 233, 208, 0.04);
+    z-index: 1;
+}
+
+/* ==========================================================
+   HEADER — atomic starburst behind title
+   ========================================================== */
+.theme-cosmic .game-header {
+    position: relative;
+    text-align: center;
+    padding: 38px 24px 30px;
+    margin-bottom: 22px;
+    background:
+        /* central radial halo, mustard glow */
+        radial-gradient(circle at 50% 50%,
+            rgba(240, 193, 75, 0.18) 0%,
+            rgba(240, 193, 75, 0.06) 8%,
+            transparent 30%),
+        /* atomic ray pattern — repeating thin rays */
+        repeating-conic-gradient(
+            from 7.5deg at 50% 50%,
+            transparent 0deg 13deg,
+            rgba(240, 193, 75, 0.13) 13deg 14deg,
+            transparent 14deg 15deg
+        ),
+        /* deeper field underneath */
+        radial-gradient(ellipse 100% 80% at 50% 50%,
+            #0a2436 0%, #061522 100%);
+    border: 1px solid rgba(240, 193, 75, 0.3);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Add 4 longer feature-rays as overlays for asymmetric atomic feel */
+.theme-cosmic .game-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(72deg,
+            transparent 49.6%,
+            rgba(240, 193, 75, 0.18) 49.85%,
+            rgba(240, 193, 75, 0.18) 50.15%,
+            transparent 50.4%) center / 100% 60% no-repeat,
+        linear-gradient(118deg,
+            transparent 49.7%,
+            rgba(255, 126, 62, 0.14) 49.9%,
+            rgba(255, 126, 62, 0.14) 50.1%,
+            transparent 50.3%) center / 100% 75% no-repeat,
+        linear-gradient(-25deg,
+            transparent 49.75%,
+            rgba(61, 214, 196, 0.10) 49.92%,
+            rgba(61, 214, 196, 0.10) 50.08%,
+            transparent 50.25%) center / 80% 100% no-repeat;
+    background-position: center;
+    background-repeat: no-repeat;
+    pointer-events: none;
+}
+
+/* Sputnik dot in the very center, behind the title */
+.theme-cosmic .game-header::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 8px; height: 8px;
+    background: var(--mustard-bright);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 12px var(--mustard-glow), 0 0 24px var(--mustard-glow);
+    z-index: 1;
+    opacity: 0.7;
+}
+
+/* Header ornaments — mustard ❂ glyphs */
+.theme-cosmic .header-ornament {
+    color: var(--mustard);
+    font-size: 1.5em;
+    text-shadow:
+        0 0 8px var(--mustard-glow),
+        0 0 16px rgba(240, 193, 75, 0.25);
+    z-index: 2;
+}
+
+.theme-cosmic .game-title {
+    font-family: 'Monoton', 'Audiowide', 'Impact', sans-serif;
+    font-size: 3.6em;
+    font-weight: normal;
+    letter-spacing: 0.08em;
+    margin: 0 0 12px 0;
+    color: var(--orange);
+    text-shadow:
+        0 0 8px rgba(255, 126, 62, 0.5),
+        0 0 18px rgba(255, 126, 62, 0.4),
+        0 0 32px rgba(255, 126, 62, 0.25),
+        0 2px 0 rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 2;
+}
+
+.theme-cosmic .subtitle {
+    font-family: 'Comfortaa', sans-serif;
+    color: var(--cream);
+    font-size: 0.95em;
+    letter-spacing: 0.18em;
+    margin: 0 0 8px 0;
+    opacity: 0.85;
+    position: relative;
+    z-index: 2;
+}
+
+.theme-cosmic .theme-subtitle {
+    font-family: 'Comfortaa', sans-serif;
+    color: var(--teal);
+    font-size: 0.85em;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-shadow: 0 0 8px var(--teal-glow);
+    position: relative;
+    z-index: 2;
+}
+
+/* ==========================================================
+   GAME MODE BAR
+   ========================================================== */
+.theme-cosmic .game-mode {
+    background: var(--bg-panel);
+    border: 1px solid rgba(245, 233, 208, 0.18);
+    border-radius: 10px;
+    box-shadow: inset 0 1px 0 rgba(245, 233, 208, 0.04);
+}
+.theme-cosmic .game-mode .gm-label {
+    color: var(--cream);
+    font-family: 'Comfortaa', sans-serif;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    opacity: 0.75;
+}
+
+.theme-cosmic .mode-btn,
+.theme-cosmic .difficulty-btn {
+    background: var(--bg-mid);
+    color: var(--cream);
+    border: 1px solid rgba(245, 233, 208, 0.2);
+    border-radius: 999px;
+    font-family: 'Comfortaa', sans-serif;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+.theme-cosmic .mode-btn:hover,
+.theme-cosmic .difficulty-btn:hover {
+    border-color: var(--teal);
+    color: var(--cream);
+    box-shadow: 0 0 14px var(--teal-glow);
+}
+.theme-cosmic .mode-btn.active,
+.theme-cosmic .difficulty-btn.active {
+    background: linear-gradient(135deg, var(--orange) 0%, var(--orange-bright) 100%);
+    color: var(--ink);
+    border-color: var(--orange);
+    font-weight: 700;
+    box-shadow:
+        0 0 14px var(--orange-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* ==========================================================
+   ROUND INFO BAR
+   ========================================================== */
+.theme-cosmic .round-info {
+    background: var(--bg-panel);
+    border: 1px solid rgba(240, 193, 75, 0.3);
+    border-radius: 10px;
+    color: var(--cream);
+    padding: 12px 18px;
+    font-family: 'Comfortaa', sans-serif;
+    letter-spacing: 0.06em;
+    font-size: 0.95em;
+    margin-bottom: 18px;
+    box-shadow: 0 0 14px rgba(240, 193, 75, 0.1), inset 0 1px 0 rgba(245, 233, 208, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+.theme-cosmic .round-info strong {
+    color: var(--mustard);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 8px var(--mustard-glow);
+}
+.theme-cosmic .round-info #turnInfo {
+    color: var(--teal);
+    flex: 1;
+    text-align: center;
+    text-shadow: 0 0 6px var(--teal-glow);
+}
+
+.theme-cosmic .help-btn {
+    background: transparent;
+    color: var(--cream);
+    border: 1px solid rgba(245, 233, 208, 0.3);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-family: 'Comfortaa', sans-serif;
+    letter-spacing: 0.1em;
+    font-size: 0.85em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.theme-cosmic .help-btn:hover {
+    border-color: var(--mustard);
+    color: var(--mustard);
+    box-shadow: 0 0 10px var(--mustard-glow);
+}
+
+/* ==========================================================
+   FIRST-PLAYER ROLLOFF
+   ========================================================== */
+.theme-cosmic .first-player-rolloff {
+    background: var(--bg-panel);
+    border: 1px solid rgba(240, 193, 75, 0.3);
+    border-radius: 12px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 16px rgba(240, 193, 75, 0.08);
+}
+.theme-cosmic .rolloff-prompt {
+    color: var(--cream);
+    font-family: 'Comfortaa', sans-serif;
+    letter-spacing: 0.06em;
+    font-size: 0.95em;
+    opacity: 0.9;
+}
+.theme-cosmic .rolloff-side-label {
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+}
+.theme-cosmic .rolloff-side-label.blue-text { color: var(--teal); text-shadow: 0 0 6px var(--teal-glow); }
+.theme-cosmic .rolloff-side-label.red-text  { color: var(--orange); text-shadow: 0 0 6px var(--orange-glow); }
+.theme-cosmic .rolloff-die {
+    background: var(--cream);
+    color: var(--ink);
+    border: 2px solid var(--mustard);
+    border-radius: 14px;
+    box-shadow:
+        0 4px 10px rgba(0, 0, 0, 0.5),
+        0 0 14px var(--mustard-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    font-family: 'Comfortaa', sans-serif;
+}
+.theme-cosmic #blueRolloffDie { border-color: var(--teal); box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 14px var(--teal-glow), inset 0 1px 0 rgba(255,255,255,0.5); }
+.theme-cosmic #redRolloffDie  { border-color: var(--orange); box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 14px var(--orange-glow), inset 0 1px 0 rgba(255,255,255,0.5); }
+.theme-cosmic .rolloff-vs {
+    color: var(--mustard);
+    font-family: 'Monoton', sans-serif;
+    letter-spacing: 0.3em;
+    text-shadow: 0 0 8px var(--mustard-glow);
+}
+.theme-cosmic .rolloff-result {
+    color: var(--teal);
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 500;
+}
+.theme-cosmic .rolloff-result.winner {
+    color: var(--mustard);
+    text-shadow: 0 0 14px var(--mustard-glow);
+    font-weight: 700;
+}
+
+.theme-cosmic .player-rolls {
+    background: var(--bg-panel);
+    border: 1px solid rgba(245, 233, 208, 0.18);
+    border-radius: 10px;
+    margin-bottom: 18px;
+}
+
+/* ==========================================================
+   GENERAL BUTTONS — boomerang corners
+   ========================================================== */
+.theme-cosmic .btn {
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+
+.theme-cosmic .controls {
+    text-align: center;
+    margin: 18px 0;
+}
+.theme-cosmic .start-btn {
+    background: linear-gradient(135deg, var(--orange) 0%, var(--orange-bright) 100%);
+    color: var(--ink);
+    border: 1px solid var(--orange);
+    border-radius: var(--boomerang);
+    padding: 14px 40px;
+    font-size: 1.05em;
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow:
+        0 6px 14px rgba(0, 0, 0, 0.5),
+        0 0 22px var(--orange-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+.theme-cosmic .start-btn:hover {
+    background: linear-gradient(135deg, var(--orange-bright) 0%, #ffa872 100%);
+    box-shadow:
+        0 8px 18px rgba(0, 0, 0, 0.6),
+        0 0 30px var(--orange-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+.theme-cosmic .blue-btn,
+.theme-cosmic .red-btn {
+    color: var(--ink);
+    border: none;
+    border-radius: var(--boomerang);
+    padding: 11px 24px;
+    font-size: 0.95em;
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow:
+        0 4px 10px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+.theme-cosmic .blue-btn {
+    background: linear-gradient(135deg, var(--teal) 0%, var(--teal-bright) 100%);
+}
+.theme-cosmic .red-btn {
+    background: linear-gradient(135deg, var(--orange) 0%, var(--orange-bright) 100%);
+}
+.theme-cosmic .blue-btn:hover {
+    box-shadow:
+        0 5px 12px rgba(0, 0, 0, 0.5),
+        0 0 16px var(--teal-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    transform: translateY(-1px);
+}
+.theme-cosmic .red-btn:hover {
+    box-shadow:
+        0 5px 12px rgba(0, 0, 0, 0.5),
+        0 0 16px var(--orange-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    transform: translateY(-1px);
+}
+
+.theme-cosmic .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+/* ==========================================================
+   SHARE DIFFERENCE
+   ========================================================== */
+.theme-cosmic .share-difference {
+    background: var(--bg-panel);
+    border: 1px solid var(--teal);
+    border-radius: 10px;
+    color: var(--teal);
+    padding: 12px 18px;
+    text-align: center;
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin: 14px 0;
+    box-shadow:
+        0 0 16px var(--teal-glow),
+        inset 0 1px 0 rgba(245, 233, 208, 0.05);
+}
+
+/* ==========================================================
+   PRE-FINAL SCREEN
+   ========================================================== */
+.theme-cosmic .pre-final-screen {
+    text-align: center;
+    padding: 30px 22px;
+    margin: 18px 0;
+    background:
+        radial-gradient(ellipse 90% 60% at 50% 0%,
+            rgba(240, 193, 75, 0.15) 0%,
+            transparent 60%),
+        var(--bg-panel);
+    border: 1px solid var(--mustard);
+    border-radius: 14px;
+    box-shadow:
+        0 0 28px var(--mustard-glow),
+        inset 0 1px 0 rgba(245, 233, 208, 0.05);
+    position: relative;
+}
+.theme-cosmic .celebration-content {
+    position: relative;
+}
+.theme-cosmic .celebration-title {
+    font-family: 'Monoton', sans-serif;
+    color: var(--mustard);
+    font-size: 2em;
+    letter-spacing: 0.08em;
+    margin: 0 0 18px 0;
+    text-shadow:
+        0 0 12px var(--mustard-glow),
+        0 0 24px rgba(240, 193, 75, 0.3);
+}
+.theme-cosmic .final-rules {
+    background: var(--bg-mid);
+    border: 1px solid rgba(245, 233, 208, 0.2);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px auto;
+    max-width: 480px;
+    text-align: left;
+}
+.theme-cosmic .final-rules h3 {
+    font-family: 'Comfortaa', sans-serif;
+    color: var(--teal);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0 0 8px 0;
+    font-size: 0.95em;
+}
+.theme-cosmic .final-rules ul {
+    margin: 0; padding-left: 20px;
+    color: var(--cream);
+}
+.theme-cosmic .final-rules li {
+    margin-bottom: 6px;
+    line-height: 1.6;
+}
+.theme-cosmic .final-roll-controls {
+    margin-top: 14px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* ==========================================================
+   SCORES — rounded panels, sputnik orb corner accents
+   ========================================================== */
+.theme-cosmic .scores {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+.theme-cosmic .score-area {
+    position: relative;
+    background:
+        linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-mid) 100%);
+    border: 1px solid rgba(245, 233, 208, 0.18);
+    border-radius: 12px;
+    padding: 18px 18px 14px;
+    text-align: center;
+    box-shadow:
+        var(--shadow-soft),
+        inset 0 1px 0 rgba(245, 233, 208, 0.04);
+}
+/* Sputnik orb corner accents — small dots */
+.theme-cosmic .score-area::before {
+    content: '';
+    position: absolute;
+    top: 8px; left: 8px;
+    width: 5px; height: 5px;
+    background: var(--mustard);
+    border-radius: 50%;
+    box-shadow: 0 0 6px var(--mustard-glow);
+    opacity: 0.7;
+}
+.theme-cosmic .score-area::after {
+    content: '';
+    position: absolute;
+    top: 8px; right: 8px;
+    width: 5px; height: 5px;
+    background: var(--mustard);
+    border-radius: 50%;
+    box-shadow: 0 0 6px var(--mustard-glow);
+    opacity: 0.7;
+}
+.theme-cosmic .score-area h3 {
+    font-family: 'Comfortaa', sans-serif;
+    color: var(--cream);
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 4px 0 10px 0;
+    font-size: 0.92em;
+    opacity: 0.85;
+}
+.theme-cosmic .score-display {
+    font-family: 'Monoton', sans-serif;
+    font-size: 2.6em;
+    color: var(--orange);
+    letter-spacing: 0.04em;
+    text-shadow:
+        0 0 12px var(--orange-glow),
+        0 0 24px rgba(255, 126, 62, 0.25),
+        0 2px 0 rgba(0, 0, 0, 0.4);
+}
+.theme-cosmic .score-area.winner {
+    border-color: var(--mustard);
+    box-shadow:
+        0 0 24px var(--mustard-glow),
+        var(--shadow-soft),
+        inset 0 1px 0 rgba(245, 233, 208, 0.05);
+}
+.theme-cosmic .score-area.winner::before,
+.theme-cosmic .score-area.winner::after {
+    background: var(--mustard-bright);
+    box-shadow: 0 0 10px var(--mustard-bright);
+    opacity: 1;
+}
+.theme-cosmic .winner-text {
+    color: var(--mustard);
+    font-family: 'Monoton', sans-serif;
+    letter-spacing: 0.15em;
+    margin-top: 4px;
+    font-size: 0.95em;
+    text-shadow: 0 0 12px var(--mustard-glow);
+}
+.theme-cosmic .final-total {
+    color: var(--mustard) !important;
+    text-shadow:
+        0 0 16px var(--mustard-glow),
+        0 0 32px rgba(240, 193, 75, 0.3),
+        0 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+.theme-cosmic .bonus-info {
+    color: var(--teal);
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    font-size: 0.88em;
+    margin-top: 6px;
+    min-height: 18px;
+    text-shadow: 0 0 6px var(--teal-glow);
+}
+
+.theme-cosmic .round-score-display {
+    background: var(--bg-mid);
+    border: 1px solid rgba(245, 233, 208, 0.2);
+    border-radius: 8px;
+    color: var(--cream);
+    padding: 6px 14px;
+    margin-top: 8px;
+    font-family: 'Comfortaa', sans-serif;
+    letter-spacing: 0.05em;
+    font-size: 0.88em;
+}
+
+/* ==========================================================
+   GAME BOARD — player areas
+   ========================================================== */
+.theme-cosmic .game-board {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+.theme-cosmic .player-area {
+    position: relative;
+    background:
+        linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-soft) 100%);
+    border: 1px solid rgba(245, 233, 208, 0.18);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow:
+        var(--shadow-soft),
+        inset 0 1px 0 rgba(245, 233, 208, 0.04);
+}
+.theme-cosmic .player-area.blue {
+    border-top: 3px solid var(--teal);
+    box-shadow:
+        var(--shadow-soft),
+        0 0 20px rgba(61, 214, 196, 0.1),
+        inset 0 1px 0 rgba(245, 233, 208, 0.04);
+}
+.theme-cosmic .player-area.red {
+    border-top: 3px solid var(--orange);
+    box-shadow:
+        var(--shadow-soft),
+        0 0 20px rgba(255, 126, 62, 0.1),
+        inset 0 1px 0 rgba(245, 233, 208, 0.04);
+}
+.theme-cosmic .blue-player { color: var(--cream); }
+.theme-cosmic .red-player { color: var(--cream); }
+
+.theme-cosmic .player-header {
+    text-align: center;
+    margin-bottom: 14px;
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-size: 1.05em;
+}
+.theme-cosmic .player-area.blue .player-header { color: var(--teal); text-shadow: 0 0 8px var(--teal-glow); }
+.theme-cosmic .player-area.red  .player-header { color: var(--orange); text-shadow: 0 0 8px var(--orange-glow); }
+
+/* ==========================================================
+   DICE — cream face, soft rounded, charcoal dots
+   ========================================================== */
+.theme-cosmic .dice-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    min-height: 60px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px dashed rgba(245, 233, 208, 0.2);
+    border-radius: 10px;
+    margin-bottom: 14px;
+}
+
+.theme-cosmic .dice {
+    width: 48px;
+    height: 48px;
+    background:
+        linear-gradient(145deg, var(--cream) 0%, var(--cream-soft) 100%);
+    border: 1.5px solid rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    box-shadow:
+        0 4px 8px rgba(0, 0, 0, 0.5),
+        inset 0 1px 1px rgba(255, 255, 255, 0.7),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.theme-cosmic .dice:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 6px 12px rgba(0, 0, 0, 0.6),
+        0 0 14px var(--mustard-glow),
+        inset 0 1px 1px rgba(255, 255, 255, 0.7);
+}
+.theme-cosmic .dice.saved-tint {
+    background: linear-gradient(145deg, #f8e8b0 0%, #ecd998 100%);
+    border-color: var(--mustard);
+    box-shadow:
+        0 4px 8px rgba(0, 0, 0, 0.5),
+        0 0 12px var(--mustard-glow),
+        inset 0 1px 1px rgba(255, 255, 255, 0.7);
+}
+.theme-cosmic .dice.saved-tint:hover {
+    box-shadow:
+        0 6px 12px rgba(0, 0, 0, 0.6),
+        0 0 16px var(--mustard-glow),
+        inset 0 1px 1px rgba(255, 255, 255, 0.7);
+}
+.theme-cosmic .dice.selected {
+    border-color: var(--teal);
+    box-shadow:
+        0 4px 8px rgba(0, 0, 0, 0.5),
+        0 0 16px var(--teal-glow),
+        inset 0 1px 1px rgba(255, 255, 255, 0.7);
+    transform: translateY(-2px);
+}
+.theme-cosmic .dice-face {
+    width: 100%; height: 100%;
+    position: relative;
+}
+.theme-cosmic .dice-dot {
+    position: absolute;
+    width: 7px; height: 7px;
+    background: var(--ink);
+    border-radius: 50%;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+/* ==========================================================
+   POCKETS — rounded compartments, mustard accent borders
+   ========================================================== */
+.theme-cosmic .pockets {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
+}
+.theme-cosmic .pocket {
+    position: relative;
+    background:
+        linear-gradient(180deg,
+            rgba(0, 0, 0, 0.32) 0%,
+            rgba(0, 0, 0, 0.18) 100%),
+        var(--bg-mid);
+    border: 1px solid rgba(245, 233, 208, 0.18);
+    border-radius: 8px;
+    padding: 12px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    min-height: 92px;
+    box-shadow: inset 0 1px 0 rgba(245, 233, 208, 0.04);
+}
+.theme-cosmic .pocket::before {
+    /* small mustard sputnik dot in upper-left */
+    content: '';
+    position: absolute;
+    top: 5px; left: 5px;
+    width: 4px; height: 4px;
+    background: var(--mustard);
+    border-radius: 50%;
+    opacity: 0.5;
+    transition: opacity 0.25s ease, box-shadow 0.25s ease;
+}
+.theme-cosmic .pocket.active {
+    border-color: var(--mustard);
+    background:
+        linear-gradient(180deg,
+            rgba(240, 193, 75, 0.14) 0%,
+            rgba(240, 193, 75, 0.04) 100%),
+        var(--bg-mid);
+    box-shadow:
+        0 0 18px var(--mustard-glow),
+        inset 0 1px 0 rgba(245, 233, 208, 0.06);
+}
+.theme-cosmic .pocket.active::before {
+    opacity: 1;
+    box-shadow: 0 0 8px var(--mustard-bright);
+    background: var(--mustard-bright);
+}
+.theme-cosmic .pocket-label {
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 700;
+    color: var(--cream);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-size: 0.78em;
+    margin-bottom: 6px;
+    display: block;
+    opacity: 0.85;
+}
+.theme-cosmic .pocket-dice {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+    min-height: 38px;
+}
+.theme-cosmic .pocket .dice {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+}
+.theme-cosmic .pocket .dice .dice-dot {
+    width: 4px; height: 4px;
+}
+.theme-cosmic .pocket-score {
+    font-family: 'Monoton', sans-serif;
+    color: var(--mustard);
+    font-size: 1em;
+    margin-top: 4px;
+    min-height: 16px;
+    letter-spacing: 0.04em;
+    text-shadow: 0 0 6px var(--mustard-glow);
+}
+.theme-cosmic .share-pocket { grid-column: span 2; }
+.theme-cosmic .save-pocket  { grid-column: span 2; }
+
+/* ==========================================================
+   BONUS LEGEND
+   ========================================================== */
+.theme-cosmic .bonus-legend {
+    background: var(--bg-panel);
+    border: 1px solid rgba(245, 233, 208, 0.18);
+    border-radius: 10px;
+    border-top: 2px solid var(--teal);
+    padding: 14px 18px;
+    margin-top: 14px;
+    font-size: 0.9em;
+    box-shadow: inset 0 1px 0 rgba(245, 233, 208, 0.04);
+}
+.theme-cosmic .bonus-legend h4 {
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 700;
+    color: var(--teal);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin: 0 0 8px 0;
+    font-size: 0.92em;
+    text-shadow: 0 0 6px var(--teal-glow);
+}
+.theme-cosmic .bonus-legend p {
+    margin: 4px 0;
+    color: var(--cream);
+    line-height: 1.6;
+    opacity: 0.92;
+}
+
+/* ==========================================================
+   FINAL-SCORE DISPLAY (post-final, on main board)
+   ========================================================== */
+.theme-cosmic .final-score-display {
+    background:
+        radial-gradient(ellipse at top,
+            rgba(240, 193, 75, 0.14) 0%,
+            transparent 60%),
+        var(--bg-panel);
+    border: 1px solid var(--mustard);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-top: 14px;
+    text-align: center;
+    box-shadow:
+        0 0 22px var(--mustard-glow),
+        inset 0 1px 0 rgba(245, 233, 208, 0.05);
+}
+.theme-cosmic .final-score-title {
+    font-family: 'Monoton', sans-serif;
+    color: var(--mustard);
+    letter-spacing: 0.15em;
+    margin: 0 0 8px 0;
+    font-size: 1.1em;
+    text-shadow: 0 0 12px var(--mustard-glow);
+}
+.theme-cosmic .final-score-breakdown {
+    color: var(--cream);
+    font-family: 'Comfortaa', sans-serif;
+    letter-spacing: 0.04em;
+    margin: 6px 0;
+    line-height: 1.7;
+    opacity: 0.92;
+}
+.theme-cosmic .final-score-total {
+    font-family: 'Monoton', sans-serif;
+    color: var(--mustard-bright);
+    letter-spacing: 0.12em;
+    font-size: 1.2em;
+    margin-top: 10px;
+    text-shadow:
+        0 0 14px var(--mustard-glow),
+        0 0 28px rgba(240, 193, 75, 0.3);
+}
+
+/* ==========================================================
+   MODAL (help, etc.)
+   ========================================================== */
+.theme-cosmic .modal-overlay {
+    background: rgba(6, 12, 20, 0.92);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+.theme-cosmic .modal-content {
+    background: var(--bg-mid);
+    border: 1px solid var(--teal);
+    border-radius: 14px;
+    box-shadow:
+        var(--shadow-deep),
+        0 0 60px var(--teal-glow);
+    color: var(--cream);
+}
+.theme-cosmic .modal-header {
+    background:
+        linear-gradient(180deg,
+            var(--bg-deep) 0%,
+            var(--bg-mid) 100%);
+    border-bottom: 1px solid rgba(245, 233, 208, 0.18);
+    border-radius: 14px 14px 0 0;
+    position: relative;
+}
+.theme-cosmic .modal-header h2 {
+    font-family: 'Monoton', sans-serif;
+    color: var(--mustard);
+    letter-spacing: 0.1em;
+    margin: 0;
+    text-shadow: 0 0 12px var(--mustard-glow);
+}
+.theme-cosmic .modal-close {
+    background: transparent;
+    color: var(--cream);
+    border: 1px solid rgba(245, 233, 208, 0.25);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Comfortaa', sans-serif;
+}
+.theme-cosmic .modal-close:hover {
+    color: var(--ink);
+    border-color: var(--orange);
+    background: var(--orange);
+}
+.theme-cosmic .modal-body {
+    color: var(--cream);
+    font-family: 'Comfortaa', sans-serif;
+    line-height: 1.65;
+}
+.theme-cosmic .modal-body h3,
+.theme-cosmic .modal-body h4 {
+    color: var(--teal);
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-shadow: 0 0 6px var(--teal-glow);
+}
+
+/* ==========================================================
+   STATS PANEL
+   ========================================================== */
+.theme-cosmic .stats-panel {
+    background: var(--bg-panel);
+    border: 1px solid rgba(245, 233, 208, 0.18);
+    border-top: 2px solid var(--teal);
+    border-radius: 12px;
+    color: var(--cream);
+    padding: 20px;
+    margin: 18px 0;
+    box-shadow: inset 0 1px 0 rgba(245, 233, 208, 0.04);
+}
+.theme-cosmic .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+}
+.theme-cosmic .stat-card {
+    position: relative;
+    background: var(--bg-mid);
+    border: 1px solid rgba(245, 233, 208, 0.18);
+    border-radius: 10px;
+    padding: 14px;
+}
+.theme-cosmic .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 7px; right: 7px;
+    width: 4px; height: 4px;
+    background: var(--mustard);
+    border-radius: 50%;
+    opacity: 0.65;
+    box-shadow: 0 0 6px var(--mustard-glow);
+}
+.theme-cosmic .stat-card h4 {
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 700;
+    color: var(--teal);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    margin: 0 0 8px 0;
+    text-shadow: 0 0 6px var(--teal-glow);
+}
+.theme-cosmic .stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 0.9em;
+    border-bottom: 1px solid var(--line-thin);
+}
+.theme-cosmic .stat-row:last-child { border-bottom: none; }
+.theme-cosmic .stat-value {
+    color: var(--mustard);
+    font-family: 'Monoton', sans-serif;
+    font-size: 0.95em;
+    letter-spacing: 0.04em;
+    text-shadow: 0 0 6px var(--mustard-glow);
+}
+
+.theme-cosmic .achievements-section {
+    margin-top: 18px;
+}
+.theme-cosmic .achievement-item {
+    background: var(--bg-mid);
+    border: 1px solid rgba(245, 233, 208, 0.18);
+    border-left: 3px solid var(--mustard);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+}
+.theme-cosmic .achievement-title {
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 700;
+    color: var(--mustard);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 0.95em;
+    margin-bottom: 4px;
+    text-shadow: 0 0 6px var(--mustard-glow);
+}
+.theme-cosmic .achievement-description {
+    color: var(--cream);
+    font-size: 0.88em;
+    line-height: 1.55;
+    opacity: 0.92;
+}
+
+/* ==========================================================
+   NOTIFICATIONS
+   ========================================================== */
+.theme-cosmic .notification {
+    background: var(--bg-panel);
+    border: 1px solid rgba(245, 233, 208, 0.2);
+    border-radius: 10px;
+    color: var(--cream);
+    box-shadow: var(--shadow-deep);
+    font-family: 'Comfortaa', sans-serif;
+    letter-spacing: 0.04em;
+}
+.theme-cosmic .notification.success {
+    border-left: 3px solid var(--teal);
+    box-shadow: var(--shadow-deep), 0 0 14px var(--teal-glow);
+}
+.theme-cosmic .notification.error {
+    border-left: 3px solid var(--salmon);
+    box-shadow: var(--shadow-deep), 0 0 14px rgba(240, 136, 133, 0.3);
+}
+.theme-cosmic .notification.info {
+    border-left: 3px solid var(--mustard);
+    box-shadow: var(--shadow-deep), 0 0 14px var(--mustard-glow);
+}
+.theme-cosmic .achievement-notification {
+    background:
+        linear-gradient(135deg,
+            var(--bg-panel) 0%,
+            var(--bg-mid) 100%);
+    border: 1px solid var(--mustard);
+    border-radius: 12px;
+    box-shadow:
+        var(--shadow-deep),
+        0 0 30px var(--mustard-glow);
+    color: var(--cream);
+}
+.theme-cosmic .achievement-content h3 {
+    color: var(--mustard);
+    font-family: 'Monoton', sans-serif;
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 12px var(--mustard-glow);
+}
+
+/* ==========================================================
+   FOOTER
+   ========================================================== */
+.theme-cosmic .new-game-section {
+    text-align: center;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line-thin);
+}
+.theme-cosmic .copyright {
+    text-align: center;
+    color: var(--cream);
+    font-family: 'Comfortaa', sans-serif;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-size: 0.75em;
+    margin-top: 14px;
+    opacity: 0.55;
+}
+
+.theme-cosmic .loading-screen {
+    background: var(--bg-deep);
+    color: var(--mustard);
+    font-family: 'Monoton', sans-serif;
+    letter-spacing: 0.18em;
+    text-shadow: 0 0 14px var(--mustard-glow);
+}
+
+/* ==========================================================
+   FINAL-ROLL MODAL — colorize the theme-neutral base markup
+   Re-uses the atomic starburst behind the title for symmetry
+   with the page header.
+   ========================================================== */
+.theme-cosmic .final-roll-content {
+    background:
+        /* small central halo */
+        radial-gradient(circle at 50% 22%,
+            rgba(240, 193, 75, 0.18) 0%,
+            rgba(240, 193, 75, 0.05) 8%,
+            transparent 28%),
+        /* atomic ray pattern, more subdued than the main header */
+        repeating-conic-gradient(
+            from 7.5deg at 50% 22%,
+            transparent 0deg 13deg,
+            rgba(240, 193, 75, 0.10) 13deg 14deg,
+            transparent 14deg 15deg
+        ),
+        /* deep field */
+        linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 100%);
+    border: 1px solid var(--mustard);
+    border-radius: 16px;
+    box-shadow:
+        var(--shadow-deep),
+        0 0 60px var(--mustard-glow);
+}
+.theme-cosmic .final-roll-title {
+    font-family: 'Monoton', sans-serif;
+    color: var(--mustard);
+    letter-spacing: 0.1em;
+    text-shadow:
+        0 0 16px var(--mustard-glow),
+        0 0 32px rgba(240, 193, 75, 0.4);
+}
+.theme-cosmic .player-final-score {
+    background: var(--bg-mid);
+    border: 1px solid rgba(245, 233, 208, 0.18);
+    border-radius: 12px;
+}
+.theme-cosmic .player-final-score.blue {
+    border-color: var(--teal);
+    background: linear-gradient(180deg,
+        rgba(61, 214, 196, 0.08) 0%,
+        var(--bg-mid) 100%);
+}
+.theme-cosmic .player-final-score.red {
+    border-color: var(--orange);
+    background: linear-gradient(180deg,
+        rgba(255, 126, 62, 0.08) 0%,
+        var(--bg-mid) 100%);
+}
+.theme-cosmic .player-final-score.active-turn {
+    box-shadow: 0 0 26px var(--mustard-glow);
+}
+.theme-cosmic .running-total {
+    font-family: 'Monoton', sans-serif;
+    color: var(--mustard-bright);
+    text-shadow:
+        0 0 14px var(--mustard-glow),
+        0 0 28px rgba(240, 193, 75, 0.3);
+}
+.theme-cosmic .running-total-label {
+    font-family: 'Comfortaa', sans-serif;
+    color: var(--cream);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+.theme-cosmic .player-name {
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+.theme-cosmic .saved-die-display {
+    background: var(--cream);
+    color: var(--ink);
+    border: 1px solid var(--mustard);
+    border-radius: 8px;
+}
+.theme-cosmic .saved-die-display .saved-label {
+    color: rgba(0, 0, 0, 0.55);
+    letter-spacing: 0.22em;
+}
+.theme-cosmic .dice-rolled {
+    background: var(--cream);
+    color: var(--ink);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+}
+.theme-cosmic .drama-message {
+    color: var(--cream);
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+}
+.theme-cosmic .current-turn {
+    color: var(--cream);
+    font-family: 'Comfortaa', sans-serif;
+    letter-spacing: 0.06em;
+    opacity: 0.75;
+}
+.theme-cosmic .roll-die-btn {
+    background: linear-gradient(135deg, var(--mustard) 0%, var(--mustard-bright) 100%);
+    color: var(--ink);
+    border: 1px solid var(--mustard);
+    border-radius: var(--boomerang);
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.5),
+        0 0 18px var(--mustard-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+.theme-cosmic .roll-die-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--mustard-bright) 0%, #ffe080 100%);
+    box-shadow:
+        0 6px 16px rgba(0, 0, 0, 0.6),
+        0 0 26px var(--mustard-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transform: translateY(-1px);
+}
+.theme-cosmic .final-celebration {
+    background:
+        radial-gradient(ellipse at center top,
+            rgba(240, 193, 75, 0.16) 0%,
+            transparent 60%),
+        var(--bg-mid);
+    border: 1px solid var(--mustard);
+    border-radius: 12px;
+}
+.theme-cosmic .winner-announcement {
+    font-family: 'Monoton', sans-serif;
+    color: var(--mustard-bright);
+    letter-spacing: 0.12em;
+    text-shadow:
+        0 0 22px var(--mustard-glow),
+        0 0 44px rgba(240, 193, 75, 0.4);
+}
+.theme-cosmic .final-margin {
+    color: var(--cream);
+    font-family: 'Comfortaa', sans-serif;
+    letter-spacing: 0.04em;
+    opacity: 0.92;
+}
+
+/* ==========================================================
+   MOBILE
+   ========================================================== */
+@media (max-width: 768px) {
+    .theme-cosmic .game-container { padding: 18px; }
+    .theme-cosmic .game-title { font-size: 2.4em; letter-spacing: 0.05em; }
+    .theme-cosmic .game-board { grid-template-columns: 1fr; }
+    .theme-cosmic .scores { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .theme-cosmic .score-display { font-size: 2em; }
+    .theme-cosmic .round-info {
+        flex-direction: column;
+        gap: 6px;
+        text-align: center;
+    }
+}

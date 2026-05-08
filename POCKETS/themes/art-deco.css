@@ -1,0 +1,1234 @@
+/* POCKETS - ART DECO THEME (refined, restrained) */
+/* Aesthetic: Streamline Moderne — chrome, deep navy, Bakelite emerald.
+   References: Chrysler Building spire, 1925 Paris Exposition,
+   Cassandre posters, Erté illustrations, Empire State elevator interiors.
+   Design ethos: thin chrome lines, vertical emphasis, ziggurat profiles,
+   subtle sunbursts. No rounded corners. No heavy gold blocks. */
+
+@import url('https://fonts.googleapis.com/css2?family=Limelight&family=Poiret+One&display=swap');
+
+/* ==========================================================
+   THEME TOKENS
+   ========================================================== */
+body.theme-art-deco {
+    --bg-deep:        #0f1024;
+    --bg-mid:         #161830;
+    --bg-panel:       #1c1f3b;
+    --bg-panel-soft:  #232649;
+
+    --chrome-bright:  #f4f4f8;
+    --chrome:         #d6d8e0;
+    --chrome-mid:     #a8acb8;
+    --chrome-dark:    #6d7180;
+    --chrome-shadow:  #2a2c3a;
+
+    --emerald:        #4ec07a;
+    --emerald-deep:   #2d8b57;
+    --emerald-glow:   rgba(78, 192, 122, 0.35);
+
+    --gold:           #d4af37;
+    --gold-bright:    #e8c547;
+
+    --pearl:          #f5f5fa;
+    --ivory:          #f0e9d6;
+    --ink:            #0a0b1a;
+
+    --line-thin:      rgba(214, 216, 224, 0.25);
+    --line-mid:       rgba(214, 216, 224, 0.55);
+    --line-strong:    rgba(214, 216, 224, 0.85);
+
+    --shadow-deep:    0 6px 18px rgba(0, 0, 0, 0.55);
+    --shadow-inset:   inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+    /* Reusable chrome gradient — polished steel */
+    --chrome-grad: linear-gradient(
+        180deg,
+        #f4f4f8 0%,
+        #d6d8e0 28%,
+        #a8acb8 52%,
+        #d6d8e0 76%,
+        #f4f4f8 100%
+    );
+    /* Reusable chrome gradient — diagonal for buttons */
+    --chrome-grad-diag: linear-gradient(
+        135deg,
+        #e8e8ee 0%,
+        #c8cad2 30%,
+        #f0f0f4 50%,
+        #c8cad2 70%,
+        #e8e8ee 100%
+    );
+
+    background: var(--bg-deep);
+    color: var(--pearl);
+    font-family: 'Poiret One', 'Avenir Next', 'Helvetica Neue', sans-serif;
+    letter-spacing: 0.02em;
+}
+
+/* Subtle radial sunburst on the page background — barely visible,
+   like ambient light from above. */
+body.theme-art-deco::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 80% 50% at 50% 0%,
+            rgba(78, 192, 122, 0.08) 0%,
+            rgba(78, 192, 122, 0.03) 30%,
+            transparent 60%),
+        radial-gradient(ellipse 60% 40% at 50% 100%,
+            rgba(214, 216, 224, 0.04) 0%,
+            transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ==========================================================
+   PAGE CONTAINER
+   ========================================================== */
+.theme-art-deco .game-container {
+    position: relative;
+    background: var(--bg-mid);
+    border: 1px solid var(--chrome-dark);
+    box-shadow:
+        var(--shadow-deep),
+        0 0 0 1px var(--line-thin) inset,
+        0 0 80px rgba(0, 0, 0, 0.5);
+    padding: 28px;
+    z-index: 1;
+}
+.theme-art-deco .game-container::before {
+    /* thin chrome rule lines top and bottom inside the container */
+    content: '';
+    position: absolute;
+    top: 8px; left: 8px; right: 8px;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        var(--line-mid) 15%,
+        var(--line-strong) 50%,
+        var(--line-mid) 85%,
+        transparent 100%);
+}
+.theme-art-deco .game-container::after {
+    content: '';
+    position: absolute;
+    bottom: 8px; left: 8px; right: 8px;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        var(--line-mid) 15%,
+        var(--line-strong) 50%,
+        var(--line-mid) 85%,
+        transparent 100%);
+}
+
+/* ==========================================================
+   HEADER — sunburst behind, ziggurat trim, chrome rules
+   ========================================================== */
+.theme-art-deco .game-header {
+    position: relative;
+    background:
+        /* layered radial sunburst, fading downward */
+        radial-gradient(ellipse 90% 70% at 50% 0%,
+            rgba(78, 192, 122, 0.10) 0%,
+            transparent 55%),
+        repeating-conic-gradient(
+            from 270deg at 50% 100%,
+            rgba(214, 216, 224, 0.04) 0deg 3deg,
+            transparent 3deg 6deg
+        ),
+        linear-gradient(180deg, #0a0b1a 0%, #14163a 100%);
+    padding: 36px 24px 32px;
+    margin-bottom: 22px;
+    border: 1px solid var(--chrome-dark);
+    text-align: center;
+    overflow: hidden;
+}
+/* Top stepped trim — subtle ziggurat rule */
+.theme-art-deco .game-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 6px;
+    background:
+        linear-gradient(90deg,
+            transparent 0%,
+            var(--chrome-mid) 8%,
+            var(--chrome-bright) 50%,
+            var(--chrome-mid) 92%,
+            transparent 100%);
+    clip-path: polygon(
+        0 100%, 0 60%, 8% 60%, 8% 30%, 16% 30%, 16% 0,
+        84% 0, 84% 30%, 92% 30%, 92% 60%, 100% 60%, 100% 100%
+    );
+}
+/* Bottom chrome rule, plain */
+.theme-art-deco .game-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 12%; right: 12%;
+    height: 1px;
+    background: var(--chrome-mid);
+    opacity: 0.6;
+}
+
+/* Header ornaments — chrome ✦ glyphs, refined */
+.theme-art-deco .header-ornament {
+    color: var(--chrome);
+    font-size: 1.4em;
+    text-shadow: 0 0 8px rgba(214, 216, 224, 0.4);
+    opacity: 0.85;
+    z-index: 2;
+}
+
+.theme-art-deco .game-title {
+    font-family: 'Limelight', 'Bebas Neue', 'Impact', sans-serif;
+    font-size: 3.2em;
+    font-weight: normal;
+    letter-spacing: 0.18em;
+    margin: 0 0 8px 0;
+    color: transparent;
+    background:
+        linear-gradient(180deg,
+            #f5f5fa 0%,
+            #d6d8e0 35%,
+            #a8acb8 60%,
+            #d6d8e0 80%,
+            #f5f5fa 100%);
+    -webkit-background-clip: text;
+            background-clip: text;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 2;
+}
+
+.theme-art-deco .subtitle {
+    font-family: 'Poiret One', sans-serif;
+    color: var(--chrome-mid);
+    font-size: 0.95em;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    margin: 0 0 6px 0;
+    position: relative;
+    z-index: 2;
+}
+
+.theme-art-deco .theme-subtitle {
+    font-family: 'Poiret One', sans-serif;
+    color: var(--emerald);
+    font-size: 0.85em;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    text-shadow: 0 0 6px rgba(78, 192, 122, 0.3);
+    position: relative;
+    z-index: 2;
+}
+
+/* ==========================================================
+   GAME MODE BAR
+   ========================================================== */
+.theme-art-deco .game-mode {
+    background: var(--bg-panel);
+    border: 1px solid var(--chrome-dark);
+    box-shadow: var(--shadow-inset);
+}
+.theme-art-deco .game-mode .gm-label {
+    color: var(--chrome-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.85em;
+}
+
+.theme-art-deco .mode-btn,
+.theme-art-deco .difficulty-btn {
+    background: var(--bg-mid);
+    color: var(--chrome);
+    border: 1px solid var(--chrome-dark);
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+.theme-art-deco .mode-btn:hover,
+.theme-art-deco .difficulty-btn:hover {
+    border-color: var(--emerald);
+    color: var(--pearl);
+    box-shadow: 0 0 12px var(--emerald-glow);
+}
+.theme-art-deco .mode-btn.active,
+.theme-art-deco .difficulty-btn.active {
+    background: linear-gradient(180deg, #2d8b57 0%, #1f6b40 100%);
+    color: var(--pearl);
+    border-color: var(--emerald);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        0 0 12px var(--emerald-glow);
+}
+
+/* ==========================================================
+   ROUND INFO BAR
+   ========================================================== */
+.theme-art-deco .round-info {
+    background: var(--bg-panel);
+    border: 1px solid var(--chrome-dark);
+    border-left: 3px solid var(--chrome);
+    border-right: 3px solid var(--chrome);
+    color: var(--pearl);
+    padding: 12px 18px;
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 0.95em;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow-inset);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+.theme-art-deco .round-info strong {
+    color: var(--chrome-bright);
+    font-weight: normal;
+    letter-spacing: 0.15em;
+}
+.theme-art-deco .round-info #turnInfo {
+    color: var(--emerald);
+    flex: 1;
+    text-align: center;
+    text-transform: none;
+    letter-spacing: 0.05em;
+}
+
+.theme-art-deco .help-btn {
+    background: var(--bg-mid);
+    color: var(--chrome);
+    border: 1px solid var(--chrome-dark);
+    padding: 6px 14px;
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.theme-art-deco .help-btn:hover {
+    border-color: var(--emerald);
+    color: var(--pearl);
+    box-shadow: 0 0 10px var(--emerald-glow);
+}
+
+/* ==========================================================
+   FIRST-PLAYER ROLLOFF (theme tweaks layered on base CSS)
+   ========================================================== */
+.theme-art-deco .first-player-rolloff {
+    background: var(--bg-panel);
+    border: 1px solid var(--chrome-dark);
+    border-left: 3px solid var(--chrome);
+    border-right: 3px solid var(--chrome);
+    margin-bottom: 18px;
+}
+.theme-art-deco .rolloff-prompt {
+    color: var(--chrome);
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+.theme-art-deco .rolloff-side-label {
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.2em;
+}
+.theme-art-deco .rolloff-side-label.blue-text { color: #5fa8e8; }
+.theme-art-deco .rolloff-side-label.red-text  { color: #e87a7a; }
+.theme-art-deco .rolloff-die {
+    background: var(--ivory);
+    color: var(--ink);
+    border: 2px solid var(--chrome);
+    box-shadow:
+        0 4px 8px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.theme-art-deco #blueRolloffDie { border-color: #5fa8e8; }
+.theme-art-deco #redRolloffDie  { border-color: #e87a7a; }
+.theme-art-deco .rolloff-vs {
+    color: var(--chrome-mid);
+    font-family: 'Limelight', sans-serif;
+    letter-spacing: 0.4em;
+}
+.theme-art-deco .rolloff-result {
+    color: var(--emerald);
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.05em;
+}
+.theme-art-deco .rolloff-result.winner {
+    color: var(--gold);
+    text-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+}
+
+.theme-art-deco .player-rolls {
+    background: var(--bg-panel);
+    border: 1px solid var(--chrome-dark);
+    margin-bottom: 18px;
+}
+
+/* ==========================================================
+   GENERAL BUTTONS
+   ========================================================== */
+.theme-art-deco .btn {
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border: 1px solid var(--chrome-dark);
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+
+.theme-art-deco .controls {
+    text-align: center;
+    margin: 18px 0;
+}
+.theme-art-deco .start-btn {
+    background: var(--chrome-grad-diag);
+    color: var(--ink);
+    border: 1px solid var(--chrome-dark);
+    padding: 14px 38px;
+    font-size: 1em;
+    letter-spacing: 0.2em;
+    font-weight: normal;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow:
+        0 4px 10px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    position: relative;
+}
+.theme-art-deco .start-btn:hover {
+    background:
+        linear-gradient(135deg,
+            #f4f4f8 0%,
+            #d8dae2 30%,
+            #ffffff 50%,
+            #d8dae2 70%,
+            #f4f4f8 100%);
+    box-shadow:
+        0 6px 14px rgba(0, 0, 0, 0.6),
+        0 0 16px var(--emerald-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.theme-art-deco .blue-btn,
+.theme-art-deco .red-btn {
+    background: var(--bg-panel);
+    color: var(--pearl);
+    border: 1px solid var(--chrome-dark);
+    padding: 11px 22px;
+    font-size: 0.95em;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+.theme-art-deco .blue-btn { border-left: 3px solid #5fa8e8; }
+.theme-art-deco .red-btn  { border-left: 3px solid #e87a7a; }
+.theme-art-deco .blue-btn:hover {
+    border-color: #5fa8e8;
+    box-shadow: 0 0 12px rgba(95, 168, 232, 0.4);
+}
+.theme-art-deco .red-btn:hover {
+    border-color: #e87a7a;
+    box-shadow: 0 0 12px rgba(232, 122, 122, 0.4);
+}
+
+.theme-art-deco .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* ==========================================================
+   SHARE DIFFERENCE
+   ========================================================== */
+.theme-art-deco .share-difference {
+    background: var(--bg-panel);
+    border: 1px solid var(--emerald-deep);
+    color: var(--emerald);
+    padding: 12px 18px;
+    text-align: center;
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin: 14px 0;
+    box-shadow:
+        0 0 14px var(--emerald-glow),
+        var(--shadow-inset);
+}
+
+/* ==========================================================
+   PRE-FINAL SCREEN
+   ========================================================== */
+.theme-art-deco .pre-final-screen {
+    text-align: center;
+    padding: 28px 20px;
+    margin: 18px 0;
+    background:
+        radial-gradient(ellipse 90% 60% at 50% 0%,
+            rgba(212, 175, 55, 0.10) 0%,
+            transparent 60%),
+        var(--bg-panel);
+    border: 1px solid var(--gold);
+    box-shadow: 0 0 24px rgba(212, 175, 55, 0.15);
+    position: relative;
+}
+.theme-art-deco .celebration-content {
+    position: relative;
+}
+.theme-art-deco .celebration-title {
+    font-family: 'Limelight', sans-serif;
+    color: var(--gold);
+    font-size: 2em;
+    letter-spacing: 0.15em;
+    margin: 0 0 18px 0;
+    text-shadow: 0 0 14px rgba(212, 175, 55, 0.5);
+}
+.theme-art-deco .final-rules {
+    background: var(--bg-mid);
+    border: 1px solid var(--chrome-dark);
+    padding: 14px 18px;
+    margin: 16px auto;
+    max-width: 460px;
+    text-align: left;
+}
+.theme-art-deco .final-rules h3 {
+    font-family: 'Poiret One', sans-serif;
+    color: var(--chrome);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin: 0 0 8px 0;
+    font-size: 0.95em;
+    font-weight: normal;
+}
+.theme-art-deco .final-rules ul {
+    margin: 0; padding-left: 18px;
+    color: var(--pearl);
+}
+.theme-art-deco .final-rules li {
+    margin-bottom: 6px;
+    line-height: 1.5;
+}
+.theme-art-deco .final-roll-controls {
+    margin-top: 14px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* ==========================================================
+   SCORES — ziggurat top, chrome accent, vertical pinstripe
+   ========================================================== */
+.theme-art-deco .scores {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+.theme-art-deco .score-area {
+    position: relative;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0,
+            transparent 22px,
+            rgba(214, 216, 224, 0.04) 22px,
+            rgba(214, 216, 224, 0.04) 23px
+        ),
+        var(--bg-panel);
+    border: 1px solid var(--chrome-dark);
+    padding: 16px 18px 14px;
+    text-align: center;
+}
+/* Ziggurat top trim using clip-path */
+.theme-art-deco .score-area::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--chrome-grad);
+    clip-path: polygon(
+        0 100%, 0 60%, 10% 60%, 10% 30%, 25% 30%, 25% 0,
+        75% 0, 75% 30%, 90% 30%, 90% 60%, 100% 60%, 100% 100%
+    );
+}
+.theme-art-deco .score-area h3 {
+    font-family: 'Poiret One', sans-serif;
+    color: var(--chrome);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin: 6px 0 8px 0;
+    font-size: 0.95em;
+    font-weight: normal;
+}
+.theme-art-deco .score-display {
+    font-family: 'Limelight', sans-serif;
+    font-size: 2.4em;
+    color: transparent;
+    background: var(--chrome-grad);
+    -webkit-background-clip: text;
+            background-clip: text;
+    letter-spacing: 0.05em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+.theme-art-deco .score-area.winner {
+    border-color: var(--gold);
+    box-shadow:
+        0 0 20px rgba(212, 175, 55, 0.25),
+        var(--shadow-inset);
+}
+.theme-art-deco .score-area.winner::before {
+    background: linear-gradient(180deg,
+        var(--gold-bright) 0%,
+        var(--gold) 50%,
+        var(--gold-bright) 100%);
+}
+.theme-art-deco .winner-text {
+    color: var(--gold);
+    font-family: 'Limelight', sans-serif;
+    letter-spacing: 0.2em;
+    margin-top: 4px;
+    font-size: 0.9em;
+    text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+}
+.theme-art-deco .final-total {
+    color: transparent !important;
+    background: linear-gradient(180deg,
+        var(--gold-bright) 0%,
+        var(--gold) 50%,
+        var(--gold-bright) 100%);
+    -webkit-background-clip: text;
+            background-clip: text;
+    text-shadow: 0 0 14px rgba(212, 175, 55, 0.4);
+}
+
+.theme-art-deco .bonus-info {
+    color: var(--emerald);
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.1em;
+    font-size: 0.85em;
+    margin-top: 6px;
+    min-height: 18px;
+}
+
+.theme-art-deco .round-score-display {
+    background: var(--bg-mid);
+    border: 1px solid var(--chrome-dark);
+    color: var(--chrome);
+    padding: 6px 12px;
+    margin-top: 8px;
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.1em;
+    font-size: 0.85em;
+}
+
+/* ==========================================================
+   GAME BOARD — player areas
+   ========================================================== */
+.theme-art-deco .game-board {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+.theme-art-deco .player-area {
+    position: relative;
+    background:
+        linear-gradient(180deg,
+            var(--bg-panel) 0%,
+            var(--bg-panel-soft) 100%);
+    border: 1px solid var(--chrome-dark);
+    padding: 18px;
+    box-shadow: var(--shadow-inset);
+}
+.theme-art-deco .player-area::before {
+    /* top chrome rule */
+    content: '';
+    position: absolute;
+    top: 0; left: 12%; right: 12%;
+    height: 1px;
+    background: var(--chrome-mid);
+    opacity: 0.7;
+}
+.theme-art-deco .player-area.blue { border-left: 3px solid #5fa8e8; }
+.theme-art-deco .player-area.red  { border-left: 3px solid #e87a7a; }
+.theme-art-deco .blue-player { color: var(--pearl); }
+.theme-art-deco .red-player { color: var(--pearl); }
+
+.theme-art-deco .player-header {
+    text-align: center;
+    margin-bottom: 14px;
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--chrome);
+    font-size: 1.05em;
+}
+
+/* ==========================================================
+   DICE — ivory cream with chrome border
+   ========================================================== */
+.theme-art-deco .dice-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    min-height: 60px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px dashed var(--chrome-dark);
+    margin-bottom: 14px;
+}
+
+.theme-art-deco .dice {
+    width: 48px;
+    height: 48px;
+    background:
+        linear-gradient(145deg, #faf3e0 0%, #f0e9d6 100%);
+    border: 1.5px solid var(--chrome);
+    border-radius: 4px;
+    box-shadow:
+        0 3px 6px rgba(0, 0, 0, 0.5),
+        inset 0 1px 1px rgba(255, 255, 255, 0.7),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.theme-art-deco .dice:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 5px 10px rgba(0, 0, 0, 0.6),
+        0 0 12px rgba(214, 216, 224, 0.4),
+        inset 0 1px 1px rgba(255, 255, 255, 0.7);
+}
+.theme-art-deco .dice.saved-tint {
+    background: linear-gradient(145deg, #f4ead4 0%, #e6dcc0 100%);
+    border-color: var(--gold);
+    box-shadow:
+        0 3px 6px rgba(0, 0, 0, 0.5),
+        0 0 10px rgba(212, 175, 55, 0.3),
+        inset 0 1px 1px rgba(255, 255, 255, 0.7);
+}
+.theme-art-deco .dice.saved-tint:hover {
+    box-shadow:
+        0 5px 10px rgba(0, 0, 0, 0.6),
+        0 0 14px rgba(212, 175, 55, 0.5),
+        inset 0 1px 1px rgba(255, 255, 255, 0.7);
+}
+.theme-art-deco .dice.selected {
+    border-color: var(--emerald);
+    box-shadow:
+        0 3px 6px rgba(0, 0, 0, 0.5),
+        0 0 14px var(--emerald-glow),
+        inset 0 1px 1px rgba(255, 255, 255, 0.7);
+    transform: translateY(-2px);
+}
+.theme-art-deco .dice-face {
+    width: 100%; height: 100%;
+    position: relative;
+}
+.theme-art-deco .dice-dot {
+    position: absolute;
+    width: 7px; height: 7px;
+    background: var(--ink);
+    border-radius: 50%;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+/* ==========================================================
+   POCKETS — rectangular, chrome inset, vertical accent
+   ========================================================== */
+.theme-art-deco .pockets {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
+}
+.theme-art-deco .pocket {
+    position: relative;
+    background:
+        linear-gradient(180deg,
+            rgba(0, 0, 0, 0.3) 0%,
+            rgba(0, 0, 0, 0.15) 100%),
+        var(--bg-mid);
+    border: 1px solid var(--chrome-dark);
+    padding: 12px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    min-height: 92px;
+    box-shadow: var(--shadow-inset);
+}
+.theme-art-deco .pocket::before {
+    /* thin vertical chrome accent on the left edge */
+    content: '';
+    position: absolute;
+    top: 14%; bottom: 14%;
+    left: 0;
+    width: 2px;
+    background: var(--chrome);
+    opacity: 0.4;
+    transition: opacity 0.25s ease, background 0.25s ease;
+}
+.theme-art-deco .pocket.active {
+    border-color: var(--emerald);
+    background:
+        linear-gradient(180deg,
+            rgba(78, 192, 122, 0.14) 0%,
+            rgba(78, 192, 122, 0.05) 100%),
+        var(--bg-mid);
+    box-shadow:
+        0 0 16px var(--emerald-glow),
+        var(--shadow-inset);
+}
+.theme-art-deco .pocket.active::before {
+    background: var(--emerald);
+    opacity: 1;
+    box-shadow: 0 0 6px var(--emerald-glow);
+}
+.theme-art-deco .pocket-label {
+    font-family: 'Poiret One', sans-serif;
+    color: var(--chrome);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: 0.8em;
+    margin-bottom: 6px;
+    display: block;
+}
+.theme-art-deco .pocket-dice {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+    min-height: 38px;
+}
+.theme-art-deco .pocket .dice {
+    width: 32px; height: 32px;
+}
+.theme-art-deco .pocket .dice .dice-dot {
+    width: 4px; height: 4px;
+}
+.theme-art-deco .pocket-score {
+    font-family: 'Limelight', sans-serif;
+    color: var(--chrome-bright);
+    font-size: 0.95em;
+    margin-top: 4px;
+    min-height: 16px;
+    letter-spacing: 0.05em;
+}
+.theme-art-deco .share-pocket { grid-column: span 2; }
+.theme-art-deco .save-pocket  { grid-column: span 2; }
+
+/* ==========================================================
+   BONUS LEGEND
+   ========================================================== */
+.theme-art-deco .bonus-legend {
+    background: var(--bg-panel);
+    border: 1px solid var(--chrome-dark);
+    border-top: 2px solid var(--chrome);
+    padding: 12px 16px;
+    margin-top: 14px;
+    font-size: 0.88em;
+}
+.theme-art-deco .bonus-legend h4 {
+    font-family: 'Poiret One', sans-serif;
+    color: var(--chrome);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin: 0 0 8px 0;
+    font-size: 0.95em;
+    font-weight: normal;
+}
+.theme-art-deco .bonus-legend p {
+    margin: 4px 0;
+    color: var(--pearl);
+    line-height: 1.5;
+}
+
+/* ==========================================================
+   FINAL-SCORE DISPLAY (post-final, on main board)
+   ========================================================== */
+.theme-art-deco .final-score-display {
+    background:
+        radial-gradient(ellipse at top,
+            rgba(212, 175, 55, 0.12) 0%,
+            transparent 60%),
+        var(--bg-panel);
+    border: 1px solid var(--gold);
+    padding: 14px 18px;
+    margin-top: 14px;
+    text-align: center;
+    box-shadow: 0 0 16px rgba(212, 175, 55, 0.18);
+}
+.theme-art-deco .final-score-title {
+    font-family: 'Limelight', sans-serif;
+    color: var(--gold);
+    letter-spacing: 0.25em;
+    margin: 0 0 8px 0;
+    font-size: 1.05em;
+}
+.theme-art-deco .final-score-breakdown {
+    color: var(--chrome);
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.08em;
+    margin: 6px 0;
+    line-height: 1.6;
+}
+.theme-art-deco .final-score-total {
+    font-family: 'Limelight', sans-serif;
+    color: var(--gold-bright);
+    letter-spacing: 0.2em;
+    font-size: 1.15em;
+    margin-top: 10px;
+    text-shadow: 0 0 12px rgba(212, 175, 55, 0.5);
+}
+
+/* ==========================================================
+   MODAL (help, etc.)
+   ========================================================== */
+.theme-art-deco .modal-overlay {
+    background: rgba(10, 11, 26, 0.92);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+.theme-art-deco .modal-content {
+    background: var(--bg-mid);
+    border: 1px solid var(--chrome);
+    box-shadow:
+        var(--shadow-deep),
+        0 0 60px rgba(78, 192, 122, 0.1);
+    color: var(--pearl);
+}
+.theme-art-deco .modal-header {
+    background:
+        linear-gradient(180deg,
+            #0a0b1a 0%,
+            #14163a 100%);
+    border-bottom: 1px solid var(--chrome-dark);
+    position: relative;
+}
+.theme-art-deco .modal-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 15%; right: 15%;
+    height: 1px;
+    background: var(--chrome);
+}
+.theme-art-deco .modal-header h2 {
+    font-family: 'Limelight', sans-serif;
+    color: var(--chrome-bright);
+    letter-spacing: 0.18em;
+    margin: 0;
+}
+.theme-art-deco .modal-close {
+    background: transparent;
+    color: var(--chrome);
+    border: 1px solid var(--chrome-dark);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.theme-art-deco .modal-close:hover {
+    color: var(--pearl);
+    border-color: var(--emerald);
+    background: var(--emerald-deep);
+}
+.theme-art-deco .modal-body {
+    color: var(--pearl);
+    font-family: 'Poiret One', sans-serif;
+    line-height: 1.6;
+}
+.theme-art-deco .modal-body h3,
+.theme-art-deco .modal-body h4 {
+    color: var(--chrome);
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: normal;
+}
+
+/* ==========================================================
+   STATS PANEL
+   ========================================================== */
+.theme-art-deco .stats-panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--chrome-dark);
+    border-top: 2px solid var(--chrome);
+    color: var(--pearl);
+    padding: 18px;
+    margin: 18px 0;
+}
+.theme-art-deco .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+.theme-art-deco .stat-card {
+    position: relative;
+    background: var(--bg-mid);
+    border: 1px solid var(--chrome-dark);
+    padding: 14px;
+}
+.theme-art-deco .stat-card h4 {
+    font-family: 'Poiret One', sans-serif;
+    color: var(--chrome);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    font-weight: normal;
+    margin: 0 0 8px 0;
+}
+.theme-art-deco .stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 0.9em;
+    border-bottom: 1px solid var(--line-thin);
+}
+.theme-art-deco .stat-row:last-child { border-bottom: none; }
+.theme-art-deco .stat-value {
+    color: var(--emerald);
+    font-family: 'Limelight', sans-serif;
+    letter-spacing: 0.05em;
+}
+
+.theme-art-deco .achievements-section {
+    margin-top: 18px;
+}
+.theme-art-deco .achievement-item {
+    background: var(--bg-mid);
+    border: 1px solid var(--chrome-dark);
+    border-left: 3px solid var(--gold);
+    padding: 10px 14px;
+    margin-bottom: 8px;
+}
+.theme-art-deco .achievement-title {
+    font-family: 'Poiret One', sans-serif;
+    color: var(--gold);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-size: 0.95em;
+    margin-bottom: 4px;
+}
+.theme-art-deco .achievement-description {
+    color: var(--chrome);
+    font-size: 0.88em;
+    line-height: 1.5;
+}
+
+/* ==========================================================
+   NOTIFICATIONS
+   ========================================================== */
+.theme-art-deco .notification {
+    background: var(--bg-panel);
+    border: 1px solid var(--chrome-dark);
+    color: var(--pearl);
+    box-shadow: var(--shadow-deep);
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.08em;
+}
+.theme-art-deco .notification.success {
+    border-left: 3px solid var(--emerald);
+}
+.theme-art-deco .notification.error {
+    border-left: 3px solid #e87a7a;
+}
+.theme-art-deco .notification.info {
+    border-left: 3px solid var(--chrome);
+}
+.theme-art-deco .achievement-notification {
+    background:
+        linear-gradient(135deg,
+            var(--bg-panel) 0%,
+            var(--bg-mid) 100%);
+    border: 1px solid var(--gold);
+    box-shadow:
+        var(--shadow-deep),
+        0 0 24px rgba(212, 175, 55, 0.3);
+    color: var(--pearl);
+}
+.theme-art-deco .achievement-content h3 {
+    color: var(--gold);
+    font-family: 'Limelight', sans-serif;
+    letter-spacing: 0.18em;
+}
+
+/* ==========================================================
+   FOOTER
+   ========================================================== */
+.theme-art-deco .new-game-section {
+    text-align: center;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line-thin);
+}
+.theme-art-deco .copyright {
+    text-align: center;
+    color: var(--chrome-dark);
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: 0.75em;
+    margin-top: 14px;
+    opacity: 0.7;
+}
+
+.theme-art-deco .loading-screen {
+    background: var(--bg-deep);
+    color: var(--chrome);
+    font-family: 'Limelight', sans-serif;
+    letter-spacing: 0.25em;
+}
+
+/* ==========================================================
+   FINAL-ROLL MODAL — colorize the theme-neutral base markup
+   ========================================================== */
+.theme-art-deco .final-roll-content {
+    background:
+        radial-gradient(ellipse 90% 60% at 50% 0%,
+            rgba(212, 175, 55, 0.10) 0%,
+            transparent 60%),
+        linear-gradient(180deg,
+            var(--bg-mid) 0%,
+            var(--bg-panel) 100%);
+    border: 1px solid var(--gold);
+    box-shadow:
+        var(--shadow-deep),
+        0 0 60px rgba(212, 175, 55, 0.15);
+}
+.theme-art-deco .final-roll-title {
+    font-family: 'Limelight', sans-serif;
+    color: var(--gold);
+    letter-spacing: 0.18em;
+    text-shadow: 0 0 18px rgba(212, 175, 55, 0.5);
+}
+.theme-art-deco .player-final-score {
+    background: var(--bg-mid);
+    border: 1px solid var(--chrome-dark);
+}
+.theme-art-deco .player-final-score.blue {
+    border-color: #5fa8e8;
+    background: linear-gradient(180deg,
+        rgba(95, 168, 232, 0.08) 0%,
+        var(--bg-mid) 100%);
+}
+.theme-art-deco .player-final-score.red {
+    border-color: #e87a7a;
+    background: linear-gradient(180deg,
+        rgba(232, 122, 122, 0.08) 0%,
+        var(--bg-mid) 100%);
+}
+.theme-art-deco .player-final-score.active-turn {
+    box-shadow: 0 0 22px rgba(212, 175, 55, 0.5);
+}
+.theme-art-deco .running-total {
+    font-family: 'Limelight', sans-serif;
+    color: var(--gold-bright);
+    text-shadow: 0 0 14px rgba(212, 175, 55, 0.5);
+}
+.theme-art-deco .running-total-label {
+    font-family: 'Poiret One', sans-serif;
+    color: var(--chrome-mid);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+}
+.theme-art-deco .player-name {
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+.theme-art-deco .saved-die-display {
+    background: var(--ivory);
+    color: var(--ink);
+    border: 1px solid var(--chrome);
+}
+.theme-art-deco .saved-die-display .saved-label {
+    color: var(--chrome-dark);
+    letter-spacing: 0.25em;
+}
+.theme-art-deco .dice-rolled {
+    background: var(--ivory);
+    color: var(--ink);
+    border: 1px solid var(--chrome);
+}
+.theme-art-deco .drama-message {
+    color: var(--pearl);
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.05em;
+}
+.theme-art-deco .current-turn {
+    color: var(--chrome-mid);
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.1em;
+}
+.theme-art-deco .roll-die-btn {
+    background: var(--chrome-grad-diag);
+    color: var(--ink);
+    border: 1px solid var(--chrome-dark);
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    box-shadow:
+        0 4px 10px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.theme-art-deco .roll-die-btn:hover:not(:disabled) {
+    background:
+        linear-gradient(135deg,
+            #f8f8fc 0%,
+            #d8dae2 30%,
+            #ffffff 50%,
+            #d8dae2 70%,
+            #f8f8fc 100%);
+    box-shadow:
+        0 6px 14px rgba(0, 0, 0, 0.6),
+        0 0 18px var(--emerald-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.theme-art-deco .final-celebration {
+    background:
+        radial-gradient(ellipse at center top,
+            rgba(212, 175, 55, 0.15) 0%,
+            transparent 60%),
+        var(--bg-mid);
+    border: 1px solid var(--gold);
+}
+.theme-art-deco .winner-announcement {
+    font-family: 'Limelight', sans-serif;
+    color: var(--gold-bright);
+    letter-spacing: 0.2em;
+    text-shadow: 0 0 22px rgba(212, 175, 55, 0.7);
+}
+.theme-art-deco .final-margin {
+    color: var(--chrome);
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.06em;
+}
+
+/* ==========================================================
+   MOBILE
+   ========================================================== */
+@media (max-width: 768px) {
+    .theme-art-deco .game-container { padding: 18px; }
+    .theme-art-deco .game-title { font-size: 2.2em; letter-spacing: 0.12em; }
+    .theme-art-deco .game-board { grid-template-columns: 1fr; }
+    .theme-art-deco .scores { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .theme-art-deco .score-display { font-size: 1.9em; }
+    .theme-art-deco .round-info {
+        flex-direction: column;
+        gap: 6px;
+        text-align: center;
+    }
+}
