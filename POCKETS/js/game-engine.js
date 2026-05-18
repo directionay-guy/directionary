@@ -617,10 +617,12 @@ function renderDiceWithAnimation(player, dice) {
             if (player === 'red'  && gameState.redSavedDie)  { isSaved = true; }
         }
 
-        // Start with a random pip count — animation cycles to final value
-        var startVal = Math.floor(Math.random() * 6) + 1;
+        // Saved dice show their correct value immediately — no animation.
+        // Non-saved dice start random and cycle to the final value.
+        var startVal = isSaved ? value : Math.floor(Math.random() * 6) + 1;
         var die      = createDieSVG(startVal, player + '-' + i, isSaved);
-        die.classList.add(isSaved ? 'jitter' : 'rolling');
+        die.dataset.value = value;   // store actual value on element — immune to array splice shifting
+        if (!isSaved) { die.classList.add('rolling'); }  // saved dice don't animate
 
         // Closure captures die element, final value, saved flag, and index
         (function(dieEl, finalValue, isSavedDie, dieIdx) {
@@ -706,7 +708,10 @@ function placeDieInPocket(pocketElement) {
 
     var player   = gameState.selectedDie.player;
     var index    = gameState.selectedDie.index;
-    var dieValue = (player === 'blue') ? gameState.blueDice[index] : gameState.redDice[index];
+    // Read value from the die element itself — array indices shift after each splice
+    var selectedEl = document.querySelector('[data-id="' + player + '-' + index + '"]');
+    var dieValue = selectedEl ? parseInt(selectedEl.dataset.value)
+                              : ((player === 'blue') ? gameState.blueDice[index] : gameState.redDice[index]);
 
     var pocketDie = createDieSVG(dieValue, 'pocket-' + Date.now(), false);
     pocketDie.style.width  = '40px';
