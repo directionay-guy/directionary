@@ -1,0 +1,802 @@
+/* POCKETS — DARK MODE THEME
+   Design language: pure black ground, white outlines in three weights,
+   true blue for Blue Player, true red for Red Player. No gradients,
+   no textures, no gold. Hierarchy through line weight alone.
+   Template for future themes — minimal decoration, maximum clarity.
+   ================================================================ */
+
+/* ==========================================================
+   PALETTE TOKENS
+   ========================================================== */
+body.theme-dark {
+    --black:      #000000;
+    --white:      #ffffff;
+    --off-white:  #f0f0f0;
+    --dim:        rgba(255, 255, 255, 0.45);
+    --dimmer:     rgba(255, 255, 255, 0.20);
+
+    --blue:       #3b82f6;
+    --blue-dim:   rgba(59, 130, 246, 0.18);
+    --blue-glow:  rgba(59, 130, 246, 0.35);
+
+    --red:        #ef4444;
+    --red-dim:    rgba(239, 68, 68, 0.18);
+    --red-glow:   rgba(239, 68, 68, 0.35);
+
+    --green:      #22c55e;   /* confirmation/active states */
+    --green-dim:  rgba(34, 197, 94, 0.18);
+
+    /* Line weights */
+    --line-heavy: 2px solid var(--white);
+    --line-mid:   1px solid var(--white);
+    --line-dim:   1px solid rgba(255, 255, 255, 0.35);
+
+    background: var(--black);
+    color: var(--white);
+    font-family: system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 15px;
+    letter-spacing: 0.01em;
+    padding: 10px !important;
+}
+
+/* ==========================================================
+   CONTAINER — heavy white border, Victorian sizing
+   ========================================================== */
+.theme-dark .game-container {
+    position: relative;
+    max-width: 960px;
+    min-width: 480px;
+    margin: 0 auto;
+    padding: 18px 20px;
+    background: var(--black);
+    border: var(--line-heavy);
+    box-shadow: none;
+    z-index: 1;
+}
+
+/* ==========================================================
+   HEADER — black panel, L-bracket corner ornaments
+   ========================================================== */
+.theme-dark .game-header {
+    position: relative;
+    text-align: center;
+    padding: 22px 28px 18px;
+    margin-bottom: 14px;
+    background: var(--black);
+    border: var(--line-mid);
+    overflow: visible;
+}
+
+/* Single horizontal rule under the header */
+.theme-dark .game-header::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 8%; right: 8%;
+    height: 1px;
+    background: var(--dim);
+}
+
+/* ── L-bracket corner ornaments ──────────────────────────
+   Each .header-ornament div becomes a targeting-reticle
+   corner: two 2px white lines forming an L-shape.
+   ──────────────────────────────────────────────────────── */
+.theme-dark .header-ornament {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    font-size: 0;            /* hide any character content */
+    color: transparent;
+    z-index: 2;
+}
+.theme-dark .header-ornament.top-left {
+    top: 8px; left: 8px;
+    border-top: 2px solid var(--white);
+    border-left: 2px solid var(--white);
+}
+.theme-dark .header-ornament.top-right {
+    top: 8px; right: 8px;
+    border-top: 2px solid var(--white);
+    border-right: 2px solid var(--white);
+}
+.theme-dark .header-ornament.bottom-left {
+    bottom: 8px; left: 8px;
+    border-bottom: 2px solid var(--white);
+    border-left: 2px solid var(--white);
+}
+.theme-dark .header-ornament.bottom-right {
+    bottom: 8px; right: 8px;
+    border-bottom: 2px solid var(--white);
+    border-right: 2px solid var(--white);
+}
+
+/* Title */
+.theme-dark .game-title {
+    font-size: 2.6em;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--white);
+    margin: 0 0 6px 0;
+    position: relative; z-index: 2;
+}
+.theme-dark .subtitle {
+    font-size: 1em;
+    color: var(--dim);
+    letter-spacing: 0.08em;
+    margin: 0 0 4px 0;
+}
+.theme-dark .theme-subtitle {
+    font-size: 0.95em;
+    color: var(--dim);
+    letter-spacing: 0.1em;
+}
+
+/* ==========================================================
+   GAME MODE BAR
+   ========================================================== */
+.theme-dark .game-mode {
+    background: var(--black);
+    border: var(--line-mid);
+    color: var(--white);
+    padding: 7px 14px !important;
+    margin-bottom: 10px !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.theme-dark .game-mode .gm-label {
+    color: var(--dim);
+    font-size: 0.9em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.theme-dark .mode-btn,
+.theme-dark .difficulty-btn {
+    background: var(--black);
+    color: var(--white);
+    border: var(--line-mid);
+    padding: 5px 12px;
+    font-size: 0.9em;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.theme-dark .mode-btn:hover,
+.theme-dark .difficulty-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+.theme-dark .mode-btn.active,
+.theme-dark .difficulty-btn.active {
+    background: var(--green-dim);
+    border-color: var(--green);
+    color: var(--green);
+}
+
+/* Full screen button */
+.theme-dark .fullscreen-btn {
+    background: var(--black);
+    color: var(--dim);
+    border: var(--line-dim);
+    padding: 5px 10px;
+    font-size: 0.78em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-left: auto;
+}
+.theme-dark .fullscreen-btn:hover {
+    color: var(--white);
+    border-color: var(--white);
+}
+
+/* Help button */
+.theme-dark .help-btn {
+    background: var(--black);
+    color: var(--white);
+    border: var(--line-mid);
+    padding: 5px 10px;
+    font-size: 0.85em;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.theme-dark .help-btn:hover { background: rgba(255,255,255,0.08); }
+
+/* ==========================================================
+   ROUND INFO BAR
+   ========================================================== */
+.theme-dark .round-info {
+    background: var(--black);
+    border: var(--line-mid);
+    color: var(--white);
+    padding: 8px 16px;
+    font-size: 1em;
+    letter-spacing: 0.04em;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+.theme-dark .round-info strong {
+    color: var(--white);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+.theme-dark .round-info #turnInfo { color: var(--dim); }
+
+.theme-dark .placement-hint {
+    display: block;
+    font-size: 0.78em;
+    color: var(--dimmer);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 3px;
+}
+
+/* ==========================================================
+   CONTROLS / BUTTONS
+   ========================================================== */
+.theme-dark .controls { text-align: center; }
+
+.theme-dark .start-btn {
+    background: var(--black);
+    color: var(--white);
+    border: var(--line-heavy);
+    padding: 9px 30px;
+    font-size: 1.05em;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.theme-dark .start-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.theme-dark .blue-btn {
+    background: var(--black);
+    color: var(--blue);
+    border: 1px solid var(--blue);
+    padding: 11px 22px;
+    font-size: 1.05em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.theme-dark .red-btn {
+    background: var(--black);
+    color: var(--red);
+    border: 1px solid var(--red);
+    padding: 11px 22px;
+    font-size: 1.05em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.theme-dark .blue-btn:hover { background: var(--blue-dim); }
+.theme-dark .red-btn:hover  { background: var(--red-dim);  }
+.theme-dark .btn:disabled   { opacity: 0.3; cursor: not-allowed; }
+
+/* ==========================================================
+   FIRST-PLAYER ROLLOFF
+   ========================================================== */
+.theme-dark .first-player-rolloff {
+    background: var(--black);
+    border: var(--line-mid);
+    margin-bottom: 12px;
+    color: var(--white);
+}
+.theme-dark .rolloff-prompt { color: var(--dim); font-size: 0.92em; letter-spacing: 0.06em; }
+.theme-dark .rolloff-vs { color: var(--white); font-weight: 900; letter-spacing: 0.2em; }
+.theme-dark .rolloff-result { color: var(--dim); font-size: 0.9em; }
+.theme-dark .rolloff-result.winner { color: var(--white); font-weight: 700; }
+.theme-dark .rolloff-side-label.blue-text { color: var(--blue); }
+.theme-dark .rolloff-side-label.red-text  { color: var(--red);  }
+.theme-dark .player-rolls { background: transparent; border: none; }
+
+/* Rolloff dice — blue/red faces */
+.theme-dark #blueRolloffDie .dice-face { fill: #0a1a38; stroke: var(--blue); stroke-width: 1; }
+.theme-dark #blueRolloffDie .dice-dot  { fill: var(--blue); }
+.theme-dark #redRolloffDie  .dice-face { fill: #380a0a; stroke: var(--red);  stroke-width: 1; }
+.theme-dark #redRolloffDie  .dice-dot  { fill: var(--red);  }
+
+/* ==========================================================
+   SHARE DIFFERENCE
+   ========================================================== */
+.theme-dark .share-difference {
+    background: var(--black);
+    border: var(--line-mid);
+    color: var(--white);
+    padding: 8px 16px;
+    text-align: center;
+    margin: 10px 0;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+/* ==========================================================
+   GAME BOARD — player areas
+   ========================================================== */
+.theme-dark .game-board { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.theme-dark .player-area {
+    position: relative;
+    background: var(--black);
+    border: var(--line-mid);
+    padding: 12px 14px;
+}
+
+/* Blue panel — blue left border accent */
+.theme-dark .player-area.blue { border-left: 3px solid var(--blue); }
+.theme-dark .player-area.red  { border-left: 3px solid var(--red);  }
+
+/* ◇ hollow diamond micro-ornaments in player area corners */
+.theme-dark .player-area::before {
+    content: '◇';
+    position: absolute; top: 6px; left: 10px;
+    font-size: 0.85em;
+    color: var(--dimmer);
+    line-height: 1;
+}
+.theme-dark .player-area::after {
+    content: '◇';
+    position: absolute; top: 6px; right: 10px;
+    font-size: 0.85em;
+    color: var(--dimmer);
+    line-height: 1;
+}
+.theme-dark .player-area.blue::before,
+.theme-dark .player-area.blue::after { color: rgba(59, 130, 246, 0.35); }
+.theme-dark .player-area.red::before,
+.theme-dark .player-area.red::after  { color: rgba(239, 68, 68, 0.35);  }
+
+.theme-dark .blue-player { color: var(--blue); }
+.theme-dark .red-player  { color: var(--red);  }
+
+.theme-dark .player-header {
+    text-align: center;
+    margin-bottom: 8px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-size: 1.02em;
+}
+
+/* ==========================================================
+   DICE AREA
+   ========================================================== */
+.theme-dark .dice-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    align-items: center;
+    height: 64px;
+    padding: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border: var(--line-dim);
+    margin-bottom: 10px;
+}
+
+/* Main dice — white face, black pips. Classic. */
+.theme-dark .dice {
+    width: 44px;
+    height: 44px;
+    max-width: 44px;
+    max-height: 44px;
+    background: var(--off-white);
+    border: 1.5px solid var(--white);
+    cursor: pointer;
+    transition: filter 0.2s ease;
+}
+.theme-dark .dice:hover {
+    transform: none;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.6));
+}
+.theme-dark .dice.saved-tint {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: var(--dim);
+}
+.theme-dark .dice.selected {
+    transform: none;
+    opacity: 1;
+    border: 2px solid var(--green);
+    box-shadow: 0 0 12px var(--green-dim), 0 0 0 2px rgba(34, 197, 94, 0.3);
+}
+
+/* SVG face — transparent, shows the white CSS background */
+.theme-dark .dice-face {
+    fill: transparent;
+    stroke: none;
+}
+/* SVG dots — black on white face */
+.theme-dark .dice-dot {
+    fill: #0a0a0a;
+}
+
+/* ==========================================================
+   POCKETS — Victorian sizing, blue/red fills by player
+   ========================================================== */
+.theme-dark .pockets {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 8px;
+}
+.theme-dark .pocket {
+    position: relative;
+    border: var(--line-dim);
+    padding: 8px;
+    text-align: center;
+    cursor: pointer;
+    height: 78px;
+    overflow: hidden;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    background: rgba(255, 255, 255, 0.03);
+}
+.theme-dark .player-area.blue .pocket { background: rgba(59, 130, 246, 0.28); border-color: rgba(59, 130, 246, 0.50); }
+.theme-dark .player-area.red  .pocket { background: var(--red-dim);  border-color: rgba(239, 68, 68, 0.35);  }
+.theme-dark .pocket.active {
+    border-color: var(--white) !important;
+    background: rgba(255, 255, 255, 0.10) !important;
+}
+
+.theme-dark .pocket-label {
+    font-weight: 700;
+    color: var(--dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    margin-bottom: 4px;
+    display: block;
+}
+.theme-dark .player-area.blue .pocket-label { color: rgba(59, 130, 246, 0.90); }
+.theme-dark .player-area.red  .pocket-label { color: rgba(239, 68, 68, 0.70);  }
+
+.theme-dark .pocket-dice {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    justify-content: center;
+    height: 32px;
+    align-items: center;
+}
+
+/* Pocket dice — smaller, keep white/black face */
+.theme-dark .pocket .dice {
+    width: 28px;
+    height: 28px;
+}
+.theme-dark .pocket-score {
+    font-weight: 700;
+    color: var(--white);
+    font-size: 0.95em;
+    margin-top: 2px;
+    min-height: 14px;
+}
+
+.theme-dark .share-pocket { grid-column: span 2; }
+.theme-dark .save-pocket  { grid-column: span 2; }
+
+/* Share pocket score — Blue top-left, Red top-right */
+.theme-dark .share-pocket .pocket-score {
+    position: absolute; top: 4px; min-height: auto;
+}
+.theme-dark .player-area.blue .share-pocket .pocket-score { left: 5px;  right: auto; }
+.theme-dark .player-area.red  .share-pocket .pocket-score { right: 5px; left: auto;  }
+
+/* ==========================================================
+   BONUS LEGEND
+   ========================================================== */
+.theme-dark .bonus-legend {
+    background: var(--black);
+    border: var(--line-dim);
+    padding: 8px 16px;
+    margin-top: 10px;
+    margin-bottom: 12px;
+    font-size: 0.85em;
+    text-align: center;
+    color: var(--dim);
+}
+.theme-dark .bonus-legend h4 {
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 4px 0;
+    font-size: 1em;
+}
+
+/* ==========================================================
+   SCORES — ◇ corner ornaments
+   ========================================================== */
+.theme-dark .scores {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.theme-dark .score-area {
+    position: relative;
+    background: var(--black);
+    border: var(--line-mid);
+    padding: 10px 14px 8px;
+    text-align: center;
+}
+/* ◇ corner ornaments */
+.theme-dark .score-area::before {
+    content: '◇';
+    position: absolute; top: 4px; left: 7px;
+    font-size: 0.8em; color: var(--dimmer); line-height: 1;
+}
+.theme-dark .score-area::after {
+    content: '◇';
+    position: absolute; top: 4px; right: 7px;
+    font-size: 0.8em; color: var(--dimmer); line-height: 1;
+}
+.theme-dark #blueScoreArea { border-left: 3px solid var(--blue); }
+.theme-dark #redScoreArea  { border-left: 3px solid var(--red);  }
+.theme-dark #blueScoreArea::before,
+.theme-dark #blueScoreArea::after { color: rgba(59, 130, 246, 0.35); }
+.theme-dark #redScoreArea::before,
+.theme-dark #redScoreArea::after  { color: rgba(239, 68, 68, 0.35);  }
+
+.theme-dark .score-area h3 {
+    font-weight: 700; color: var(--dim);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin: 4px 0 6px 0; font-size: 0.9em;
+}
+.theme-dark .score-display {
+    font-size: 2.8em; font-weight: 900;
+    color: var(--white); letter-spacing: 0.02em;
+}
+.theme-dark #blueScoreArea.winner {
+    border-color: var(--blue) !important;
+    background: rgba(59, 130, 246, 0.25);
+    box-shadow: 0 0 28px var(--blue-glow), inset 0 0 16px rgba(59, 130, 246, 0.10);
+}
+.theme-dark #redScoreArea.winner {
+    border-color: var(--red) !important;
+    background: rgba(239, 68, 68, 0.25);
+    box-shadow: 0 0 28px var(--red-glow), inset 0 0 16px rgba(239, 68, 68, 0.10);
+}
+.theme-dark .winner-text {
+    font-weight: 700; color: var(--white);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-top: 4px; font-size: 1em;
+}
+.theme-dark .winner-pulse,
+.theme-dark .winner-pulse.silver-pulse {
+    font-weight: 900;
+    color: transparent;
+    background: linear-gradient(180deg, #ffffff 0%, #d0d0d0 50%, #ffffff 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    font-size: 1.8em;
+}
+.theme-dark .final-total {
+    font-weight: 900; font-size: 2.8em;
+    color: var(--white); letter-spacing: 0.02em;
+}
+
+.theme-dark .bonus-info {
+    color: var(--dim); font-size: 0.95em;
+    margin-top: 4px; min-height: 16px;
+}
+.theme-dark .round-score-display {
+    background: rgba(255,255,255,0.05);
+    border: var(--line-dim);
+    color: var(--white);
+    padding: 4px 12px;
+    margin-top: 6px;
+    height: 38px;
+    font-size: 0.88em;
+    display: flex; align-items: center; justify-content: center;
+}
+
+/* ==========================================================
+   FINAL SCORE DISPLAY
+   ========================================================== */
+.theme-dark .final-score-display {
+    background: var(--black);
+    border: var(--line-heavy);
+    padding: 12px 18px; margin-top: 10px; text-align: center;
+}
+.theme-dark .final-score-title {
+    font-weight: 700; color: var(--white);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin: 0 0 8px 0; font-size: 1.1em;
+}
+.theme-dark .final-score-breakdown { color: var(--dim); margin: 6px 0; line-height: 1.7; }
+.theme-dark .final-score-total {
+    font-weight: 900; font-size: 1.2em; color: var(--white);
+    letter-spacing: 0.08em; margin-top: 8px;
+}
+
+/* ==========================================================
+   PRE-FINAL SCREEN
+   ========================================================== */
+.theme-dark .pre-final-screen {
+    text-align: center; padding: 20px; margin: 12px 0;
+    background: var(--black);
+    border: var(--line-heavy);
+}
+.theme-dark .celebration-title {
+    font-weight: 900; font-size: 1.6em;
+    color: var(--white); letter-spacing: 0.1em;
+    text-transform: uppercase; margin: 0 0 14px 0;
+}
+.theme-dark .final-rules {
+    background: rgba(255,255,255,0.04);
+    border: var(--line-dim);
+    padding: 10px 14px; margin: 12px auto; max-width: 440px; text-align: left;
+}
+.theme-dark .final-rules h3 {
+    color: var(--white); font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin: 0 0 6px 0; font-size: 0.92em;
+}
+.theme-dark .final-rules ul  { margin: 0; padding-left: 16px; color: var(--dim); }
+.theme-dark .final-rules li  { margin-bottom: 5px; line-height: 1.5; }
+.theme-dark .final-roll-controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+
+/* ==========================================================
+   FINAL ROUND MODAL
+   ========================================================== */
+.theme-dark #finalRollModal {
+    background: rgba(0, 0, 0, 0.96);
+}
+.theme-dark .final-roll-content {
+    background: var(--black);
+    border: var(--line-heavy);
+    max-width: 720px;
+}
+.theme-dark .final-roll-title {
+    font-weight: 900; color: var(--white);
+    letter-spacing: 0.15em; text-transform: uppercase;
+    font-size: 1.5em;
+}
+.theme-dark #blueFinalCard {
+    background: var(--black);
+    border: var(--line-mid);
+    border-left: 3px solid var(--blue);
+}
+.theme-dark #redFinalCard {
+    background: var(--black);
+    border: var(--line-mid);
+    border-left: 3px solid var(--red);
+}
+.theme-dark #blueFinalCard.active-turn { box-shadow: 0 0 18px var(--blue-glow); border-color: var(--blue); }
+.theme-dark #redFinalCard.active-turn  { box-shadow: 0 0 18px var(--red-glow);  border-color: var(--red);  }
+.theme-dark .running-total-label {
+    color: var(--dim); font-size: 0.8em;
+    letter-spacing: 0.2em; text-transform: uppercase;
+}
+.theme-dark .running-total { font-size: 2em; font-weight: 900; color: var(--white); }
+.theme-dark .saved-die-display { background: var(--off-white); color: var(--black); border: var(--line-mid); }
+.theme-dark .saved-die-display .saved-label { color: #555; letter-spacing: 0.2em; font-size: 0.75em; text-transform: uppercase; }
+.theme-dark .drama-message { color: var(--white); letter-spacing: 0.04em; }
+.theme-dark .current-turn  { color: var(--dim); letter-spacing: 0.06em; }
+
+.theme-dark #blueRollFinalDie {
+    background: var(--black); color: var(--blue);
+    border: 1px solid var(--blue); letter-spacing: 0.15em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s ease;
+}
+.theme-dark #redRollFinalDie {
+    background: var(--black); color: var(--red);
+    border: 1px solid var(--red); letter-spacing: 0.15em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s ease;
+}
+.theme-dark #blueRollFinalDie:not(:disabled):hover { background: var(--blue-dim); }
+.theme-dark #redRollFinalDie:not(:disabled):hover  { background: var(--red-dim);  }
+.theme-dark #blueRollFinalDie:disabled,
+.theme-dark #redRollFinalDie:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.theme-dark .final-celebration { background: rgba(255,255,255,0.04); border-top: var(--line-mid); }
+.theme-dark .winner-announcement {
+    font-weight: 900; font-size: 1.6em;
+    color: var(--white); letter-spacing: 0.2em; text-transform: uppercase;
+}
+.theme-dark .final-margin { color: var(--dim); letter-spacing: 0.04em; }
+
+/* ==========================================================
+   MODAL (help/rules/confirm)
+   ========================================================== */
+.theme-dark .modal-overlay { background: rgba(0, 0, 0, 0.92); }
+.theme-dark .modal-content {
+    background: var(--black);
+    border: var(--line-heavy);
+    color: var(--white);
+}
+.theme-dark .modal-header {
+    background: var(--black);
+    border-bottom: var(--line-mid);
+}
+.theme-dark .modal-header h2 {
+    color: var(--white); font-weight: 900;
+    letter-spacing: 0.12em; text-transform: uppercase; margin: 0;
+}
+.theme-dark .modal-close {
+    background: var(--black); color: var(--white);
+    border: var(--line-mid); cursor: pointer; transition: all 0.2s ease;
+}
+.theme-dark .modal-close:hover { background: rgba(255,255,255,0.08); }
+.theme-dark .modal-body { color: var(--dim); line-height: 1.6; }
+.theme-dark .modal-body h3, .theme-dark .modal-body h4 {
+    color: var(--white); font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+}
+
+/* ==========================================================
+   STATS PANEL
+   ========================================================== */
+.theme-dark .stats-panel { background: var(--black); border: var(--line-mid); padding: 14px; margin: 14px 0; }
+.theme-dark .stats-grid  { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 10px; margin-top: 10px; }
+.theme-dark .stat-card   { background: rgba(255,255,255,0.04); border: var(--line-dim); padding: 11px; }
+.theme-dark .stat-card h4 {
+    color: var(--white); font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    font-size: 0.82em; margin: 0 0 6px 0;
+}
+.theme-dark .stat-row   { display: flex; justify-content: space-between; padding: 3px 0; font-size: 0.88em; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.theme-dark .stat-row:last-child { border-bottom: none; }
+.theme-dark .stat-value { font-weight: 700; color: var(--white); }
+.theme-dark .recent-form-summary { font-weight: 700; color: var(--white); letter-spacing: 0.1em; margin-top: 4px; }
+.theme-dark .achievements-section { margin-top: 14px; }
+.theme-dark .achievement-item {
+    background: rgba(255,255,255,0.04);
+    border: var(--line-dim); border-left: 3px solid var(--white);
+    padding: 8px 11px; margin-bottom: 6px;
+}
+.theme-dark .achievement-title { font-weight: 700; color: var(--white); letter-spacing: 0.1em; text-transform: uppercase; font-size: 0.9em; margin-bottom: 3px; }
+.theme-dark .achievement-description { color: var(--dim); font-size: 0.85em; line-height: 1.5; }
+
+/* ==========================================================
+   NOTIFICATIONS
+   ========================================================== */
+.theme-dark .notification { background: var(--black); border: var(--line-heavy); color: var(--white); }
+.theme-dark .notification.success { border-left: 4px solid var(--green); }
+.theme-dark .notification.error   { border-left: 4px solid var(--red);   }
+.theme-dark .notification.info    { border-left: 4px solid var(--white); }
+.theme-dark .achievement-notification { background: var(--black); border: var(--line-heavy); color: var(--white); }
+.theme-dark .achievement-content h3 { color: var(--white); font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
+
+/* ==========================================================
+   FOOTER
+   ========================================================== */
+.theme-dark .new-game-section {
+    text-align: center; margin-top: 16px;
+    padding-top: 14px; border-top: var(--line-dim);
+}
+.theme-dark .copyright {
+    text-align: center; color: var(--dimmer);
+    font-size: 0.72em; letter-spacing: 0.1em;
+    text-transform: uppercase; margin-top: 10px; opacity: 0.7;
+}
+
+/* ==========================================================
+   SCROLLBAR
+   ========================================================== */
+.theme-dark ::-webkit-scrollbar       { width: 8px; }
+.theme-dark ::-webkit-scrollbar-track { background: var(--black); }
+.theme-dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); }
+.theme-dark ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.6); }
+
+/* ==========================================================
+   MOBILE
+   ========================================================== */
+@media (max-width: 768px) {
+    .theme-dark .game-container { padding: 12px; }
+    .theme-dark .game-title     { font-size: 1.8em; }
+    .theme-dark .game-board     { grid-template-columns: 1fr; }
+    .theme-dark .scores         { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .theme-dark .score-display  { font-size: 2em; }
+    .theme-dark .round-info     { flex-direction: column; gap: 5px; text-align: center; }
+}

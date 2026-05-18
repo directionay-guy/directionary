@@ -637,18 +637,12 @@ function generateStatsHTML() {
 
 function generateRecentGamesHTML(games) {
     if (games.length === 0) return '<div class="no-games">No recent games</div>';
-
-    var recent  = games.slice(-10);
-    var wins    = recent.filter(function(g) { return g.winner === 'Blue'; }).length;
-    var losses  = recent.filter(function(g) { return g.winner === 'Red';  }).length;
-    var ties    = recent.filter(function(g) { return g.winner === 'Tie';  }).length;
-
-    var parts = [];
-    parts.push(wins   + 'W');
-    parts.push(losses + 'L');
-    if (ties > 0) { parts.push(ties + 'T'); }
-
-    return '<div class="recent-form-summary">' + parts.join(' · ') + '</div>';
+    
+    return games.slice(-10).map(game => {
+        const result = game.winner === 'Blue' ? '🔵' : game.winner === 'Red' ? '🔴' : '🟨';
+        const score = `${game.blueScore}-${game.redScore}`;
+        return `<span class="game-result" title="${score}">${result}</span>`;
+    }).join('');
 }
 
 function generateAchievementsHTML() {

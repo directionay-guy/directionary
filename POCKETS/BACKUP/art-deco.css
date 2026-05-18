@@ -303,8 +303,10 @@ body.theme-art-deco::before {
    FIRST-PLAYER ROLLOFF
    ========================================================== */
 .theme-art-deco .first-player-rolloff {
-    background: transparent;
-    border: none;
+    background: var(--bg-panel);
+    border: 1px solid var(--chrome-dark);
+    border-left: 3px solid var(--chrome);
+    border-right: 3px solid var(--chrome);
     margin-bottom: 12px;
 }
 .theme-art-deco .rolloff-prompt {

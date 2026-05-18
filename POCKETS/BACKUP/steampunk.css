@@ -3,8 +3,6 @@
    Dark iron & coal · Brass pipe fittings · Copper glow · Gears
    ================================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Special+Elite&display=swap');
-
 /* ─── Palette ────────────────────────────────────────────────── */
 .theme-steampunk {
     --sp-coal:       #141210;
@@ -80,7 +78,6 @@
         radial-gradient(ellipse at 50% 110%, rgba(180,90,20,0.15) 0%, transparent 55%),
         linear-gradient(160deg, #1c1a16 0%, #141210 60%, #181410 100%);
     color: var(--sp-cream);
-    font-family: 'Special Elite', 'Courier New', monospace;
     font-size: 15px;
     min-height: 100vh;
     /* tighter body padding than default 20px */
@@ -183,8 +180,6 @@
 /* Title */
 .theme-steampunk .game-title {
     font-size: 2.6em; font-weight: bold; margin: 0;
-    font-family: 'Cinzel Decorative', 'Cinzel', serif;
-    letter-spacing: 0.12em;
     background: linear-gradient(110deg, var(--sp-brass-hi) 0%, var(--sp-brass) 40%, var(--sp-copper) 70%, var(--sp-brass-hi) 100%);
     background-size: 220% 100%;
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
@@ -346,8 +341,6 @@
 /* Player header — compact */
 .theme-steampunk .player-header {
     text-align: center; font-size: 1.02em; font-weight: bold;
-    font-family: 'Cinzel', serif;
-    letter-spacing: 0.12em;
     margin-bottom: 8px; padding: 6px 10px; border-radius: 8px;
     background: rgba(0,0,0,0.35);
     border: 2px solid var(--sp-brass);
@@ -536,7 +529,7 @@
     transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.35);
 }
-.theme-steampunk .score-area h3 { margin: 0 0 6px; color: var(--sp-dim); font-size: 1em; font-family: 'Cinzel', serif; letter-spacing: 0.1em; }
+.theme-steampunk .score-area h3 { margin: 0 0 6px; color: var(--sp-dim); font-size: 1em; }
 .theme-steampunk .score-display {
     font-size: 2.8em; font-weight: bold;
     color: var(--sp-brass-hi); text-shadow: 0 0 10px var(--sp-glow);
@@ -555,14 +548,12 @@
 }
 .theme-steampunk .winner-text {
     font-size: 1.4em; font-weight: bold; color: var(--sp-gold);
-    font-family: 'Cinzel', serif; letter-spacing: 0.15em;
     margin-top: 6px; text-shadow: 2px 2px 4px rgba(0,0,0,0.50);
 }
 
 /* Winner pulse — brushed brass/silver, not flat gold */
 .theme-steampunk .winner-pulse,
 .theme-steampunk .winner-pulse.silver-pulse {
-    font-family: 'Cinzel Decorative', serif;
     font-weight: 900;
     color: transparent;
     background: linear-gradient(180deg,
@@ -630,16 +621,6 @@
 .theme-steampunk #redRolloffDie  .dice-face { fill: #501a1a; stroke: #cc4848; stroke-width: 3; }
 .theme-steampunk #redRolloffDie  .dice-dot  { fill: #f0a8a8; }
 
-/* Rolloff dice — bigger than base 56px to feel suitably chunky */
-.theme-steampunk .rolloff-die {
-    width: 100px !important;
-    height: 100px !important;
-}
-.theme-steampunk .rolloff-die svg.dice {
-    transform: scale(1.6);
-    transform-origin: center;
-}
-
 .theme-steampunk .coin-flip-area {
     text-align: center; margin: 6px 0; padding: 12px;
     background: rgba(0,0,0,0.28); border-radius: 10px;
@@ -674,9 +655,8 @@
     color: var(--sp-brass);
     border: 1px solid var(--sp-brass-lo);
     padding: 5px 10px;
-    font-family: 'Cinzel', serif;
-    font-size: 0.72em;
-    letter-spacing: 0.08em;
+    font-size: 0.78em;
+    letter-spacing: 0.06em;
     cursor: pointer;
     transition: all 0.25s ease;
     margin-left: auto;
@@ -892,53 +872,92 @@
    (gear train is first child, real content follows, paints on top) */
 
 /* ── Base gear style ───────────────────────────────────────────── */
-/* Each gear is the ⚙ Unicode character — same technique as the
-   spinning header ornaments, just larger. Brass color + glow.    */
+/* Each gear is TWO overlapping rounded squares (the element itself
+   + ::before rotated 45°) giving 8 evenly-spaced teeth.
+   ::after provides a hub ring as a mechanical detail.             */
 .sp-gear {
     position: absolute;
-    pointer-events: none;
-    color: var(--sp-brass, #cd7f32);
-    filter: drop-shadow(0 0 4px var(--sp-glow, rgba(205,127,50,0.5)));
-    opacity: 0.22;
-    line-height: 1;
-}
-.sp-gear::before {
-    content: '⚙';
-    display: block;
+    opacity: 0.19;
+    pointer-events: none;   /* pointer-events is NOT inherited in HTML —
+                               must be set on each child explicitly    */
 }
 
-/* ── Gear 1 — far left, large, clockwise ──────────────────────── */
+/* First tooth layer — the element's own background */
+.sp-gear,
+.sp-gear::before {
+    background: var(--sp-brass, #cd7f32);
+}
+
+/* Second tooth layer — 45° rotated copy of the first */
+.sp-gear::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: rotate(45deg);
+}
+
+/* Hub ring — centered circle, reads as the gear's axle boss */
+.sp-gear::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    background: transparent;
+    border: 2px solid rgba(205, 127, 50, 0.75);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* ── Gear 1 — far left, 90px, clockwise, 10s ──────────────────── */
 .sp-gear-1 {
-    font-size: 10em;
-    left: calc(15% - 75px);
-    top:  calc(50% - 75px);
+    width: 90px; height: 90px;
+    border-radius: 13px;
+    left: calc(15% - 45px);
+    top:  calc(50% - 45px);
     animation: sp-cw 20.0s linear infinite;
 }
-/* ── Gear 2 — left-center, medium, counter-clockwise ──────────── */
+.sp-gear-1::before { border-radius: 13px; }
+.sp-gear-1::after  { width: 30px; height: 30px; }
+
+/* ── Gear 2 — left-center, 65px, counter-clockwise, 7.2s ──────── */
 .sp-gear-2 {
-    font-size: 7.5em;
-    left: calc(30% - 56px);
-    top:  calc(50% - 56px);
+    width: 65px; height: 65px;
+    border-radius: 9px;
+    left: calc(30% - 32.5px);
+    top:  calc(50% - 32.5px);
     animation: sp-ccw 14.4s linear infinite;
 }
-/* ── Gear 3 — center, largest, clockwise ──────────────────────── */
+.sp-gear-2::before { border-radius: 9px; }
+.sp-gear-2::after  { width: 22px; height: 22px; }
+
+/* ── Gear 3 — center, 110px, clockwise (slowest/largest) ──────── */
 .sp-gear-3 {
-    font-size: 12.5em;
-    left: calc(50% - 94px);
-    top:  calc(50% - 94px);
+    width: 110px; height: 110px;
+    border-radius: 16px;
+    left: calc(50% - 55px);
+    top:  calc(50% - 55px);
     animation: sp-cw 24.4s linear infinite;
 }
-/* ── Gear 4 — right-center, medium, counter-clockwise ─────────── */
+.sp-gear-3::before { border-radius: 16px; }
+.sp-gear-3::after  { width: 36px; height: 36px; }
+
+/* ── Gear 4 — right-center, 65px, counter-clockwise, 7.2s ─────── */
 .sp-gear-4 {
-    font-size: 7.5em;
-    left: calc(70% - 56px);
-    top:  calc(50% - 56px);
+    width: 65px; height: 65px;
+    border-radius: 9px;
+    left: calc(70% - 32.5px);
+    top:  calc(50% - 32.5px);
     animation: sp-ccw 14.4s linear infinite;
 }
-/* ── Gear 5 — far right, large, clockwise ─────────────────────── */
+.sp-gear-4::before { border-radius: 9px; }
+.sp-gear-4::after  { width: 22px; height: 22px; }
+
+/* ── Gear 5 — far right, 90px, clockwise, 10s ────────────────────*/
 .sp-gear-5 {
-    font-size: 10em;
-    left: calc(85% - 75px);
-    top:  calc(50% - 75px);
+    width: 90px; height: 90px;
+    border-radius: 13px;
+    left: calc(85% - 45px);
+    top:  calc(50% - 45px);
     animation: sp-cw 20.0s linear infinite;
 }
+.sp-gear-5::before { border-radius: 13px; }
+.sp-gear-5::after  { width: 30px; height: 30px; }
