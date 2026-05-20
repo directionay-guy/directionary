@@ -15,6 +15,20 @@ function calculateBonusPoints(dice) {
     if (countValues[0] === 5) return 10; // 5 of a kind
     if (countValues[0] === 4) return 4;  // 4 of a kind
     if (countValues[0] === 3 && countValues[1] === 2) return 7; // Full house
+
+    // Straight — 4 or more consecutive unique values (e.g. 1-2-3-4 or 2-3-4-5-6)
+    const sortedUnique = [...new Set(dice)].sort((a, b) => a - b);
+    let isStraight = false;
+    for (let i = 0; i <= sortedUnique.length - 4; i++) {
+        if (sortedUnique[i + 3] - sortedUnique[i] === 3 &&
+            sortedUnique[i + 1] === sortedUnique[i] + 1 &&
+            sortedUnique[i + 2] === sortedUnique[i] + 2) {
+            isStraight = true;
+            break;
+        }
+    }
+    if (isStraight) return 5; // Straight
+
     if (countValues[0] === 3) return 3;  // 3 of a kind
     if (countValues[0] === 2 && countValues[1] === 2) return 2; // Two pair
     if (countValues[0] === 2) return 1;  // One pair
@@ -38,6 +52,18 @@ function getBonusDescription(dice) {
     if (countValues[0] === 3 && countValues[1] === 2) {
         return `Full house (${uniqueValues[0]}s over ${uniqueValues[1]}s) - 7 pts`;
     }
+
+    // Straight check
+    const sortedUniqueD = [...new Set(dice)].sort((a, b) => a - b);
+    for (let i = 0; i <= sortedUniqueD.length - 4; i++) {
+        if (sortedUniqueD[i + 3] - sortedUniqueD[i] === 3 &&
+            sortedUniqueD[i + 1] === sortedUniqueD[i] + 1 &&
+            sortedUniqueD[i + 2] === sortedUniqueD[i] + 2) {
+            const low = sortedUniqueD[i], high = sortedUniqueD[i + 3];
+            return `Straight (${low}-${high}) - 5 pts`;
+        }
+    }
+
     if (countValues[0] === 3) return `3 of a kind (${uniqueValues[0]}s) - 3 pts`;
     if (countValues[0] === 2 && countValues[1] === 2) {
         return `Two pair (${uniqueValues[0]}s and ${uniqueValues[1]}s) - 2 pts`;
@@ -252,7 +278,7 @@ function calculateOptimalStrategy(diceRoll, gameState) {
     }
     
     // Save strategy
-    if (gameState.round <= 7) {
+    if (gameState.round <= 10) {
         const bestSave = Math.max(...dice);
         if (bestSave >= 5) {
             suggestions.push({
