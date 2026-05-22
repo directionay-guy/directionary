@@ -1566,7 +1566,11 @@ function initializeGame() {
     document.getElementById('hardAI').addEventListener('click',   function() { setAIDifficulty('hard');   });
 
     document.getElementById('viewStats').addEventListener('click', function() {
-        if (typeof toggleStatsPanel === 'function') { toggleStatsPanel(); }
+        if (typeof toggleStatsPanel === 'function') {
+            toggleStatsPanel();
+        } else if (window.PocketsStats && typeof window.PocketsStats.toggleStatsPanel === 'function') {
+            window.PocketsStats.toggleStatsPanel();
+        }
     });
 
     updateScoreDisplay();

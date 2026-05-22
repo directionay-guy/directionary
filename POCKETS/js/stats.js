@@ -705,9 +705,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    // Wire View Stats button directly — belt and suspenders for iOS Safari
+    const viewStatsBtn = document.getElementById('viewStats');
+    if (viewStatsBtn) {
+        viewStatsBtn.addEventListener('click', toggleStatsPanel);
+    }
+
     // Set up export/clear buttons
     const exportBtn = document.getElementById('exportStats');
-    const clearBtn = document.getElementById('clearStats');
+    const clearBtn  = document.getElementById('clearStats');
     
     if (exportBtn) exportBtn.addEventListener('click', exportStats);
     if (clearBtn) clearBtn.addEventListener('click', clearStats);
