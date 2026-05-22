@@ -63,6 +63,7 @@ body.theme-victorian::before {
    CONTAINER
    ========================================================== */
 .theme-victorian .game-container {
+    min-width: 480px;
     position: relative;
     background: var(--bg-mid);
     border: 1px solid var(--gold-deep);
@@ -485,8 +486,65 @@ body.theme-victorian::before {
 .theme-victorian .save-pocket  { grid-column: span 2; }
 
 /* ==========================================================
-   BONUS LEGEND
+   FINALE POCKET
    ========================================================== */
+.theme-victorian .finale-pocket {
+    grid-column: span 2;
+    background: linear-gradient(180deg, var(--navy-deep) 0%, var(--navy-mid) 100%);
+    border: 2px solid var(--gold);
+    border-radius: 4px;
+    padding: 10px 14px;
+    text-align: center;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+.theme-victorian .finale-pocket.hidden { display: none; }
+.theme-victorian .finale-pocket .pocket-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.7em;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+.theme-victorian .finale-running-total {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4em;
+    font-weight: 900;
+    color: var(--gold);
+    line-height: 1;
+    transition: transform 0.15s ease;
+}
+.theme-victorian .finale-running-total.bumped { transform: scale(1.25); }
+.theme-victorian .finale-bonus {
+    font-size: 0.85em;
+    color: var(--gold-pale);
+    font-style: italic;
+    min-height: 1.2em;
+}
+
+/* Pockets hidden during Finale */
+.theme-victorian .pocket.finale-hidden { display: none; }
+
+/* Dimmed dice waiting to roll in Finale */
+.theme-victorian .dimmed-die { opacity: 0.35; }
+
+/* Start Finale button */
+.theme-victorian .finale-btn {
+    background: linear-gradient(180deg, var(--burgundy) 0%, #5a0a0a 100%);
+    border-color: var(--gold);
+    color: var(--gold);
+    font-size: 1.1em;
+    letter-spacing: 0.12em;
+    animation: pulse 1.8s ease-in-out infinite;
+}
+.theme-victorian .finale-btn:hover {
+    background: linear-gradient(180deg, #8a1a1a 0%, var(--burgundy) 100%);
+}
 .theme-victorian .bonus-legend {
     background: linear-gradient(180deg, var(--parchment-soft) 0%, var(--parchment) 100%);
     border: 1px solid var(--gold); border-radius: 4px; padding: 8px 16px;
@@ -535,21 +593,33 @@ body.theme-victorian::before {
     margin-top: 4px; font-size: 1em; text-shadow: 0 1px 0 rgba(0,0,0,0.5);
 }
 
-/* Winner pulse — silver/pewter metallic, not gold */
+/* Winner pulse — pewter/silver, not gold */
 .theme-victorian .winner-pulse,
 .theme-victorian .winner-pulse.silver-pulse {
     font-family: 'Playfair Display', serif;
-    font-weight: 900;
-    font-style: italic;
+    font-weight: 900; font-style: italic;
     color: transparent;
     background: linear-gradient(180deg,
         #f0f0f4 0%, #d4d6de 28%, #a8aab8 52%, #d4d6de 76%, #f0f0f4 100%);
-    -webkit-background-clip: text;
-            background-clip: text;
+    -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
-    letter-spacing: 0.08em;
-    font-size: 1.8em;
+    letter-spacing: 0.08em; font-size: 1.8em;
     filter: drop-shadow(0 0 8px rgba(200, 202, 212, 0.45));
+}
+
+/* Full screen button */
+.theme-victorian .fullscreen-btn {
+    background: linear-gradient(180deg, var(--burgundy) 0%, var(--burgundy-deep) 100%);
+    color: var(--cream); border: 1px solid var(--gold); border-radius: 3px;
+    padding: 5px 10px; font-family: 'Cormorant Garamond', serif;
+    font-weight: 700; font-variant: small-caps; letter-spacing: 0.08em;
+    font-size: 0.85em; cursor: pointer; transition: all 0.2s ease;
+    box-shadow: inset 0 1px 0 rgba(255,240,210,0.15), inset 0 -1px 0 rgba(0,0,0,0.2);
+    margin-left: auto;
+}
+.theme-victorian .fullscreen-btn:hover {
+    border-color: var(--gold-bright);
+    box-shadow: inset 0 1px 0 rgba(255,240,210,0.15), 0 2px 8px var(--gold-glow);
 }
 .theme-victorian .final-total {
     /* Same styling as .score-display — keeps large brass numbers at end of game */

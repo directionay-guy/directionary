@@ -249,8 +249,7 @@
 
 /* ─── Round info — compact ───────────────────────────────────── */
 .theme-steampunk .round-info {
-    display: flex; justify-content: space-between; align-items: center; gap: 12px;
-    font-size: 1em;
+    text-align: center; font-size: 1em;
     margin: 0 0 12px 0; padding: 8px 16px;
     background: rgba(0,0,0,0.40); border-radius: 8px;
     border: 2px solid var(--sp-brass-lo);
@@ -942,60 +941,4 @@
     left: calc(85% - 75px);
     top:  calc(50% - 75px);
     animation: sp-cw 20.0s linear infinite;
-}
-
-/* ==========================================================
-   ROLLDOWN — matches Victorian layout exactly
-   ========================================================== */
-.theme-steampunk .finale-pocket {
-    grid-column: span 2;
-    background: linear-gradient(180deg, var(--sp-iron) 0%, var(--sp-iron-lo) 100%);
-    border: 2px solid var(--sp-brass);
-    border-radius: 4px;
-    padding: 10px 14px;
-    text-align: center;
-    min-height: 180px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-}
-.theme-steampunk .finale-pocket.hidden { display: none; }
-.theme-steampunk .finale-pocket .pocket-label {
-    font-family: 'Cinzel', serif;
-    font-size: 0.7em;
-    letter-spacing: 0.2em;
-    color: var(--sp-brass);
-    text-transform: uppercase;
-    margin-bottom: 4px;
-}
-.theme-steampunk .finale-running-total {
-    font-family: 'Cinzel Decorative', serif;
-    font-size: 2.4em;
-    font-weight: 900;
-    color: var(--sp-gold);
-    line-height: 1;
-    transition: transform 0.15s ease;
-}
-.theme-steampunk .finale-running-total.bumped { transform: scale(1.25); }
-.theme-steampunk .finale-bonus {
-    font-size: 0.85em;
-    color: var(--sp-cream);
-    font-style: italic;
-    min-height: 1.2em;
-}
-.theme-steampunk .pocket.finale-hidden { display: none; }
-.theme-steampunk .dimmed-die { opacity: 0.35; }
-.theme-steampunk .finale-btn {
-    background: linear-gradient(180deg, var(--sp-copper) 0%, var(--sp-brass-lo) 100%);
-    border-color: var(--sp-gold);
-    color: var(--sp-gold);
-    font-family: 'Cinzel', serif;
-    font-size: 1.1em;
-    letter-spacing: 0.12em;
-    animation: sp-pulse 1.8s ease-in-out infinite;
-}
-.theme-steampunk .finale-btn:hover {
-    background: linear-gradient(180deg, var(--sp-brass) 0%, var(--sp-copper) 100%);
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pockets - Victorian Dice Game</title>
+    <title>POCKETS — An Original Dice Game for Two</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -555,7 +555,7 @@
         </div>
 
         <div class="round-info">
-            <strong>Round <span id="currentRound">1</span> of 10</strong>
+            <strong>Round <span id="currentRound">1</span><span id="roundSuffix"></span></strong>
             <div style="display:flex;gap:6px;">
                 <button class="btn help-btn" id="helpBtn">📖 Rules</button>
                 <button class="btn help-btn" id="strategyBtn">♟ Strategy</button>
@@ -572,9 +572,10 @@
                 <div class="sp-gear sp-gear-5"></div>
             </div>
 
-            <!-- State A: Start Round -->
+            <!-- State A: Start Round / Start Rolldown -->
             <div class="controls" id="gameControls">
                 <button class="btn start-btn" id="startRound">Start Round 1</button>
+                <button class="btn start-btn finale-btn hidden" id="startFinale">▶ Start Rolldown</button>
             </div>
 
             <!-- State B: Rolloff + Roll buttons -->
@@ -617,10 +618,10 @@
         <div class="pre-final-screen hidden" id="preFinalScreen">
             <div class="pre-final-inner">
                 <div class="pre-final-ornament">⚜</div>
-                <h2 class="pre-final-title">The Grand Finale Approaches</h2>
+                <h2 class="pre-final-title">The Rolldown Approaches</h2>
                 <p class="pre-final-flavour">Ten rounds of cunning play draw to a close.<br>Now comes the final reckoning — your saved die enters the arena.</p>
-                <div class="pre-final-saved-reminder">💎 Your <strong>Save One</strong> die carries forward into the Grand Finale</div>
-                <button class="btn proceed-btn" id="proceedFinalBtn">Proceed to the Grand Finale →</button>
+                <div class="pre-final-saved-reminder">💎 Your <strong>Save One</strong> die carries forward into the Rolldown</div>
+                <button class="btn proceed-btn" id="proceedFinalBtn">Proceed to the Rolldown →</button>
             </div>
         </div>
 
@@ -686,6 +687,11 @@
                         <div class="pocket-dice"></div>
                         <div class="pocket-score hidden" id="blueShareScore"></div>
                     </div>
+                    <div class="finale-pocket hidden" id="blueFinale">
+                        <div class="pocket-label">ROLLDOWN</div>
+                        <div class="finale-running-total" id="blueFinaleTotal">0</div>
+                        <div class="finale-bonus" id="blueFinaleBonus"></div>
+                    </div>
                     <div class="pocket save-pocket" id="blueSave" data-player="blue" data-pocket="save">
                         <div class="pocket-label">Save One</div>
                         <div class="pocket-dice"></div>
@@ -710,6 +716,11 @@
                         <div class="pocket-dice"></div>
                         <div class="pocket-score hidden" id="redShareScore"></div>
                     </div>
+                    <div class="finale-pocket hidden" id="redFinale">
+                        <div class="pocket-label">ROLLDOWN</div>
+                        <div class="finale-running-total" id="redFinaleTotal">0</div>
+                        <div class="finale-bonus" id="redFinaleBonus"></div>
+                    </div>
                     <div class="pocket save-pocket" id="redSave" data-player="red" data-pocket="save">
                         <div class="pocket-label">Save One</div>
                         <div class="pocket-dice"></div>
@@ -720,7 +731,7 @@
 
         <div class="bonus-legend">
             <h4>Bonus Points for Share One Winners:</h4>
-            1 pair = 1pt | 2 pair = 2pts | 3 of a kind = 3pts | 4 of a kind = 4pts | straight = 5pts | full house = 7pts (Finale) | 5 of a kind = 10pts (Finale)
+            1 pair = 1pt | 2 pair = 2pts | 3 of a kind = 3pts | full house = 4pts | straight = 5pts | 4 of a kind = 6pts | 5 of a kind = 10pts
         </div>
 
         <div class="scores">
@@ -830,10 +841,10 @@
     <a class="guide-nav-btn" href="#sg-scoring">How Scoring Works</a>
     <a class="guide-nav-btn" href="#sg-combo">The Combo Bonus</a>
     <a class="guide-nav-btn" href="#sg-pockets">Pocket Strategy</a>
-    <a class="guide-nav-btn" href="#sg-save">Save By Round</a>
+    <a class="guide-nav-btn" href="#sg-save">Save Strategy</a>
     <a class="guide-nav-btn" href="#sg-reading">Reading Your Opponent</a>
     <a class="guide-nav-btn" href="#sg-turnorder">Turn Order</a>
-    <a class="guide-nav-btn" href="#sg-finale">The Grand Finale</a>
+    <a class="guide-nav-btn" href="#sg-rolldown">The Rolldown</a>
     <a class="guide-nav-btn" href="#sg-errors">Common Errors</a>
     <a class="guide-nav-btn" href="#sg-ref">Quick Reference</a>
     <a class="guide-nav-btn" href="#sg-ai">vs. the AI</a></nav>
@@ -841,8 +852,9 @@
 
 <div class="help-section" id="sg-short">
   <h3>The Short Version</h3>
-  <p>Roll, then decide. <strong>Keep</strong> is your guaranteed floor. <strong>Share</strong> is a leverage play that only pays when you win it. <strong>Save</strong> is investment — it scores nothing this round but becomes a known die for every round to come, and lands in the Grand Finale.</p>
+  <p>Roll, then decide. <strong>Keep</strong> is your guaranteed floor. <strong>Share</strong> is a leverage play that only pays when you win it. <strong>Save</strong> is investment — it scores nothing this round but becomes a known die for every round to come, and is your fifth die in the Rolldown.</p>
   <p>The combo bonus is locked the moment you roll, but it only cashes in if you win Share. The bigger your combo, the more aggressive you should be in the Share battle.</p>
+  <p>The game ends when a player crosses 100 points — so every round, watch the scores. The Rolldown can come at any time.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
@@ -851,8 +863,8 @@
   <ul>
     <li><strong>Keep #1 + Keep #2:</strong> Both dice score every round. No opposition. This is your reliable income.</li>
     <li><strong>Share:</strong> Higher die wins the <em>difference</em> in pips, plus a combo bonus from the winner's original 4-die roll. The loser scores zero from Share.</li>
-    <li><strong>Save:</strong> Scores nothing this round. The saved die becomes your fourth die next round (you roll only 3 new), and your fifth die in the Grand Finale.</li>
-    <li><strong>Round 11 (Grand Finale):</strong> All 5 dice score directly. Combo bonus applies across all 5. No pockets.</li>
+    <li><strong>Save:</strong> Scores nothing this round. The saved die becomes your fourth die next round (you roll only 3 new), and your fifth die in the Rolldown.</li>
+    <li><strong>Rolldown:</strong> Triggered when either player crosses 100 points. Both players roll 4 dice. Your saved die is the fifth. All 5 score directly — no pockets, no Share battle. Combo bonuses apply across all 5 dice.</li>
   </ul>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
@@ -865,9 +877,10 @@
     <tr><td>One Pair</td><td>+1 pt</td></tr>
     <tr><td>Two Pair</td><td>+2 pts</td></tr>
     <tr><td>3 of a Kind</td><td>+3 pts</td></tr>
-    <tr><td>4 of a Kind</td><td>+4 pts</td></tr>
-    <tr><td>Full House (Finale only)</td><td>+7 pts</td></tr>
-    <tr><td>5 of a Kind (Finale only)</td><td>+10 pts</td></tr>
+    <tr><td>Full House</td><td>+4 pts (Rolldown only)</td></tr>
+    <tr><td>Straight</td><td>+5 pts</td></tr>
+    <tr><td>4 of a Kind</td><td>+6 pts</td></tr>
+    <tr><td>5 of a Kind</td><td>+10 pts (Rolldown only)</td></tr>
   </table>
   <p>Strategic implication: when you have a real combo (+3 or more) in your 4-die roll, winning Share matters more than usual — you've got a multiplier waiting to cash in. A 4-of-a-kind backing a Share win is the strongest payout possible in a regular round.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
@@ -888,7 +901,7 @@
     <li>You're going second and opponent placed a 5 or 6. Don't burn your best die against theirs — keep it in Keep and concede Share with a low die.</li>
     <li>You're going first with no combo. Your top die is exposed; Keep is safer.</li>
   </ul>
-  <p><strong>Save — the investment.</strong> Save scores nothing this round. The trade is current points for a known die in every future round and the Finale.</p>
+  <p><strong>Save — the investment.</strong> Save scores nothing this round. The trade is current points for a known die in every future round and the Rolldown.</p>
   <ul>
     <li>A saved 6 is a guaranteed 6 in your hand for every subsequent round. It's almost always worth saving.</li>
     <li>A saved 5 is solid. A saved 4 is acceptable, especially in early rounds.</li>
@@ -898,12 +911,13 @@
 </div>
 
 <div class="help-section" id="sg-save">
-  <h3>Save By Round</h3>
+  <h3>Save Strategy — by Score</h3>
+  <p>Because the Rolldown is score-triggered rather than round-triggered, think about Save in terms of where scores are — not how many rounds have passed.</p>
   <ul>
-    <li><strong>Rounds 1-4:</strong> Save high (5 or 6) when you have one. You're building your bank.</li>
-    <li><strong>Rounds 5-7:</strong> Keep saving high. If you're behind on score, sometimes trade — save a 4 and send the 6 to Share to claw back points with a combo win.</li>
-    <li><strong>Rounds 8-9:</strong> This is where banked high dice cash in. Save high, save consistently.</li>
-    <li><strong>Round 10:</strong> The most consequential Save of the game. Whatever you save here becomes your fifth die in the Grand Finale. Save a 6 if you have one. Save a 5 if you don't. Avoid saving below a 4 unless you have absolutely no choice.</li>
+    <li><strong>Scores below 50:</strong> Save high (5 or 6) whenever you have one. A saved 6 compounds across many rounds.</li>
+    <li><strong>Scores 50–80:</strong> Keep saving high. If you're trailing, sometimes trade — save a 4 and send the 6 to Share to claw back points with a combo win.</li>
+    <li><strong>Scores 80–99 (late game):</strong> Save discipline matters most here. Whatever is in your Save pocket when the Rolldown triggers becomes your fifth die. Never save below a 4 unless you have no choice.</li>
+    <li><strong>Near 100:</strong> Think ahead. The Rolldown may come next round. Is your current saved die good enough? If not, replace it now.</li>
   </ul>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
@@ -912,12 +926,13 @@
   <h3>Reading Your Opponent</h3>
   <p><strong>Their Save pocket is an open book.</strong> Watch it every round:</p>
   <ul>
-    <li><strong>They save 5 or 6 most rounds:</strong> They're playing the long game. They'll be strong late and in the Finale. Match their save discipline or beat them in Share now.</li>
+    <li><strong>They save 5 or 6 consistently:</strong> Playing the long game. Strong in the Rolldown. Match their discipline or beat them in Share now.</li>
     <li><strong>They save 3 or 4 often:</strong> They're chasing current-round points. You can usually beat them late if your saves are stronger.</li>
     <li><strong>They save inconsistently:</strong> They're reacting to dice, not strategy. Force them into hard Share decisions.</li>
   </ul>
   <p><strong>Their Share die</strong> (when they place first) is the immediate target. Either beat it or concede gracefully.</p>
-  <p><strong>The score gap</strong> tells you the risk profile. Behind? Take Share risks with weaker combo backing. Ahead? Stick to Keep-heavy play and let them chase.</p>
+  <p><strong>Watch the scores.</strong> When either player approaches 80 points, the Rolldown is coming. Adjust your Save aggressively — your current saved die may be your last before the Rolldown triggers.</p>
+  <p><strong>The score gap</strong> tells you the risk profile. Behind? Take Share risks. Ahead? Keep-heavy play and let them chase.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
@@ -932,14 +947,16 @@
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
-<div class="help-section" id="sg-finale">
-  <h3>The Grand Finale (Round 11)</h3>
-  <p>Different rules: all 5 dice score directly, combo bonus applies across all 5, no pockets.</p>
+<div class="help-section" id="sg-rolldown">
+  <h3>The Rolldown</h3>
+  <p>When either player crosses 100 points, the next round is the Rolldown. The player with the highest score clicks Start Rolldown.</p>
   <ul>
-    <li>Your Round 10 saved die is one of those 5 — its value is locked in before you roll.</li>
-    <li>Five dice make combos more likely. Three-of-a-kind (+3) is common. A full house (+7) is achievable. Five-of-a-kind (+10) is the jackpot.</li>
-    <li>If you're behind heading in, your saved die plus a lucky combo can close surprising deficits. Don't concede before the rolls.</li>
-    <li>If you're ahead, a moderate roll plus a solid saved die usually closes things out. Don't panic at the opponent's combo until you've added up the actual score.</li>
+    <li>Your saved die from the previous round sits in its pocket — already chosen, untouched.</li>
+    <li>Both players roll 4 new dice in the roll bar, alternating one die at a time.</li>
+    <li>All 5 dice (4 rolled + saved) score directly — no pockets, no Share battle.</li>
+    <li>Combo bonuses apply across all 5 dice. Full house and 5-of-a-kind are now available.</li>
+    <li>If you're behind: a lucky combo can close surprising gaps. Don't concede early.</li>
+    <li>If you're ahead: stay calm and add up the actual numbers before reacting.</li>
   </ul>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
@@ -950,30 +967,31 @@
     <li><strong>"Always Keep the highest."</strong> A reasonable default — not a rule. With a real combo or a 6 facing weak Share opposition, the highest belongs in Share.</li>
     <li><strong>Saving low dice.</strong> A saved 2 sits as your guaranteed fourth die for many rounds. Almost always wasteful.</li>
     <li><strong>Fighting every Share.</strong> Some battles you should concede with a 1 or 2 and keep your strong dice elsewhere.</li>
-    <li><strong>Ignoring Round 10.</strong> Treating it like a regular round costs you the Finale.</li>
-    <li><strong>Conceding too early.</strong> A 15-20 point gap heading into Round 8 can close with two Share wins and a strong Finale.</li>
+    <li><strong>Ignoring your saved die when scores are high.</strong> Near 80+ points, whatever is in Save could be your Rolldown die. Make sure it's something you're happy with.</li>
+    <li><strong>Conceding too early.</strong> A 15–20 point gap with scores below 80 can close with Share wins and a strong Rolldown. The game isn't over until it's over.</li>
   </ul>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
 <div class="help-section" id="sg-ref">
   <h3>Quick Reference</h3>
-  <p><strong>Combo bonuses</strong> (paid only on Share wins for rounds 1-10; applied to all 5 dice in the Finale):</p>
+  <p><strong>Combo bonuses</strong> (Share wins in regular rounds; all 5 dice in the Rolldown):</p>
   <table class="help-combo-table">
     <tr><td>One Pair</td><td>+1 pt</td></tr>
     <tr><td>Two Pair</td><td>+2 pts</td></tr>
     <tr><td>3 of a Kind</td><td>+3 pts</td></tr>
-    <tr><td>4 of a Kind</td><td>+4 pts</td></tr>
-    <tr><td>Full House (Finale only)</td><td>+7 pts</td></tr>
-    <tr><td>5 of a Kind (Finale only)</td><td>+10 pts</td></tr>
+    <tr><td>Full House</td><td>+4 pts (Rolldown only)</td></tr>
+    <tr><td>Straight</td><td>+5 pts</td></tr>
+    <tr><td>4 of a Kind</td><td>+6 pts</td></tr>
+    <tr><td>5 of a Kind</td><td>+10 pts (Rolldown only)</td></tr>
   </table>
   <p style="margin-top:12px"><strong>Default placement (no combo, no read on opponent):</strong> Highest two → Keep. Mid die → Share. Lowest → Save.</p>
   <p><strong>Adjust when:</strong></p>
   <ul>
     <li>You have a combo (+3 or better) → highest die to Share to cash in the multiplier</li>
     <li>You're going second and opponent placed strong Share → concede Share with a low die, lock high dice in Keep</li>
-    <li>Late rounds and you're behind → save a 6 to set up Finale leverage</li>
-    <li>Round 10 → save your highest available die (never below 4 unless forced)</li>
+    <li>Either score approaching 80 → save the highest die you have, every round</li>
+    <li>Near 100 → check your saved die. Is it Rolldown-worthy? Replace it if not.</li>
   </ul>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
@@ -986,7 +1004,7 @@
     <li><strong>Medium:</strong> Plays solid. Values combos, fights Share with backing, saves high. You should win the majority of games but losses happen.</li>
     <li><strong>Hard:</strong> Plays sharp. Adjusts to the score, exploits combos, plays Share aggressively. Expect to lose sometimes even with good play — that's the point.</li>
   </ul>
-  <p>The AI does have blind spots: it doesn't track your save patterns across rounds, doesn't treat Round 10 as more important than Rounds 8-9, and doesn't plan placements as a whole (it scores each die-pocket pair independently). A patient human who watches Save pockets and plans the full round before placing the first die has a real edge.</p>
+  <p>The AI adjusts its Save strategy by score — it saves aggressively when either player is above 80. Its blind spot: it doesn't plan the full round before placing the first die, and scores each die-pocket pair independently. A patient human who reads the board and plans ahead has a real edge.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 </div>`;
@@ -1013,7 +1031,7 @@
     <a class="guide-nav-btn" href="#rules-round">Round Structure</a>
     <a class="guide-nav-btn" href="#rules-pockets">The Four Pockets</a>
     <a class="guide-nav-btn" href="#rules-scoring">Scoring</a>
-    <a class="guide-nav-btn" href="#rules-finale">Grand Finale</a>
+    <a class="guide-nav-btn" href="#rules-finale">The Rolldown</a>
     <a class="guide-nav-btn" href="#rules-strategy">Strategy Tips</a>
     <a class="guide-nav-btn" href="#rules-ai">AI Opponents</a>
     <a class="guide-nav-btn" href="#rules-themes">Themes</a>
@@ -1022,15 +1040,16 @@
 
 <div class="help-section" id="rules-overview">
   <h3>📋 Game Overview</h3>
-  <p>Pockets is a strategic dice game for 2 players (or vs. the AI). Each round, players roll dice and place them into "pockets" to score points. Highest total after 10 rounds plus a Grand Finale wins.</p>
+  <p>POCKETS is a strategic dice game for 2 players (or vs. the AI). Each round, players roll 4 dice and place them into four pockets to score points. The first player to cross 100 points triggers the Rolldown — a final round where all dice score directly. Highest total wins.</p>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
 </div>
 
 <div class="help-section" id="rules-setup">
   <h3>🎯 Game Setup</h3>
   <ul>
-    <li><strong>10 Regular Rounds:</strong> 4 dice in Round 1, then 3 fresh dice + your saved die in each subsequent round.</li>
-    <li><strong>Grand Finale (Round 11):</strong> 4 new dice + your saved die — all 5 score directly, with combo bonuses applied across all five.</li>
+    <li><strong>Round 1:</strong> Both players roll 4 dice and place them into pockets.</li>
+    <li><strong>Rounds 2 onward:</strong> Roll 3 fresh dice — your saved die from last round is the fourth.</li>
+    <li><strong>Rolldown:</strong> Triggered when either player crosses 100 points. Both players roll 4 new dice — your saved die is the fifth. All 5 score directly.</li>
     <li><strong>Four Pockets:</strong> Keep Two #1, Keep Two #2, Share One, Save One.</li>
   </ul>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
@@ -1042,7 +1061,7 @@
     <li><strong>Roll-Off:</strong> Each player taps their die — higher number goes first in placement. Ties roll again.</li>
     <li><strong>Roll Dice:</strong> Both players roll.</li>
     <li><strong>Place Dice:</strong> Players alternate placing one die at a time into pockets.</li>
-    <li><strong>Score Round:</strong> Points calculated, round ends.</li>
+    <li><strong>Score Round:</strong> Points calculated. If either player has crossed 100, the Rolldown button appears.</li>
   </ol>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
 </div>
@@ -1052,7 +1071,7 @@
   <ul>
     <li><strong>🎯 Keep Two #1 &amp; #2:</strong> Each holds 1 die. Both dice add to your score each round.</li>
     <li><strong>⚔️ Share One:</strong> Higher die wins the difference in pips, plus a combo bonus based on the winner's original 4-die roll. Loser gets nothing from Share.</li>
-    <li><strong>💎 Save One:</strong> Doesn't score this round — becomes your 4th die next round and carries into the Grand Finale.</li>
+    <li><strong>💎 Save One:</strong> Scores nothing this round — becomes your 4th die next round, and your 5th die in the Rolldown. Whatever is here when the Rolldown triggers is your Rolldown die.</li>
   </ul>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
 </div>
@@ -1067,18 +1086,25 @@
     <tr><td>1 Pair</td><td>+1 pt</td></tr>
     <tr><td>Two Pair</td><td>+2 pts</td></tr>
     <tr><td>3 of a Kind</td><td>+3 pts</td></tr>
-    <tr><td>4 of a Kind</td><td>+4 pts</td></tr>
-    <tr><td>Full House (Finale only)</td><td>+7 pts</td></tr>
-    <tr><td>5 of a Kind (Finale only)</td><td>+10 pts</td></tr>
+    <tr><td>Full House</td><td>+4 pts (Rolldown only)</td></tr>
+    <tr><td>Straight</td><td>+5 pts</td></tr>
+    <tr><td>4 of a Kind</td><td>+6 pts</td></tr>
+    <tr><td>5 of a Kind</td><td>+10 pts (Rolldown only)</td></tr>
   </table>
   <p style="margin-top:8px"><em>The combo bonus is calculated on your original 4-die roll — placement doesn't change it. But the bonus only pays out if you win Share that round.</em></p>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
 </div>
 
 <div class="help-section" id="rules-finale">
-  <h3>🎊 Grand Finale (Round 11)</h3>
-  <p>Each player rolls 4 new dice plus their saved die (5 total). All 5 score directly. Combo bonuses apply across all 5 dice (including 5-of-a-kind for +10). No pockets — pure dice scoring.</p>
-  <p><em>💡 What you Save in Round 10 matters most — it becomes a guaranteed die in the Finale.</em></p>
+  <h3>🎲 The Rolldown</h3>
+  <p>When either player crosses 100 points, the Rolldown begins. The player with the higher score clicks <strong>Start Rolldown</strong>.</p>
+  <ul>
+    <li>Your saved die stays in its pocket — already chosen.</li>
+    <li>Both players roll 4 new dice, alternating one at a time.</li>
+    <li>All 5 dice score directly — no pockets, no Share battle.</li>
+    <li>Full house (+4) and 5-of-a-kind (+10) combo bonuses now available.</li>
+  </ul>
+  <p><em>💡 The die in your Save pocket when the Rolldown triggers is your fifth Rolldown die. Choose it wisely throughout the game.</em></p>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
 </div>
 
@@ -1087,8 +1113,8 @@
   <ul>
     <li><strong>Keep:</strong> Your safe floor. Both dice score, no opposition. A reasonable destination for any die that doesn't have a stronger case elsewhere.</li>
     <li><strong>Share:</strong> The leverage play. Win for the difference plus your combo bonus; lose and the die scores nothing. Push hard with a real combo or a dominant high die.</li>
-    <li><strong>Save:</strong> Investment. Scores 0 this round but becomes your 4th die next round and your 5th die in the Grand Finale. Save 5s and 6s when you can.</li>
-    <li><strong>Watch your opponent's Save pocket</strong> — it reveals their long-game strategy.</li>
+    <li><strong>Save:</strong> Investment. Scores 0 this round but compounds over time and becomes your fifth Rolldown die. Save 5s and 6s when you can.</li>
+    <li><strong>Watch your opponent's Save pocket and the score</strong> — when either player nears 100, the Rolldown is imminent.</li>
   </ul>
   <p>See the full <strong>Strategy Guide</strong> button for deeper play.</p>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
@@ -1107,7 +1133,7 @@
 <div class="help-section" id="rules-themes">
   <h3>🎨 Themes</h3>
   <ul>
-    <li>🎩 <strong>Victorian</strong> | ⚙️ <strong>Steampunk</strong> | 🏛️ <strong>Art Deco</strong> | 🌌 <strong>Cosmic</strong></li>
+    <li>🎩 <strong>Victorian</strong> | ⚙️ <strong>Steampunk</strong> | 🏛️ <strong>Art Deco</strong> | 🌌 <strong>Cosmic</strong> | 🌑 <strong>Dark Mode</strong></li>
   </ul>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
 </div>

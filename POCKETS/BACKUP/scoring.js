@@ -13,16 +13,20 @@ function calculateBonusPoints(dice) {
     
     // Scoring table for combinations
     if (countValues[0] === 5) return 10; // 5 of a kind
-    if (countValues[0] === 4) return 6;  // 4 of a kind
-    if (countValues[0] === 3 && countValues[1] === 2) return 4; // Full house
+    if (countValues[0] === 4) return 4;  // 4 of a kind
+    if (countValues[0] === 3 && countValues[1] === 2) return 7; // Full house
 
-    // Straight — ALL dice must be unique and consecutive (no gaps, no leftovers)
-    // Regular rounds: all 4 dice sequential (e.g. 2-3-4-5)
-    // Finale: all 5 dice sequential (e.g. 1-2-3-4-5 or 2-3-4-5-6)
+    // Straight — 4 or more consecutive unique values (e.g. 1-2-3-4 or 2-3-4-5-6)
     const sortedUnique = [...new Set(dice)].sort((a, b) => a - b);
-    const isStraight = sortedUnique.length >= 4 &&
-        sortedUnique.length === dice.length &&
-        sortedUnique[sortedUnique.length - 1] - sortedUnique[0] === sortedUnique.length - 1;
+    let isStraight = false;
+    for (let i = 0; i <= sortedUnique.length - 4; i++) {
+        if (sortedUnique[i + 3] - sortedUnique[i] === 3 &&
+            sortedUnique[i + 1] === sortedUnique[i] + 1 &&
+            sortedUnique[i + 2] === sortedUnique[i] + 2) {
+            isStraight = true;
+            break;
+        }
+    }
     if (isStraight) return 5; // Straight
 
     if (countValues[0] === 3) return 3;  // 3 of a kind
@@ -44,18 +48,20 @@ function getBonusDescription(dice) {
     const uniqueValues = Object.keys(counts).map(Number).sort((a, b) => counts[b] - counts[a]);
     
     if (countValues[0] === 5) return `5 of a kind (${uniqueValues[0]}s) - 10 pts`;
-    if (countValues[0] === 4) return `4 of a kind (${uniqueValues[0]}s) - 6 pts`;
+    if (countValues[0] === 4) return `4 of a kind (${uniqueValues[0]}s) - 4 pts`;
     if (countValues[0] === 3 && countValues[1] === 2) {
-        return `Full house (${uniqueValues[0]}s over ${uniqueValues[1]}s) - 4 pts`;
+        return `Full house (${uniqueValues[0]}s over ${uniqueValues[1]}s) - 7 pts`;
     }
 
     // Straight check
     const sortedUniqueD = [...new Set(dice)].sort((a, b) => a - b);
-    if (sortedUniqueD.length >= 4 &&
-        sortedUniqueD.length === dice.length &&
-        sortedUniqueD[sortedUniqueD.length - 1] - sortedUniqueD[0] === sortedUniqueD.length - 1) {
-        const low = sortedUniqueD[0], high = sortedUniqueD[sortedUniqueD.length - 1];
-        return `Straight (${low}-${high}) - 5 pts`;
+    for (let i = 0; i <= sortedUniqueD.length - 4; i++) {
+        if (sortedUniqueD[i + 3] - sortedUniqueD[i] === 3 &&
+            sortedUniqueD[i + 1] === sortedUniqueD[i] + 1 &&
+            sortedUniqueD[i + 2] === sortedUniqueD[i] + 2) {
+            const low = sortedUniqueD[i], high = sortedUniqueD[i + 3];
+            return `Straight (${low}-${high}) - 5 pts`;
+        }
     }
 
     if (countValues[0] === 3) return `3 of a kind (${uniqueValues[0]}s) - 3 pts`;

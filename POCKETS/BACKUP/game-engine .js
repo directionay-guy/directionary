@@ -284,13 +284,20 @@ function showConfirm(title, message, onConfirm) {
 // =============================================================================
 
 function startRound() {
+    // Pre-final phase: "Start Final Round" button was clicked
+    if (gameState.phase === 'pre-final') {
+        hidePanelBottom(false);
+        startFinalRollDrama();
+        return;
+    }
+
     if (gameState.phase !== 'rolling') { return; }
 
     // Clear share pocket badges at start of new round
     document.getElementById('blueShareScore').classList.add('hidden');
     document.getElementById('redShareScore').classList.add('hidden');
 
-    // Clear pockets (Keep Two and Share One only — Save One carries forward)
+    // Clear pockets
     var players = ['blue', 'red'];
     var pockets = ['Keep1', 'Keep2', 'Share'];
     for (var p = 0; p < players.length; p++) {
@@ -310,7 +317,15 @@ function startRound() {
 
     hidePanelBottom(false);
     showPlaceholderDice();
-    startFirstPlayerRolloff();
+
+    if (gameState.round === 10) {
+        setActionPanelView('status');
+        document.getElementById('turnInfo').textContent =
+            'The final round — your Save die carries into the Grand Finale. Choose wisely!';
+        setTimeout(function() { startFirstPlayerRolloff(); }, 2400);
+    } else {
+        startFirstPlayerRolloff();
+    }
 }
 
 function showPlaceholderDice() {
@@ -967,16 +982,16 @@ function check100Trigger() {
     var msg;
     if (blueOver && redOver) {
         if (gameState.blueScore > gameState.redScore) {
-            msg = 'Both players crossed 100 — Blue leads! Click Start Rolldown to begin.';
+            msg = 'Both players crossed 100 — Blue leads! Click Start Finale to begin.';
         } else if (gameState.redScore > gameState.blueScore) {
-            msg = 'Both players crossed 100 — Red leads! Click Start Rolldown to begin.';
+            msg = 'Both players crossed 100 — Red leads! Click Start Finale to begin.';
         } else {
-            msg = 'Both players crossed 100 and are tied! Click Start Rolldown.';
+            msg = 'Both players crossed 100 and are tied! Click Start Finale.';
         }
     } else if (blueOver) {
-        msg = 'Blue crossed 100 points! Click Start Rolldown to begin.';
+        msg = 'Blue crossed 100 points! Click Start Finale to begin the final round.';
     } else {
-        msg = 'Red crossed 100 points! Click Start Rolldown to begin.';
+        msg = 'Red crossed 100 points! Click Start Finale to begin the final round.';
     }
 
     showPanelBottom(msg);
@@ -997,7 +1012,7 @@ function startFinale() {
 
     document.getElementById('startFinale').classList.add('hidden');
     document.getElementById('startRound').classList.add('hidden');
-    document.getElementById('currentRound').textContent = 'Rolldown';
+    document.getElementById('currentRound').textContent = 'FINALE';
 
     hidePanelBottom(false);
 
@@ -1025,12 +1040,7 @@ function startFinale() {
     showDimmedDice('blue');
     showDimmedDice('red');
 
-    setActionPanelView('rolls');   // shows coinFlip + playerRolls, hides firstPlayerRolloff
-
-    // Hide "of 10" suffix — round count irrelevant in Finale
-    var suffix = document.getElementById('roundSuffix');
-    if (suffix) { suffix.classList.add('hidden'); }
-
+    setActionPanelView('rolling');
     updateFinaleUI();
 
     document.getElementById('turnInfo').textContent =
@@ -1062,21 +1072,16 @@ function rollFinale(player) {
     // Animate the correct dimmed die in roll bar
     var area     = document.getElementById(player + 'DiceArea');
     var dimDice  = area.querySelectorAll('.dimmed-die');
-    // Always target the first remaining dimmed die in this player's roll bar
-    var targetDie = dimDice[0];
+    var rollIndex = rolls.length - 1;
+    var targetDie = dimDice[rollIndex];
 
     if (targetDie) {
         targetDie.classList.remove('dimmed-die');
         targetDie.classList.add('rolling');
         targetDie.setAttribute('data-value', value);
-        var captured    = value;
+        var captured = value;
         var capturedDie = targetDie;
-        // Cycle pips randomly while rolling, then snap to final value
-        var pipInterval = setInterval(function() {
-            refreshDiePips(capturedDie, Math.floor(Math.random() * 6) + 1);
-        }, 80);
         setTimeout(function() {
-            clearInterval(pipInterval);
             capturedDie.classList.remove('rolling');
             refreshDiePips(capturedDie, captured);
         }, 680);
@@ -1151,7 +1156,7 @@ function updateFinaleUI() {
 
     document.getElementById('turnInfo').textContent =
         blueDone && redDone ? 'Calculating final scores...' :
-        player === 'blue'   ? "Blue's Rolldown roll" : "Red's Rolldown roll";
+        player === 'blue'   ? "Blue's Finale roll" : "Red's Finale roll";
 }
 
 function finalizeFinale() {
@@ -1391,8 +1396,6 @@ function newGame() {
 
     document.getElementById('startRound').textContent   = 'Start Round 1';
     document.getElementById('currentRound').textContent = '1';
-    var suffix = document.getElementById('roundSuffix');
-    if (suffix) { suffix.classList.remove('hidden'); }
 
     resetRollButtons();
     rolloffState = { blue: null, red: null, locked: false };

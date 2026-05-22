@@ -1,20 +1,5 @@
 // POCKETS AI PLAYER MODULE
-// Intelligent opponent with multiple difficulty levels.
-//
-// Updates in this version:
-//  1. Renamed entry point to makeAIMoveExternal so game-engine.js actually
-//     routes through the smart AI (was being overwritten by game-engine's
-//     own makeAIMove and silently falling back to random).
-//  2. evaluateSaveMove rebalanced for the 10-round game — early 1-4,
-//     mid 5-7, late 8-9 (round 10 is the Grand Finale). 4+ is positively
-//     valued throughout, not penalized late.
-//  3. Blind Share placement (opponent's Share still empty) now uses a
-//     contextual estimate that scales with die strength and combo potential
-//     instead of the flat dieValue * 3.
-//  4. Share-loss penalty scales with the wasted die: dumping a 6 into a
-//     losing share hurts more than dumping a 3.
-//  5. Think times cut roughly in half across all difficulties.
-//  6. Dead code (selectDie, choosePocket on the class) removed.
+// Intelligent opponent with multiple difficulty levels
 
 class PocketsAI {
     constructor(difficulty = 'medium') {
@@ -27,21 +12,21 @@ class PocketsAI {
         const personalities = {
             easy: {
                 name: "Rookie Bot",
-                thinkTime: [400, 700],
+                thinkTime: [800, 1200],
                 randomness: 0.4,
                 lookahead: 1,
                 aggression: 0.3
             },
             medium: {
-                name: "Clever Bot",
-                thinkTime: [600, 1000],
+                name: "Clever Bot", 
+                thinkTime: [1200, 1800],
                 randomness: 0.2,
                 lookahead: 2,
                 aggression: 0.6
             },
             hard: {
                 name: "Master Bot",
-                thinkTime: [900, 1400],
+                thinkTime: [1800, 2500],
                 randomness: 0.1,
                 lookahead: 3,
                 aggression: 0.8
@@ -52,16 +37,16 @@ class PocketsAI {
 
     async makeMove(gameState) {
         if (this.thinking) return null;
-
+        
         this.thinking = true;
         const thinkTime = this.getThinkTime();
-
+        
         // Simulate thinking delay
         await new Promise(resolve => setTimeout(resolve, thinkTime));
-
+        
         const move = this.calculateBestMove(gameState);
         this.thinking = false;
-
+        
         return move;
     }
 
@@ -73,7 +58,7 @@ class PocketsAI {
     calculateBestMove(gameState) {
         const availableDice = [...gameState.redDice];
         const emptyPockets = this.getEmptyPockets();
-
+        
         if (availableDice.length === 0 || emptyPockets.length === 0) {
             return null;
         }
@@ -85,11 +70,11 @@ class PocketsAI {
         availableDice.forEach((dieValue, dieIndex) => {
             emptyPockets.forEach(pocket => {
                 const moveScore = this.evaluateMove(dieValue, pocket, gameState);
-
+                
                 // Add randomness based on difficulty
                 const randomFactor = (Math.random() - 0.5) * this.personality.randomness * 10;
                 const finalScore = moveScore + randomFactor;
-
+                
                 if (finalScore > bestScore) {
                     bestScore = finalScore;
                     bestMove = {
@@ -114,7 +99,7 @@ class PocketsAI {
             case 'Keep2':
                 // High dice are good for keeping
                 score = dieValue * 2;
-
+                
                 // Bonus for very high dice
                 if (dieValue >= 5) score += 5;
                 break;
@@ -141,48 +126,34 @@ class PocketsAI {
 
     evaluateShareMove(dieValue, bluePockets, gameState) {
         let score = 0;
-
+        
         if (bluePockets.share && bluePockets.share.length > 0) {
             const blueShareValue = bluePockets.share[0];
-
+            
             if (dieValue > blueShareValue) {
                 // We can win the share battle
                 const shareDiff = dieValue - blueShareValue;
                 score = shareDiff * 5; // Base share bonus
-
+                
                 // Add combo bonus potential
                 const comboBonus = calculateBonusPoints(gameState.redOriginalRoll);
                 score += comboBonus * 3;
-
+                
                 // Aggressive AI values share battles more
                 score *= (1 + this.personality.aggression);
             } else if (dieValue === blueShareValue) {
                 // Tie - neutral
                 score = 1;
             } else {
-                // We lose - penalty scales with the value of the die wasted.
-                // Dumping a 6 into a losing share is much worse than dumping a 3.
-                score = -Math.ceil(dieValue * 1.5);
+                // We lose - penalty
+                score = -5;
             }
         } else {
-            // Blue hasn't placed share yet — estimate value contextually.
-            // Higher dice are favored to win; lower dice are likely to lose.
-            if (dieValue >= 5) {
-                score = dieValue * 4;   // Strong favorite
-            } else if (dieValue === 4) {
-                score = dieValue * 3;   // Above-average, usually wins
-            } else if (dieValue === 3) {
-                score = dieValue * 1.5; // Coin flip territory
-            } else {
-                score = dieValue * 0.5; // Likely loser
-            }
-
-            // Combo potential only counts if we can plausibly win the share
+            // Blue hasn't placed share yet - estimate value
             if (dieValue >= 4) {
-                const comboBonus = calculateBonusPoints(gameState.redOriginalRoll);
-                if (comboBonus > 0) {
-                    score += comboBonus * 2;
-                }
+                score = dieValue * 3; // Good positioning
+            } else {
+                score = dieValue; // Weak positioning
             }
         }
 
@@ -191,31 +162,37 @@ class PocketsAI {
 
     evaluateSaveMove(dieValue, gameState) {
         let score = 0;
+        const currentScore = gameState.redScore;
 
-        // Early game (rounds 1-4): save high dice generously
-        if (gameState.round <= 4) {
-            if (dieValue === 6)      score = 18;
-            else if (dieValue === 5) score = 12;
-            else if (dieValue === 4) score = 6;
-            else if (dieValue === 3) score = -2;
-            else                     score = -5;
+        // Early game (below 50pts): save high dice for Finale potential
+        if (currentScore < 50) {
+            if (dieValue >= 5) {
+                score = 15; // Very valuable to save high dice early
+            } else if (dieValue >= 4) {
+                score = 8;
+            } else {
+                score = -2; // Don't save low dice early
+            }
         }
-        // Mid game (rounds 5-7): still solidly value saves
-        else if (gameState.round <= 7) {
-            if (dieValue === 6)      score = 15;
-            else if (dieValue === 5) score = 10;
-            else if (dieValue === 4) score = 5;
-            else if (dieValue === 3) score = -3;
-            else                     score = -6;
+        // Mid game (50-80pts): be more selective
+        else if (currentScore < 80) {
+            if (dieValue >= 6) {
+                score = 12;
+            } else if (dieValue >= 5) {
+                score = 6;
+            } else {
+                score = -5; // Strongly avoid saving low dice
+            }
         }
-        // Late game (rounds 8-9): a saved 4+ is still gold for the Grand Finale
+        // Late game (80-100+): save high or nothing — Finale is coming
         else {
-            if (dieValue === 6)      score = 15;
-            else if (dieValue === 5) score = 10;
-            else if (dieValue === 4) score = 5;
-            else if (dieValue === 3) score = -2;
-            else if (dieValue === 2) score = -5;
-            else                     score = -8;
+            if (dieValue === 6) {
+                score = 8;
+            } else if (dieValue === 5) {
+                score = 4;
+            } else {
+                score = -10; // Almost never save low in late game
+            }
         }
 
         return score;
@@ -224,12 +201,14 @@ class PocketsAI {
     getAdvancedBonus(dieValue, pocket, gameState) {
         let bonus = 0;
 
-        // Look ahead to future rounds (10-round game)
+        // Look ahead — estimate rounds remaining based on scoring pace
         if (this.personality.lookahead >= 2) {
-            const remainingRounds = 10 - gameState.round;
+            const pointsToFinale = Math.max(0, 100 - gameState.redScore);
+            const isLateGame = gameState.redScore >= 80 || gameState.blueScore >= 80;
+            const isEarlyGame = gameState.redScore < 50 && gameState.blueScore < 50;
 
             // Value keeping high dice more in early game
-            if (pocket.includes('Keep') && remainingRounds > 5) {
+            if (pocket.includes('Keep') && isEarlyGame) {
                 bonus += dieValue * 0.5;
             }
 
@@ -255,8 +234,9 @@ class PocketsAI {
     getPatternBonus(dieValue, pocket, gameState) {
         let bonus = 0;
 
+        // Analyze opponent's tendencies
         const bluePockets = getDiceFromPockets('blue');
-
+        
         // If blue often saves low dice, we should be more aggressive in shares
         if (pocket === 'Share' && gameState.blueSavedDie && gameState.blueSavedDie <= 3) {
             bonus += 2;
@@ -268,10 +248,11 @@ class PocketsAI {
             bonus += comboValue;
         }
 
-        // Endgame strategy adjustments — shifted earlier for the 10-round game
-        if (gameState.round >= 7) {
+        // Endgame strategy — when either player is close to 100
+        const isLateGame = gameState.redScore >= 80 || gameState.blueScore >= 80;
+        if (isLateGame) {
             const scoreDiff = gameState.redScore - gameState.blueScore;
-
+            
             if (scoreDiff < -15) {
                 // Desperate - take risks
                 if (pocket === 'Share') bonus += 5;
@@ -287,32 +268,103 @@ class PocketsAI {
     getEmptyPockets() {
         const emptyPockets = [];
         const pocketNames = ['Keep1', 'Keep2', 'Share', 'Save'];
-
+        
         pocketNames.forEach(pocket => {
             const pocketElement = document.getElementById(`red${pocket}`);
             if (pocketElement && pocketElement.querySelectorAll('.dice').length === 0) {
                 emptyPockets.push(pocket);
             }
         });
-
+        
         return emptyPockets;
+    }
+
+    // Public interface for the game engine
+    selectDie() {
+        if (this.difficulty === 'easy') {
+            // Random selection for easy AI
+            return Math.floor(Math.random() * gameState.redDice.length);
+        } else {
+            // Strategic selection for medium/hard AI
+            const diceWithIndex = gameState.redDice.map((value, index) => ({ value, index }));
+            
+            if (this.difficulty === 'medium') {
+                // Prefer higher dice but with some randomness
+                diceWithIndex.sort((a, b) => b.value - a.value);
+                const useTopHalf = Math.random() < 0.7;
+                const halfSize = Math.ceil(diceWithIndex.length / 2);
+                const selection = useTopHalf ? diceWithIndex.slice(0, halfSize) : diceWithIndex.slice(halfSize);
+                return selection[Math.floor(Math.random() * selection.length)].index;
+            } else {
+                // Hard AI uses optimal selection
+                return this.selectOptimalDie();
+            }
+        }
+    }
+
+    selectOptimalDie() {
+        const bluePockets = getDiceFromPockets('blue');
+        const diceWithIndex = gameState.redDice.map((value, index) => ({ value, index }));
+        const emptyPockets = this.getEmptyPockets();
+        
+        // If we can win share battle, prioritize that die
+        if (emptyPockets.includes('Share') && bluePockets.share) {
+            const blueShareValue = bluePockets.share[0];
+            const beatingDice = diceWithIndex.filter(d => d.value > blueShareValue);
+            if (beatingDice.length > 0) {
+                return beatingDice.reduce((best, current) => 
+                    current.value > best.value ? current : best
+                ).index;
+            }
+        }
+        
+        // If keep pockets available, use highest dice
+        if (emptyPockets.some(p => p.includes('Keep'))) {
+            diceWithIndex.sort((a, b) => b.value - a.value);
+            return diceWithIndex[0].index;
+        }
+        
+        // Default to highest available die
+        diceWithIndex.sort((a, b) => b.value - a.value);
+        return diceWithIndex[0].index;
+    }
+
+    choosePocket(dieValue) {
+        const emptyPockets = this.getEmptyPockets();
+        if (emptyPockets.length === 0) return null;
+
+        if (this.difficulty === 'easy') {
+            // Random choice for easy AI
+            return emptyPockets[Math.floor(Math.random() * emptyPockets.length)];
+        } else {
+            // Strategic choice using move evaluation
+            const move = this.calculateBestMove(gameState);
+            return move ? move.pocket : emptyPockets[0];
+        }
+    }
+
+    getStatusMessage() {
+        const messages = {
+            easy: ["Thinking...", "Hmm...", "Let me see..."],
+            medium: ["Calculating...", "Analyzing options...", "Planning strategy..."],
+            hard: ["Deep analysis...", "Considering all possibilities...", "Optimizing placement..."]
+        };
+        
+        const options = messages[this.difficulty] || messages.medium;
+        return options[Math.floor(Math.random() * options.length)];
     }
 }
 
 // Create global AI instance
 let pocketsAI = new PocketsAI('medium');
 
-// AI entry point for game-engine.js.
-//
-// IMPORTANT: This function is intentionally named makeAIMoveExternal rather
-// than makeAIMove. game-engine.js declares its own makeAIMove (a random
-// fallback) and, because it loads after ai-player.js, would overwrite any
-// makeAIMove we defined here. The engine then specifically looks for
-// makeAIMoveExternal and delegates to it. Keep this name.
-async function makeAIMoveExternal() {
+// AI interface functions for the game engine
+async function makeAIMove() {
     if (gameMode !== 'ai' || gameState.currentPlayer !== 'red' || aiThinking) {
         return;
     }
+    // Don't interfere during Finale — Finale has its own roll flow
+    if (gameState.finaleMode) { return; }
 
     aiThinking = true;
     updateGameStatus();
@@ -321,7 +373,9 @@ async function makeAIMoveExternal() {
         const move = await pocketsAI.makeMove(gameState);
 
         if (move && move.dieIndex !== null && move.pocket) {
-            gameState.selectedDie = { player: 'red', index: move.dieIndex };
+            // Capture value at selection time — required by placeDieInPocket
+            const capturedValue = gameState.redDice[move.dieIndex];
+            gameState.selectedDie = { player: 'red', index: move.dieIndex, value: capturedValue };
             const pocketElement = document.getElementById(`red${move.pocket}`);
             if (pocketElement) {
                 placeDieInPocket(pocketElement);
@@ -331,9 +385,10 @@ async function makeAIMoveExternal() {
         console.error('AI move failed:', error);
         // Fallback to simple random move
         const dieIndex = Math.floor(Math.random() * gameState.redDice.length);
+        const capturedValue = gameState.redDice[dieIndex];
         const emptyPockets = pocketsAI.getEmptyPockets();
         if (emptyPockets.length > 0) {
-            gameState.selectedDie = { player: 'red', index: dieIndex };
+            gameState.selectedDie = { player: 'red', index: dieIndex, value: capturedValue };
             const pocket = emptyPockets[Math.floor(Math.random() * emptyPockets.length)];
             const pocketElement = document.getElementById(`red${pocket}`);
             if (pocketElement) {
@@ -350,13 +405,9 @@ function updateAIDifficulty(difficulty) {
     aiDifficulty = difficulty;
 }
 
-// Expose to the global scope so game-engine.js's
-// `typeof makeAIMoveExternal === 'function'` check succeeds, and so the
-// instance is reachable from dev tools for debugging.
-window.makeAIMoveExternal = makeAIMoveExternal;
-window.pocketsAI = pocketsAI;
+// Export for use in other modules
 window.PocketsAI = {
     PocketsAI,
-    makeAIMoveExternal,
+    makeAIMove,
     updateAIDifficulty
 };
