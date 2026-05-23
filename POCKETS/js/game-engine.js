@@ -146,16 +146,22 @@ function handleModeButtonClick(newMode) {
 }
 
 // =============================================================================
-// FULL SCREEN
+// FULL SCREEN — CSS-based to avoid iOS Safari security warning
 // =============================================================================
 
 function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(function(err) {
-            console.log('Fullscreen unavailable:', err);
-        });
+    var container = document.querySelector('.game-container');
+    var btn       = document.getElementById('fullscreenBtn');
+    if (!container) { return; }
+
+    if (container.classList.contains('css-fullscreen')) {
+        container.classList.remove('css-fullscreen');
+        document.body.classList.remove('has-css-fullscreen');
+        if (btn) { btn.textContent = 'Full Screen'; }
     } else {
-        if (document.exitFullscreen) { document.exitFullscreen(); }
+        container.classList.add('css-fullscreen');
+        document.body.classList.add('has-css-fullscreen');
+        if (btn) { btn.textContent = 'Exit Full'; }
     }
 }
 
@@ -170,11 +176,6 @@ function injectFullscreenButton() {
     btn.textContent = 'Full Screen';
     btn.addEventListener('click', toggleFullscreen);
     gameModeEl.appendChild(btn);
-
-    document.addEventListener('fullscreenchange', function() {
-        var b = document.getElementById('fullscreenBtn');
-        if (b) { b.textContent = document.fullscreenElement ? 'Exit Full' : 'Full Screen'; }
-    });
 }
 
 function setAIDifficulty(difficulty) {

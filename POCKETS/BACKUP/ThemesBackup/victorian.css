@@ -715,20 +715,15 @@ body.theme-victorian::before {
 }
 .theme-victorian .modal-close:hover { color: var(--ink); border-color: var(--gold-bright); background: var(--gold-bright); }
 .theme-victorian .modal-body {
-    color: var(--ink); font-family: 'Cormorant Garamond', serif;
-    font-size: 1.05em; line-height: 1.7; font-weight: 500;
+    color: var(--ink); font-family: 'Cormorant Garamond', serif; font-size: 1.05em; line-height: 1.7;
 }
 .theme-victorian .modal-body h3, .theme-victorian .modal-body h4 {
-    color: var(--burgundy); font-family: 'Playfair Display', serif;
-    font-weight: 700; letter-spacing: 0.04em;
+    color: var(--burgundy); font-family: 'Playfair Display', serif; font-weight: 700; letter-spacing: 0.04em;
 }
-.theme-victorian .modal-body p, .theme-victorian .modal-body li {
-    color: #2a1508;
-}
-.theme-victorian .help-combo-table td { border-bottom-color: var(--line-ink); color: #2a1508; }
+.theme-victorian .modal-body p, .theme-victorian .modal-body li { color: var(--ink); }
+.theme-victorian .modal-body strong { color: var(--forest-deep); }
+.theme-victorian .help-combo-table td { border-bottom-color: var(--line-ink); color: var(--ink); }
 .theme-victorian .help-combo-table td:last-child { color: var(--burgundy); }
-/* Bonus legend text — slightly darker than --ink for legibility */
-.theme-victorian .bonus-legend { font-weight: 500; color: #2a1508; }
 
 /* Confirm modal header uses burgundy instead of navy */
 .theme-victorian #confirmModal .modal-header {
@@ -850,23 +845,4 @@ body.theme-victorian::before {
     .theme-victorian .round-info     { flex-direction: column; gap: 6px; text-align: center; }
     .theme-victorian .pre-final-inner { padding: 32px 24px; }
     .theme-victorian .pre-final-title { font-size: 1.5em; }
-}
-
-/* ==========================================================
-   CSS PSEUDO-FULLSCREEN (replaces native Fullscreen API)
-   No iOS Safari security warning triggered
-   ========================================================== */
-.game-container.css-fullscreen {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 9999;
-    overflow-y: auto;
-    margin: 0;
-    max-width: none;
-    border-radius: 0;
-}
-body.has-css-fullscreen {
-    overflow: hidden;
 }

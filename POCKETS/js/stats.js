@@ -632,12 +632,14 @@ function generateStatsHTML() {
 
 function generateRecentGamesHTML(games) {
     if (games.length === 0) return '<div class="no-games">No recent games</div>';
-    
-    return games.slice(-10).map(game => {
-        const result = game.winner === 'Blue' ? '🔵' : game.winner === 'Red' ? '🔴' : '🟨';
-        const score = `${game.blueScore}-${game.redScore}`;
-        return `<span class="game-result" title="${score}">${result}</span>`;
-    }).join('');
+
+    var dots = games.slice(-10).map(function(game, idx) {
+        var result = game.winner === 'Blue' ? '🔵' : game.winner === 'Red' ? '🔴' : '🟨';
+        var score  = game.blueScore + '-' + game.redScore;
+        var br     = (idx > 0 && idx % 5 === 0) ? '<br>' : '';
+        return br + '<span class="game-result" title="' + score + '">' + result + '</span>';
+    });
+    return dots.join('');
 }
 
 function generateAchievementsHTML() {

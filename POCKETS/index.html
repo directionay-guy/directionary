@@ -755,7 +755,7 @@
         <div class="new-game-section">
             <button class="btn action-btn" id="newGame">New Game</button>
             <button class="btn hidden" id="shareResultFooter">📱 Share Result</button>
-            <button class="btn action-btn" id="viewStats">View Stats</button>
+            <button class="btn action-btn" id="viewStats" onclick="if(typeof toggleStatsPanel==='function'){toggleStatsPanel();}else if(window.PocketsStats){window.PocketsStats.toggleStatsPanel();}">View Stats</button>
         </div>
 
         <!-- Confirm Modal -->

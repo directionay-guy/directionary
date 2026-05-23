@@ -1062,8 +1062,8 @@ function rollFinale(player) {
     // Animate the correct dimmed die in roll bar
     var area     = document.getElementById(player + 'DiceArea');
     var dimDice  = area.querySelectorAll('.dimmed-die');
-    var rollIndex = rolls.length - 1;
-    var targetDie = dimDice[rollIndex];
+    // Always target the first remaining dimmed die in this player's roll bar
+    var targetDie = dimDice[0];
 
     if (targetDie) {
         targetDie.classList.remove('dimmed-die');
@@ -1566,7 +1566,11 @@ function initializeGame() {
     document.getElementById('hardAI').addEventListener('click',   function() { setAIDifficulty('hard');   });
 
     document.getElementById('viewStats').addEventListener('click', function() {
-        if (typeof toggleStatsPanel === 'function') { toggleStatsPanel(); }
+        if (typeof toggleStatsPanel === 'function') {
+            toggleStatsPanel();
+        } else if (window.PocketsStats && typeof window.PocketsStats.toggleStatsPanel === 'function') {
+            window.PocketsStats.toggleStatsPanel();
+        }
     });
 
     updateScoreDisplay();

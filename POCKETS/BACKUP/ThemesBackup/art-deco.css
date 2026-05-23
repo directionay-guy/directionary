@@ -1387,20 +1387,3 @@ body.theme-art-deco::before {
     background: linear-gradient(180deg, var(--emerald) 0%, var(--emerald-deep) 100%);
     color: var(--ink);
 }
-
-
-/* ==========================================================
-   CSS PSEUDO-FULLSCREEN
-   ========================================================== */
-.game-container.css-fullscreen {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 9999;
-    overflow-y: auto;
-    margin: 0;
-    max-width: none;
-    border-radius: 0;
-}
-body.has-css-fullscreen { overflow: hidden; }

@@ -70,7 +70,7 @@ class PocketsStats {
             totalPlayTime: 0,
             roundsPlayed: 0,
             perfectGames: 0, // Games won by 30+ points
-            comebackWins: 0, // Wins when behind by 15+ at round 7 (3 rounds from final)
+            comebackWins: 0, // Wins when behind by 15+ at round 10
             aiGamesWon: { easy: 0, medium: 0, hard: 0 },
             aiGamesLost: { easy: 0, medium: 0, hard: 0 }
         };
@@ -103,7 +103,7 @@ class PocketsStats {
         
         stats.totalGames++;
         stats.totalScore += gameResult.blueScore;
-        stats.roundsPlayed += 11; // 10 regular rounds + final
+        stats.roundsPlayed += 13; // Always 13 rounds + final
 
         // Update best/worst scores
         if (gameResult.blueScore > stats.bestScore) {
@@ -460,7 +460,7 @@ class PocketsStats {
         let emoji = "🎲 POCKETS DICE GAME 🎲\n\n";
         
         // Generate round results
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 13; i++) {
             const round = rounds[i];
             if (round) {
                 if (round.blueScore > round.redScore) {
@@ -533,17 +533,11 @@ function showStatsPanel() {
     
     panel.classList.remove('hidden');
     content.innerHTML = generateStatsHTML();
-
-    const btn = document.getElementById('viewStats');
-    if (btn) btn.textContent = '📊 Hide Stats';
 }
 
 function hideStatsPanel() {
     const panel = document.getElementById('statsPanel');
     panel.classList.add('hidden');
-
-    const btn = document.getElementById('viewStats');
-    if (btn) btn.textContent = '📊 View Stats';
 }
 
 function generateStatsHTML() {
@@ -581,16 +575,17 @@ function generateStatsHTML() {
             
             <div class="stat-card">
                 <h4>🤖 AI Performance</h4>
-                <div class="ai-stats">
-                    <div class="ai-difficulty">
-                        <strong>Easy:</strong> ${data.ai.easy.wins}W-${data.ai.easy.losses}L (${data.ai.easy.winRate}%)
-                    </div>
-                    <div class="ai-difficulty">
-                        <strong>Medium:</strong> ${data.ai.medium.wins}W-${data.ai.medium.losses}L (${data.ai.medium.winRate}%)
-                    </div>
-                    <div class="ai-difficulty">
-                        <strong>Hard:</strong> ${data.ai.hard.wins}W-${data.ai.hard.losses}L (${data.ai.hard.winRate}%)
-                    </div>
+                <div class="stat-row">
+                    <span>Easy:</span>
+                    <span class="stat-value">${data.ai.easy.wins}W-${data.ai.easy.losses}L (${data.ai.easy.winRate}%)</span>
+                </div>
+                <div class="stat-row">
+                    <span>Medium:</span>
+                    <span class="stat-value">${data.ai.medium.wins}W-${data.ai.medium.losses}L (${data.ai.medium.winRate}%)</span>
+                </div>
+                <div class="stat-row">
+                    <span>Hard:</span>
+                    <span class="stat-value">${data.ai.hard.wins}W-${data.ai.hard.losses}L (${data.ai.hard.winRate}%)</span>
                 </div>
             </div>
             
@@ -637,18 +632,12 @@ function generateStatsHTML() {
 
 function generateRecentGamesHTML(games) {
     if (games.length === 0) return '<div class="no-games">No recent games</div>';
-
-    var recent  = games.slice(-10);
-    var wins    = recent.filter(function(g) { return g.winner === 'Blue'; }).length;
-    var losses  = recent.filter(function(g) { return g.winner === 'Red';  }).length;
-    var ties    = recent.filter(function(g) { return g.winner === 'Tie';  }).length;
-
-    var parts = [];
-    parts.push(wins   + 'W');
-    parts.push(losses + 'L');
-    if (ties > 0) { parts.push(ties + 'T'); }
-
-    return '<div class="recent-form-summary">' + parts.join(' · ') + '</div>';
+    
+    return games.slice(-10).map(game => {
+        const result = game.winner === 'Blue' ? '🔵' : game.winner === 'Red' ? '🔴' : '🟨';
+        const score = `${game.blueScore}-${game.redScore}`;
+        return `<span class="game-result" title="${score}">${result}</span>`;
+    }).join('');
 }
 
 function generateAchievementsHTML() {
@@ -716,23 +705,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    // Wire View Stats button directly — belt and suspenders for iOS Safari
+    const viewStatsBtn = document.getElementById('viewStats');
+    if (viewStatsBtn) {
+        viewStatsBtn.addEventListener('click', toggleStatsPanel);
+    }
+
     // Set up export/clear buttons
     const exportBtn = document.getElementById('exportStats');
-    const clearBtn = document.getElementById('clearStats');
+    const clearBtn  = document.getElementById('clearStats');
     
     if (exportBtn) exportBtn.addEventListener('click', exportStats);
-    if (clearBtn) clearBtn.addEventListener('click', () => {
-        if (typeof showConfirm === 'function') {
-            showConfirm(
-                'Clear all stats?',
-                'This will permanently delete your game history, win/loss records, and achievements. This cannot be undone.',
-                clearStats
-            );
-        } else {
-            // Fallback if showConfirm isn't loaded yet
-            if (confirm('Clear all stats? This cannot be undone.')) clearStats();
-        }
-    });
+    if (clearBtn) clearBtn.addEventListener('click', clearStats);
 });
 
 // Export for use in other modules

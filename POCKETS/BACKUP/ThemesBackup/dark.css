@@ -875,20 +875,3 @@ body.theme-dark {
 .theme-dark .finale-btn:hover {
     background: rgba(255,255,255,0.12);
 }
-
-
-/* ==========================================================
-   CSS PSEUDO-FULLSCREEN
-   ========================================================== */
-.game-container.css-fullscreen {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 9999;
-    overflow-y: auto;
-    margin: 0;
-    max-width: none;
-    border-radius: 0;
-}
-body.has-css-fullscreen { overflow: hidden; }
