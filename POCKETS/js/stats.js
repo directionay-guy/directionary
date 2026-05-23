@@ -431,18 +431,15 @@ class PocketsStats {
     }
 
     clearAllData() {
-        if (confirm('Are you sure you want to clear all your game data? This cannot be undone.')) {
-            this.data = {
-                preferences: this.getDefaultPreferences(),
-                gameHistory: [],
-                achievements: [],
-                stats: this.getDefaultStats(),
-                version: '1.0.0'
-            };
-            this.saveData();
-            return true;
-        }
-        return false;
+        this.data = {
+            preferences: this.getDefaultPreferences(),
+            gameHistory: [],
+            achievements: [],
+            stats: this.getDefaultStats(),
+            version: '1.0.0'
+        };
+        this.saveData();
+        return true;
     }
 
     generateShareText(gameResult) {
@@ -528,16 +525,19 @@ function toggleStatsPanel() {
 }
 
 function showStatsPanel() {
-    const panel = document.getElementById('statsPanel');
+    const panel   = document.getElementById('statsPanel');
     const content = document.getElementById('statsContent');
-    
     panel.classList.remove('hidden');
     content.innerHTML = generateStatsHTML();
+    var btn = document.getElementById('viewStats');
+    if (btn) { btn.textContent = 'Hide Stats'; }
 }
 
 function hideStatsPanel() {
     const panel = document.getElementById('statsPanel');
     panel.classList.add('hidden');
+    var btn = document.getElementById('viewStats');
+    if (btn) { btn.textContent = 'View Stats'; }
 }
 
 function generateStatsHTML() {
@@ -667,9 +667,20 @@ function exportStats() {
 }
 
 function clearStats() {
-    if (pocketsStats.clearAllData()) {
-        hideStatsPanel();
-        showNotification('All stats cleared', 'info');
+    if (typeof showConfirm === 'function') {
+        showConfirm(
+            'Clear All Stats?',
+            'This will permanently erase all game statistics and cannot be undone.',
+            function() {
+                pocketsStats.clearAllData();
+                hideStatsPanel();
+            }
+        );
+    } else {
+        if (confirm('Clear all statistics? This cannot be undone.')) {
+            pocketsStats.clearAllData();
+            hideStatsPanel();
+        }
     }
 }
 
