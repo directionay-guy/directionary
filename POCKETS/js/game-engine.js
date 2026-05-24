@@ -1176,10 +1176,10 @@ function finalizeFinale() {
     document.getElementById('redFinaleTotal').textContent  = redFinal;
 
     if (blueCombo > 0) {
-        document.getElementById('blueFinaleBonus').textContent = '+' + blueCombo + ' bonus';
+        document.getElementById('blueFinaleBonus').textContent = 'With +' + blueCombo + ' bonus';
     }
     if (redCombo > 0) {
-        document.getElementById('redFinaleBonus').textContent = '+' + redCombo + ' bonus';
+        document.getElementById('redFinaleBonus').textContent = 'With +' + redCombo + ' bonus';
     }
 
     gameState.blueScore += blueFinal;
