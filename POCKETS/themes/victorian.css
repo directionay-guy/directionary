@@ -521,10 +521,10 @@ body.theme-victorian::before {
 }
 .theme-victorian .finale-running-total.bumped { transform: scale(1.25); }
 .theme-victorian .finale-bonus {
-    font-size: 0.85em;
+    font-size: 1.05em;
     color: var(--gold-pale);
     font-style: italic;
-    min-height: 1.2em;
+    min-height: 1.4em;
 }
 
 /* Pockets hidden during Finale */
@@ -869,4 +869,45 @@ body.theme-victorian::before {
 }
 body.has-css-fullscreen {
     overflow: hidden;
+}
+
+/* ==========================================================
+   PLAYING AS RED — visual color swap
+   Human plays Blue internally; visual colors swapped so human sees Red
+   ========================================================== */
+.game-container.playing-as-red .player-area.blue {
+    background: linear-gradient(180deg, var(--burgundy) 0%, var(--burgundy-deep) 100%) !important;
+}
+.game-container.playing-as-red .player-area.red {
+    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%) !important;
+}
+.game-container.playing-as-red .player-area.blue .pocket {
+    background: linear-gradient(180deg, rgba(85,38,38,0.95) 0%, rgba(112,56,56,0.85) 100%) !important;
+}
+.game-container.playing-as-red .player-area.red .pocket {
+    background: linear-gradient(180deg, rgba(40,56,92,0.95) 0%, rgba(58,76,116,0.85) 100%) !important;
+}
+.game-container.playing-as-red .player-area.blue .pocket.active {
+    background: linear-gradient(180deg, rgba(115,55,55,1) 0%, rgba(150,78,78,0.95) 100%) !important;
+}
+.game-container.playing-as-red .player-area.red .pocket.active {
+    background: linear-gradient(180deg, rgba(58,80,130,1) 0%, rgba(86,110,168,0.95) 100%) !important;
+}
+.game-container.playing-as-red .player-area.blue .pocket.active {
+    background: linear-gradient(180deg, rgba(115,55,55,1) 0%, rgba(150,78,78,0.95) 100%) !important;
+}
+.game-container.playing-as-red .player-area.red .pocket.active {
+    background: linear-gradient(180deg, rgba(58,80,130,1) 0%, rgba(86,110,168,0.95) 100%) !important;
+}
+.game-container.playing-as-red .player-final-score.blue {
+    background: linear-gradient(180deg, var(--burgundy) 0%, var(--burgundy-deep) 100%) !important;
+}
+.game-container.playing-as-red .player-final-score.red {
+    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%) !important;
+}
+.game-container.playing-as-red #blueScoreArea {
+    background: linear-gradient(180deg, var(--burgundy) 0%, var(--burgundy-deep) 100%) !important;
+}
+.game-container.playing-as-red #redScoreArea {
+    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%) !important;
 }

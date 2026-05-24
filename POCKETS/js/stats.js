@@ -1,9 +1,11 @@
-// POCKETS STATS & PERSISTENCE MODULE
-// Player statistics, preferences, and data management
+// POCKETS STATS MODULE — v2.0
+// Three separate profiles: Blue player, Red player, AI record
+// Blue and Red each have own stats, achievements, clear button
+// AI tab is permanent — no clear button
 
 class PocketsStats {
     constructor() {
-        this.storageKey = 'pockets-game-data';
+        this.storageKey = 'pockets-stats-v2';
         this.data = this.loadData();
     }
 
@@ -13,732 +15,322 @@ class PocketsStats {
             if (stored) {
                 const parsed = JSON.parse(stored);
                 return {
-                    preferences: parsed.preferences || this.getDefaultPreferences(),
-                    gameHistory: parsed.gameHistory || [],
-                    achievements: parsed.achievements || [],
-                    stats: parsed.stats || this.getDefaultStats(),
-                    version: parsed.version || '1.0.0'
+                    blue: parsed.blue || this.newProfile(),
+                    red:  parsed.red  || this.newProfile(),
+                    ai:   parsed.ai   || this.newAIRecord(),
+                    version: '2.0.0'
                 };
             }
-        } catch (error) {
-            console.warn('Failed to load saved data:', error);
-        }
-        
-        return {
-            preferences: this.getDefaultPreferences(),
-            gameHistory: [],
-            achievements: [],
-            stats: this.getDefaultStats(),
-            version: '1.0.0'
-        };
+        } catch (e) { console.warn('Stats load failed:', e); }
+        return { blue: this.newProfile(), red: this.newProfile(), ai: this.newAIRecord(), version: '2.0.0' };
     }
 
     saveData() {
-        try {
-            localStorage.setItem(this.storageKey, JSON.stringify(this.data));
-            return true;
-        } catch (error) {
-            console.error('Failed to save data:', error);
-            return false;
-        }
+        try { localStorage.setItem(this.storageKey, JSON.stringify(this.data)); return true; }
+        catch (e) { console.error('Stats save failed:', e); return false; }
     }
 
-    getDefaultPreferences() {
+    newProfile() {
         return {
-            theme: 'victorian',
-            aiDifficulty: 'medium',
-            soundEnabled: true,
-            animationsEnabled: true,
-            autoSaveStats: true,
-            shareFormat: 'emoji'
+            gameHistory: [],
+            achievements: [],
+            stats: {
+                totalGames: 0, gamesWon: 0, gamesLost: 0, gamesTied: 0,
+                totalScore: 0, bestScore: 0, averageScore: 0,
+                bestWinStreak: 0, currentWinStreak: 0,
+                perfectGames: 0, comebackWins: 0,
+                vsAIWon: { easy:0, medium:0, hard:0 },
+                vsAILost: { easy:0, medium:0, hard:0 }
+            }
         };
     }
 
-    getDefaultStats() {
+    newAIRecord() {
         return {
             totalGames: 0,
-            gamesWon: 0,
-            gamesLost: 0,
-            gamesTied: 0,
-            totalScore: 0,
-            bestScore: 0,
-            worstScore: Infinity,
-            averageScore: 0,
-            bestWinStreak: 0,
-            currentWinStreak: 0,
-            favoriteTheme: 'victorian',
-            totalPlayTime: 0,
-            roundsPlayed: 0,
-            perfectGames: 0, // Games won by 30+ points
-            comebackWins: 0, // Wins when behind by 15+ at round 10
-            aiGamesWon: { easy: 0, medium: 0, hard: 0 },
-            aiGamesLost: { easy: 0, medium: 0, hard: 0 }
+            byDifficulty: {
+                easy:   { wins: 0, losses: 0 },
+                medium: { wins: 0, losses: 0 },
+                hard:   { wins: 0, losses: 0 }
+            }
         };
     }
 
     saveGameResult(gameResult) {
-        // Add to game history
-        this.data.gameHistory.push({
-            ...gameResult,
-            timestamp: Date.now(),
-            id: this.generateGameId()
-        });
+        const hc     = gameResult.humanColor || 'blue';    // human's color
+        const oc     = (hc === 'blue') ? 'red' : 'blue';  // opponent's color
+        const hScore = (hc === 'blue') ? gameResult.blueScore : gameResult.redScore;
+        const oScore = (hc === 'blue') ? gameResult.redScore  : gameResult.blueScore;
+        const hWon   = gameResult.winner === (hc === 'blue' ? 'Blue' : 'Red');
+        const oWon   = gameResult.winner === (oc === 'blue' ? 'Blue' : 'Red');
+        const tied   = gameResult.winner === 'Tie' || gameResult.winner === 'tie';
 
-        // Update statistics
-        this.updateStats(gameResult);
+        // Save to human's profile
+        this.recordGame(this.data[hc], gameResult, hScore, oScore, hWon, tied, gameResult.gameMode, gameResult.aiDifficulty);
 
-        // Check for achievements
-        this.checkAchievements(gameResult);
+        // In 2-player, save to opponent's profile too (their perspective)
+        if (gameResult.gameMode === '2player') {
+            this.recordGame(this.data[oc], gameResult, oScore, hScore, oWon, tied, '2player', null);
+        }
 
-        // Keep only last 100 games to manage storage
-        if (this.data.gameHistory.length > 100) {
-            this.data.gameHistory = this.data.gameHistory.slice(-100);
+        // AI record tab
+        if (gameResult.gameMode === 'ai') {
+            const diff = gameResult.aiDifficulty || 'easy';
+            this.data.ai.totalGames++;
+            if (hWon)       { this.data.ai.byDifficulty[diff].wins++;   }
+            else if (!tied) { this.data.ai.byDifficulty[diff].losses++; }
         }
 
         this.saveData();
     }
 
-    updateStats(gameResult) {
-        const stats = this.data.stats;
-        
-        stats.totalGames++;
-        stats.totalScore += gameResult.blueScore;
-        stats.roundsPlayed += 13; // Always 13 rounds + final
-
-        // Update best/worst scores
-        if (gameResult.blueScore > stats.bestScore) {
-            stats.bestScore = gameResult.blueScore;
-        }
-        if (gameResult.blueScore < stats.worstScore) {
-            stats.worstScore = gameResult.blueScore;
-        }
-
-        // Update win/loss records
-        if (gameResult.winner === 'Blue') {
-            stats.gamesWon++;
-            stats.currentWinStreak++;
-            if (stats.currentWinStreak > stats.bestWinStreak) {
-                stats.bestWinStreak = stats.currentWinStreak;
-            }
-
-            // Check for special wins
-            if (gameResult.blueScore - gameResult.redScore >= 30) {
-                stats.perfectGames++;
-            }
-
-            // AI difficulty tracking
-            if (gameResult.gameMode === 'ai') {
-                stats.aiGamesWon[gameResult.aiDifficulty]++;
-            }
-        } else if (gameResult.winner === 'Red') {
-            stats.gamesLost++;
-            stats.currentWinStreak = 0;
-
-            if (gameResult.gameMode === 'ai') {
-                stats.aiGamesLost[gameResult.aiDifficulty]++;
-            }
-        } else {
-            stats.gamesTied++;
-            stats.currentWinStreak = 0;
-        }
-
-        // Calculate average score
-        stats.averageScore = Math.round(stats.totalScore / stats.totalGames);
-    }
-
-    checkAchievements(gameResult) {
-        const achievements = [];
-
-        // First game
-        if (this.data.stats.totalGames === 1) {
-            achievements.push({
-                id: 'first-game',
-                title: '🎲 First Roll',
-                description: 'Played your first game of Pockets!',
-                timestamp: Date.now()
-            });
-        }
-
-        // Win streaks
-        if (this.data.stats.currentWinStreak === 3) {
-            achievements.push({
-                id: 'win-streak-3',
-                title: '🔥 Hot Streak',
-                description: 'Won 3 games in a row!',
-                timestamp: Date.now()
-            });
-        }
-
-        if (this.data.stats.currentWinStreak === 5) {
-            achievements.push({
-                id: 'win-streak-5',
-                title: '🌟 Unstoppable',
-                description: 'Won 5 games in a row!',
-                timestamp: Date.now()
-            });
-        }
-
-        // High scores
-        if (gameResult.blueScore >= 150) {
-            achievements.push({
-                id: 'high-score-150',
-                title: '💎 High Roller',
-                description: 'Scored 150+ points in a single game!',
-                timestamp: Date.now()
-            });
-        }
-
-        if (gameResult.blueScore >= 200) {
-            achievements.push({
-                id: 'high-score-200',
-                title: '👑 Dice Master',
-                description: 'Scored 200+ points in a single game!',
-                timestamp: Date.now()
-            });
-        }
-
-        // Perfect games
-        if (gameResult.blueScore - gameResult.redScore >= 50) {
-            achievements.push({
-                id: 'domination',
-                title: '⚡ Domination',
-                description: 'Won by 50+ points!',
-                timestamp: Date.now()
-            });
-        }
-
-        // AI victories
-        if (gameResult.gameMode === 'ai' && gameResult.winner === 'Blue') {
-            if (gameResult.aiDifficulty === 'hard') {
-                achievements.push({
-                    id: 'beat-hard-ai',
-                    title: '🤖 AI Crusher',
-                    description: 'Defeated the Hard AI!',
-                    timestamp: Date.now()
-                });
-            }
-        }
-
-        // Game milestones
-        if (this.data.stats.totalGames === 10) {
-            achievements.push({
-                id: 'veteran',
-                title: '🎖️ Veteran Player',
-                description: 'Played 10 games!',
-                timestamp: Date.now()
-            });
-        }
-
-        if (this.data.stats.totalGames === 50) {
-            achievements.push({
-                id: 'dedicated',
-                title: '🏆 Dedicated Player',
-                description: 'Played 50 games!',
-                timestamp: Date.now()
-            });
-        }
-
-        // Add new achievements (avoid duplicates)
-        achievements.forEach(achievement => {
-            if (!this.data.achievements.find(a => a.id === achievement.id)) {
-                this.data.achievements.push(achievement);
-                this.showAchievementNotification(achievement);
-            }
+    recordGame(profile, gameResult, myScore, theirScore, won, tied, mode, diff) {
+        profile.gameHistory.push({
+            winner:    gameResult.winner,
+            myScore, theirScore, mode, diff,
+            timestamp: Date.now()
         });
+        if (profile.gameHistory.length > 100) {
+            profile.gameHistory = profile.gameHistory.slice(-100);
+        }
+
+        const s = profile.stats;
+        s.totalGames++;
+        s.totalScore += myScore;
+        if (myScore > s.bestScore)  { s.bestScore = myScore; }
+        s.averageScore = Math.round(s.totalScore / s.totalGames);
+
+        if (won) {
+            s.gamesWon++;
+            s.currentWinStreak++;
+            if (s.currentWinStreak > s.bestWinStreak) { s.bestWinStreak = s.currentWinStreak; }
+            if (myScore - theirScore >= 30) { s.perfectGames++; }
+            if (mode === 'ai' && diff) { s.vsAIWon[diff] = (s.vsAIWon[diff] || 0) + 1; }
+        } else if (tied) {
+            s.gamesTied++;
+            s.currentWinStreak = 0;
+        } else {
+            s.gamesLost++;
+            s.currentWinStreak = 0;
+            if (mode === 'ai' && diff) { s.vsAILost[diff] = (s.vsAILost[diff] || 0) + 1; }
+        }
+
+        this.checkAchievements(profile, { won, myScore, theirScore, mode, diff });
     }
 
-    showAchievementNotification(achievement) {
-        // Create and show achievement popup
-        const notification = document.createElement('div');
-        notification.className = 'achievement-notification';
-        notification.innerHTML = `
-            <div class="achievement-content">
-                <h3>🏆 Achievement Unlocked!</h3>
-                <div class="achievement-title">${achievement.title}</div>
-                <div class="achievement-description">${achievement.description}</div>
-            </div>
-        `;
-        
-        document.body.appendChild(notification);
-        
-        // Animate in
-        setTimeout(() => notification.classList.add('show'), 100);
-        
-        // Remove after 4 seconds
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => document.body.removeChild(notification), 300);
-        }, 4000);
-    }
-
-    generateGameId() {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
-    }
-
-    getPerformanceData() {
-        const stats = this.data.stats;
-        const recent = this.data.gameHistory.slice(-10);
-        
-        return {
-            overall: {
-                winRate: stats.totalGames > 0 ? Math.round((stats.gamesWon / stats.totalGames) * 100) : 0,
-                averageScore: stats.averageScore,
-                bestScore: stats.bestScore,
-                gamesPlayed: stats.totalGames,
-                currentStreak: stats.currentWinStreak,
-                bestStreak: stats.bestWinStreak
-            },
-            recent: {
-                games: recent,
-                winRate: recent.length > 0 ? Math.round((recent.filter(g => g.winner === 'Blue').length / recent.length) * 100) : 0,
-                averageScore: recent.length > 0 ? Math.round(recent.reduce((sum, g) => sum + g.blueScore, 0) / recent.length) : 0
-            },
-            ai: {
-                easy: {
-                    wins: stats.aiGamesWon.easy,
-                    losses: stats.aiGamesLost.easy,
-                    winRate: this.calculateAIWinRate('easy')
-                },
-                medium: {
-                    wins: stats.aiGamesWon.medium,
-                    losses: stats.aiGamesLost.medium,
-                    winRate: this.calculateAIWinRate('medium')
-                },
-                hard: {
-                    wins: stats.aiGamesWon.hard,
-                    losses: stats.aiGamesLost.hard,
-                    winRate: this.calculateAIWinRate('hard')
-                }
-            },
-            achievements: this.data.achievements.length,
-            specialStats: {
-                perfectGames: stats.perfectGames,
-                comebackWins: stats.comebackWins,
-                roundsPlayed: stats.roundsPlayed
+    checkAchievements(profile, ctx) {
+        const s    = profile.stats;
+        const add  = (id, title, desc) => {
+            if (!profile.achievements.find(a => a.id === id)) {
+                profile.achievements.push({ id, title, description: desc, timestamp: Date.now() });
             }
         };
+        if (s.totalGames === 1)              add('first-game',   '🎲 First Roll',    'Played your first game!');
+        if (s.currentWinStreak === 3)        add('streak-3',     '🔥 Hot Streak',    'Won 3 games in a row!');
+        if (s.currentWinStreak === 5)        add('streak-5',     '🌟 Unstoppable',   'Won 5 games in a row!');
+        if (ctx.myScore >= 150)              add('score-150',    '💎 High Roller',   'Scored 150+ in a game!');
+        if (ctx.myScore >= 200)              add('score-200',    '👑 Dice Master',   'Scored 200+ in a game!');
+        if (s.perfectGames >= 1)             add('perfect',      '✨ Perfect Game',  'Won by 30+ points!');
+        if (s.gamesWon >= 10)                add('wins-10',      '🏆 Veteran',       'Won 10 games!');
+        if (ctx.mode === 'ai' && ctx.won &&
+            ctx.diff === 'hard')             add('beat-hard-ai', '🤖 AI Slayer',     'Beat the Hard AI!');
     }
 
-    calculateAIWinRate(difficulty) {
-        const wins = this.data.stats.aiGamesWon[difficulty];
-        const losses = this.data.stats.aiGamesLost[difficulty];
-        const total = wins + losses;
-        return total > 0 ? Math.round((wins / total) * 100) : 0;
-    }
-
-    savePreference(key, value) {
-        this.data.preferences[key] = value;
+    clearProfile(color) {
+        this.data[color] = this.newProfile();
         this.saveData();
-    }
-
-    getPreference(key) {
-        return this.data.preferences[key];
-    }
-
-    exportData() {
-        const exportData = {
-            ...this.data,
-            exportDate: new Date().toISOString(),
-            gameVersion: '1.0.0'
-        };
-        
-        const dataStr = JSON.stringify(exportData, null, 2);
-        const dataBlob = new Blob([dataStr], { type: 'application/json' });
-        
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(dataBlob);
-        link.download = `pockets-stats-${new Date().toISOString().split('T')[0]}.json`;
-        link.click();
-        
-        return dataStr;
-    }
-
-    importData(jsonString) {
-        try {
-            const importedData = JSON.parse(jsonString);
-            
-            // Validate data structure
-            if (this.validateImportData(importedData)) {
-                // Merge with existing data (keeping newer records)
-                this.mergeImportedData(importedData);
-                this.saveData();
-                return { success: true, message: 'Data imported successfully!' };
-            } else {
-                return { success: false, message: 'Invalid data format.' };
-            }
-        } catch (error) {
-            return { success: false, message: 'Failed to parse data file.' };
-        }
-    }
-
-    validateImportData(data) {
-        return data.hasOwnProperty('gameHistory') && 
-               data.hasOwnProperty('stats') && 
-               data.hasOwnProperty('preferences') && 
-               Array.isArray(data.gameHistory);
-    }
-
-    mergeImportedData(importedData) {
-        // Merge game history (avoid duplicates by ID)
-        const existingIds = new Set(this.data.gameHistory.map(g => g.id));
-        const newGames = importedData.gameHistory.filter(g => !existingIds.has(g.id));
-        this.data.gameHistory.push(...newGames);
-        
-        // Merge achievements (avoid duplicates by ID)
-        const existingAchievements = new Set(this.data.achievements.map(a => a.id));
-        const newAchievements = importedData.achievements.filter(a => !existingAchievements.has(a.id));
-        this.data.achievements.push(...newAchievements);
-        
-        // Update stats with combined data
-        this.recalculateStats();
-        
-        // Merge preferences (imported takes precedence)
-        this.data.preferences = { ...this.data.preferences, ...importedData.preferences };
-    }
-
-    recalculateStats() {
-        const stats = this.getDefaultStats();
-        
-        this.data.gameHistory.forEach(game => {
-            this.updateStatsFromGame(stats, game);
-        });
-        
-        this.data.stats = stats;
-    }
-
-    updateStatsFromGame(stats, game) {
-        stats.totalGames++;
-        stats.totalScore += game.blueScore;
-        
-        if (game.blueScore > stats.bestScore) stats.bestScore = game.blueScore;
-        if (game.blueScore < stats.worstScore) stats.worstScore = game.blueScore;
-        
-        if (game.winner === 'Blue') {
-            stats.gamesWon++;
-            if (game.gameMode === 'ai') {
-                stats.aiGamesWon[game.aiDifficulty]++;
-            }
-        } else if (game.winner === 'Red') {
-            stats.gamesLost++;
-            if (game.gameMode === 'ai') {
-                stats.aiGamesLost[game.aiDifficulty]++;
-            }
-        } else {
-            stats.gamesTied++;
-        }
-        
-        stats.averageScore = Math.round(stats.totalScore / stats.totalGames);
-    }
-
-    clearAllData() {
-        this.data = {
-            preferences: this.getDefaultPreferences(),
-            gameHistory: [],
-            achievements: [],
-            stats: this.getDefaultStats(),
-            version: '1.0.0'
-        };
-        this.saveData();
-        return true;
-    }
-
-    generateShareText(gameResult) {
-        const format = this.getPreference('shareFormat') || 'emoji';
-        
-        if (format === 'emoji') {
-            return this.generateEmojiShare(gameResult);
-        } else {
-            return this.generateTextShare(gameResult);
-        }
-    }
-
-    generateEmojiShare(gameResult) {
-        const rounds = gameResult.roundHistory || [];
-        let emoji = "🎲 POCKETS DICE GAME 🎲\n\n";
-        
-        // Generate round results
-        for (let i = 0; i < 13; i++) {
-            const round = rounds[i];
-            if (round) {
-                if (round.blueScore > round.redScore) {
-                    emoji += "🔵";
-                } else if (round.redScore > round.blueScore) {
-                    emoji += "🔴";
-                } else {
-                    emoji += "🟨";
-                }
-            } else {
-                emoji += "⚫"; // Unplayed round
-            }
-            
-            if ((i + 1) % 5 === 0) emoji += "\n";
-        }
-        
-        emoji += `\nFinal: ${gameResult.blueScore}-${gameResult.redScore}`;
-        
-        if (gameResult.winner === 'Blue') {
-            emoji += " 🔵🏆";
-        } else if (gameResult.winner === 'Red') {
-            emoji += " 🔴🏆";
-        } else {
-            emoji += " 🤝";
-        }
-        
-        emoji += "\n\nPlay Pockets at [your-site.com]";
-        
-        return emoji;
-    }
-
-    generateTextShare(gameResult) {
-        let text = `🎲 Just played Pockets!\n\n`;
-        text += `Final Score: ${gameResult.blueScore} - ${gameResult.redScore}\n`;
-        
-        if (gameResult.winner === 'Blue') {
-            text += `🏆 I won by ${gameResult.blueScore - gameResult.redScore} points!\n`;
-        } else if (gameResult.winner === 'Red') {
-            if (gameResult.gameMode === 'ai') {
-                text += `🤖 AI won by ${gameResult.redScore - gameResult.blueScore} points\n`;
-            } else {
-                text += `Opponent won by ${gameResult.redScore - gameResult.blueScore} points\n`;
-            }
-        } else {
-            text += `🤝 It was a tie!\n`;
-        }
-        
-        text += `\nPlay Pockets at [your-site.com]`;
-        
-        return text;
     }
 }
 
-// Global stats instance
 const pocketsStats = new PocketsStats();
 
-// UI Functions for stats panel
+// =============================================================================
+// STATS PANEL UI
+// =============================================================================
+
+let currentStatsTab = 'blue';
+
 function toggleStatsPanel() {
     const panel = document.getElementById('statsPanel');
-    if (panel.classList.contains('hidden')) {
-        showStatsPanel();
-    } else {
-        hideStatsPanel();
-    }
+    if (panel.classList.contains('hidden')) { showStatsPanel(); } else { hideStatsPanel(); }
 }
 
 function showStatsPanel() {
     const panel   = document.getElementById('statsPanel');
     const content = document.getElementById('statsContent');
     panel.classList.remove('hidden');
-    content.innerHTML = generateStatsHTML();
+    content.innerHTML = generateStatsHTML(currentStatsTab);
     var btn = document.getElementById('viewStats');
     if (btn) { btn.textContent = 'Hide Stats'; }
 }
 
 function hideStatsPanel() {
-    const panel = document.getElementById('statsPanel');
-    panel.classList.add('hidden');
+    document.getElementById('statsPanel').classList.add('hidden');
     var btn = document.getElementById('viewStats');
     if (btn) { btn.textContent = 'View Stats'; }
 }
 
-function generateStatsHTML() {
-    const data = pocketsStats.getPerformanceData();
-    
+function switchStatsTab(tab) {
+    currentStatsTab = tab;
+    const content = document.getElementById('statsContent');
+    if (content) { content.innerHTML = generateStatsHTML(tab); }
+}
+
+function generateStatsHTML(tab) {
+    tab = tab || 'blue';
+    const tabs = `
+        <div class="stats-tabs">
+            <button class="stats-tab-btn ${tab==='blue'?'active':''}" onclick="switchStatsTab('blue')">🔵 Blue</button>
+            <button class="stats-tab-btn ${tab==='red'?'active':''}"  onclick="switchStatsTab('red')">🔴 Red</button>
+            <button class="stats-tab-btn ${tab==='ai'?'active':''}"   onclick="switchStatsTab('ai')">🤖 AI</button>
+        </div>`;
+
+    if (tab === 'ai') { return tabs + generateAITabHTML(); }
+    return tabs + generatePlayerTabHTML(tab);
+}
+
+function generatePlayerTabHTML(color) {
+    const profile = pocketsStats.data[color];
+    const s       = profile.stats;
+    const label   = color === 'blue' ? '🔵 Blue Player' : '🔴 Red Player';
+    const winRate = s.totalGames > 0 ? Math.round((s.gamesWon / s.totalGames) * 100) : 0;
+    const recentGames = profile.gameHistory.slice(-10);
+    const recentWins  = recentGames.filter(g => g.won).length;
+    const recentWR    = recentGames.length > 0 ? Math.round((recentWins / recentGames.length) * 100) : 0;
+    const recentAvg   = recentGames.length > 0
+        ? Math.round(recentGames.reduce((a,g) => a + g.myScore, 0) / recentGames.length) : 0;
+
+    // VS AI stats
+    const vsAI = s.vsAIWon && s.vsAILost ? `
+        <div class="stat-card">
+            <h4>🤖 vs AI Record</h4>
+            ${['easy','medium','hard'].map(d => `
+            <div class="stat-row">
+                <span>${d.charAt(0).toUpperCase()+d.slice(1)}:</span>
+                <span class="stat-value">${s.vsAIWon[d]||0}W-${s.vsAILost[d]||0}L</span>
+            </div>`).join('')}
+        </div>` : '';
+
+    const dots = recentGames.map((g, idx) => {
+        const emoji = g.won ? (color==='blue'?'🔵':'🔴') : (g.tied ? '🟨' : (color==='blue'?'🔴':'🔵'));
+        const br = (idx > 0 && idx % 5 === 0) ? '<br>' : '';
+        return br + `<span class="game-result" title="${g.myScore}-${g.theirScore}">${emoji}</span>`;
+    }).join('');
+
+    const achievements = profile.achievements.slice(-4);
+    const achHTML = achievements.length === 0
+        ? '<div class="no-achievements">No achievements yet — keep playing!</div>'
+        : achievements.map(a => `<div class="achievement-item"><strong>${a.title}</strong><div class="achievement-description">${a.description}</div></div>`).join('');
+
+    const allAchHTML = profile.achievements.length === 0
+        ? '<div class="no-achievements">No achievements yet</div>'
+        : profile.achievements.slice().reverse().map(a =>
+            `<div class="achievement-item"><strong>${a.title}</strong><div class="achievement-description">${a.description}</div></div>`
+          ).join('');
+
     return `
         <div class="stats-grid">
             <div class="stat-card">
-                <h4>🏆 Overall Performance</h4>
-                <div class="stat-row">
-                    <span>Games Played:</span>
-                    <span class="stat-value">${data.overall.gamesPlayed}</span>
-                </div>
-                <div class="stat-row">
-                    <span>Win Rate:</span>
-                    <span class="stat-value">${data.overall.winRate}%</span>
-                </div>
-                <div class="stat-row">
-                    <span>Average Score:</span>
-                    <span class="stat-value">${data.overall.averageScore}</span>
-                </div>
-                <div class="stat-row">
-                    <span>Best Score:</span>
-                    <span class="stat-value">${data.overall.bestScore}</span>
-                </div>
-                <div class="stat-row">
-                    <span>Current Streak:</span>
-                    <span class="stat-value">${data.overall.currentStreak}</span>
-                </div>
-                <div class="stat-row">
-                    <span>Best Streak:</span>
-                    <span class="stat-value">${data.overall.bestStreak}</span>
-                </div>
+                <h4>🏆 ${label}</h4>
+                <div class="stat-row"><span>Games Played:</span><span class="stat-value">${s.totalGames}</span></div>
+                <div class="stat-row"><span>Win Rate:</span><span class="stat-value">${winRate}%</span></div>
+                <div class="stat-row"><span>Average Score:</span><span class="stat-value">${s.averageScore}</span></div>
+                <div class="stat-row"><span>Best Score:</span><span class="stat-value">${s.bestScore}</span></div>
+                <div class="stat-row"><span>Current Streak:</span><span class="stat-value">${s.currentWinStreak}</span></div>
+                <div class="stat-row"><span>Best Streak:</span><span class="stat-value">${s.bestWinStreak}</span></div>
             </div>
-            
+            ${vsAI}
             <div class="stat-card">
-                <h4>🤖 AI Performance</h4>
-                <div class="stat-row">
-                    <span>Easy:</span>
-                    <span class="stat-value">${data.ai.easy.wins}W-${data.ai.easy.losses}L (${data.ai.easy.winRate}%)</span>
-                </div>
-                <div class="stat-row">
-                    <span>Medium:</span>
-                    <span class="stat-value">${data.ai.medium.wins}W-${data.ai.medium.losses}L (${data.ai.medium.winRate}%)</span>
-                </div>
-                <div class="stat-row">
-                    <span>Hard:</span>
-                    <span class="stat-value">${data.ai.hard.wins}W-${data.ai.hard.losses}L (${data.ai.hard.winRate}%)</span>
-                </div>
+                <h4>🏅 Special Stats</h4>
+                <div class="stat-row"><span>Achievements:</span><span class="stat-value">${profile.achievements.length}</span></div>
+                <div class="stat-row"><span>Perfect Games:</span><span class="stat-value">${s.perfectGames}</span></div>
+                <div class="stat-row"><span>Comeback Wins:</span><span class="stat-value">${s.comebackWins||0}</span></div>
             </div>
-            
-            <div class="stat-card">
-                <h4>🏅 Achievements</h4>
-                <div class="stat-row">
-                    <span>Unlocked:</span>
-                    <span class="stat-value">${data.achievements}/20</span>
-                </div>
-                <div class="stat-row">
-                    <span>Perfect Games:</span>
-                    <span class="stat-value">${data.specialStats.perfectGames}</span>
-                </div>
-                <div class="stat-row">
-                    <span>Comeback Wins:</span>
-                    <span class="stat-value">${data.specialStats.comebackWins}</span>
-                </div>
-            </div>
-            
             <div class="stat-card">
                 <h4>📈 Recent Form (Last 10)</h4>
-                <div class="stat-row">
-                    <span>Win Rate:</span>
-                    <span class="stat-value">${data.recent.winRate}%</span>
-                </div>
-                <div class="stat-row">
-                    <span>Average Score:</span>
-                    <span class="stat-value">${data.recent.averageScore}</span>
-                </div>
-                <div class="recent-games">
-                    ${generateRecentGamesHTML(data.recent.games)}
-                </div>
+                <div class="stat-row"><span>Win Rate:</span><span class="stat-value">${recentWR}%</span></div>
+                <div class="stat-row"><span>Avg Score:</span><span class="stat-value">${recentAvg}</span></div>
+                <div class="recent-games">${dots || '<div class="no-games">No recent games</div>'}</div>
             </div>
         </div>
-        
         <div class="achievements-section">
-            <h4>🏆 Recent Achievements</h4>
-            <div class="achievements-list">
-                ${generateAchievementsHTML()}
+            <h4>🏆 Achievements</h4>
+            <div class="achievements-list">${allAchHTML}</div>
+        </div>
+        <div class="stats-footer">
+            <button class="btn stats-clear-btn" onclick="clearPlayerStats('${color}')">
+                Clear ${color.charAt(0).toUpperCase()+color.slice(1)} Stats
+            </button>
+        </div>`;
+}
+
+function generateAITabHTML() {
+    const ai   = pocketsStats.data.ai;
+    const byD  = ai.byDifficulty;
+    const total = ai.totalGames;
+    const aiWinRate = d => {
+        const g = (byD[d].wins + byD[d].losses);
+        return g > 0 ? Math.round((byD[d].losses / g) * 100) : 0; // AI wins = human losses
+    };
+
+    return `
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>🤖 AI Record</h4>
+                <div class="stat-row"><span>Total Games:</span><span class="stat-value">${total}</span></div>
+                <div class="stat-row"><span>Easy — AI wins:</span><span class="stat-value">${byD.easy.losses}W / Human ${byD.easy.wins}W</span></div>
+                <div class="stat-row"><span>Medium — AI wins:</span><span class="stat-value">${byD.medium.losses}W / Human ${byD.medium.wins}W</span></div>
+                <div class="stat-row"><span>Hard — AI wins:</span><span class="stat-value">${byD.hard.losses}W / Human ${byD.hard.wins}W</span></div>
+            </div>
+            <div class="stat-card">
+                <h4>📊 Human Win Rate vs AI</h4>
+                <div class="stat-row"><span>vs Easy:</span><span class="stat-value">${100-aiWinRate('easy')}%</span></div>
+                <div class="stat-row"><span>vs Medium:</span><span class="stat-value">${100-aiWinRate('medium')}%</span></div>
+                <div class="stat-row"><span>vs Hard:</span><span class="stat-value">${100-aiWinRate('hard')}%</span></div>
             </div>
         </div>
-    `;
+        <div class="stats-footer" style="opacity:0.5;font-size:0.85em;text-align:center;padding:8px;">
+            AI record is permanent — no clear button
+        </div>`;
 }
 
-function generateRecentGamesHTML(games) {
-    if (games.length === 0) return '<div class="no-games">No recent games</div>';
-
-    var dots = games.slice(-10).map(function(game, idx) {
-        var result = game.winner === 'Blue' ? '🔵' : game.winner === 'Red' ? '🔴' : '🟨';
-        var score  = game.blueScore + '-' + game.redScore;
-        var br     = (idx > 0 && idx % 5 === 0) ? '<br>' : '';
-        return br + '<span class="game-result" title="' + score + '">' + result + '</span>';
-    });
-    return dots.join('');
-}
-
-function generateAchievementsHTML() {
-    const achievements = pocketsStats.data.achievements.slice(-5); // Show last 5
-    
-    if (achievements.length === 0) {
-        return '<div class="no-achievements">No achievements yet - keep playing!</div>';
-    }
-    
-    return achievements.map(achievement => `
-        <div class="achievement-item">
-            <div class="achievement-title">${achievement.title}</div>
-            <div class="achievement-description">${achievement.description}</div>
-        </div>
-    `).join('');
-}
-
-function exportStats() {
-    try {
-        pocketsStats.exportData();
-        showNotification('Stats exported successfully!', 'success');
-    } catch (error) {
-        showNotification('Failed to export stats', 'error');
-    }
-}
-
-function clearStats() {
+function clearPlayerStats(color) {
     if (typeof showConfirm === 'function') {
+        const label = color.charAt(0).toUpperCase() + color.slice(1);
         showConfirm(
-            'Clear All Stats?',
-            'This will permanently erase all game statistics and cannot be undone.',
+            'Clear ' + label + ' Stats?',
+            'This will permanently erase all ' + label + ' player statistics. Cannot be undone.',
             function() {
-                pocketsStats.clearAllData();
-                hideStatsPanel();
+                pocketsStats.clearProfile(color);
+                switchStatsTab(color);
             }
         );
     } else {
-        if (confirm('Clear all statistics? This cannot be undone.')) {
-            pocketsStats.clearAllData();
-            hideStatsPanel();
+        if (confirm('Clear ' + color + ' stats? Cannot be undone.')) {
+            pocketsStats.clearProfile(color);
+            switchStatsTab(color);
         }
     }
 }
 
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => notification.classList.add('show'), 100);
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => document.body.removeChild(notification), 300);
-    }, 3000);
-}
-
+// Called from game-engine.js endGame()
 function saveGameStats(gameResult) {
     pocketsStats.saveGameResult(gameResult);
 }
 
-// Event listeners for stats panel
-document.addEventListener('DOMContentLoaded', () => {
-    // Load saved preferences
-    const savedTheme = pocketsStats.getPreference('theme');
-    if (savedTheme && document.getElementById('themeSelector')) {
-        document.getElementById('themeSelector').value = savedTheme;
-    }
-    
-    const savedDifficulty = pocketsStats.getPreference('aiDifficulty');
-    if (savedDifficulty) {
-        aiDifficulty = savedDifficulty;
-        if (typeof updateAIDifficulty === 'function') {
-            updateAIDifficulty(savedDifficulty);
-        }
-    }
-    
-    // Wire View Stats button directly — belt and suspenders for iOS Safari
-    const viewStatsBtn = document.getElementById('viewStats');
-    if (viewStatsBtn) {
-        viewStatsBtn.addEventListener('click', toggleStatsPanel);
-    }
-
-    // Set up export/clear buttons
-    const exportBtn = document.getElementById('exportStats');
-    const clearBtn  = document.getElementById('clearStats');
-    
-    if (exportBtn) exportBtn.addEventListener('click', exportStats);
-    if (clearBtn) clearBtn.addEventListener('click', clearStats);
-});
-
-// Export for use in other modules
+// Export for compatibility
 window.PocketsStats = {
     pocketsStats,
     toggleStatsPanel,
     showStatsPanel,
     hideStatsPanel,
     saveGameStats,
-    exportStats,
-    clearStats
+    clearPlayerStats,
+    switchStatsTab
 };
+
+// Wire up View Stats button directly for iOS Safari reliability
+document.addEventListener('DOMContentLoaded', function() {
+    const viewStatsBtn = document.getElementById('viewStats');
+    if (viewStatsBtn) { viewStatsBtn.addEventListener('click', toggleStatsPanel); }
+});

@@ -1367,10 +1367,10 @@ body.theme-art-deco::before {
 }
 .theme-art-deco .finale-running-total.bumped { transform: scale(1.25); }
 .theme-art-deco .finale-bonus {
-    font-size: 0.85em;
+    font-size: 1.05em;
     color: var(--gold);
     font-style: italic;
-    min-height: 1.2em;
+    min-height: 1.4em;
 }
 .theme-art-deco .pocket.finale-hidden { display: none; }
 .theme-art-deco .dimmed-die { opacity: 0.35; }
@@ -1404,3 +1404,23 @@ body.theme-art-deco::before {
     border-radius: 0;
 }
 body.has-css-fullscreen { overflow: hidden; }
+
+/* ==========================================================
+   PLAYING AS RED — visual color swap
+   ========================================================== */
+.game-container.playing-as-red .player-area.blue {
+    background: linear-gradient(180deg, #2a0f0f 0%, var(--bg-panel-soft) 100%) !important;
+    border-left-color: #e87a7a !important;
+    border-top-color: rgba(220, 80, 80, 0.35) !important;
+}
+.game-container.playing-as-red .player-area.blue::before {
+    background: rgba(220, 80, 80, 0.55) !important;
+}
+.game-container.playing-as-red .player-area.red {
+    background: linear-gradient(180deg, #0f2340 0%, var(--bg-panel-soft) 100%) !important;
+    border-left-color: #5fa8e8 !important;
+    border-top-color: rgba(80, 150, 220, 0.35) !important;
+}
+.game-container.playing-as-red .player-area.red::before {
+    background: rgba(80, 150, 220, 0.55) !important;
+}

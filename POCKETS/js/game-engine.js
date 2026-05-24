@@ -34,7 +34,8 @@ let gameState = {
     redFinalRolled: false,
     finaleMode: false,
     finaleRolls: { blue: [], red: [] },
-    finaleCurrentPlayer: 'blue'
+    finaleCurrentPlayer: 'blue',
+    humanColor: 'blue'
 };
 
 // =============================================================================
@@ -119,17 +120,88 @@ function setGameMode(mode) {
     document.querySelectorAll('.mode-btn').forEach(function(btn) {
         btn.classList.remove('active');
     });
+    var playAsToggle = document.getElementById('playAsToggle');
     if (mode === '2player') {
         document.getElementById('twoPlayerMode').classList.add('active');
         document.getElementById('aiDifficulty').classList.add('hidden');
-        document.getElementById('redPlayerHeader').textContent = 'RED PLAYER';
+        if (playAsToggle) { playAsToggle.classList.add('hidden'); }
+        setPlayerColor('blue');
     } else {
         document.getElementById('aiMode').classList.add('active');
         document.getElementById('aiDifficulty').classList.remove('hidden');
-        document.getElementById('redPlayerHeader').textContent = 'AI PLAYER';
+        if (playAsToggle) { playAsToggle.classList.remove('hidden'); }
+        setPlayerColor(gameState.humanColor || 'blue');
     }
 }
 
+function setPlayerColor(color) {
+    // AI is ALWAYS red internally — this is a visual/stats swap only
+    gameState.humanColor = color;
+    var container = document.querySelector('.game-container');
+    if (container) {
+        container.classList.toggle('playing-as-red', color === 'red');
+    }
+
+    // Swap roll dice button colors
+    var blueRollBtn = document.getElementById('blueRoll');
+    var redRollBtn  = document.getElementById('redRoll');
+    if (blueRollBtn && redRollBtn) {
+        blueRollBtn.classList.toggle('blue-btn', color === 'blue');
+        blueRollBtn.classList.toggle('red-btn',  color === 'red');
+        redRollBtn.classList.toggle('red-btn',   color === 'blue');
+        redRollBtn.classList.toggle('blue-btn',  color === 'red');
+    }
+
+    // Update rolloff die aria-labels for accessibility
+    var blueDieBtn = document.getElementById('blueRolloffDie');
+    var redDieBtn  = document.getElementById('redRolloffDie');
+    if (blueDieBtn) { blueDieBtn.setAttribute('aria-label', colorLabel(color === 'red' ? 'blue' : 'blue') + ': roll for first player'); }
+    if (redDieBtn)  { redDieBtn.setAttribute('aria-label',  'AI: roll for first player'); }
+
+    var blueBtn = document.getElementById('playAsBlue');
+    var redBtn  = document.getElementById('playAsRed');
+    if (blueBtn) { blueBtn.classList.toggle('active', color === 'blue'); }
+    if (redBtn)  { redBtn.classList.toggle('active', color === 'red');   }
+    // Update headers — human is on the BLUE side regardless of chosen color
+    var is2p = (gameMode === '2player');
+    document.getElementById('bluePlayerHeader').textContent =
+        is2p ? 'BLUE PLAYER' : (color === 'red' ? '🔴 RED PLAYER (You)' : 'BLUE PLAYER');
+    document.getElementById('redPlayerHeader').textContent  =
+        is2p ? 'RED PLAYER'  : (color === 'red' ? '🔵 AI (Blue)'        : 'AI PLAYER');
+    // Update score area labels
+    var blueScoreLabel = document.getElementById('blueScoreLabel');
+    var redScoreLabel  = document.getElementById('redScoreLabel');
+    if (blueScoreLabel) {
+        blueScoreLabel.textContent = is2p ? 'Blue Player Score' :
+            (color === 'red' ? 'Red Player Score (You)' : 'Blue Player Score');
+    }
+    if (redScoreLabel) {
+        redScoreLabel.textContent  = is2p ? 'Red Player Score'  :
+            (color === 'red' ? 'AI Score (Blue)'        : 'Red Player Score');
+    }
+
+    // Force-refresh rolloff dice with correct visual colors immediately
+    var blueDie = document.getElementById('blueRolloffDie');
+    var redDie  = document.getElementById('redRolloffDie');
+    if (blueDie) { setRolloffDieFaded(blueDie); }
+    if (redDie)  { setRolloffDieFaded(redDie);  }
+}
+
+
+// Returns the DISPLAY name for an internal color, respecting visual swap
+function colorLabel(internalColor) {
+    if (gameState.humanColor === 'red') {
+        return internalColor === 'blue' ? 'Red' : 'Blue';
+    }
+    return internalColor === 'blue' ? 'Blue' : 'Red';
+}
+function colorLabelUpper(internalColor) { return colorLabel(internalColor).toUpperCase(); }
+function colorEmoji(internalColor) {
+    var isRed = (gameState.humanColor === 'red')
+        ? (internalColor === 'blue')   // swapped
+        : (internalColor === 'red');
+    return isRed ? '🔴' : '🔵';
+}
 // Mode button click — shows confirm modal so the new mode is always visible
 // and clearly applied before the new game starts.
 function handleModeButtonClick(newMode) {
@@ -146,22 +218,16 @@ function handleModeButtonClick(newMode) {
 }
 
 // =============================================================================
-// FULL SCREEN — CSS-based to avoid iOS Safari security warning
+// FULL SCREEN — native API (CSS fallback can be added per-platform later)
 // =============================================================================
 
 function toggleFullscreen() {
-    var container = document.querySelector('.game-container');
-    var btn       = document.getElementById('fullscreenBtn');
-    if (!container) { return; }
-
-    if (container.classList.contains('css-fullscreen')) {
-        container.classList.remove('css-fullscreen');
-        document.body.classList.remove('has-css-fullscreen');
-        if (btn) { btn.textContent = 'Full Screen'; }
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(function(err) {
+            console.log('Fullscreen unavailable:', err);
+        });
     } else {
-        container.classList.add('css-fullscreen');
-        document.body.classList.add('has-css-fullscreen');
-        if (btn) { btn.textContent = 'Exit Full'; }
+        if (document.exitFullscreen) { document.exitFullscreen(); }
     }
 }
 
@@ -171,11 +237,16 @@ function injectFullscreenButton() {
     if (!gameModeEl) { return; }
 
     var btn = document.createElement('button');
-    btn.id        = 'fullscreenBtn';
-    btn.className = 'fullscreen-btn';
+    btn.id          = 'fullscreenBtn';
+    btn.className   = 'fullscreen-btn';
     btn.textContent = 'Full Screen';
     btn.addEventListener('click', toggleFullscreen);
     gameModeEl.appendChild(btn);
+
+    document.addEventListener('fullscreenchange', function() {
+        var b = document.getElementById('fullscreenBtn');
+        if (b) { b.textContent = document.fullscreenElement ? 'Exit Full' : 'Full Screen'; }
+    });
 }
 
 function setAIDifficulty(difficulty) {
@@ -386,8 +457,9 @@ function startFirstPlayerRolloff() {
 
     // Always set from current gameMode — fixes the AI->2player bug
     if (gameMode === 'ai') {
+        var humanLabel = (gameState.humanColor === 'red') ? 'red' : 'blue';
         document.getElementById('rolloffPrompt').textContent =
-            'Tap your blue die — AI will roll right after.';
+            'Tap your ' + humanLabel + ' die — AI will roll right after.';
     } else {
         document.getElementById('rolloffPrompt').textContent =
             'Tap your die — higher number goes first!';
@@ -397,7 +469,24 @@ function startFirstPlayerRolloff() {
 function setRolloffDieFaded(buttonEl) {
     buttonEl.innerHTML = '';
     buttonEl.classList.add('faded');
-    buttonEl.appendChild(createDieSVG(1, 'rolloff-' + buttonEl.id, false));
+    var isBlueButton = (buttonEl.id === 'blueRolloffDie');
+    var showAsBlue   = (gameState.humanColor === 'red') ? !isBlueButton : isBlueButton;
+    var svg = createDieSVG(1, 'rolloff-' + buttonEl.id, showAsBlue);
+    buttonEl.appendChild(svg);
+
+    // Force face color via inline important style — beats all CSS specificity
+    if (gameState.humanColor === 'red') {
+        var face = svg.querySelector('.dice-face');
+        if (face) {
+            // Human die (blue button) → show as red; AI die (red button) → show as blue
+            var computedStyle = getComputedStyle(document.documentElement);
+            var humanFill = computedStyle.getPropertyValue('--burgundy').trim() ||
+                            computedStyle.getPropertyValue('--sp-red-mid').trim() || '#6e3030';
+            var aiFill    = computedStyle.getPropertyValue('--navy').trim() ||
+                            computedStyle.getPropertyValue('--sp-blue').trim() || '#2a3559';
+            face.style.setProperty('fill', isBlueButton ? humanFill : aiFill, 'important');
+        }
+    }
 }
 
 function setRolloffDieFadedInPlace(buttonEl) {
@@ -433,9 +522,21 @@ function rolloffRollDie(player) {
 
     var value = Math.floor(Math.random() * 6) + 1;
     var startVal = Math.floor(Math.random() * 6) + 1;
-    var rollSvg  = createDieSVG(startVal, 'rolloff-' + player + '-' + Date.now(), false);
+    var showAsBlue = (gameState.humanColor === 'red') ? (player !== 'blue') : (player === 'blue');
+    var rollSvg  = createDieSVG(startVal, 'rolloff-' + player + '-' + Date.now(), showAsBlue);
     dieEl.innerHTML = '';
     dieEl.appendChild(rollSvg);
+
+    // Force face color to match visual swap
+    if (gameState.humanColor === 'red') {
+        var face = rollSvg.querySelector('.dice-face');
+        if (face) {
+            var cs = getComputedStyle(document.documentElement);
+            var humanFill = cs.getPropertyValue('--burgundy').trim() || '#6e3030';
+            var aiFill    = cs.getPropertyValue('--navy').trim()     || '#2a3559';
+            face.style.setProperty('fill', (player === 'blue') ? humanFill : aiFill, 'important');
+        }
+    }
 
     if (!alreadyParked) {
         dieEl.classList.add(spinClass);
@@ -515,14 +616,14 @@ function resolveRolloff() {
 
     var winnerName, winnerColor;
     if (winner === 'blue') {
-        winnerName  = 'BLUE';
-        winnerColor = '#4a90e2';
+        winnerName  = colorLabelUpper('blue');
+        winnerColor = (gameState.humanColor === 'red') ? '#e24a4a' : '#4a90e2';
     } else if (gameMode === 'ai') {
         winnerName  = 'AI';
-        winnerColor = '#e24a4a';
+        winnerColor = (gameState.humanColor === 'red') ? '#4a90e2' : '#e24a4a';
     } else {
-        winnerName  = 'RED';
-        winnerColor = '#e24a4a';
+        winnerName  = colorLabelUpper('red');
+        winnerColor = (gameState.humanColor === 'red') ? '#4a90e2' : '#e24a4a';
     }
 
     result.classList.add('winner');
@@ -530,11 +631,20 @@ function resolveRolloff() {
 
     setTimeout(function() {
         setActionPanelView('rolls');
-        document.getElementById('blueRoll').classList.remove('hidden');
-        document.getElementById('redRoll').classList.remove('hidden');
+        var blueBtn = document.getElementById('blueRoll');
+        var redBtn  = document.getElementById('redRoll');
+        blueBtn.classList.remove('hidden');
+        redBtn.classList.remove('hidden');
+
+        // Dim non-first player's button — winner of rolloff goes first
+        var secondColor = (winner === 'blue') ? 'red' : 'blue';
+        document.getElementById(secondColor + 'Roll').disabled = true;
+
         if (gameMode === 'ai') {
             document.getElementById('redRoll').textContent = '🤖 AI Will Roll';
-            document.getElementById('redRoll').disabled = true;
+            if (winner === 'red') {
+                setTimeout(function() { rollPlayerDice('red'); }, 900);
+            }
         }
         updateGameStatus();
     }, 2000);
@@ -577,11 +687,18 @@ function rollPlayerDice(player) {
     renderDiceWithAnimation(player, dice);
 
     if (player === 'blue') {
-        btn.textContent = '🔵 Blue Rolled';
+        btn.textContent = colorEmoji('blue') + ' ' + colorLabel('blue') + ' Rolled';
     } else if (gameMode === 'ai') {
         btn.textContent = '🤖 AI Rolled';
     } else {
-        btn.textContent = '🔴 Red Rolled';
+        btn.textContent = colorEmoji('red') + ' ' + colorLabel('red') + ' Rolled';
+    }
+
+    // Enable the other player's button now it's their turn to roll
+    var otherColor = (player === 'blue') ? 'red' : 'blue';
+    var otherBtn   = document.getElementById(otherColor + 'Roll');
+    if (otherBtn && !gameState[otherColor + 'Rolled']) {
+        otherBtn.disabled = false;
     }
 
     if (gameMode === 'ai' && player === 'blue' && !gameState.redRolled) {
@@ -818,9 +935,9 @@ function updateShareDifference() {
         if (diff === 0) {
             shareMsg = 'Share: Tied — no bonus';
         } else if (bd > rd) {
-            shareMsg = 'Share: Blue wins by ' + diff + (diff === 1 ? ' point' : ' points');
+            shareMsg = 'Share: ' + colorLabel('blue') + ' wins by ' + diff + (diff === 1 ? ' point' : ' points');
         } else {
-            shareMsg = 'Share: Red wins by ' + diff + (diff === 1 ? ' point' : ' points');
+            shareMsg = 'Share: ' + colorLabel('red') + ' wins by ' + diff + (diff === 1 ? ' point' : ' points');
         }
 
         showPanelBottom(shareMsg);
@@ -888,12 +1005,12 @@ function calculateRoundScore() {
         if (blueShareDie > redShareDie) {
             var bd   = blueShareDie - redShareDie;
             var bTxt = (blueComboBonus > 0) ? ' + ' + blueComboBonus + ' bonus' : ' no bonus';
-            shareEl.textContent = 'Share: Blue wins by ' + bd +
+            shareEl.textContent = 'Share: ' + colorLabel('blue') + ' wins by ' + bd +
                 (bd === 1 ? ' point' : ' points') + ' ' + bTxt;
         } else if (redShareDie > blueShareDie) {
             var rd   = redShareDie - blueShareDie;
             var rTxt = (redComboBonus > 0) ? ' + ' + redComboBonus + ' bonus' : ' no bonus';
-            shareEl.textContent = 'Share: Red wins by ' + rd +
+            shareEl.textContent = 'Share: ' + colorLabel('red') + ' wins by ' + rd +
                 (rd === 1 ? ' point' : ' points') + ' ' + rTxt;
         }
     }
@@ -968,16 +1085,16 @@ function check100Trigger() {
     var msg;
     if (blueOver && redOver) {
         if (gameState.blueScore > gameState.redScore) {
-            msg = 'Both players crossed 100 — Blue leads! Click Start Rolldown to begin.';
+            msg = 'Both players crossed 100 — ' + colorLabel('blue') + ' leads! Click Start Rolldown to begin.';
         } else if (gameState.redScore > gameState.blueScore) {
-            msg = 'Both players crossed 100 — Red leads! Click Start Rolldown to begin.';
+            msg = 'Both players crossed 100 — ' + colorLabel('red') + ' leads! Click Start Rolldown to begin.';
         } else {
             msg = 'Both players crossed 100 and are tied! Click Start Rolldown.';
         }
     } else if (blueOver) {
-        msg = 'Blue crossed 100 points! Click Start Rolldown to begin.';
+        msg = colorLabel('blue') + ' crossed 100 points! Click Start Rolldown to begin.';
     } else {
-        msg = 'Red crossed 100 points! Click Start Rolldown to begin.';
+        msg = colorLabel('red') + ' crossed 100 points! Click Start Rolldown to begin.';
     }
 
     showPanelBottom(msg);
@@ -1139,14 +1256,14 @@ function updateFinaleUI() {
     var blueNum = gameState.finaleRolls.blue.length + 1;
     var redNum  = gameState.finaleRolls.red.length  + 1;
 
-    blueBtn.textContent = blueDone ? 'Blue Done' : 'Blue Roll ' + blueNum + ' of 4';
+    blueBtn.textContent = blueDone ? colorLabel('blue') + ' Done' : colorLabel('blue') + ' Roll ' + blueNum + ' of 4';
     blueBtn.disabled    = (player !== 'blue') || blueDone;
 
     if (gameMode === 'ai') {
-        redBtn.textContent = redDone ? 'AI Done' : 'AI Rolling...';
+        document.getElementById('redRoll').textContent = (gameState.finaleRolls.red.length >= 4) ? 'AI Done' : 'AI Rolling...';
         redBtn.disabled    = true;
     } else {
-        redBtn.textContent = redDone ? 'Red Done' : 'Red Roll ' + redNum + ' of 4';
+        redBtn.textContent = redDone ? colorLabel('red') + ' Done' : colorLabel('red') + ' Roll ' + redNum + ' of 4';
         redBtn.disabled    = (player !== 'red') || redDone;
     }
 
@@ -1206,9 +1323,9 @@ function shareFinalResultNew() {
     var redTotal  = gameState.redScore;
     var resultLine;
     if (blueTotal > redTotal) {
-        resultLine = 'Blue wins ' + blueTotal + ' to ' + redTotal;
+        resultLine = colorLabel('blue') + ' wins ' + blueTotal + ' to ' + redTotal;
     } else if (redTotal > blueTotal) {
-        resultLine = 'Red wins ' + redTotal + ' to ' + blueTotal;
+        resultLine = colorLabel('red') + ' wins ' + redTotal + ' to ' + blueTotal;
     } else {
         resultLine = 'Tie at ' + blueTotal;
     }
@@ -1245,13 +1362,13 @@ function updateGameStatus() {
             }
             playerName = 'AI';
         } else {
-            playerName = gameState.currentPlayer.charAt(0).toUpperCase() +
-                         gameState.currentPlayer.slice(1);
+            playerName = colorLabel(gameState.currentPlayer);
         }
         turnInfo.textContent = playerName + ' places a die';
-        var showHint = (gameState.round === 1) &&
-                       ((gameState.placementTurn === 0) ||
-                        (gameState.placementTurn === 1 && gameMode !== 'ai'));
+        var isHumanTurn = (gameMode !== 'ai') || (gameState.currentPlayer === 'blue');
+        var showHint    = (gameState.round === 1) && isHumanTurn &&
+                          (gameState.placementTurn === 0 ||
+                           gameState.placementTurn === 1);
         if (showHint) {
             var hintHtml = playerName + ' places a die';
             hintHtml += '<br><span class="placement-hint">Tap a die · then tap a pocket</span>';
@@ -1291,19 +1408,22 @@ function nextRound() {
 }
 
 function resetRollButtons() {
-    var blueBtn = document.getElementById('blueRoll');
-    var redBtn  = document.getElementById('redRoll');
+    var blueBtn    = document.getElementById('blueRoll');
+    var redBtn     = document.getElementById('redRoll');
+    var humanIsRed = (gameState.humanColor === 'red');
+
+    // Enforce correct color classes every round
+    blueBtn.classList.toggle('blue-btn', !humanIsRed);
+    blueBtn.classList.toggle('red-btn',   humanIsRed);
+    redBtn.classList.toggle('red-btn',   !humanIsRed);
+    redBtn.classList.toggle('blue-btn',   humanIsRed);
 
     blueBtn.disabled    = false;
-    blueBtn.textContent = 'Blue Roll Dice';
+    blueBtn.textContent = colorLabel('blue') + ' Roll Dice';
     blueBtn.classList.add('hidden');
 
-    redBtn.disabled = false;
-    if (gameMode === 'ai') {
-        redBtn.textContent = 'AI Will Roll';
-    } else {
-        redBtn.textContent = 'Red Roll Dice';
-    }
+    redBtn.disabled    = false;
+    redBtn.textContent = (gameMode === 'ai') ? 'AI Will Roll' : colorLabel('red') + ' Roll Dice';
     redBtn.classList.add('hidden');
 }
 
@@ -1361,6 +1481,7 @@ function endGame() {
             redScore:     gameState.redScore,
             gameMode:     gameMode,
             aiDifficulty: (gameMode === 'ai') ? aiDifficulty : null,
+            humanColor:   gameState.humanColor || 'blue',
             date:         new Date().toISOString()
         });
     }
@@ -1387,7 +1508,8 @@ function newGame() {
         blueRolled: false, redRolled: false, blueFinalRolled: false, redFinalRolled: false,
         finaleMode: false,
         finaleRolls: { blue: [], red: [] },
-        finaleCurrentPlayer: 'blue'
+        finaleCurrentPlayer: 'blue',
+        humanColor: gameState.humanColor || 'blue'
     };
 
     document.getElementById('startRound').textContent   = 'Start Round 1';
@@ -1424,8 +1546,9 @@ function newGame() {
 
     // Fix AI->2player prompt bug — always reset from current gameMode
     if (gameMode === 'ai') {
+        var humanLabel = (gameState.humanColor === 'red') ? 'red' : 'blue';
         document.getElementById('rolloffPrompt').textContent =
-            'Tap your blue die — AI will roll right after.';
+            'Tap your ' + humanLabel + ' die — AI will roll right after.';
     } else {
         document.getElementById('rolloffPrompt').textContent =
             'Tap your die — higher number goes first!';
@@ -1481,6 +1604,11 @@ function newGame() {
 
     var pocketDice = document.querySelectorAll('.pocket-dice');
     pocketDice.forEach(function(c) { c.innerHTML = ''; });
+
+    // Clear any lingering active/highlighted state from previous game
+    document.querySelectorAll('.pocket.active').forEach(function(p) {
+        p.classList.remove('active');
+    });
 
     document.getElementById('blueDiceArea').innerHTML = '';
     document.getElementById('redDiceArea').innerHTML  = '';
@@ -1558,6 +1686,29 @@ function initializeGame() {
 
     var shareFooter = document.getElementById('shareResultFooter');
     if (shareFooter) { shareFooter.addEventListener('click', shareFinalResult); }
+
+    var playAsBlue = document.getElementById('playAsBlue');
+    var playAsRed  = document.getElementById('playAsRed');
+    if (playAsBlue) {
+        playAsBlue.addEventListener('click', function() {
+            if (gameState.humanColor === 'blue') { return; } // already blue, no-op
+            showConfirm(
+                'Switch to Blue?',
+                'Switching colors will start a new game. Current progress will be lost.',
+                function() { setPlayerColor('blue'); newGame(); }
+            );
+        });
+    }
+    if (playAsRed) {
+        playAsRed.addEventListener('click', function() {
+            if (gameState.humanColor === 'red') { return; } // already red, no-op
+            showConfirm(
+                'Switch to Red?',
+                'Switching colors will start a new game. Current progress will be lost.',
+                function() { setPlayerColor('red'); newGame(); }
+            );
+        });
+    }
 
     document.getElementById('twoPlayerMode').addEventListener('click', function() { setGameMode('2player'); });
     document.getElementById('aiMode').addEventListener('click',        function() { setGameMode('ai');      });

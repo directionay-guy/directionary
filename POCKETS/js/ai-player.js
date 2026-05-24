@@ -1,53 +1,20 @@
-// POCKETS AI PLAYER MODULE
-// Intelligent opponent with multiple difficulty levels
+// POCKETS AI PLAYER MODULE — v2.1
+// AI always plays as Red. Human always plays as Blue internally.
+// If human chose "Play as Red," that's a visual/stats swap only — game logic unchanged.
 
 class PocketsAI {
     constructor(difficulty = 'medium') {
-        this.difficulty = difficulty;
-        this.thinking = false;
+        this.difficulty  = difficulty;
+        this.thinking    = false;
         this.personality = this.getPersonality(difficulty);
     }
 
     getPersonality(difficulty) {
-        const personalities = {
-            easy: {
-                name: "Rookie Bot",
-                thinkTime: [800, 1200],
-                randomness: 0.4,
-                lookahead: 1,
-                aggression: 0.3
-            },
-            medium: {
-                name: "Clever Bot", 
-                thinkTime: [1200, 1800],
-                randomness: 0.2,
-                lookahead: 2,
-                aggression: 0.6
-            },
-            hard: {
-                name: "Master Bot",
-                thinkTime: [1800, 2500],
-                randomness: 0.1,
-                lookahead: 3,
-                aggression: 0.8
-            }
-        };
-        return personalities[difficulty] || personalities.medium;
-    }
-
-    async makeMove(gameState) {
-        if (this.thinking) return null;
-        
-        this.thinking = true;
-        const thinkTime = this.getThinkTime();
-        
-        // Simulate thinking delay
-        await new Promise(resolve => setTimeout(resolve, thinkTime));
-        
-        const move = this.calculateBestMove(gameState);
-        this.thinking = false;
-        
-        return move;
+        return {
+            easy:   { name: 'Rookie Bot', thinkTime: [700,  1100], randomness: 0.45, aggression: 0.3  },
+            medium: { name: 'Clever Bot', thinkTime: [1100, 1700], randomness: 0.18, aggression: 0.6  },
+            hard:   { name: 'Master Bot', thinkTime: [1600, 2200], randomness: 0.05, aggression: 0.8  }
+        }[difficulty] || { name: 'Clever Bot', thinkTime: [1100, 1700], randomness: 0.18, aggression: 0.6 };
     }
 
     getThinkTime() {
@@ -55,359 +22,186 @@ class PocketsAI {
         return Math.random() * (max - min) + min;
     }
 
+    // ── Main entry: pick best die→pocket ─────────────────────────────────────
+
     calculateBestMove(gameState) {
-        const availableDice = [...gameState.redDice];
+        const availDice    = [...gameState.redDice];
         const emptyPockets = this.getEmptyPockets();
-        
-        if (availableDice.length === 0 || emptyPockets.length === 0) {
-            return null;
+        if (availDice.length === 0 || emptyPockets.length === 0) { return null; }
+
+        // Hard: holistic — evaluate all assignments, pick best first move
+        if (this.difficulty === 'hard') {
+            return this.planHolistic(availDice, emptyPockets, gameState);
         }
 
-        let bestMove = null;
+        // Easy / Medium: independent pair scoring
+        let bestMove  = null;
         let bestScore = -Infinity;
-
-        // Evaluate each possible die placement
-        availableDice.forEach((dieValue, dieIndex) => {
+        availDice.forEach((dieValue, dieIndex) => {
             emptyPockets.forEach(pocket => {
-                const moveScore = this.evaluateMove(dieValue, pocket, gameState);
-                
-                // Add randomness based on difficulty
-                const randomFactor = (Math.random() - 0.5) * this.personality.randomness * 10;
-                const finalScore = moveScore + randomFactor;
-                
-                if (finalScore > bestScore) {
-                    bestScore = finalScore;
-                    bestMove = {
-                        dieIndex,
-                        dieValue,
-                        pocket,
-                        expectedScore: moveScore
-                    };
+                let score = this.scorePlacement(dieValue, pocket, gameState);
+                score += (Math.random() - 0.5) * this.personality.randomness * 12;
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMove  = { dieIndex, dieValue, pocket, expectedScore: score };
                 }
             });
         });
-
         return bestMove;
     }
 
-    evaluateMove(dieValue, pocket, gameState) {
-        const bluePockets = getDiceFromPockets('blue');
+    // ── Holistic planning: enumerate all assignments ──────────────────────────
+
+    planHolistic(availDice, emptyPockets, gameState) {
+        const numSlots  = Math.min(availDice.length, emptyPockets.length);
+        let bestTotal      = -Infinity;
+        let bestAssignment = null;
+
+        this.permute(availDice.map((v, i) => i), numSlots).forEach(dieIndices => {
+            let total = 0;
+            dieIndices.forEach((dieIdx, slotIdx) => {
+                total += this.scorePlacement(availDice[dieIdx], emptyPockets[slotIdx], gameState);
+            });
+            if (total > bestTotal) {
+                bestTotal      = total;
+                bestAssignment = dieIndices;
+            }
+        });
+
+        // Return first move of best plan
+        const bestDieIdx = bestAssignment[0];
+        return { dieIndex: bestDieIdx, dieValue: availDice[bestDieIdx], pocket: emptyPockets[0], expectedScore: bestTotal };
+    }
+
+    permute(arr, length) {
+        if (length === 0) { return [[]]; }
+        const result = [];
+        arr.forEach((val, idx) => {
+            const rest = [...arr.slice(0, idx), ...arr.slice(idx + 1)];
+            this.permute(rest, length - 1).forEach(sub => result.push([val, ...sub]));
+        });
+        return result;
+    }
+
+    // ── Score a single die→pocket ─────────────────────────────────────────────
+
+    scorePlacement(dieValue, pocket, gameState) {
+        const humanPockets = getDiceFromPockets('blue');
+        const aiScore      = gameState.redScore  || 0;
+        const humanScore   = gameState.blueScore || 0;
+        const scoreDiff    = aiScore - humanScore;
+        const highScore    = Math.max(aiScore, humanScore);
+        const aiCombo      = calculateBonusPoints(gameState.redOriginalRoll || []);
         let score = 0;
 
         switch (pocket) {
             case 'Keep1':
             case 'Keep2':
-                // High dice are good for keeping
                 score = dieValue * 2;
-                
-                // Bonus for very high dice
-                if (dieValue >= 5) score += 5;
+                if (dieValue >= 5) { score += 4; }
+                if (scoreDiff < -15) { score -= 2; } // behind — Keep less attractive
                 break;
-
             case 'Share':
-                score = this.evaluateShareMove(dieValue, bluePockets, gameState);
+                score = this.scoreShare(dieValue, humanPockets, aiCombo, scoreDiff);
                 break;
-
             case 'Save':
-                score = this.evaluateSaveMove(dieValue, gameState);
+                score = this.scoreSave(dieValue, highScore);
                 break;
         }
-
-        // Apply difficulty-based adjustments
-        if (this.difficulty === 'easy') {
-            score *= 0.7; // Reduce strategic thinking
-        } else if (this.difficulty === 'hard') {
-            score *= 1.3; // Enhance strategic thinking
-            score += this.getAdvancedBonus(dieValue, pocket, gameState);
-        }
-
         return score;
     }
 
-    evaluateShareMove(dieValue, bluePockets, gameState) {
-        let score = 0;
-        
-        if (bluePockets.share && bluePockets.share.length > 0) {
-            const blueShareValue = bluePockets.share[0];
-            
-            if (dieValue > blueShareValue) {
-                // We can win the share battle
-                const shareDiff = dieValue - blueShareValue;
-                score = shareDiff * 5; // Base share bonus
-                
-                // Add combo bonus potential
-                const comboBonus = calculateBonusPoints(gameState.redOriginalRoll);
-                score += comboBonus * 3;
-                
-                // Aggressive AI values share battles more
-                score *= (1 + this.personality.aggression);
-            } else if (dieValue === blueShareValue) {
-                // Tie - neutral
-                score = 1;
+    // ── Share scoring ─────────────────────────────────────────────────────────
+
+    scoreShare(dieValue, humanPockets, aiCombo, scoreDiff) {
+        const humanShareDie = (humanPockets.share && humanPockets.share.length > 0)
+            ? humanPockets.share[0] : null;
+
+        if (humanShareDie !== null) {
+            // Human already placed — we know the result
+            if (dieValue > humanShareDie) {
+                const diff = dieValue - humanShareDie;
+                let score  = diff * 5 + aiCombo * 3.5;
+                score *= (1 + this.personality.aggression * 0.5);
+                return score;
+            } else if (dieValue === humanShareDie) {
+                return 0;
             } else {
-                // We lose - penalty
-                score = -5;
+                return -4 - (humanShareDie - dieValue) * 2;
             }
         } else {
-            // Blue hasn't placed share yet - estimate value
-            if (dieValue >= 4) {
-                score = dieValue * 3; // Good positioning
-            } else {
-                score = dieValue; // Weak positioning
-            }
+            // Going first in Share
+            if (dieValue >= 5 && aiCombo >= 3) { return dieValue * 4 + aiCombo * 2; }
+            if (dieValue >= 5)                  { return dieValue * 3; }
+            if (dieValue >= 4)                  { return dieValue * 2; }
+            return dieValue - 4; // Low die going first = risky
         }
-
-        return score;
     }
 
-    evaluateSaveMove(dieValue, gameState) {
-        let score = 0;
-        const currentScore = gameState.redScore;
+    // ── Save scoring — score-based thresholds ─────────────────────────────────
 
-        // Early game (below 50pts): save high dice for Finale potential
-        if (currentScore < 50) {
-            if (dieValue >= 5) {
-                score = 15; // Very valuable to save high dice early
-            } else if (dieValue >= 4) {
-                score = 8;
-            } else {
-                score = -2; // Don't save low dice early
-            }
+    scoreSave(dieValue, highScore) {
+        if (highScore >= 80) {
+            if (dieValue === 6) { return 22; }
+            if (dieValue === 5) { return 14; }
+            if (dieValue === 4) { return  4; }
+            return -12;
         }
-        // Mid game (50-80pts): be more selective
-        else if (currentScore < 80) {
-            if (dieValue >= 6) {
-                score = 12;
-            } else if (dieValue >= 5) {
-                score = 6;
-            } else {
-                score = -5; // Strongly avoid saving low dice
-            }
+        if (highScore >= 50) {
+            if (dieValue >= 5) { return 14; }
+            if (dieValue >= 4) { return  7; }
+            return -3;
         }
-        // Late game (80-100+): save high or nothing — Finale is coming
-        else {
-            if (dieValue === 6) {
-                score = 8;
-            } else if (dieValue === 5) {
-                score = 4;
-            } else {
-                score = -10; // Almost never save low in late game
-            }
-        }
-
-        return score;
+        if (dieValue >= 5) { return 12; }
+        if (dieValue >= 4) { return  5; }
+        return -2;
     }
 
-    getAdvancedBonus(dieValue, pocket, gameState) {
-        let bonus = 0;
-
-        // Look ahead — estimate rounds remaining based on scoring pace
-        if (this.personality.lookahead >= 2) {
-            const pointsToFinale = Math.max(0, 100 - gameState.redScore);
-            const isLateGame = gameState.redScore >= 80 || gameState.blueScore >= 80;
-            const isEarlyGame = gameState.redScore < 50 && gameState.blueScore < 50;
-
-            // Value keeping high dice more in early game
-            if (pocket.includes('Keep') && isEarlyGame) {
-                bonus += dieValue * 0.5;
-            }
-
-            // Consider current score difference
-            const scoreDiff = gameState.redScore - gameState.blueScore;
-            if (scoreDiff < 0) {
-                // We're behind - be more aggressive
-                if (pocket === 'Share') bonus += 3;
-            } else if (scoreDiff > 10) {
-                // We're ahead - play safer
-                if (pocket.includes('Keep')) bonus += 2;
-            }
-        }
-
-        // Pattern recognition (hard difficulty only)
-        if (this.difficulty === 'hard') {
-            bonus += this.getPatternBonus(dieValue, pocket, gameState);
-        }
-
-        return bonus;
-    }
-
-    getPatternBonus(dieValue, pocket, gameState) {
-        let bonus = 0;
-
-        // Analyze opponent's tendencies
-        const bluePockets = getDiceFromPockets('blue');
-        
-        // If blue often saves low dice, we should be more aggressive in shares
-        if (pocket === 'Share' && gameState.blueSavedDie && gameState.blueSavedDie <= 3) {
-            bonus += 2;
-        }
-
-        // If we have combo potential, prioritize share placement
-        const comboValue = calculateBonusPoints(gameState.redOriginalRoll);
-        if (comboValue > 0 && pocket === 'Share') {
-            bonus += comboValue;
-        }
-
-        // Endgame strategy — when either player is close to 100
-        const isLateGame = gameState.redScore >= 80 || gameState.blueScore >= 80;
-        if (isLateGame) {
-            const scoreDiff = gameState.redScore - gameState.blueScore;
-            
-            if (scoreDiff < -15) {
-                // Desperate - take risks
-                if (pocket === 'Share') bonus += 5;
-            } else if (scoreDiff > 15) {
-                // Comfortable lead - play safe
-                if (pocket.includes('Keep')) bonus += 3;
-            }
-        }
-
-        return bonus;
-    }
+    // ── Find empty red pockets ────────────────────────────────────────────────
 
     getEmptyPockets() {
-        const emptyPockets = [];
-        const pocketNames = ['Keep1', 'Keep2', 'Share', 'Save'];
-        
-        pocketNames.forEach(pocket => {
-            const pocketElement = document.getElementById(`red${pocket}`);
-            if (pocketElement && pocketElement.querySelectorAll('.dice').length === 0) {
-                emptyPockets.push(pocket);
-            }
+        return ['Keep1', 'Keep2', 'Share', 'Save'].filter(pocket => {
+            const el = document.getElementById('red' + pocket);
+            return el && el.querySelectorAll('.dice').length === 0;
         });
-        
-        return emptyPockets;
-    }
-
-    // Public interface for the game engine
-    selectDie() {
-        if (this.difficulty === 'easy') {
-            // Random selection for easy AI
-            return Math.floor(Math.random() * gameState.redDice.length);
-        } else {
-            // Strategic selection for medium/hard AI
-            const diceWithIndex = gameState.redDice.map((value, index) => ({ value, index }));
-            
-            if (this.difficulty === 'medium') {
-                // Prefer higher dice but with some randomness
-                diceWithIndex.sort((a, b) => b.value - a.value);
-                const useTopHalf = Math.random() < 0.7;
-                const halfSize = Math.ceil(diceWithIndex.length / 2);
-                const selection = useTopHalf ? diceWithIndex.slice(0, halfSize) : diceWithIndex.slice(halfSize);
-                return selection[Math.floor(Math.random() * selection.length)].index;
-            } else {
-                // Hard AI uses optimal selection
-                return this.selectOptimalDie();
-            }
-        }
-    }
-
-    selectOptimalDie() {
-        const bluePockets = getDiceFromPockets('blue');
-        const diceWithIndex = gameState.redDice.map((value, index) => ({ value, index }));
-        const emptyPockets = this.getEmptyPockets();
-        
-        // If we can win share battle, prioritize that die
-        if (emptyPockets.includes('Share') && bluePockets.share) {
-            const blueShareValue = bluePockets.share[0];
-            const beatingDice = diceWithIndex.filter(d => d.value > blueShareValue);
-            if (beatingDice.length > 0) {
-                return beatingDice.reduce((best, current) => 
-                    current.value > best.value ? current : best
-                ).index;
-            }
-        }
-        
-        // If keep pockets available, use highest dice
-        if (emptyPockets.some(p => p.includes('Keep'))) {
-            diceWithIndex.sort((a, b) => b.value - a.value);
-            return diceWithIndex[0].index;
-        }
-        
-        // Default to highest available die
-        diceWithIndex.sort((a, b) => b.value - a.value);
-        return diceWithIndex[0].index;
-    }
-
-    choosePocket(dieValue) {
-        const emptyPockets = this.getEmptyPockets();
-        if (emptyPockets.length === 0) return null;
-
-        if (this.difficulty === 'easy') {
-            // Random choice for easy AI
-            return emptyPockets[Math.floor(Math.random() * emptyPockets.length)];
-        } else {
-            // Strategic choice using move evaluation
-            const move = this.calculateBestMove(gameState);
-            return move ? move.pocket : emptyPockets[0];
-        }
-    }
-
-    getStatusMessage() {
-        const messages = {
-            easy: ["Thinking...", "Hmm...", "Let me see..."],
-            medium: ["Calculating...", "Analyzing options...", "Planning strategy..."],
-            hard: ["Deep analysis...", "Considering all possibilities...", "Optimizing placement..."]
-        };
-        
-        const options = messages[this.difficulty] || messages.medium;
-        return options[Math.floor(Math.random() * options.length)];
     }
 }
 
-// Create global AI instance
+// ── Singleton ─────────────────────────────────────────────────────────────────
+
 let pocketsAI = new PocketsAI('medium');
 
-// AI interface functions for the game engine
-async function makeAIMove() {
-    if (gameMode !== 'ai' || gameState.currentPlayer !== 'red' || aiThinking) {
-        return;
-    }
-    // Don't interfere during Finale — Finale has its own roll flow
-    if (gameState.finaleMode) { return; }
+function setAIDifficulty(difficulty) {
+    aiDifficulty = difficulty;
+    pocketsAI    = new PocketsAI(difficulty);
+    ['easyAI', 'mediumAI', 'hardAI'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) { btn.classList.remove('active'); }
+    });
+    const btn = document.getElementById(difficulty + 'AI');
+    if (btn) { btn.classList.add('active'); }
+}
+
+// ── AI move execution ─────────────────────────────────────────────────────────
+
+function makeAIMoveExternal() {
+    if (!gameState || !gameMode) { return; }
+    if (gameMode !== 'ai' || gameState.currentPlayer !== 'red' || aiThinking) { return; }
 
     aiThinking = true;
-    updateGameStatus();
+    setTimeout(function() {
+        try {
+            const move = pocketsAI.calculateBestMove(gameState);
+            if (!move) { aiThinking = false; return; }
 
-    try {
-        const move = await pocketsAI.makeMove(gameState);
-
-        if (move && move.dieIndex !== null && move.pocket) {
-            // Capture value at selection time — required by placeDieInPocket
             const capturedValue = gameState.redDice[move.dieIndex];
             gameState.selectedDie = { player: 'red', index: move.dieIndex, value: capturedValue };
-            const pocketElement = document.getElementById(`red${move.pocket}`);
-            if (pocketElement) {
-                placeDieInPocket(pocketElement);
-            }
+
+            const pocketEl = document.getElementById('red' + move.pocket);
+            if (pocketEl) { placeDieInPocket(pocketEl); }
+        } catch (err) {
+            console.error('AI move error:', err);
         }
-    } catch (error) {
-        console.error('AI move failed:', error);
-        // Fallback to simple random move
-        const dieIndex = Math.floor(Math.random() * gameState.redDice.length);
-        const capturedValue = gameState.redDice[dieIndex];
-        const emptyPockets = pocketsAI.getEmptyPockets();
-        if (emptyPockets.length > 0) {
-            gameState.selectedDie = { player: 'red', index: dieIndex, value: capturedValue };
-            const pocket = emptyPockets[Math.floor(Math.random() * emptyPockets.length)];
-            const pocketElement = document.getElementById(`red${pocket}`);
-            if (pocketElement) {
-                placeDieInPocket(pocketElement);
-            }
-        }
-    }
-
-    aiThinking = false;
+        aiThinking = false;
+    }, pocketsAI.getThinkTime());
 }
-
-function updateAIDifficulty(difficulty) {
-    pocketsAI = new PocketsAI(difficulty);
-    aiDifficulty = difficulty;
-}
-
-// Export for use in other modules
-window.PocketsAI = {
-    PocketsAI,
-    makeAIMove,
-    updateAIDifficulty
-};

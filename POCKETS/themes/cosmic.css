@@ -1572,10 +1572,10 @@ body.theme-cosmic::after {
 }
 .theme-cosmic .finale-running-total.bumped { transform: scale(1.25); }
 .theme-cosmic .finale-bonus {
-    font-size: 0.85em;
+    font-size: 1.05em;
     color: var(--orange);
     font-style: italic;
-    min-height: 1.2em;
+    min-height: 1.4em;
 }
 .theme-cosmic .pocket.finale-hidden { display: none; }
 .theme-cosmic .dimmed-die { opacity: 0.35; }
@@ -1609,3 +1609,21 @@ body.theme-cosmic::after {
     border-radius: 0;
 }
 body.has-css-fullscreen { overflow: hidden; }
+
+/* ==========================================================
+   PLAYING AS RED — visual color swap
+   ========================================================== */
+.game-container.playing-as-red .player-area.blue {
+    border-top-color: var(--orange) !important;
+    box-shadow: var(--shadow-soft), 0 0 20px rgba(255,126,62,0.15), inset 0 1px 0 rgba(245,233,208,0.04) !important;
+}
+.game-container.playing-as-red .player-area.red {
+    border-top-color: var(--teal) !important;
+    box-shadow: var(--shadow-soft), 0 0 20px rgba(61,214,196,0.15), inset 0 1px 0 rgba(245,233,208,0.04) !important;
+}
+.game-container.playing-as-red .player-area.blue .player-header {
+    color: var(--orange) !important; text-shadow: 0 0 8px var(--orange-glow) !important;
+}
+.game-container.playing-as-red .player-area.red .player-header {
+    color: var(--teal) !important; text-shadow: 0 0 8px var(--teal-glow) !important;
+}

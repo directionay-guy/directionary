@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="POCKETS">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POCKETS — An Original Dice Game for Two</title>
     <style>
@@ -32,7 +35,18 @@
         }
 
         /* ── Theme switcher ── */
-        select.theme-subtitle {
+        .theme-selector-wrap {
+            display: inline-flex; align-items: center; gap: 4px; vertical-align: middle;
+        }
+        .theme-icon-glow {
+            font-size: 1.1em;
+            filter: drop-shadow(0 0 5px rgba(210, 210, 230, 0.8)) drop-shadow(0 0 2px rgba(255,255,255,0.5));
+            line-height: 1;
+            pointer-events: none;
+            user-select: none;
+        }
+        
+select.theme-subtitle {
             appearance: none; -webkit-appearance: none;
             background-color: transparent; border: none; color: inherit;
             font: inherit; text-align: center; text-align-last: center;
@@ -515,6 +529,19 @@
             color: #f0f6ff;
             border-color: rgba(160,190,240,0.95);
         }
+
+        /* ── Stats tabs ── */
+        .stats-tabs { display: flex; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 8px; }
+        .stats-tab-btn { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: inherit; padding: 5px 14px; border-radius: 4px; cursor: pointer; font-size: 0.9em; opacity: 0.6; transition: opacity 0.2s; }
+        .stats-tab-btn.active { opacity: 1; border-color: currentColor; font-weight: 700; }
+        .stats-tab-btn:hover { opacity: 0.85; }
+        .stats-footer { margin-top: 16px; text-align: center; }
+        .stats-clear-btn { font-size: 0.85em; opacity: 0.7; }
+        .stats-clear-btn:hover { opacity: 1; }
+
+        /* ── Play As toggle ── */
+        .play-as-toggle { display: flex; align-items: center; gap: 8px; }
+        .play-as-toggle.hidden { display: none; }
     </style>
     <link id="theme-css" rel="stylesheet" href="themes/victorian.css"></head>
 <body class="theme-victorian">
@@ -529,13 +556,14 @@
             <div class="header-ornament bottom-right"></div>
             <h1 class="game-title"><svg class="title-die" viewBox="-25 -25 50 50" width="44" height="44" aria-hidden="true"><polygon class="td-face td-top" points="0,-20 17.3,-10 0,0 -17.3,-10"/><polygon class="td-face td-right" points="17.3,-10 17.3,10 0,20 0,0"/><polygon class="td-face td-left" points="-17.3,-10 -17.3,10 0,20 0,0"/><line class="td-edge" x1="0" y1="-20" x2="0" y2="0"/><line class="td-edge" x1="0" y1="0" x2="0" y2="20"/><line class="td-edge" x1="-17.3" y1="-10" x2="0" y2="0"/><line class="td-edge" x1="17.3" y1="-10" x2="0" y2="0"/><circle class="td-pip" cx="0" cy="-15" r="1.4"/><circle class="td-pip" cx="-8.65" cy="-10" r="1.4"/><circle class="td-pip" cx="0" cy="-10" r="1.4"/><circle class="td-pip" cx="8.65" cy="-10" r="1.4"/><circle class="td-pip" cx="0" cy="-5" r="1.4"/><circle class="td-pip" cx="5.2" cy="1" r="1.4"/><circle class="td-pip" cx="12.1" cy="-3" r="1.4"/><circle class="td-pip" cx="5.2" cy="7" r="1.4"/><circle class="td-pip" cx="12.1" cy="3" r="1.4"/><circle class="td-pip" cx="5.2" cy="13" r="1.4"/><circle class="td-pip" cx="12.1" cy="9" r="1.4"/><circle class="td-pip" cx="-12.97" cy="-2.5" r="1.4"/><circle class="td-pip" cx="-4.33" cy="2.5" r="1.4"/><circle class="td-pip" cx="-12.97" cy="7.5" r="1.4"/><circle class="td-pip" cx="-4.33" cy="12.5" r="1.4"/></svg> POCKETS <svg class="title-die" viewBox="-25 -25 50 50" width="44" height="44" aria-hidden="true"><polygon class="td-face td-top" points="0,-20 17.3,-10 0,0 -17.3,-10"/><polygon class="td-face td-right" points="17.3,-10 17.3,10 0,20 0,0"/><polygon class="td-face td-left" points="-17.3,-10 -17.3,10 0,20 0,0"/><line class="td-edge" x1="0" y1="-20" x2="0" y2="0"/><line class="td-edge" x1="0" y1="0" x2="0" y2="20"/><line class="td-edge" x1="-17.3" y1="-10" x2="0" y2="0"/><line class="td-edge" x1="17.3" y1="-10" x2="0" y2="0"/><circle class="td-pip" cx="0" cy="-15" r="1.4"/><circle class="td-pip" cx="-8.65" cy="-10" r="1.4"/><circle class="td-pip" cx="0" cy="-10" r="1.4"/><circle class="td-pip" cx="8.65" cy="-10" r="1.4"/><circle class="td-pip" cx="0" cy="-5" r="1.4"/><circle class="td-pip" cx="5.2" cy="1" r="1.4"/><circle class="td-pip" cx="12.1" cy="-3" r="1.4"/><circle class="td-pip" cx="5.2" cy="7" r="1.4"/><circle class="td-pip" cx="12.1" cy="3" r="1.4"/><circle class="td-pip" cx="5.2" cy="13" r="1.4"/><circle class="td-pip" cx="12.1" cy="9" r="1.4"/><circle class="td-pip" cx="-12.97" cy="-2.5" r="1.4"/><circle class="td-pip" cx="-4.33" cy="2.5" r="1.4"/><circle class="td-pip" cx="-12.97" cy="7.5" r="1.4"/><circle class="td-pip" cx="-4.33" cy="12.5" r="1.4"/></svg></h1>
             <p class="subtitle">An Original Dice Game for Two Players</p>
-            <select class="theme-subtitle" id="themeSelector" aria-label="Choose theme">
-                <option value="victorian">🎩 Victorian Edition</option>
-                <option value="steampunk">⚙️ Steampunk Edition</option>
-                <option value="art-deco">🏛️ Art Deco Edition</option>
-                <option value="cosmic">🌌 Cosmic Edition</option>
-                <option value="dark">⬛ Dark Mode</option>
-            </select>
+            <span class="theme-selector-wrap">
+                <span id="themeIcon" class="theme-icon-glow">🎩</span><select class="theme-subtitle" id="themeSelector" aria-label="Choose theme">
+                <option value="victorian">Victorian Edition</option>
+                <option value="steampunk">Steampunk Edition</option>
+                <option value="art-deco">Art Deco Edition</option>
+                <option value="cosmic">Cosmic Edition</option>
+                <option value="dark">Dark Mode</option>
+            </select></span>
         </div>
 
         <div class="game-mode" id="gameMode">
@@ -550,6 +578,13 @@
                     <button class="difficulty-btn active" id="easyAI">Easy</button>
                     <button class="difficulty-btn" id="mediumAI">Medium</button>
                     <button class="difficulty-btn" id="hardAI">Hard</button>
+                </div>
+            </div>
+            <div class="play-as-toggle hidden" id="playAsToggle">
+                <span class="gm-label">Play as:</span>
+                <div class="gm-group">
+                    <button class="difficulty-btn active" id="playAsBlue">🔵 Blue</button>
+                    <button class="difficulty-btn" id="playAsRed">🔴 Red</button>
                 </div>
             </div>
         </div>
@@ -662,7 +697,6 @@
                 <div class="final-celebration hidden" id="finalCelebration">
                     <div class="winner-announcement" id="winnerAnnouncement"></div>
                     <div class="final-margin" id="finalMargin"></div>
-                    <button class="btn" id="shareResult">📱 Share Result</button>
                     <button class="btn start-btn" id="closeFinalModal">Continue</button>
                 </div>
             </div>
@@ -671,7 +705,7 @@
         <!-- Game Board -->
         <div class="game-board">
             <div class="player-area blue">
-                <div class="player-header blue-player">BLUE PLAYER</div>
+                <div class="player-header blue-player" id="bluePlayerHeader">BLUE PLAYER</div>
                 <div class="dice-area" id="blueDiceArea"></div>
                 <div class="pockets">
                     <div class="pocket" id="blueKeep1" data-player="blue" data-pocket="keep1">
@@ -736,11 +770,11 @@
 
         <div class="scores">
             <div class="score-area" id="blueScoreArea">
-                <h3 class="blue-player">Blue Player Score</h3>
+                <h3 class="blue-player" id="blueScoreLabel">Blue Player Score</h3>
                 <div class="score-display" id="blueScore">0</div>
             </div>
             <div class="score-area" id="redScoreArea">
-                <h3 class="red-player">Red Player Score</h3>
+                <h3 class="red-player" id="redScoreLabel">Red Player Score</h3>
                 <div class="score-display" id="redScore">0</div>
             </div>
         </div>
@@ -748,13 +782,10 @@
         <div class="stats-panel hidden" id="statsPanel">
             <h3>Player Statistics</h3>
             <div id="statsContent"></div>
-            <button class="btn action-btn" id="exportStats">Export Stats</button>
-            <button class="btn action-btn" id="clearStats">Clear Stats</button>
         </div>
 
         <div class="new-game-section">
             <button class="btn action-btn" id="newGame">New Game</button>
-            <button class="btn hidden" id="shareResultFooter">📱 Share Result</button>
             <button class="btn action-btn" id="viewStats" onclick="if(typeof toggleStatsPanel==='function'){toggleStatsPanel();}else if(window.PocketsStats){window.PocketsStats.toggleStatsPanel();}">View Stats</button>
         </div>
 
@@ -804,7 +835,7 @@
 
     <script>
         // ── Theme switching ──────────────────────────────
-        const themeSelector = document.getElementById('themeSelector');
+const themeSelector = document.getElementById('themeSelector');
         const themeCss      = document.getElementById('theme-css');
         function loadSavedTheme() {
             const saved = localStorage.getItem('pockets-theme') || 'victorian';
@@ -818,6 +849,9 @@
         function switchTheme(theme) {
             themeCss.href = `themes/${theme}.css`;
             document.body.className = `theme-${theme}`;
+            var icons = {victorian:'🎩', steampunk:'⚙️', 'art-deco':'🏛️', cosmic:'🌌', dark:'⬛'};
+            var el = document.getElementById('themeIcon');
+            if (el) { el.textContent = icons[theme] || '🎩'; }
         }
 
         // ── Rules modal ──────────────────────────────────
@@ -1229,7 +1263,7 @@
                 loadSavedTheme();
                 if (typeof initializeGame === 'function') initializeGame();
                 else console.warn('game-engine.js not loaded');
-                if (typeof pocketsStats !== 'undefined') {
+                if (typeof pocketsStats !== 'undefined' && typeof pocketsStats.getPreference === 'function') {
                     const saved = pocketsStats.getPreference('aiDifficulty');
                     if (saved && typeof updateAIDifficulty === 'function') updateAIDifficulty(saved);
                 }

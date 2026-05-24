@@ -980,10 +980,10 @@
 }
 .theme-steampunk .finale-running-total.bumped { transform: scale(1.25); }
 .theme-steampunk .finale-bonus {
-    font-size: 0.85em;
+    font-size: 1.05em;
     color: var(--sp-cream);
     font-style: italic;
-    min-height: 1.2em;
+    min-height: 1.4em;
 }
 .theme-steampunk .pocket.finale-hidden { display: none; }
 .theme-steampunk .dimmed-die { opacity: 0.35; }
@@ -1016,3 +1016,25 @@
     border-radius: 0;
 }
 body.has-css-fullscreen { overflow: hidden; }
+
+/* ==========================================================
+   PLAYING AS RED — visual color swap
+   ========================================================== */
+.game-container.playing-as-red .player-area.blue {
+    background:
+        repeating-linear-gradient(-55deg, transparent 0, transparent 2px, rgba(255,100,80,0.012) 2px, rgba(255,100,80,0.012) 3px),
+        linear-gradient(150deg, var(--sp-red-mid) 0%, var(--sp-red) 60%, #0e0404 100%) !important;
+    border-color: var(--sp-red-edge) !important;
+    border-top-color: var(--sp-red-hi) !important; border-left-color: var(--sp-red-hi) !important;
+    border-bottom-color: var(--sp-red-lo) !important; border-right-color: var(--sp-red-lo) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.40), inset 0 2px 4px rgba(255,100,80,0.07), 0 0 18px var(--sp-red-glow) !important;
+}
+.game-container.playing-as-red .player-area.red {
+    background:
+        repeating-linear-gradient(-55deg, transparent 0, transparent 2px, rgba(100,180,255,0.012) 2px, rgba(100,180,255,0.012) 3px),
+        linear-gradient(150deg, var(--sp-blue-mid) 0%, var(--sp-blue) 60%, #0a1828 100%) !important;
+    border-color: var(--sp-blue-edge) !important;
+    border-top-color: var(--sp-blue-hi) !important; border-left-color: var(--sp-blue-hi) !important;
+    border-bottom-color: var(--sp-blue-lo) !important; border-right-color: var(--sp-blue-lo) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.40), inset 0 2px 4px rgba(100,180,255,0.07), 0 0 18px var(--sp-blue-glow) !important;
+}
