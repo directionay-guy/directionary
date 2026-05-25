@@ -61,8 +61,8 @@ class PocketsStats {
         const oc     = (hc === 'blue') ? 'red' : 'blue';  // opponent's color
         const hScore = (hc === 'blue') ? gameResult.blueScore : gameResult.redScore;
         const oScore = (hc === 'blue') ? gameResult.redScore  : gameResult.blueScore;
-        const hWon   = gameResult.winner === (hc === 'blue' ? 'Blue' : 'Red');
-        const oWon   = gameResult.winner === (oc === 'blue' ? 'Blue' : 'Red');
+        const hWon   = gameResult.winner === 'Blue'; // human is ALWAYS Blue internally
+        const oWon   = gameResult.winner === 'Red';  // opponent always Red internally
         const tied   = gameResult.winner === 'Tie' || gameResult.winner === 'tie';
 
         // Save to human's profile
