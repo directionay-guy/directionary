@@ -1,0 +1,655 @@
+/* POCKETS — BITMAP THEME
+   In loving memory of Bitmap 🐱 and her brother Vector.
+   Design language: Mac System 1 (1984).
+   Light grey ground, white panels, 1px black borders,
+   no gradients, no shadows, no rounded corners, no nonsense.
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+/* ==========================================================
+   PALETTE TOKENS
+   ========================================================== */
+body.theme-bitmap {
+    --mac-white:    #ffffff;
+    --mac-grey:     #c0c0c0;
+    --mac-grey-mid: #d0ccc4;
+    --mac-grey-hi:  #e4e0d8;
+    --mac-black:    #000000;
+    --mac-grey-dk:  #555550;
+
+    --bm-blue:      #000080;
+    --bm-blue-panel:#dde4f4;
+    --bm-red:       #800000;
+    --bm-red-panel: #f4dddd;
+
+    --bm-line:      1px solid #000000;
+    --bm-line-dk:   2px solid #000000;
+
+    /* Mac checkerboard selection pattern — lighter version for readability */
+    --bm-active:    repeating-linear-gradient(
+                        45deg,
+                        rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px,
+                        #fff 1px, #fff 5px
+                    );
+
+    background:  var(--mac-grey);
+    color:       var(--mac-black);
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size:   16px;
+    letter-spacing: 0.02em;
+    padding: 10px !important;
+}
+
+/* ==========================================================
+   CONTAINER
+   ========================================================== */
+.theme-bitmap .game-container {
+    max-width: 960px;
+    margin: 0 auto;
+    background: var(--mac-grey);
+    border: var(--bm-line-dk);
+    box-shadow: 3px 3px 0 #808080;
+}
+
+/* ==========================================================
+   HEADER — Mac window title bar with drag stripes
+   ========================================================== */
+.theme-bitmap .game-header {
+    background: var(--mac-white);
+    border-bottom: var(--bm-line);
+    padding: 10px 16px 8px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+/* Horizontal drag stripes across full header */
+.theme-bitmap .game-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent 0px, transparent 5px,
+        rgba(0,0,0,0.10) 5px, rgba(0,0,0,0.10) 6px
+    );
+    pointer-events: none;
+}
+/* White box behind the title text — classic Mac title bar clear zone */
+.theme-bitmap .game-header::after {
+    content: '';
+    position: absolute;
+    top: 4px; left: 80px; right: 80px;
+    bottom: 4px;
+    background: var(--mac-white);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Kitty 🐱 — tucked in top-left, only Bitmap's person knows why */
+.theme-bitmap .header-ornament {
+    position: absolute;
+    width: 16px; height: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    z-index: 3;
+    color: transparent;
+}
+.theme-bitmap .header-ornament.top-left  { top: 6px;    left: 6px; }
+.theme-bitmap .header-ornament.top-right { top: 6px;    right: 6px; }
+.theme-bitmap .header-ornament.bottom-left  { bottom: 6px; left: 6px; }
+.theme-bitmap .header-ornament.bottom-right { bottom: 6px; right: 6px; }
+
+/* The kitty lives here — small, quiet, and easy to miss */
+.theme-bitmap .header-ornament.top-left::before {
+    content: '🐱';
+    font-size: 13px;
+    opacity: 0.60;
+    color: initial;
+    position: absolute;
+}
+
+.theme-bitmap .game-title {
+    font-size: 2em;
+    font-weight: normal;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--mac-black);
+    margin: 0 0 2px 0;
+    position: relative; z-index: 2;
+}
+.theme-bitmap .subtitle {
+    font-size: 1em;
+    color: var(--mac-grey-dk);
+    letter-spacing: 0.06em;
+    margin: 0 0 2px 0;
+    position: relative; z-index: 2;
+}
+.theme-bitmap .theme-subtitle,
+.theme-bitmap select {
+    font-size: 0.9em;
+    color: var(--mac-grey-dk);
+    background: var(--mac-white);
+    border: var(--bm-line);
+    padding: 1px 4px;
+    position: relative; z-index: 2;
+    font-family: inherit;
+}
+
+/* ==========================================================
+   GAME MODE BAR
+   ========================================================== */
+.theme-bitmap .game-mode {
+    background: var(--mac-grey-mid);
+    border: var(--bm-line);
+    border-top: none;
+    padding: 5px 12px !important;
+    margin-bottom: 8px !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.theme-bitmap .gm-label {
+    color: var(--mac-grey-dk);
+    font-size: 0.85em;
+}
+.theme-bitmap .mode-btn,
+.theme-bitmap .difficulty-btn {
+    background: var(--mac-white);
+    color: var(--mac-black);
+    border: var(--bm-line);
+    padding: 2px 10px;
+    font-family: inherit;
+    font-size: 0.85em;
+    cursor: pointer;
+    box-shadow: 1px 1px 0 #000;
+    border-radius: 0;
+}
+.theme-bitmap .mode-btn:hover,
+.theme-bitmap .difficulty-btn:hover { background: var(--mac-grey-hi); }
+.theme-bitmap .mode-btn.active,
+.theme-bitmap .difficulty-btn.active {
+    background: var(--mac-black);
+    color: var(--mac-white);
+    box-shadow: none;
+}
+.theme-bitmap .fullscreen-btn {
+    background: var(--mac-white);
+    color: var(--mac-black);
+    border: var(--bm-line);
+    padding: 2px 8px;
+    font-family: inherit;
+    font-size: 0.78em;
+    cursor: pointer;
+    margin-left: auto;
+    box-shadow: 1px 1px 0 #000;
+    border-radius: 0;
+}
+.theme-bitmap .fullscreen-btn:hover { background: var(--mac-grey-hi); }
+.theme-bitmap .help-btn {
+    background: var(--mac-white);
+    color: var(--mac-black);
+    border: var(--bm-line);
+    padding: 2px 8px;
+    font-family: inherit;
+    font-size: 0.85em;
+    cursor: pointer;
+    box-shadow: 1px 1px 0 #000;
+    border-radius: 0;
+}
+.theme-bitmap .help-btn:hover { background: var(--mac-grey-hi); }
+
+/* ==========================================================
+   ROUND INFO BAR
+   ========================================================== */
+.theme-bitmap .round-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--mac-grey-mid);
+    border: var(--bm-line);
+    border-top: none;
+    padding: 4px 12px;
+    margin-bottom: 8px;
+    font-size: 0.95em;
+    color: var(--mac-black);
+}
+
+/* ==========================================================
+   ACTION PANEL
+   ========================================================== */
+.theme-bitmap .action-panel {
+    background: var(--mac-grey-hi);
+    border: var(--bm-line);
+    border-top: none;
+    margin-bottom: 0;
+    color: var(--mac-black);
+}
+.theme-bitmap .action-content { background: var(--mac-grey-hi); }
+.theme-bitmap .context-text   { color: var(--mac-black) !important; font-size: 1.3em; }
+.theme-bitmap .roll-hint      { color: var(--mac-grey-dk) !important; font-size: 1.1em; }
+.theme-bitmap .rolloff-prompt { color: var(--mac-black) !important; font-size: 1.3em; }
+.theme-bitmap .rolloff-result { color: var(--mac-black) !important; font-size: 1.3em; }
+.theme-bitmap .rolloff-result.winner { color: var(--mac-black) !important; font-weight: bold; font-size: 1.4em; }
+.theme-bitmap .rolloff-vs     { color: var(--mac-grey-dk) !important; font-size: 1.3em; }
+.theme-bitmap .turn-info      { color: var(--mac-black) !important; font-size: 1.2em; }
+.theme-bitmap .score-summary  { color: var(--mac-black) !important; font-size: 1.2em; }
+.theme-bitmap .share-result   { color: var(--mac-black) !important; font-size: 1.2em; }
+
+/* ==========================================================
+   BUTTONS
+   ========================================================== */
+.theme-bitmap .btn {
+    background: var(--mac-white);
+    color: var(--mac-black);
+    border: var(--bm-line);
+    border-radius: 0;
+    padding: 5px 16px;
+    font-family: inherit;
+    font-size: 1em;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 #000;
+    letter-spacing: 0.04em;
+    transition: none;
+}
+.theme-bitmap .btn:hover { background: var(--mac-grey-hi); }
+.theme-bitmap .btn:active { box-shadow: none; transform: translate(2px,2px); }
+.theme-bitmap .btn.blue-btn { border-color: var(--bm-blue); color: var(--bm-blue); }
+.theme-bitmap .btn.red-btn  { border-color: var(--bm-red);  color: var(--bm-red);  }
+.theme-bitmap .start-btn {
+    border: var(--bm-line-dk);
+    font-size: 1.1em;
+    box-shadow: 3px 3px 0 #000;
+    letter-spacing: 0.1em;
+}
+
+/* ==========================================================
+   ROLLOFF DICE
+   ========================================================== */
+.theme-bitmap #blueRolloffDie svg.dice .dice-face {
+    fill: var(--bm-blue-panel); stroke: var(--bm-blue); stroke-width: 2;
+}
+.theme-bitmap #blueRolloffDie svg.dice .dice-dot { fill: var(--bm-blue); }
+.theme-bitmap #redRolloffDie  svg.dice .dice-face {
+    fill: var(--bm-red-panel); stroke: var(--bm-red); stroke-width: 2;
+}
+.theme-bitmap #redRolloffDie  svg.dice .dice-dot { fill: var(--bm-red); }
+.theme-bitmap .rolloff-die { filter: none; }
+.theme-bitmap .rolloff-die:disabled { opacity: 1 !important; }
+
+/* ==========================================================
+   PLAYER AREAS — side by side always
+   ========================================================== */
+.theme-bitmap .game-board {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0;
+    border: var(--bm-line);
+    border-top: none;
+}
+.theme-bitmap .player-areas {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+}
+.theme-bitmap .player-area {
+    background: var(--mac-white);
+    border: none;
+    padding: 10px 12px;
+}
+.theme-bitmap .player-area.blue {
+    background: var(--bm-blue-panel);
+    border-right: var(--bm-line);
+}
+.theme-bitmap .player-area.red {
+    background: var(--bm-red-panel);
+}
+.theme-bitmap .player-header,
+.theme-bitmap .player-name {
+    text-align: center;
+    font-size: 1.1em;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    padding: 3px 0;
+    border-bottom: var(--bm-line);
+    color: var(--mac-black);
+}
+.theme-bitmap .player-area.blue .player-header,
+.theme-bitmap .player-area.blue .player-name { color: var(--bm-blue); }
+.theme-bitmap .player-area.red  .player-header,
+.theme-bitmap .player-area.red  .player-name { color: var(--bm-red);  }
+
+/* ==========================================================
+   DICE
+   ========================================================== */
+.theme-bitmap .dice-area {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    align-items: center;
+    padding: 6px 0;
+    min-height: 48px;
+    background: var(--mac-grey-hi);
+    border: var(--bm-line);
+    margin-bottom: 6px;
+}
+.theme-bitmap .player-area.blue svg.dice .dice-face {
+    fill: var(--bm-blue-panel); stroke: var(--bm-blue); stroke-width: 1.5;
+}
+.theme-bitmap .player-area.blue svg.dice .dice-dot { fill: var(--bm-blue); }
+.theme-bitmap .player-area.red  svg.dice .dice-face {
+    fill: var(--bm-red-panel);  stroke: var(--bm-red);  stroke-width: 1.5;
+}
+.theme-bitmap .player-area.red  svg.dice .dice-dot { fill: var(--bm-red);  }
+
+/* ==========================================================
+   POCKETS
+   ========================================================== */
+.theme-bitmap .pocket {
+    background: var(--mac-white);
+    border: var(--bm-line);
+    border-radius: 0;
+    padding: 6px 8px;
+    margin-bottom: 4px;
+    min-height: 50px;
+    box-shadow: none;
+    cursor: pointer;
+}
+.theme-bitmap .pocket:hover { background: var(--mac-grey-hi); }
+.theme-bitmap .player-area.blue .pocket.active {
+    background: var(--bm-active);
+    border-color: var(--bm-blue);
+}
+.theme-bitmap .player-area.red  .pocket.active {
+    background: var(--bm-active);
+    border-color: var(--bm-red);
+}
+.theme-bitmap .pocket-label {
+    font-size: 0.85em;
+    font-weight: bold;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--mac-grey-dk);
+    margin-bottom: 2px;
+    display: inline-block;
+    background: rgba(255,255,255,0.85);
+    padding: 0 3px;
+}
+.theme-bitmap .pocket-dice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    flex-wrap: wrap;
+    gap: 3px;
+}
+.theme-bitmap .pocket-score { color: var(--mac-black) !important; }
+.theme-bitmap .player-area.blue .share-pocket .pocket-score { left:  4px; right: auto; }
+.theme-bitmap .player-area.red  .share-pocket .pocket-score { right: 4px; left:  auto; }
+
+/* ==========================================================
+   BONUS LEGEND
+   ========================================================== */
+.theme-bitmap .bonus-legend {
+    background: var(--mac-white);
+    border: var(--bm-line);
+    border-top: none;
+    padding: 6px 12px;
+    text-align: center;
+    font-size: 0.85em;
+    color: var(--mac-black);
+}
+.theme-bitmap .bonus-legend h4 {
+    font-size: 0.9em;
+    font-weight: bold;
+    color: var(--mac-black);
+    margin: 0 0 3px 0;
+    letter-spacing: 0.04em;
+}
+
+/* ==========================================================
+   SCORE AREAS — side by side
+   ========================================================== */
+.theme-bitmap .scores {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+}
+.theme-bitmap .score-area {
+    background: var(--mac-white);
+    border: var(--bm-line);
+    border-top: none;
+    text-align: center;
+    padding: 8px;
+    color: var(--mac-black);
+}
+.theme-bitmap #blueScoreArea {
+    background: var(--bm-blue-panel);
+    border-right: none;
+}
+.theme-bitmap #redScoreArea {
+    background: var(--bm-red-panel);
+}
+.theme-bitmap .score-area h3,
+.theme-bitmap .blue-player { color: var(--bm-blue); }
+.theme-bitmap .red-player  { color: var(--bm-red);  }
+.theme-bitmap .score-display,
+.theme-bitmap .score-value {
+    font-size: 2em;
+    font-weight: bold;
+    color: var(--mac-black);
+}
+.theme-bitmap .score-area.winner { outline: var(--bm-line-dk); }
+.theme-bitmap .winner-text {
+    color: var(--mac-black);
+    font-weight: bold;
+    font-size: 1.1em;
+    letter-spacing: 0.1em;
+}
+
+/* ==========================================================
+   NEW GAME / STATS BUTTONS
+   ========================================================== */
+.theme-bitmap .new-game-section {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px;
+    background: var(--mac-grey-mid);
+    border: var(--bm-line);
+    border-top: none;
+}
+.theme-bitmap .action-btn { box-shadow: 2px 2px 0 #000; }
+
+/* ==========================================================
+   WINNER PULSE
+   ========================================================== */
+.theme-bitmap .winner-pulse {
+    color: var(--mac-black) !important;
+    font-size: 1.6em;
+    letter-spacing: 0.15em;
+    font-weight: bold;
+    text-shadow: none !important;
+}
+
+/* ==========================================================
+   MODAL
+   ========================================================== */
+.theme-bitmap .modal-overlay  { background: rgba(0,0,0,0.5); }
+.theme-bitmap .modal-content,
+.theme-bitmap .help-modal {
+    background: var(--mac-white);
+    border: var(--bm-line-dk);
+    border-radius: 0;
+    box-shadow: 4px 4px 0 #000;
+    color: var(--mac-black);
+}
+.theme-bitmap .modal-header {
+    background: var(--mac-black);
+    color: var(--mac-white);
+    border-bottom: var(--bm-line);
+    padding: 6px 12px;
+    font-size: 1em;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+.theme-bitmap .modal-body {
+    color: var(--mac-black);
+    font-family: inherit;
+    font-size: 1em;
+    line-height: 1.6;
+}
+.theme-bitmap .modal-body h3,
+.theme-bitmap .modal-body h4 {
+    color: var(--mac-black);
+    font-weight: bold;
+    border-bottom: var(--bm-line);
+    padding-bottom: 2px;
+    margin-bottom: 6px;
+}
+.theme-bitmap .help-combo-table td {
+    border-bottom: var(--bm-line);
+    padding: 3px 6px;
+    color: var(--mac-black);
+}
+.theme-bitmap .help-combo-table td:last-child { color: var(--bm-blue); font-weight: bold; }
+.theme-bitmap .guide-nav-btn {
+    background: var(--mac-white);
+    border: var(--bm-line);
+    color: var(--bm-blue);
+    padding: 2px 8px;
+    font-family: inherit;
+    font-size: 0.85em;
+    box-shadow: 1px 1px 0 #000;
+    border-radius: 0;
+}
+
+/* ==========================================================
+   STATS PANEL
+   ========================================================== */
+.theme-bitmap .stats-panel {
+    background: var(--mac-white);
+    border: var(--bm-line);
+    border-top: none;
+    color: var(--mac-black);
+}
+.theme-bitmap .stats-panel h3 {
+    background: var(--mac-black);
+    color: var(--mac-white);
+    margin: 0;
+    padding: 4px 12px;
+    font-size: 1em;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+.theme-bitmap .stat-card {
+    background: var(--mac-grey-hi);
+    border: var(--bm-line);
+    padding: 10px;
+    color: var(--mac-black);
+}
+.theme-bitmap .stat-card h4 {
+    color: var(--mac-black);
+    font-weight: bold;
+    border-bottom: var(--bm-line);
+    padding-bottom: 2px;
+    margin: 0 0 6px 0;
+    font-size: 0.95em;
+}
+.theme-bitmap .stat-row { border-bottom: 1px dotted #999; padding: 2px 0; color: var(--mac-black); }
+.theme-bitmap .stat-value { color: var(--bm-blue); font-weight: bold; }
+.theme-bitmap .stats-tab-btn {
+    background: var(--mac-white);
+    color: var(--mac-black);
+    border: var(--bm-line);
+    box-shadow: 1px 1px 0 #000;
+    border-radius: 0;
+}
+.theme-bitmap .stats-tab-btn.active { background: var(--mac-black); color: var(--mac-white); box-shadow: none; }
+.theme-bitmap .achievement-item { border-bottom: var(--bm-line); padding: 4px 0; color: var(--mac-black); }
+.theme-bitmap .achievement-description { color: var(--mac-grey-dk); font-size: 0.85em; }
+
+/* ==========================================================
+   ROLLDOWN POCKET
+   ========================================================== */
+.theme-bitmap .finale-pocket {
+    grid-column: span 2;
+    background: var(--mac-white);
+    border: var(--bm-line-dk);
+    padding: 10px 14px;
+    text-align: center;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-shadow: 3px 3px 0 #000;
+}
+.theme-bitmap .finale-pocket.hidden { display: none; }
+.theme-bitmap .finale-pocket .pocket-label {
+    font-size: 0.85em;
+    letter-spacing: 0.12em;
+    color: var(--mac-grey-dk);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+.theme-bitmap .finale-running-total {
+    font-size: 2.4em;
+    font-weight: bold;
+    color: var(--mac-black);
+    line-height: 1;
+    transition: transform 0.15s ease;
+}
+.theme-bitmap .finale-running-total.bumped { transform: scale(1.25); }
+.theme-bitmap .finale-bonus { font-size: 1.05em; color: var(--bm-blue); font-style: italic; min-height: 1.4em; }
+.theme-bitmap .pocket.finale-hidden { display: none; }
+.theme-bitmap .dimmed-die { opacity: 0.35; }
+.theme-bitmap .finale-btn {
+    background: var(--mac-white);
+    border: var(--bm-line-dk);
+    color: var(--mac-black);
+    font-family: inherit;
+    font-size: 1.1em;
+    letter-spacing: 0.1em;
+    box-shadow: 3px 3px 0 #000;
+    border-radius: 0;
+    animation: bm-pulse 1.8s ease-in-out infinite;
+}
+.theme-bitmap .finale-btn:hover { background: var(--mac-grey-hi); }
+@keyframes bm-pulse {
+    0%,100% { box-shadow: 3px 3px 0 #000; }
+    50%      { box-shadow: 1px 1px 0 #000; transform: translate(1px,1px); }
+}
+
+/* ==========================================================
+   CSS PSEUDO-FULLSCREEN
+   ========================================================== */
+.game-container.css-fullscreen {
+    position: fixed; top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 9999; overflow-y: auto;
+    margin: 0; max-width: none; border-radius: 0;
+}
+body.has-css-fullscreen { overflow: hidden; }
+
+/* ==========================================================
+   PLAYING AS RED — swap blue/red panels
+   ========================================================== */
+.game-container.playing-as-red .player-area.blue { background: var(--bm-red-panel) !important; }
+.game-container.playing-as-red .player-area.red  { background: var(--bm-blue-panel) !important; }
+.game-container.playing-as-red .player-area.blue .player-header,
+.game-container.playing-as-red .player-area.blue .player-name { color: var(--bm-red) !important; }
+.game-container.playing-as-red .player-area.red  .player-header,
+.game-container.playing-as-red .player-area.red  .player-name { color: var(--bm-blue) !important; }
+.game-container.playing-as-red .player-area.blue .pocket.active { border-color: var(--bm-red) !important; }
+.game-container.playing-as-red .player-area.red  .pocket.active { border-color: var(--bm-blue) !important; }
+/* Small dice color swap */
+.game-container.playing-as-red .player-area.blue svg.dice .dice-face { fill: var(--bm-red-panel) !important; stroke: var(--bm-red) !important; }
+.game-container.playing-as-red .player-area.blue svg.dice .dice-dot  { fill: var(--bm-red) !important; }
+.game-container.playing-as-red .player-area.red  svg.dice .dice-face { fill: var(--bm-blue-panel) !important; stroke: var(--bm-blue) !important; }
+.game-container.playing-as-red .player-area.red  svg.dice .dice-dot  { fill: var(--bm-blue) !important; }
+.game-container.playing-as-red #blueScoreArea { background: var(--bm-red-panel) !important; }
+.game-container.playing-as-red #redScoreArea  { background: var(--bm-blue-panel) !important; }

@@ -474,18 +474,21 @@ function setRolloffDieFaded(buttonEl) {
     var svg = createDieSVG(1, 'rolloff-' + buttonEl.id, showAsBlue);
     buttonEl.appendChild(svg);
 
-    // Force face color via inline important style — beats all CSS specificity
+    // Force face+dot colors when swapped — reads theme CSS vars so each theme looks right
     if (gameState.humanColor === 'red') {
+        var cs = getComputedStyle(document.documentElement);
+        // Bitmap uses pale panel tones; other themes use dark burgundy/navy
+        var humanFace = cs.getPropertyValue('--bm-red-panel').trim()  ||
+                        cs.getPropertyValue('--burgundy').trim()       || '#6e3030';
+        var aiFace    = cs.getPropertyValue('--bm-blue-panel').trim() ||
+                        cs.getPropertyValue('--navy').trim()           || '#2a3559';
+        var humanDot  = cs.getPropertyValue('--bm-red').trim()        || '#c8a84b';
+        var aiDot     = cs.getPropertyValue('--bm-blue').trim()       || '#c8a84b';
         var face = svg.querySelector('.dice-face');
-        if (face) {
-            // Human die (blue button) → show as red; AI die (red button) → show as blue
-            var computedStyle = getComputedStyle(document.documentElement);
-            var humanFill = computedStyle.getPropertyValue('--burgundy').trim() ||
-                            computedStyle.getPropertyValue('--sp-red-mid').trim() || '#6e3030';
-            var aiFill    = computedStyle.getPropertyValue('--navy').trim() ||
-                            computedStyle.getPropertyValue('--sp-blue').trim() || '#2a3559';
-            face.style.setProperty('fill', isBlueButton ? humanFill : aiFill, 'important');
-        }
+        if (face) { face.style.setProperty('fill', isBlueButton ? humanFace : aiFace, 'important'); }
+        svg.querySelectorAll('.dice-dot').forEach(function(d) {
+            d.style.setProperty('fill', isBlueButton ? humanDot : aiDot, 'important');
+        });
     }
 }
 
@@ -527,15 +530,21 @@ function rolloffRollDie(player) {
     dieEl.innerHTML = '';
     dieEl.appendChild(rollSvg);
 
-    // Force face color to match visual swap
+    // Force face+dot colors to match visual swap, using theme-aware CSS vars
     if (gameState.humanColor === 'red') {
+        var cs = getComputedStyle(document.documentElement);
+        var humanFace = cs.getPropertyValue('--bm-red-panel').trim()  ||
+                        cs.getPropertyValue('--burgundy').trim()       || '#6e3030';
+        var aiFace    = cs.getPropertyValue('--bm-blue-panel').trim() ||
+                        cs.getPropertyValue('--navy').trim()           || '#2a3559';
+        var humanDot  = cs.getPropertyValue('--bm-red').trim()        || '#c8a84b';
+        var aiDot     = cs.getPropertyValue('--bm-blue').trim()       || '#c8a84b';
+        var isHuman   = (player === 'blue');
         var face = rollSvg.querySelector('.dice-face');
-        if (face) {
-            var cs = getComputedStyle(document.documentElement);
-            var humanFill = cs.getPropertyValue('--burgundy').trim() || '#6e3030';
-            var aiFill    = cs.getPropertyValue('--navy').trim()     || '#2a3559';
-            face.style.setProperty('fill', (player === 'blue') ? humanFill : aiFill, 'important');
-        }
+        if (face) { face.style.setProperty('fill', isHuman ? humanFace : aiFace, 'important'); }
+        rollSvg.querySelectorAll('.dice-dot').forEach(function(d) {
+            d.style.setProperty('fill', isHuman ? humanDot : aiDot, 'important');
+        });
     }
 
     if (!alreadyParked) {
@@ -1423,7 +1432,7 @@ function resetRollButtons() {
     blueBtn.classList.add('hidden');
 
     redBtn.disabled    = false;
-    redBtn.textContent = (gameMode === 'ai') ? 'AI Will Roll' : colorLabel('red') + ' Roll Dice';
+    redBtn.textContent = colorLabel('red') + ' Roll Dice';
     redBtn.classList.add('hidden');
 }
 
@@ -1448,7 +1457,7 @@ function endGame() {
             pulseEl.textContent = "IT'S A TIE!";
             pulseEl.className   = 'winner-pulse silver-pulse';
         } else {
-            pulseEl.textContent = winner.toUpperCase() + ' WINS!';
+            pulseEl.textContent = colorLabel(winner.toLowerCase()).toUpperCase() + ' WINS!';
             pulseEl.className   = 'winner-pulse silver-pulse';
         }
     }
