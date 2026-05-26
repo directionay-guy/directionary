@@ -353,17 +353,19 @@ body.theme-bitmap {
     border-radius: 0;
     padding: 4px 8px;
     margin-bottom: 4px;
-    height: 64px;
+    height: 82px;
+    min-height: 82px;
+    max-height: 82px;
     box-sizing: border-box;
     overflow: hidden;
     box-shadow: none;
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
 }
-.theme-bitmap .share-pocket { height: 72px; }
-.theme-bitmap .save-pocket  { height: 64px; }
+.theme-bitmap .share-pocket { height: 82px; min-height: 82px; max-height: 82px; }
+.theme-bitmap .save-pocket  { height: 82px; min-height: 82px; max-height: 82px; }
 .theme-bitmap .pocket:hover { background: var(--mac-grey-hi); }
 .theme-bitmap .player-area.blue .pocket.active {
     background: var(--bm-active);
@@ -388,10 +390,14 @@ body.theme-bitmap {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 32px;
-    flex-wrap: wrap;
+    height: 52px;
+    min-height: 52px;
+    max-height: 52px;
+    overflow: hidden;
+    flex-wrap: nowrap;
     gap: 3px;
 }
+.theme-bitmap .pocket-dice svg.dice { flex-shrink: 0; }
 .theme-bitmap .pocket-score { color: var(--mac-black) !important; }
 .theme-bitmap .player-area.blue .share-pocket .pocket-score { left:  4px; right: auto; }
 .theme-bitmap .player-area.red  .share-pocket .pocket-score { right: 4px; left:  auto; }
