@@ -351,12 +351,19 @@ body.theme-bitmap {
     background: var(--mac-white);
     border: var(--bm-line);
     border-radius: 0;
-    padding: 6px 8px;
+    padding: 4px 8px;
     margin-bottom: 4px;
-    min-height: 50px;
+    height: 64px;
+    box-sizing: border-box;
+    overflow: hidden;
     box-shadow: none;
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
+.theme-bitmap .share-pocket { height: 72px; }
+.theme-bitmap .save-pocket  { height: 64px; }
 .theme-bitmap .pocket:hover { background: var(--mac-grey-hi); }
 .theme-bitmap .player-area.blue .pocket.active {
     background: var(--bm-active);
