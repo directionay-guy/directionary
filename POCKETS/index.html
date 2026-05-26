@@ -34,7 +34,79 @@
             position: relative;
         }
 
-        /* ── Theme switcher ── */
+        /* ── Help & Strategy modal — clean legible style for all themes except dark ── */
+        body:not(.theme-dark) #helpModal .modal-content,
+        body:not(.theme-dark) #strategyModal .modal-content {
+            background: #f8f7f4 !important;
+            color: #1a1a1a !important;
+            border: 1px solid #ccc !important;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.18) !important;
+            font-family: Georgia, 'Times New Roman', serif !important;
+        }
+        body:not(.theme-dark) #helpModal .modal-header,
+        body:not(.theme-dark) #strategyModal .modal-header {
+            background: #2a2a2a !important;
+            color: #f0f0f0 !important;
+            border-bottom: 1px solid #444 !important;
+            font-family: Georgia, serif !important;
+        }
+        body:not(.theme-dark) #helpModal .modal-body,
+        body:not(.theme-dark) #strategyModal .modal-body,
+        body:not(.theme-dark) #helpContent,
+        body:not(.theme-dark) #strategyContent {
+            background: #f8f7f4 !important;
+            color: #1a1a1a !important;
+            font-family: Georgia, 'Times New Roman', serif !important;
+            font-size: 1em !important;
+            font-weight: normal !important;
+            line-height: 1.7 !important;
+        }
+        body:not(.theme-dark) #helpContent h3,
+        body:not(.theme-dark) #helpContent h4,
+        body:not(.theme-dark) #strategyContent h3,
+        body:not(.theme-dark) #strategyContent h4 {
+            color: #2a2a2a !important;
+            font-family: Georgia, serif !important;
+            font-weight: bold !important;
+            border-bottom: 1px solid #ccc !important;
+        }
+        body:not(.theme-dark) #helpContent p,
+        body:not(.theme-dark) #helpContent li,
+        body:not(.theme-dark) #strategyContent p,
+        body:not(.theme-dark) #strategyContent li {
+            color: #1a1a1a !important;
+            font-weight: normal !important;
+        }
+        body:not(.theme-dark) #helpContent strong,
+        body:not(.theme-dark) #strategyContent strong {
+            color: #111 !important;
+            font-weight: bold !important;
+        }
+        body:not(.theme-dark) #helpContent .help-combo-table td,
+        body:not(.theme-dark) #strategyContent .help-combo-table td {
+            color: #1a1a1a !important;
+            border-bottom: 1px solid #ddd !important;
+        }
+        body:not(.theme-dark) #helpContent .help-combo-table td:last-child,
+        body:not(.theme-dark) #strategyContent .help-combo-table td:last-child {
+            color: #800000 !important;
+            font-weight: bold !important;
+        }
+        body:not(.theme-dark) #helpContent .guide-nav-btn,
+        body:not(.theme-dark) #strategyContent .guide-nav-btn {
+            background: #fff !important;
+            color: #000080 !important;
+            border: 1px solid #999 !important;
+        }
+        body:not(.theme-dark) #helpContent .guide-back-top,
+        body:not(.theme-dark) #strategyContent .guide-back-top {
+            color: #000080 !important;
+        }
+        body:not(.theme-dark) #helpContent .help-section,
+        body:not(.theme-dark) #strategyContent .help-section {
+            background: transparent !important;
+            border-color: #ddd !important;
+        }
         .theme-selector-wrap {
             display: inline-flex; align-items: center; gap: 4px; vertical-align: middle;
         }
@@ -899,7 +971,7 @@ const themeSelector = document.getElementById('themeSelector');
     <li><strong>Keep #1 + Keep #2:</strong> Both dice score every round. No opposition. This is your reliable income.</li>
     <li><strong>Share:</strong> Higher die wins the <em>difference</em> in pips, plus a combo bonus from the winner's original 4-die roll. The loser scores zero from Share.</li>
     <li><strong>Save:</strong> Scores nothing this round. The saved die becomes your fourth die next round (you roll only 3 new), and your fifth die in the Rolldown.</li>
-    <li><strong>Rolldown:</strong> Triggered when either player crosses 100 points. Both players roll 4 dice. Your saved die is the fifth. All 5 score directly — no pockets, no Share battle. Combo bonuses apply across all 5 dice.</li>
+    <li><strong>Rolldown:</strong> Triggered when either player crosses 100 points at the end of a round. Both players roll 4 dice. Your saved die is the fifth. All 5 score directly — no pockets, no Share battle. Combo bonuses apply across all 5 dice.</li>
   </ul>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
@@ -984,7 +1056,7 @@ const themeSelector = document.getElementById('themeSelector');
 
 <div class="help-section" id="sg-rolldown">
   <h3>The Rolldown</h3>
-  <p>When either player crosses 100 points, the next round is the Rolldown. The player with the highest score clicks Start Rolldown.</p>
+  <p>When either player crosses 100 points at the end of a round, the next round is the Rolldown. The player with the highest score clicks Start Rolldown.</p>
   <ul>
     <li>Your saved die from the previous round sits in its pocket — already chosen, untouched.</li>
     <li>Both players roll 4 new dice in the roll bar, alternating one die at a time.</li>
@@ -1084,7 +1156,7 @@ const themeSelector = document.getElementById('themeSelector');
   <ul>
     <li><strong>Round 1:</strong> Both players roll 4 dice and place them into pockets.</li>
     <li><strong>Rounds 2 onward:</strong> Roll 3 fresh dice — your saved die from last round is the fourth.</li>
-    <li><strong>Rolldown:</strong> Triggered when either player crosses 100 points. Both players roll 4 new dice — your saved die is the fifth. All 5 score directly.</li>
+    <li><strong>Rolldown:</strong> Triggered when either player crosses 100 points at the end of a round. Both players roll 4 new dice — your saved die is the fifth. All 5 score directly.</li>
     <li><strong>Four Pockets:</strong> Keep Two #1, Keep Two #2, Share One, Save One.</li>
   </ul>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
@@ -1093,8 +1165,8 @@ const themeSelector = document.getElementById('themeSelector');
 <div class="help-section" id="rules-round">
   <h3>🎲 Round Structure</h3>
   <ol>
-    <li><strong>Roll-Off:</strong> Each player taps their die — higher number goes first in placement. Ties roll again.</li>
-    <li><strong>Roll Dice:</strong> Both players roll.</li>
+    <li><strong>Roll-Off:</strong> Each player rolls one die — higher number goes first in placement. Ties roll again.</li>
+    <li><strong>Roll Dice:</strong> Both players roll their dice — 4 in Round 1, then 3 fresh dice each subsequent round (your saved die is the fourth).</li>
     <li><strong>Place Dice:</strong> Players alternate placing one die at a time into pockets.</li>
     <li><strong>Score Round:</strong> Points calculated. If either player has crossed 100, the Rolldown button appears.</li>
   </ol>
@@ -1106,7 +1178,7 @@ const themeSelector = document.getElementById('themeSelector');
   <ul>
     <li><strong>🎯 Keep Two #1 &amp; #2:</strong> Each holds 1 die. Both dice add to your score each round.</li>
     <li><strong>⚔️ Share One:</strong> Higher die wins the difference in pips, plus a combo bonus based on the winner's original 4-die roll. Loser gets nothing from Share.</li>
-    <li><strong>💎 Save One:</strong> Scores nothing this round — becomes your 4th die next round, and your 5th die in the Rolldown. Whatever is here when the Rolldown triggers is your Rolldown die.</li>
+    <li><strong>💎 Save One:</strong> Scores nothing this round — becomes your 4th die next round, and your 5th die in the Rolldown.</li>
   </ul>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
 </div>
@@ -1132,7 +1204,7 @@ const themeSelector = document.getElementById('themeSelector');
 
 <div class="help-section" id="rules-finale">
   <h3>🎲 The Rolldown</h3>
-  <p>When either player crosses 100 points, the Rolldown begins. The player with the higher score clicks <strong>Start Rolldown</strong>.</p>
+  <p>When either player crosses 100 points at the end of a round, the Rolldown begins. The player with the higher score clicks <strong>Start Rolldown</strong>.</p>
   <ul>
     <li>Your saved die stays in its pocket — already chosen.</li>
     <li>Both players roll 4 new dice, alternating one at a time.</li>
@@ -1148,7 +1220,7 @@ const themeSelector = document.getElementById('themeSelector');
   <ul>
     <li><strong>Keep:</strong> Your safe floor. Both dice score, no opposition. A reasonable destination for any die that doesn't have a stronger case elsewhere.</li>
     <li><strong>Share:</strong> The leverage play. Win for the difference plus your combo bonus; lose and the die scores nothing. Push hard with a real combo or a dominant high die.</li>
-    <li><strong>Save:</strong> Investment. Scores 0 this round but compounds over time and becomes your fifth Rolldown die. Save 5s and 6s when you can.</li>
+    <li><strong>Save:</strong> Investment. Scores 0 this round but carries forward as your fourth die each round, then becomes your fifth die in the Rolldown. Save 5s and 6s when you can.</li>
     <li><strong>Watch your opponent's Save pocket and the score</strong> — when either player nears 100, the Rolldown is imminent.</li>
   </ul>
   <p>See the full <strong>Strategy Guide</strong> button for deeper play.</p>
