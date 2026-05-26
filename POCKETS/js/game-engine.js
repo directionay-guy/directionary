@@ -467,6 +467,7 @@ function startFirstPlayerRolloff() {
 }
 
 function setRolloffDieFaded(buttonEl) {
+    console.log('[setRolloffDieFaded] id=' + buttonEl.id + ' humanColor=' + gameState.humanColor + ' isBitmap=' + document.body.classList.contains('theme-bitmap'));
     buttonEl.innerHTML = '';
     buttonEl.classList.add('faded');
     var isBlueButton = (buttonEl.id === 'blueRolloffDie');
@@ -476,18 +477,30 @@ function setRolloffDieFaded(buttonEl) {
 
     // Force face+dot colors when swapped — reads theme CSS vars so each theme looks right
     if (gameState.humanColor === 'red') {
-        var cs = getComputedStyle(document.documentElement);
-        // Bitmap uses pale panel tones; other themes use dark burgundy/navy
-        var humanFace = cs.getPropertyValue('--bm-red-panel').trim()  ||
-                        cs.getPropertyValue('--burgundy').trim()       || '#6e3030';
-        var aiFace    = cs.getPropertyValue('--bm-blue-panel').trim() ||
-                        cs.getPropertyValue('--navy').trim()           || '#2a3559';
-        var humanDot  = cs.getPropertyValue('--bm-red').trim()        || '#c8a84b';
-        var aiDot     = cs.getPropertyValue('--bm-blue').trim()       || '#c8a84b';
+        var cs        = getComputedStyle(document.body);
+        var isBitmap  = document.body.classList.contains('theme-bitmap');
+        var humanFace, aiFace, humanDot, aiDot;
+        if (isBitmap) {
+            humanFace = '#f4dddd';
+            aiFace    = '#dde4f4';
+            humanDot  = '#800000';
+            aiDot     = '#000080';
+        } else {
+            humanFace = cs.getPropertyValue('--burgundy').trim() || '#6e3030';
+            aiFace    = cs.getPropertyValue('--navy').trim()     || '#2a3559';
+            humanDot  = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
+            aiDot     = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
+        }
+        var faceFill   = isBlueButton ? humanFace : aiFace;
+        var faceStroke = isBlueButton ? humanDot  : aiDot;  // stroke matches dot color
+        var dotFill    = isBlueButton ? humanDot  : aiDot;
+        console.log('[Rolloff die] id=' + buttonEl.id + ' isBlueButton=' + isBlueButton + ' isBitmap=' + isBitmap + ' fill=' + faceFill);
         var face = svg.querySelector('.dice-face');
-        if (face) { face.style.setProperty('fill', isBlueButton ? humanFace : aiFace, 'important'); }
+        if (face) {
+            face.setAttribute('style', 'fill: ' + faceFill + ' !important; stroke: ' + faceStroke + ' !important;');
+        }
         svg.querySelectorAll('.dice-dot').forEach(function(d) {
-            d.style.setProperty('fill', isBlueButton ? humanDot : aiDot, 'important');
+            d.setAttribute('style', 'fill: ' + dotFill + ' !important;');
         });
     }
 }
@@ -532,18 +545,28 @@ function rolloffRollDie(player) {
 
     // Force face+dot colors to match visual swap, using theme-aware CSS vars
     if (gameState.humanColor === 'red') {
-        var cs = getComputedStyle(document.documentElement);
-        var humanFace = cs.getPropertyValue('--bm-red-panel').trim()  ||
-                        cs.getPropertyValue('--burgundy').trim()       || '#6e3030';
-        var aiFace    = cs.getPropertyValue('--bm-blue-panel').trim() ||
-                        cs.getPropertyValue('--navy').trim()           || '#2a3559';
-        var humanDot  = cs.getPropertyValue('--bm-red').trim()        || '#c8a84b';
-        var aiDot     = cs.getPropertyValue('--bm-blue').trim()       || '#c8a84b';
-        var isHuman   = (player === 'blue');
+        var cs       = getComputedStyle(document.body);
+        var isBitmap = document.body.classList.contains('theme-bitmap');
+        var humanFace, aiFace, humanDot, aiDot;
+        if (isBitmap) {
+            humanFace = '#f4dddd'; aiFace = '#dde4f4';
+            humanDot  = '#800000'; aiDot  = '#000080';
+        } else {
+            humanFace = cs.getPropertyValue('--burgundy').trim() || '#6e3030';
+            aiFace    = cs.getPropertyValue('--navy').trim()     || '#2a3559';
+            humanDot  = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
+            aiDot     = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
+        }
+        var isHuman    = (player === 'blue');
+        var faceFill   = isHuman ? humanFace : aiFace;
+        var faceStroke = isHuman ? humanDot  : aiDot;
+        var dotFill    = isHuman ? humanDot  : aiDot;
         var face = rollSvg.querySelector('.dice-face');
-        if (face) { face.style.setProperty('fill', isHuman ? humanFace : aiFace, 'important'); }
+        if (face) {
+            face.setAttribute('style', 'fill: ' + faceFill + ' !important; stroke: ' + faceStroke + ' !important;');
+        }
         rollSvg.querySelectorAll('.dice-dot').forEach(function(d) {
-            d.style.setProperty('fill', isHuman ? humanDot : aiDot, 'important');
+            d.setAttribute('style', 'fill: ' + dotFill + ' !important;');
         });
     }
 
@@ -976,6 +999,11 @@ function getDiceFromPockets(player) {
 
 function calculateRoundScore() {
     gameState.phase = 'scoring';
+
+    // Belt-and-suspenders: ensure no pockets remain highlighted
+    document.querySelectorAll('.pocket.active').forEach(function(p) {
+        p.classList.remove('active');
+    });
 
     var bluePockets = getDiceFromPockets('blue');
     var redPockets  = getDiceFromPockets('red');
