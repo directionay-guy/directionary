@@ -306,6 +306,10 @@ select.theme-subtitle {
         .game-mode .mode-btn,.game-mode .difficulty-btn { padding:7px 14px !important;font-size:0.92em !important;margin:0 !important; }
         .game-mode .ai-difficulty { display:inline-flex;align-items:center;gap:8px;padding:0 !important;margin:0 !important;border:none !important;background:transparent !important; }
         .game-mode .ai-difficulty.hidden { display:none !important; }
+        /* Compact dropdown controls — hidden globally, shown only by compact.css */
+        .compact-controls { display: none !important; }
+        .compact-sel-label { display: none !important; }
+        .compact-sel { display: none !important; }
 
         /* ── New game section ── */
         .new-game-section { display:flex;justify-content:center;align-items:stretch;gap:12px;flex-wrap:wrap; }
@@ -682,6 +686,25 @@ select.theme-subtitle {
                     <button class="difficulty-btn active" id="playAsBlue">🔵 Blue</button>
                     <button class="difficulty-btn" id="playAsRed">🔴 Red</button>
                 </div>
+            </div>
+            <!-- Compact theme dropdowns: hidden in all other themes -->
+            <div class="compact-controls" id="compactControls">
+                <span class="compact-sel-label">Mode:</span>
+                <select class="compact-sel" id="cMode">
+                    <option value="2player">2P</option>
+                    <option value="ai">AI</option>
+                </select>
+                <span class="compact-sel-label" id="cDiffLabel" style="display:none">Diff:</span>
+                <select class="compact-sel" id="cDiff" style="display:none">
+                    <option value="easy">Easy</option>
+                    <option value="medium">Med</option>
+                    <option value="hard">Hard</option>
+                </select>
+                <span class="compact-sel-label" id="cPlayLabel" style="display:none">Play:</span>
+                <select class="compact-sel" id="cPlay" style="display:none">
+                    <option value="blue">Blue</option>
+                    <option value="red">Red</option>
+                </select>
             </div>
         </div>
 
