@@ -1729,6 +1729,39 @@ function initializeGame() {
     document.getElementById('mediumAI').addEventListener('click', function() { setAIDifficulty('medium'); });
     document.getElementById('hardAI').addEventListener('click',   function() { setAIDifficulty('hard');   });
 
+    // Compact theme dropdown equivalents
+    var cMode = document.getElementById('cMode');
+    var cDiff = document.getElementById('cDiff');
+    var cPlay = document.getElementById('cPlay');
+    if (cMode) {
+        cMode.addEventListener('change', function() {
+            setGameMode(this.value);
+            var isAI = (this.value === 'ai');
+            cDiff.style.display = isAI ? '' : 'none';
+            cPlay.style.display = isAI ? '' : 'none';
+            var cDiffLabel = document.getElementById('cDiffLabel');
+            var cPlayLabel = document.getElementById('cPlayLabel');
+            if (cDiffLabel) { cDiffLabel.style.display = isAI ? '' : 'none'; }
+            if (cPlayLabel) { cPlayLabel.style.display = isAI ? '' : 'none'; }
+        });
+    }
+    if (cDiff) {
+        cDiff.addEventListener('change', function() {
+            setAIDifficulty(this.value);
+        });
+    }
+    if (cPlay) {
+        cPlay.addEventListener('change', function() {
+            var chosen = this.value;
+            if (gameState.phase !== 'setup' && gameState.round > 0) {
+                showConfirm('Change player color?', 'Current game will be lost.',
+                    function() { setPlayerColor(chosen); newGame(); });
+            } else {
+                setPlayerColor(chosen);
+            }
+        });
+    }
+
     document.getElementById('viewStats').addEventListener('click', function() {
         if (typeof toggleStatsPanel === 'function') {
             toggleStatsPanel();
