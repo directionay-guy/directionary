@@ -32,14 +32,26 @@ body.theme-compact {
    CONTAINER — narrow, centered
    ========================================================== */
 .theme-compact .game-container {
-    max-width: 500px;
-    min-width: 320px;
+    max-width: 420px;
+    min-width: 300px;
     margin: 0 auto;
     background: var(--navy);
     border: 1px solid var(--gold-dim);
     border-radius: 6px;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
+/* Reorder: legend appears after scores */
+.theme-compact .game-header      { order: 1; }
+.theme-compact .game-mode        { order: 2; }
+.theme-compact .round-info       { order: 3; }
+.theme-compact .action-panel     { order: 4; }
+.theme-compact .game-board       { order: 5; }
+.theme-compact .scores           { order: 6; }
+.theme-compact .bonus-legend     { order: 7; }
+.theme-compact .new-game-section { order: 8; }
+.theme-compact .stats-panel      { order: 9; }
 
 /* ==========================================================
    HEADER — tight single bar
@@ -76,7 +88,9 @@ body.theme-compact {
 .theme-compact select {
     font-size: 0.75em;
     color: var(--gold);
-    background: transparent;
+    background-color: transparent;
+    background-repeat: no-repeat !important;
+    background-position: right 6px center !important;
     border: none;
     letter-spacing: 0.08em;
     font-family: inherit;
@@ -99,27 +113,52 @@ body.theme-compact {
     flex-wrap: wrap;
     min-height: 28px;
 }
-.theme-compact .gm-label {
-    color: var(--gold);
-    font-size: 0.72em;
-    letter-spacing: 0.04em;
+/* Hide standard button groups in compact — replaced by dropdowns */
+.theme-compact .gm-label        { display: none; }
+.theme-compact .gm-group        { display: none; }
+.theme-compact #aiDifficulty    { display: none !important; }
+.theme-compact #playAsToggle    { display: none !important; }
+.theme-compact .mode-btn        { display: none; }
+.theme-compact .difficulty-btn  { display: none; }
+/* Show compact dropdown controls */
+.compact-controls { display: none; }
+.theme-compact .compact-controls {
+    display: flex !important;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    flex-wrap: nowrap;
+    overflow: hidden;
 }
-.theme-compact .mode-btn,
-.theme-compact .difficulty-btn {
-    background: rgba(200,168,75,0.10);
+.compact-sel { display: none; }
+.theme-compact .compact-sel {
+    display: inline-block !important;
+    background-color: var(--navy-mid);
+    background-repeat: no-repeat !important;
+    background-position: right 5px center !important;
+    background-size: 10px !important;
     color: var(--parchment);
     border: 1px solid var(--gold-dim);
-    padding: 1px 7px;
+    padding: 2px 22px 2px 7px;
     font-family: inherit;
-    font-size: 0.72em;
+    font-size: 0.75em;
     cursor: pointer;
     border-radius: 3px;
+    appearance: none;
+    -webkit-appearance: none;
 }
-.theme-compact .mode-btn.active,
-.theme-compact .difficulty-btn.active {
-    background: var(--burgundy);
-    border-color: var(--gold);
-    color: var(--parchment-hi);
+.theme-compact .compact-sel option {
+    background: var(--navy-mid);
+    color: var(--parchment);
+}
+/* Label prefixes before each compact select */
+.theme-compact #cMode::before   { content: "Mode: "; }
+.theme-compact .compact-sel-label {
+    display: inline !important;
+    color: var(--gold);
+    font-size: 0.68em;
+    white-space: nowrap;
+    letter-spacing: 0.04em;
 }
 .theme-compact .fullscreen-btn {
     margin-left: auto;
@@ -159,28 +198,40 @@ body.theme-compact {
     gap: 6px;
 }
 .theme-compact .round-info strong { font-size: 0.9em; }
+.theme-compact .round-info .help-btn {
+    font-size: 0.68em !important;
+    padding: 1px 5px !important;
+    border-radius: 3px;
+}
 
 /* ==========================================================
    ACTION PANEL — reduced height
    ========================================================== */
 .theme-compact .action-panel {
-    background: linear-gradient(180deg, #1e3020 0%, #162418 100%);
+    background: linear-gradient(180deg, #3a5040 0%, #2a3c30 100%);
     border-bottom: 1px solid var(--gold-dim);
     height: 90px !important;
     margin-bottom: 0;
 }
 .theme-compact .action-content { background: transparent; }
-.theme-compact .context-text   { font-size: 0.85em; color: var(--parchment); }
+/* Force ALL text in action panel to parchment on dark green */
+.theme-compact .action-panel,
+.theme-compact .action-panel *  { color: var(--parchment-hi) !important; }
+.theme-compact .round-bonus,
+.theme-compact .combo-bonus,
+.theme-compact .bonus-text,
+.theme-compact .gold-text,
+.theme-compact .winner-pulse    { color: var(--gold) !important; }
 .theme-compact .start-btn {
-    font-size: 0.9em;
-    padding: 6px 20px;
-    letter-spacing: 0.1em;
-    background: linear-gradient(180deg, var(--burgundy) 0%, var(--burgundy-deep) 100%);
-    border: 1px solid var(--gold);
-    color: var(--parchment-hi);
-    font-family: inherit;
+    font-size: 0.9em !important;
+    padding: 6px 20px !important;
+    letter-spacing: 0.1em !important;
+    background: linear-gradient(180deg, var(--burgundy) 0%, var(--burgundy-deep) 100%) !important;
+    border: 1px solid var(--gold) !important;
+    color: var(--parchment-hi) !important;
+    font-family: inherit !important;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 4px !important;
 }
 .theme-compact .btn.blue-btn {
     background: linear-gradient(180deg, #2a3a6a 0%, #1a2550 100%);
@@ -214,7 +265,7 @@ body.theme-compact {
     fill: var(--burgundy); stroke: var(--gold); stroke-width: 1.5;
 }
 .theme-compact #redRolloffDie svg.dice .dice-dot { fill: var(--cream); }
-.theme-compact .rolloff-die { transform: scale(0.82); transform-origin: center; }
+.theme-compact .rolloff-die { transform: scale(0.76); transform-origin: center; }
 .theme-compact .rolloff-result { color: var(--parchment); font-size: 0.85em; }
 .theme-compact .rolloff-vs { color: var(--gold-dim); }
 
@@ -257,7 +308,10 @@ body.theme-compact {
     gap: 2px;
     justify-content: center;
     align-items: center;
-    min-height: 36px;
+    height: 38px;
+    min-height: 38px;
+    max-height: 38px;
+    overflow: hidden;
     padding: 2px 0;
     margin-bottom: 3px;
 }
@@ -270,7 +324,20 @@ body.theme-compact {
 }
 .theme-compact .player-area.red  svg.dice .dice-dot { fill: var(--cream); }
 /* Scale dice down slightly */
-.theme-compact .dice-area svg.dice { transform: scale(0.82); transform-origin: center; }
+.theme-compact .dice-area svg.dice { transform: scale(0.76); transform-origin: center; }
+/* Round score summary shown in dice area after scoring */
+.theme-compact .round-score-display {
+    color: var(--parchment-hi) !important;
+    font-size: 0.68em;
+    line-height: 1.35;
+    text-align: center;
+    padding: 2px 4px;
+    width: 100%;
+}
+.theme-compact .round-score-display br {
+    display: inline;
+    content: " · ";
+}
 
 /* ==========================================================
    POCKETS — Keep pockets side by side, Share/Save full width
@@ -279,6 +346,10 @@ body.theme-compact {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 2px;
+    height: 142px;
+    min-height: 142px;
+    max-height: 142px;
+    overflow: hidden;
 }
 /* Share and Save span both columns */
 .theme-compact .share-pocket,
@@ -313,6 +384,19 @@ body.theme-compact {
     background: rgba(180,60,60,0.25);
     border-color: #cc6666;
 }
+.theme-compact .pocket-score {
+    color: var(--gold) !important;
+    font-size: 0.6em;
+    height: 10px;
+    min-height: 10px;
+    max-height: 10px;
+    line-height: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+}
 .theme-compact .pocket-label {
     font-size: 0.62em;
     letter-spacing: 0.06em;
@@ -328,12 +412,15 @@ body.theme-compact {
     display: flex;
     align-items: center;
     justify-content: center;
-    flex: 1;
-    gap: 2px;
+    height: 26px;
+    min-height: 26px;
+    max-height: 26px;
     overflow: hidden;
+    gap: 2px;
+    flex-shrink: 0;
 }
 .theme-compact .pocket-dice svg.dice {
-    transform: scale(0.72);
+    transform: scale(0.68);
     transform-origin: center;
     flex-shrink: 0;
 }
@@ -360,7 +447,20 @@ body.theme-compact {
     justify-content: center;
     gap: 2px;
 }
-.theme-compact .finale-pocket.hidden { display: none; }
+/* Keep finale-pocket in grid flow when hidden to prevent layout shift */
+.theme-compact .finale-pocket.hidden {
+    display: block !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    border: none !important;
+    margin: 0 !important;
+    opacity: 0;
+    pointer-events: none;
+    grid-column: span 2;
+}
 .theme-compact .finale-pocket .pocket-label {
     font-size: 0.65em;
     letter-spacing: 0.2em;
@@ -417,6 +517,8 @@ body.theme-compact {
 .theme-compact .scores {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
+    border-top: 1px solid var(--gold-dim);
+    margin-top: 2px;
 }
 .theme-compact .score-area {
     text-align: center;
@@ -424,11 +526,11 @@ body.theme-compact {
     border-bottom: 1px solid var(--gold-dim);
 }
 .theme-compact #blueScoreArea {
-    background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy) 100%);
+    background: linear-gradient(180deg, #3a4e7a 0%, #2e4068 100%);
     border-right: 1px solid var(--gold-dim);
 }
 .theme-compact #redScoreArea {
-    background: linear-gradient(180deg, var(--burgundy-deep) 0%, #3a1818 100%);
+    background: linear-gradient(180deg, #8a3838 0%, #6e2828 100%);
 }
 .theme-compact .score-area h3 {
     font-size: 0.68em;
@@ -444,6 +546,10 @@ body.theme-compact {
     font-weight: bold;
     color: var(--gold);
 }
+.theme-compact .score-area h3,
+.theme-compact .score-area .blue-player,
+.theme-compact .score-area .red-player,
+.theme-compact .winner-text { color: var(--parchment-hi) !important; }
 .theme-compact .score-area.winner { outline: 2px solid var(--gold); }
 .theme-compact .winner-text {
     font-size: 0.72em;
