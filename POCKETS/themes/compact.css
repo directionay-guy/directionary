@@ -1,0 +1,559 @@
+/* POCKETS — COMPACT THEME
+   Purpose-built for small screens: iPhone SE, iPad mini portrait.
+   Victorian palette, lighter weight. Everything fits ~375px wide
+   without scrolling. No Google Fonts — system serif throughout.
+   ================================================================ */
+
+/* ==========================================================
+   PALETTE — Victorian colors, simplified
+   ========================================================== */
+body.theme-compact {
+    --navy:           #1a2744;
+    --navy-mid:       #243258;
+    --navy-light:     #2e3f6e;
+    --burgundy:       #6e3030;
+    --burgundy-deep:  #4d2020;
+    --gold:           #c8a84b;
+    --gold-dim:       rgba(200,168,75,0.40);
+    --parchment:      #cab88e;
+    --parchment-soft: #ddd0b0;
+    --parchment-hi:   #ede0c0;
+    --ink:            #2a1508;
+    --cream:          #f5f0e4;
+
+    background: var(--navy);
+    color: var(--ink);
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 14px;
+    padding: 4px !important;
+}
+
+/* ==========================================================
+   CONTAINER — narrow, centered
+   ========================================================== */
+.theme-compact .game-container {
+    max-width: 500px;
+    min-width: 320px;
+    margin: 0 auto;
+    background: var(--navy);
+    border: 1px solid var(--gold-dim);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+/* ==========================================================
+   HEADER — tight single bar
+   ========================================================== */
+.theme-compact .game-header {
+    background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy) 100%);
+    border-bottom: 1px solid var(--gold-dim);
+    padding: 6px 10px 4px;
+    text-align: center;
+    position: relative;
+}
+/* Subtle texture */
+.theme-compact .game-header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+        90deg, transparent 0, transparent 3px,
+        rgba(200,168,75,0.04) 3px, rgba(200,168,75,0.04) 4px
+    );
+    pointer-events: none;
+}
+.theme-compact .header-ornament { display: none; }
+.theme-compact .game-title {
+    font-size: 1.5em;
+    letter-spacing: 0.14em;
+    color: var(--gold);
+    text-shadow: 0 0 12px rgba(200,168,75,0.4);
+    margin: 0;
+    font-weight: normal;
+    position: relative; z-index: 1;
+}
+.theme-compact .subtitle { display: none; }
+.theme-compact .theme-subtitle,
+.theme-compact select {
+    font-size: 0.75em;
+    color: var(--gold);
+    background: transparent;
+    border: none;
+    letter-spacing: 0.08em;
+    font-family: inherit;
+    position: relative; z-index: 1;
+}
+.theme-compact .theme-selector-wrap { position: relative; z-index: 1; }
+.theme-compact .theme-icon-glow { font-size: 0.85em; }
+
+/* ==========================================================
+   GAME MODE BAR — compact single row
+   ========================================================== */
+.theme-compact .game-mode {
+    background: rgba(0,0,0,0.25);
+    border-bottom: 1px solid var(--gold-dim);
+    padding: 3px 8px !important;
+    margin-bottom: 0 !important;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    min-height: 28px;
+}
+.theme-compact .gm-label {
+    color: var(--gold);
+    font-size: 0.72em;
+    letter-spacing: 0.04em;
+}
+.theme-compact .mode-btn,
+.theme-compact .difficulty-btn {
+    background: rgba(200,168,75,0.10);
+    color: var(--parchment);
+    border: 1px solid var(--gold-dim);
+    padding: 1px 7px;
+    font-family: inherit;
+    font-size: 0.72em;
+    cursor: pointer;
+    border-radius: 3px;
+}
+.theme-compact .mode-btn.active,
+.theme-compact .difficulty-btn.active {
+    background: var(--burgundy);
+    border-color: var(--gold);
+    color: var(--parchment-hi);
+}
+.theme-compact .fullscreen-btn {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    font-size: 0.65em;
+    padding: 1px 6px;
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: 3px;
+}
+.theme-compact .help-btn {
+    background: rgba(200,168,75,0.10);
+    color: var(--parchment);
+    border: 1px solid var(--gold-dim);
+    padding: 1px 7px;
+    font-family: inherit;
+    font-size: 0.72em;
+    cursor: pointer;
+    border-radius: 3px;
+}
+.theme-compact .help-btn:hover { background: rgba(200,168,75,0.20); }
+
+/* ==========================================================
+   ROUND INFO BAR
+   ========================================================== */
+.theme-compact .round-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--parchment-soft);
+    border-bottom: 1px solid var(--gold-dim);
+    padding: 3px 8px;
+    font-size: 0.8em;
+    color: var(--ink);
+    gap: 6px;
+}
+.theme-compact .round-info strong { font-size: 0.9em; }
+
+/* ==========================================================
+   ACTION PANEL — reduced height
+   ========================================================== */
+.theme-compact .action-panel {
+    background: linear-gradient(180deg, #1e3020 0%, #162418 100%);
+    border-bottom: 1px solid var(--gold-dim);
+    height: 90px !important;
+    margin-bottom: 0;
+}
+.theme-compact .action-content { background: transparent; }
+.theme-compact .context-text   { font-size: 0.85em; color: var(--parchment); }
+.theme-compact .start-btn {
+    font-size: 0.9em;
+    padding: 6px 20px;
+    letter-spacing: 0.1em;
+    background: linear-gradient(180deg, var(--burgundy) 0%, var(--burgundy-deep) 100%);
+    border: 1px solid var(--gold);
+    color: var(--parchment-hi);
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: 4px;
+}
+.theme-compact .btn.blue-btn {
+    background: linear-gradient(180deg, #2a3a6a 0%, #1a2550 100%);
+    border: 1px solid var(--gold-dim);
+    color: var(--parchment);
+    font-family: inherit;
+    font-size: 0.82em;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.theme-compact .btn.red-btn {
+    background: linear-gradient(180deg, var(--burgundy) 0%, var(--burgundy-deep) 100%);
+    border: 1px solid var(--gold-dim);
+    color: var(--parchment);
+    font-family: inherit;
+    font-size: 0.82em;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* ==========================================================
+   ROLLOFF DICE — compact size
+   ========================================================== */
+.theme-compact #blueRolloffDie svg.dice .dice-face {
+    fill: var(--navy-mid); stroke: var(--gold); stroke-width: 1.5;
+}
+.theme-compact #blueRolloffDie svg.dice .dice-dot { fill: var(--cream); }
+.theme-compact #redRolloffDie svg.dice .dice-face {
+    fill: var(--burgundy); stroke: var(--gold); stroke-width: 1.5;
+}
+.theme-compact #redRolloffDie svg.dice .dice-dot { fill: var(--cream); }
+.theme-compact .rolloff-die { transform: scale(0.82); transform-origin: center; }
+.theme-compact .rolloff-result { color: var(--parchment); font-size: 0.85em; }
+.theme-compact .rolloff-vs { color: var(--gold-dim); }
+
+/* ==========================================================
+   GAME BOARD — side by side, full width
+   ========================================================== */
+.theme-compact .game-board {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0;
+    border-bottom: 1px solid var(--gold-dim);
+}
+.theme-compact .player-area {
+    padding: 4px 4px 4px 4px;
+}
+.theme-compact .player-area.blue {
+    background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy) 100%);
+    border-right: 1px solid var(--gold-dim);
+}
+.theme-compact .player-area.red {
+    background: linear-gradient(180deg, var(--burgundy-deep) 0%, #3a1818 100%);
+}
+.theme-compact .player-header,
+.theme-compact .player-name {
+    text-align: center;
+    font-size: 0.7em;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding: 2px 0 3px;
+    border-bottom: 1px solid var(--gold-dim);
+    margin-bottom: 3px;
+}
+
+/* ==========================================================
+   DICE AREA — compact
+   ========================================================== */
+.theme-compact .dice-area {
+    display: flex;
+    gap: 2px;
+    justify-content: center;
+    align-items: center;
+    min-height: 36px;
+    padding: 2px 0;
+    margin-bottom: 3px;
+}
+.theme-compact .player-area.blue svg.dice .dice-face {
+    fill: var(--navy-mid); stroke: var(--gold); stroke-width: 1.5;
+}
+.theme-compact .player-area.blue svg.dice .dice-dot { fill: var(--cream); }
+.theme-compact .player-area.red  svg.dice .dice-face {
+    fill: var(--burgundy); stroke: var(--gold); stroke-width: 1.5;
+}
+.theme-compact .player-area.red  svg.dice .dice-dot { fill: var(--cream); }
+/* Scale dice down slightly */
+.theme-compact .dice-area svg.dice { transform: scale(0.82); transform-origin: center; }
+
+/* ==========================================================
+   POCKETS — Keep pockets side by side, Share/Save full width
+   ========================================================== */
+.theme-compact .pockets {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+}
+/* Share and Save span both columns */
+.theme-compact .share-pocket,
+.theme-compact .save-pocket,
+.theme-compact .finale-pocket {
+    grid-column: span 2;
+}
+.theme-compact .pocket {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--gold-dim);
+    border-radius: 3px;
+    padding: 2px 3px;
+    min-height: 46px;
+    height: 46px;
+    max-height: 46px;
+    box-sizing: border-box;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.theme-compact .pocket:hover {
+    background: rgba(255,255,255,0.10);
+    border-color: rgba(200,168,75,0.60);
+}
+.theme-compact .player-area.blue .pocket.active {
+    background: rgba(100,130,220,0.25);
+    border-color: #6699dd;
+}
+.theme-compact .player-area.red .pocket.active {
+    background: rgba(180,60,60,0.25);
+    border-color: #cc6666;
+}
+.theme-compact .pocket-label {
+    font-size: 0.62em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1px;
+    opacity: 0.85;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.theme-compact .pocket-dice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 2px;
+    overflow: hidden;
+}
+.theme-compact .pocket-dice svg.dice {
+    transform: scale(0.72);
+    transform-origin: center;
+    flex-shrink: 0;
+}
+.theme-compact .pocket-score {
+    font-size: 0.65em;
+    color: var(--gold);
+}
+.theme-compact .player-area.blue .share-pocket .pocket-score { left: 2px; right: auto; }
+.theme-compact .player-area.red  .share-pocket .pocket-score { right: 2px; left: auto; }
+
+/* ==========================================================
+   ROLLDOWN POCKET (compact)
+   ========================================================== */
+.theme-compact .finale-pocket {
+    grid-column: span 2;
+    background: rgba(200,168,75,0.08);
+    border: 1px solid var(--gold);
+    padding: 4px 6px;
+    text-align: center;
+    min-height: 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+.theme-compact .finale-pocket.hidden { display: none; }
+.theme-compact .finale-pocket .pocket-label {
+    font-size: 0.65em;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    text-transform: uppercase;
+}
+.theme-compact .finale-running-total {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: var(--gold);
+    line-height: 1;
+    transition: transform 0.15s ease;
+}
+.theme-compact .finale-running-total.bumped { transform: scale(1.25); }
+.theme-compact .finale-bonus {
+    font-size: 0.85em;
+    color: var(--parchment);
+    font-style: italic;
+    min-height: 1.2em;
+}
+.theme-compact .pocket.finale-hidden { display: none; }
+.theme-compact .dimmed-die { opacity: 0.35; }
+.theme-compact .finale-btn {
+    background: linear-gradient(180deg, var(--burgundy) 0%, var(--burgundy-deep) 100%);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: inherit;
+    font-size: 0.9em;
+    padding: 4px 14px;
+    letter-spacing: 0.1em;
+    animation: pulse 1.8s ease-in-out infinite;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* ==========================================================
+   BONUS LEGEND — single line, smaller
+   ========================================================== */
+.theme-compact .bonus-legend {
+    background: var(--parchment-soft);
+    border-bottom: 1px solid var(--gold-dim);
+    padding: 3px 8px;
+    text-align: center;
+    font-size: 0.68em;
+    color: var(--ink);
+}
+.theme-compact .bonus-legend h4 {
+    display: none; /* hide the header, just show the combos */
+}
+
+/* ==========================================================
+   SCORES — side by side
+   ========================================================== */
+.theme-compact .scores {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+}
+.theme-compact .score-area {
+    text-align: center;
+    padding: 4px 6px;
+    border-bottom: 1px solid var(--gold-dim);
+}
+.theme-compact #blueScoreArea {
+    background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy) 100%);
+    border-right: 1px solid var(--gold-dim);
+}
+.theme-compact #redScoreArea {
+    background: linear-gradient(180deg, var(--burgundy-deep) 0%, #3a1818 100%);
+}
+.theme-compact .score-area h3 {
+    font-size: 0.68em;
+    letter-spacing: 0.08em;
+    margin: 0 0 1px 0;
+    text-transform: uppercase;
+}
+.theme-compact .blue-player { color: #7090e0; }
+.theme-compact .red-player  { color: #e07070; }
+.theme-compact .score-display,
+.theme-compact .score-value {
+    font-size: 1.6em;
+    font-weight: bold;
+    color: var(--gold);
+}
+.theme-compact .score-area.winner { outline: 2px solid var(--gold); }
+.theme-compact .winner-text {
+    font-size: 0.72em;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+}
+
+/* ==========================================================
+   NEW GAME / STATS BUTTONS
+   ========================================================== */
+.theme-compact .new-game-section {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px;
+    background: var(--navy);
+}
+.theme-compact .action-btn {
+    background: rgba(200,168,75,0.12);
+    border: 1px solid var(--gold-dim);
+    color: var(--parchment);
+    font-family: inherit;
+    font-size: 0.8em;
+    padding: 4px 14px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+.theme-compact .action-btn:hover { background: rgba(200,168,75,0.22); }
+
+/* ==========================================================
+   MODAL
+   ========================================================== */
+.theme-compact .modal-overlay  { background: rgba(0,0,0,0.75); }
+.theme-compact .modal-content {
+    background: var(--parchment-hi);
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+    color: var(--ink);
+}
+.theme-compact .modal-header {
+    background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy) 100%);
+    color: var(--gold);
+    border-bottom: 1px solid var(--gold-dim);
+    padding: 10px 16px;
+}
+.theme-compact .modal-close { color: var(--gold); }
+.theme-compact .modal-body { color: var(--ink); font-family: inherit; font-size: 0.9em; }
+.theme-compact .confirm-buttons .btn { font-family: inherit; font-size: 0.85em; }
+
+/* ==========================================================
+   STATS PANEL
+   ========================================================== */
+.theme-compact .stats-panel {
+    background: var(--parchment-hi);
+    border-top: 1px solid var(--gold-dim);
+    color: var(--ink);
+    font-size: 0.85em;
+}
+.theme-compact .stats-panel h3 {
+    background: var(--navy);
+    color: var(--gold);
+    padding: 4px 10px;
+    font-size: 0.85em;
+    margin: 0;
+    letter-spacing: 0.08em;
+}
+.theme-compact .stat-card {
+    background: rgba(0,0,0,0.04);
+    border: 1px solid var(--gold-dim);
+    padding: 8px;
+    color: var(--ink);
+}
+.theme-compact .stat-card h4 { color: var(--burgundy); font-size: 0.9em; margin: 0 0 4px 0; }
+.theme-compact .stat-row { color: var(--ink); padding: 1px 0; font-size: 0.85em; }
+.theme-compact .stat-value { color: var(--burgundy); font-weight: bold; }
+.theme-compact .stats-tab-btn {
+    background: var(--parchment-soft);
+    border: 1px solid var(--gold-dim);
+    color: var(--ink);
+    font-size: 0.8em;
+}
+.theme-compact .stats-tab-btn.active {
+    background: var(--burgundy);
+    color: var(--parchment-hi);
+    border-color: var(--gold-dim);
+}
+
+/* ==========================================================
+   CSS PSEUDO-FULLSCREEN
+   ========================================================== */
+.game-container.css-fullscreen {
+    position: fixed; top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 9999; overflow-y: auto;
+    margin: 0; max-width: none; border-radius: 0;
+}
+body.has-css-fullscreen { overflow: hidden; }
+
+/* ==========================================================
+   PLAYING AS RED
+   ========================================================== */
+.game-container.playing-as-red .player-area.blue {
+    background: linear-gradient(180deg, var(--burgundy-deep) 0%, #3a1818 100%) !important;
+}
+.game-container.playing-as-red .player-area.red {
+    background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy) 100%) !important;
+}
+.game-container.playing-as-red #blueScoreArea {
+    background: linear-gradient(180deg, var(--burgundy-deep) 0%, #3a1818 100%) !important;
+}
+.game-container.playing-as-red #redScoreArea {
+    background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy) 100%) !important;
+}
