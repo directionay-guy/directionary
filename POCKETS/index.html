@@ -658,6 +658,7 @@ select.theme-subtitle {
                 <option value="cosmic">Cosmic Edition</option>
                 <option value="dark">Dark Mode</option>
                 <option value="bitmap">Bitmap</option>
+                <option value="compact">Compact</option>
             </select></span>
         </div>
 
@@ -944,7 +945,7 @@ const themeSelector = document.getElementById('themeSelector');
         function switchTheme(theme) {
             themeCss.href = `themes/${theme}.css`;
             document.body.className = `theme-${theme}`;
-            var icons = {victorian:'🎩', steampunk:'⚙️', 'art-deco':'🏛️', cosmic:'🌌', dark:'⬛', bitmap:'🐱'};
+            var icons = {victorian:'🎩', steampunk:'⚙️', 'art-deco':'🏛️', cosmic:'🌌', dark:'⬛', bitmap:'🐱', compact:'📱'};
             var el = document.getElementById('themeIcon');
             if (el) { el.textContent = icons[theme] || '🎩'; }
         }
@@ -1262,7 +1263,7 @@ const themeSelector = document.getElementById('themeSelector');
 <div class="help-section" id="rules-themes">
   <h3>🎨 Themes</h3>
   <ul>
-    <li>🎩 <strong>Victorian</strong> | ⚙️ <strong>Steampunk</strong> | 🏛️ <strong>Art Deco</strong> | 🌌 <strong>Cosmic</strong> | 🌑 <strong>Dark Mode</strong> | 🐱 <strong>Bitmap</strong></li>
+    <li>🎩 <strong>Victorian</strong> | ⚙️ <strong>Steampunk</strong> | 🏛️ <strong>Art Deco</strong> | 🌌 <strong>Cosmic</strong> | 🌑 <strong>Dark Mode</strong> | 🐱 <strong>Bitmap</strong> | 📱 <strong>Compact</strong></li>
   </ul>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
 </div>
