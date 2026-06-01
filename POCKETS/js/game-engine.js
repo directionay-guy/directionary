@@ -467,7 +467,6 @@ function startFirstPlayerRolloff() {
 }
 
 function setRolloffDieFaded(buttonEl) {
-    console.log('[setRolloffDieFaded] id=' + buttonEl.id + ' humanColor=' + gameState.humanColor + ' isBitmap=' + document.body.classList.contains('theme-bitmap'));
     buttonEl.innerHTML = '';
     buttonEl.classList.add('faded');
     var isBlueButton = (buttonEl.id === 'blueRolloffDie');
@@ -494,7 +493,6 @@ function setRolloffDieFaded(buttonEl) {
         var faceFill   = isBlueButton ? humanFace : aiFace;
         var faceStroke = isBlueButton ? humanDot  : aiDot;  // stroke matches dot color
         var dotFill    = isBlueButton ? humanDot  : aiDot;
-        console.log('[Rolloff die] id=' + buttonEl.id + ' isBlueButton=' + isBlueButton + ' isBitmap=' + isBitmap + ' fill=' + faceFill);
         var face = svg.querySelector('.dice-face');
         if (face) {
             face.setAttribute('style', 'fill: ' + faceFill + ' !important; stroke: ' + faceStroke + ' !important;');
@@ -963,16 +961,7 @@ function updateShareDifference() {
             document.getElementById('redShareScore').textContent = '0';
         }
 
-        var shareMsg;
-        if (diff === 0) {
-            shareMsg = 'Share: Tied — no bonus';
-        } else if (bd > rd) {
-            shareMsg = 'Share: ' + colorLabel('blue') + ' wins by ' + diff + (diff === 1 ? ' point' : ' points');
-        } else {
-            shareMsg = 'Share: ' + colorLabel('red') + ' wins by ' + diff + (diff === 1 ? ' point' : ' points');
-        }
-
-        showPanelBottom(shareMsg);
+        // Share win/loss message removed — redundant, players see pocket numbers
     }
 }
 
@@ -1036,21 +1025,7 @@ function calculateRoundScore() {
         redBonus      = redBonus + redComboBonus;
     }
 
-    // Update share bottom strip with bonus info now that scoring is done
-    var shareEl = document.getElementById('actionShareResult');
-    if (shareEl && !shareEl.classList.contains('hidden')) {
-        if (blueShareDie > redShareDie) {
-            var bd   = blueShareDie - redShareDie;
-            var bTxt = (blueComboBonus > 0) ? ' + ' + blueComboBonus + ' bonus' : ' no bonus';
-            shareEl.textContent = 'Share: ' + colorLabel('blue') + ' wins by ' + bd +
-                (bd === 1 ? ' point' : ' points') + ' ' + bTxt;
-        } else if (redShareDie > blueShareDie) {
-            var rd   = redShareDie - blueShareDie;
-            var rTxt = (redComboBonus > 0) ? ' + ' + redComboBonus + ' bonus' : ' no bonus';
-            shareEl.textContent = 'Share: ' + colorLabel('red') + ' wins by ' + rd +
-                (rd === 1 ? ' point' : ' points') + ' ' + rTxt;
-        }
-    }
+    // Share result element cleared — message removed
 
     displayRoundScores(blueKeepScore, blueBonus, blueComboBonus,
                        redKeepScore,  redBonus,  redComboBonus);
