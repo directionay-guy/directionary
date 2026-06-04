@@ -7,133 +7,243 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
   :root {
-    --bg: #f5f4f0;
+    /* Teal palette — light to dark across tabs */
+    --teal-0: #e8faf6;   /* page bg */
+    --teal-1: #b2ece0;   /* Log tab */
+    --teal-2: #7dd9c8;   /* Graph tab */
+    --teal-3: #4fc4b0;   /* Charts tab */
+    --teal-4: #2aa898;   /* A1C tab */
+    --teal-5: #1a7a6e;   /* History tab */
+    --teal-6: #0f4f46;   /* Settings cog */
+    --teal-active: #ffffff;
+    --bg: #dff5f0;
     --surface: #ffffff;
-    --surface2: #f0efe9;
-    --border: rgba(0,0,0,0.1);
-    --text: #1a1a1a;
-    --text2: #666;
-    --text3: #999;
-    --green: #1D9E75;
-    --green-bg: #e8f7f2;
-    --amber: #BA7517;
-    --amber-bg: #fdf3e0;
-    --red: #c0392b;
-    --red-bg: #fdecea;
-    --blue: #2471a3;
-    --blue-bg: #eaf3fb;
-    --accent: #1D9E75;
+    --surface2: #f0faf8;
+    --border: rgba(0,100,80,0.15);
+    --border-strong: rgba(0,100,80,0.3);
+    --text: #0d2e29;
+    --text2: #2a6659;
+    --text3: #5a9990;
+    --green: #0f8a6a;
+    --green-bg: #d4f5eb;
+    --amber: #9a6200;
+    --amber-bg: #fdf0d0;
+    --red: #b03020;
+    --red-bg: #fde8e5;
+    --blue: #1a5f8a;
+    --blue-bg: #ddeeff;
+    --accent: #1a7a6e;
     --radius: 12px;
     --radius-sm: 8px;
+    /* trend/avg line colors */
+    --trend-line: #e6c800;
+    --avg-line: #e03020;
+    --safe-fill: rgba(29,180,140,0.08);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
   
+  /* subtle linen texture on body */
+  body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='none'/%3E%3Cpath d='M0 0h1v1H0zM2 2h1v1H2z' fill='rgba(0,80,60,0.04)'/%3E%3C/svg%3E");
+  }
+
   /* APP SHELL */
-  .app { max-width: 430px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); }
-  
+  .app { max-width: 430px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); position:relative; z-index:1; }
+
   /* HEADER */
-  .header { background: var(--surface); border-bottom: 1px solid #c0bdb4; padding: 12px 0 0; position: sticky; top: 0; z-index: 100; }
+  .header { background: linear-gradient(180deg,#e2f8f2 0%,#c8f0e8 100%);
+    border-bottom: 2px solid var(--border-strong); padding: 12px 0 0; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,80,60,0.10); }
   .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding: 0 16px; }
-  .app-title { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
-  .app-title span { color: var(--accent); }
-  .today-badge { font-size: 12px; color: var(--text2); background: var(--surface2); padding: 4px 10px; border-radius: 20px; }
-  
-  /* TABS — real raised tabs */
-  .tabs { display: flex; align-items: flex-end; gap: 3px; padding: 0 12px; margin-top: 8px; }
-  .tab-btn { flex: 1; padding: 8px 4px 9px; font-size: 11px; font-weight: 600; color: var(--text3);
-    background: #e4e2db; border: 1px solid #c0bdb4; border-bottom: none;
-    border-radius: 8px 8px 0 0; cursor: pointer; transition: all 0.12s;
+  .app-title { font-size: 19px; font-weight: 800; letter-spacing: -0.5px; color: var(--teal-6); }
+  .app-title span { color: var(--teal-3); }
+  .today-badge { font-size: 12px; color: var(--teal-6); background: rgba(255,255,255,0.7);
+    padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border); font-weight: 600; }
+
+  /* TABS — raised teal gradient, light→dark */
+  .tabs { display: flex; align-items: flex-end; gap: 3px; padding: 0 8px; margin-top: 6px; }
+  .tab-btn { flex: 1; padding: 8px 2px 9px; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.82);
+    border: 1px solid rgba(0,0,0,0.18); border-bottom: none;
+    border-radius: 8px 8px 0 0; cursor: pointer; transition: all 0.13s;
     display: flex; flex-direction: column; align-items: center; gap: 3px;
-    position: relative; top: 1px; }
-  .tab-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
-  .tab-btn:hover:not(.active) { background: #ede9e2; color: var(--text2); }
-  .tab-btn.active { background: var(--surface); color: var(--accent); border-color: #c0bdb4;
-    border-bottom-color: var(--surface); z-index: 2; padding-bottom: 10px; font-weight: 700; }
-  
+    position: relative; top: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.18);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.22); }
+  .tab-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; }
+  /* per-tab colors light→dark */
+  .tab-log    { background: linear-gradient(180deg,#9de8d8,#7dd4c2); }
+  .tab-graph  { background: linear-gradient(180deg,#5ec9b4,#3db89e); }
+  .tab-charts { background: linear-gradient(180deg,#36a892,#228a76); }
+  .tab-a1c    { background: linear-gradient(180deg,#1e8a76,#166a5c); }
+  .tab-hist   { background: linear-gradient(180deg,#135e50,#0c4438); }
+  .tab-cog    { background: linear-gradient(180deg,#0a3830,#061e18);
+    margin-left: auto; flex: none; padding: 8px 12px 9px; border-radius: 8px 8px 0 0; }
+  .tab-btn:hover:not(.active) { filter: brightness(1.1); }
+  .tab-btn.active { background: linear-gradient(180deg,#ffffff,#f0faf7) !important;
+    color: var(--accent) !important; border-color: var(--border-strong);
+    border-bottom-color: var(--bg); z-index: 2; padding-bottom: 10px;
+    text-shadow: none; box-shadow: 0 -2px 6px rgba(0,80,60,0.08); }
+  .tab-btn.active svg { stroke: var(--accent); }
+
   /* CONTENT */
   .content { flex: 1; padding: 16px; overflow-y: auto; }
   .panel { display: none; }
   .panel.active { display: block; }
-  
-  /* CARDS */
-  .card { background: var(--surface); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); }
-  .card-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
-  
-  /* LOG TAB */
-  .reading-big { text-align: center; margin-bottom: 20px; }
-  .reading-big input { font-size: 56px; font-weight: 700; text-align: center; width: 100%; border: none; background: none; color: var(--text); outline: none; letter-spacing: -2px; }
-  .reading-big input::placeholder { color: var(--border); }
-  .reading-big .unit { font-size: 14px; color: var(--text3); margin-top: -4px; }
-  .reading-indicator { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 16px; font-size: 13px; font-weight: 500; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; }
-  
+
+  /* CARDS — subtle inner shadow + teal tint */
+  .card { background: linear-gradient(160deg, #ffffff 0%, #f4fdfb 100%);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
+    border: 1px solid var(--border);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 8px rgba(0,80,60,0.06); }
+  .card-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase;
+    letter-spacing: 0.7px; margin-bottom: 12px; }
+
+  /* ── NUMBER INPUT ZONE ── */
+  .reading-zone { background: linear-gradient(160deg, #2a9080 0%, #1e6e62 100%);
+    border-radius: var(--radius); padding: 20px 16px 12px; margin-bottom: 14px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.18), 0 3px 10px rgba(0,80,60,0.18);
+    border: 1px solid rgba(255,255,255,0.12);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Ccircle cx='1' cy='1' r='0.7' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E"); }
+  .reading-zone-label { font-size: 11px; font-weight: 700; color: rgba(180,255,235,0.7);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; text-align: center; }
+  .reading-zone input { font-size: 72px; font-weight: 800; text-align: center; width: 100%;
+    border: none; background: transparent; color: #c8ffec; outline: none;
+    letter-spacing: -3px; line-height: 1; caret-color: #7dffd0; }
+  .reading-zone input::placeholder { color: rgba(180,255,230,0.25); }
+  .reading-zone .unit { font-size: 15px; color: rgba(180,255,235,0.6); text-align: center;
+    margin-top: -4px; font-weight: 600; letter-spacing: 1px; }
+  .reading-indicator { display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin-top: 10px; font-size: 13px; font-weight: 600; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; }
+
+  /* confirm/clear button row */
+  .confirm-row { display: flex; gap: 10px; margin-top: 14px; }
+  .btn-confirm { flex: 2; padding: 14px; background: linear-gradient(135deg,#22c497,#158a6a);
+    color: #fff; border: none; border-radius: var(--radius-sm); font-size: 17px; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.3px;
+    box-shadow: 0 3px 10px rgba(0,120,80,0.25);
+    transition: all 0.15s; opacity: 0.4; pointer-events: none; }
+  .btn-confirm.ready { opacity: 1; pointer-events: auto; animation: pulse-green 1.8s infinite; }
+  .btn-confirm:active { transform: scale(0.98); }
+  .btn-clear { flex: 1; padding: 14px; background: linear-gradient(135deg,#e05040,#b02818);
+    color: #fff; border: none; border-radius: var(--radius-sm); font-size: 17px; font-weight: 700;
+    cursor: pointer; box-shadow: 0 3px 10px rgba(160,40,20,0.2); transition: all 0.15s; }
+  .btn-clear:active { transform: scale(0.98); }
+  @keyframes pulse-green {
+    0%,100% { box-shadow: 0 3px 10px rgba(0,140,90,0.25); }
+    50% { box-shadow: 0 3px 20px rgba(0,200,120,0.5); }
+  }
+
+  /* fields */
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-  .field label { display: block; font-size: 11px; color: var(--text3); margin-bottom: 4px; font-weight: 500; }
-  .field input, .field select { width: 100%; padding: 10px 12px; border-radius: var(--radius-sm); border: 2px solid #c8c6be; background: #fafaf7; color: var(--text); font-size: 15px; }
+  .field label { display: block; font-size: 11px; color: var(--text2); margin-bottom: 5px; font-weight: 700; letter-spacing: 0.3px; }
+  .field input, .field select { width: 100%; padding: 11px 12px; border-radius: var(--radius-sm);
+    border: 2px solid var(--border-strong); background: #f4fdfb; color: var(--text); font-size: 15px;
+    transition: border-color 0.15s, background 0.15s; }
   .field input:focus, .field select:focus { outline: none; border-color: var(--accent); background: #fff; }
-  
-  .save-btn { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 4px; letter-spacing: -0.2px; }
-  .save-btn:active { opacity: 0.85; transform: scale(0.99); }
-  
-  .recent-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+
+  /* recent list */
+  .recent-item { display: flex; align-items: center; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--border); }
   .recent-item:last-child { border-bottom: none; }
-  .recent-date { font-size: 14px; font-weight: 500; }
+  .recent-date { font-size: 14px; font-weight: 600; color: var(--text); }
   .recent-time { font-size: 12px; color: var(--text3); margin-top: 1px; }
-  .recent-val { font-size: 20px; font-weight: 700; }
+  .recent-val { font-size: 22px; font-weight: 800; }
   .val-normal { color: var(--green); }
   .val-watch { color: var(--amber); }
   .val-high { color: var(--red); }
   .val-low { color: var(--blue); }
-  
+
   /* STAT STRIP */
   .stat-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
-  .stat-box { background: var(--surface); border-radius: var(--radius-sm); padding: 12px; text-align: center; border: 1px solid var(--border); }
-  .stat-box .sv { font-size: 20px; font-weight: 700; }
-  .stat-box .sl { font-size: 10px; color: var(--text3); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.3px; }
-  
+  .stat-box { background: linear-gradient(160deg,#ffffff,#edfaf6);
+    border-radius: var(--radius-sm); padding: 12px; text-align: center;
+    border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,80,60,0.06); }
+  .stat-box .sv { font-size: 20px; font-weight: 800; }
+  .stat-box .sl { font-size: 10px; color: var(--text3); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
+
   /* RANGE BUTTONS */
   .range-row { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
-  .range-btn { padding: 7px 14px; font-size: 13px; font-weight: 500; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); cursor: pointer; }
-  .range-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-  
+  .range-btn { padding: 7px 14px; font-size: 13px; font-weight: 600; border-radius: 20px;
+    border: 1px solid var(--border-strong); background: var(--surface); color: var(--text2); cursor: pointer; }
+  .range-btn.active { background: linear-gradient(135deg,var(--teal-3),var(--teal-5)); color: white; border-color: var(--teal-5); }
+
+  /* CHART LEGEND */
+  .chart-legend { display: flex; gap: 14px; margin-bottom: 8px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: var(--text2); }
+  .legend-line { width: 22px; height: 3px; border-radius: 2px; }
+
   /* CHART WRAP */
   .chart-wrap { position: relative; width: 100%; height: 220px; }
-  
+
   /* A1C */
   .a1c-chart-wrap { position: relative; width: 100%; height: 200px; margin-bottom: 12px; }
   .a1c-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
   .a1c-row:last-child { border-bottom: none; }
-  .a1c-date { font-size: 14px; font-weight: 500; }
-  .a1c-val { font-size: 20px; font-weight: 700; }
-  .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .a1c-date { font-size: 14px; font-weight: 600; }
+  .a1c-val { font-size: 20px; font-weight: 800; }
+  .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; }
   .badge-red { background: var(--red-bg); color: var(--red); }
   .badge-amber { background: var(--amber-bg); color: var(--amber); }
   .badge-green { background: var(--green-bg); color: var(--green); }
-  
+
   .a1c-add { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-top: 14px; align-items: end; }
-  .a1c-add input { padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface2); font-size: 14px; color: var(--text); width: 100%; }
-  .a1c-add button { padding: 10px 16px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-  
+  .a1c-add input { padding: 10px 12px; border-radius: var(--radius-sm); border: 2px solid var(--border-strong); background: var(--surface2); font-size: 14px; color: var(--text); width: 100%; }
+  .a1c-add button { padding: 10px 16px; background: linear-gradient(135deg,var(--teal-3),var(--teal-5)); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+
   /* HISTORY */
   .search-bar { display: flex; gap: 8px; margin-bottom: 12px; }
-  .search-bar input { flex: 1; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); font-size: 14px; color: var(--text); }
-  .search-bar select { padding: 10px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); font-size: 13px; color: var(--text); }
-  
+  .search-bar input { flex: 1; padding: 10px 12px; border-radius: var(--radius-sm); border: 2px solid var(--border-strong); background: var(--surface); font-size: 14px; color: var(--text); }
+  .search-bar select { padding: 10px 8px; border-radius: var(--radius-sm); border: 2px solid var(--border-strong); background: var(--surface); font-size: 13px; color: var(--text); }
+
   .hist-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .hist-table th { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.4px; text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
-  .hist-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); }
+  .hist-table th { font-size: 10px; font-weight: 700; color: var(--text2); text-transform: uppercase;
+    letter-spacing: 0.5px; text-align: left; padding: 7px 8px; border-bottom: 2px solid var(--border-strong);
+    background: linear-gradient(180deg,#edfaf6,#dff5ef); }
+  .hist-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
   .hist-table tr:last-child td { border-bottom: none; }
-  .hist-table .val-col { font-weight: 700; font-size: 14px; }
-  .hist-table .date-col { font-weight: 500; }
-  .hist-table .time-col { color: var(--text3); }
-  
+  .hist-table tr:hover td { background: #f4fdfb; }
+  .hist-table .val-col { font-weight: 800; font-size: 15px; }
+  .hist-table .date-col { font-weight: 600; }
+  .hist-table .time-col { color: var(--text3); font-size: 12px; }
+  /* edit button in history rows */
+  .edit-btn { background: none; border: 1px solid var(--border-strong); border-radius: 6px;
+    padding: 3px 7px; cursor: pointer; color: var(--text3); font-size: 13px; transition: all 0.12s; }
+  .edit-btn:hover { background: var(--green-bg); color: var(--green); border-color: var(--green); }
+  .edit-row td { background: #edfaf6 !important; padding: 6px 8px !important; }
+  .edit-row input { width: 70px; padding: 4px 6px; border: 2px solid var(--accent); border-radius: 6px;
+    font-size: 14px; font-weight: 700; background: #fff; color: var(--text); }
+  .edit-save-btn { background: var(--green); color: #fff; border: none; border-radius: 6px;
+    padding: 4px 10px; cursor: pointer; font-size: 12px; font-weight: 700; margin-right: 4px; }
+  .edit-cancel-btn { background: var(--red); color: #fff; border: none; border-radius: 6px;
+    padding: 4px 10px; cursor: pointer; font-size: 12px; font-weight: 700; }
+
   .pager { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; font-size: 13px; color: var(--text2); }
-  .pager button { padding: 7px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); font-size: 13px; cursor: pointer; color: var(--text); }
-  .pager button:disabled { opacity: 0.4; cursor: default; }
+  .pager button { padding: 7px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong);
+    background: linear-gradient(160deg,#fff,#edfaf6); font-size: 13px; cursor: pointer; color: var(--text); font-weight: 600; }
+  .pager button:disabled { opacity: 0.35; cursor: default; }
 
   /* SUPABASE STUB NOTICE */
-  .supabase-notice { background: var(--blue-bg); border: 1px solid #b8d9f0; border-radius: var(--radius-sm); padding: 10px 12px; font-size: 12px; color: var(--blue); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .supabase-notice { background: linear-gradient(135deg,#ddf4ef,#c8eee7); border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12px; color: var(--teal-6);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+
+  /* SETTINGS */
+  .settings-row { display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-label { font-size: 14px; font-weight: 600; color: var(--text); }
+  .settings-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .settings-input { width: 90px; padding: 8px 10px; border-radius: var(--radius-sm);
+    border: 2px solid var(--border-strong); background: #f4fdfb; font-size: 15px;
+    font-weight: 700; color: var(--text); text-align: center; }
+  .toggle { position: relative; width: 46px; height: 26px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; inset: 0; background: #ccc; border-radius: 26px;
+    cursor: pointer; transition: 0.3s; }
+  .toggle-slider::before { content:''; position: absolute; width: 20px; height: 20px;
+    left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+  .toggle input:checked + .toggle-slider { background: var(--accent); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
 
   /* DESKTOP RESPONSIVE */
   @media (min-width: 600px) {
@@ -141,13 +251,14 @@
     .header { width: 100%; max-width: 100%; position: sticky; top: 0; }
     .header-top { max-width: 900px; margin: 0 auto; }
     .tabs { max-width: 900px; margin: 0 auto; width: 100%; }
-    .tab-btn { flex-direction: row; gap: 6px; font-size: 13px; padding: 9px 16px 10px; flex: none; }
+    .tab-btn { flex-direction: row; gap: 6px; font-size: 12px; padding: 9px 14px 10px; flex: none; }
+    .tab-cog { margin-left: auto; }
     .content { max-width: 900px; margin: 0 auto; width: 100%; padding: 24px; }
     .stat-strip { grid-template-columns: repeat(6, 1fr); }
     .field-row { grid-template-columns: 1fr 1fr 1fr; }
     .chart-wrap { height: 300px; }
     .a1c-chart-wrap { height: 260px; }
-    .reading-big input { font-size: 72px; }
+    .reading-zone input { font-size: 88px; }
     .card { padding: 20px; }
   }
 </style>
@@ -160,25 +271,28 @@
       <div class="today-badge" id="today-badge"></div>
     </div>
     <div class="tabs">
-      <button class="tab-btn active" onclick="showTab('log',this)">
+      <button class="tab-btn tab-log active" onclick="showTab('log',this)">
         <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
         Log
       </button>
-      <button class="tab-btn" onclick="showTab('graph',this)">
+      <button class="tab-btn tab-graph" onclick="showTab('graph',this)">
         <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         Graph
       </button>
-      <button class="tab-btn" onclick="showTab('charts',this)">
+      <button class="tab-btn tab-charts" onclick="showTab('charts',this)">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
         Charts
       </button>
-      <button class="tab-btn" onclick="showTab('a1c',this)">
+      <button class="tab-btn tab-a1c" onclick="showTab('a1c',this)">
         <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
         A1C
       </button>
-      <button class="tab-btn" onclick="showTab('history',this)">
+      <button class="tab-btn tab-hist" onclick="showTab('history',this)">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         History
+      </button>
+      <button class="tab-btn tab-cog" onclick="showTab('settings',this)" title="Settings">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
       </button>
     </div>
   </div>
@@ -192,13 +306,14 @@
       </div>
       <div class="card">
         <div class="card-label">New Reading</div>
-        <div class="reading-big">
+        <div class="reading-zone">
+          <div class="reading-zone-label">Blood Sugar</div>
           <input type="number" id="bs-val" placeholder="—" min="40" max="600" inputmode="numeric" oninput="updateIndicator()">
-          <div class="unit">mg/dL</div>
-        </div>
-        <div class="reading-indicator" id="reading-indicator" style="color:var(--text3);">
-          <span class="dot" id="ind-dot" style="background:var(--border)"></span>
-          <span id="ind-label">enter a reading</span>
+          <div class="unit">mg / dL</div>
+          <div class="reading-indicator" id="reading-indicator">
+            <span class="dot" id="ind-dot" style="background:rgba(180,255,235,0.3)"></span>
+            <span id="ind-label" style="color:rgba(180,255,235,0.5)">enter a reading</span>
+          </div>
         </div>
         <div class="field-row">
           <div class="field">
@@ -210,11 +325,14 @@
             <input type="time" id="entry-time">
           </div>
         </div>
-        <div class="field" style="margin-bottom:12px;">
+        <div class="field" style="margin-bottom:14px;">
           <label>Notes (optional)</label>
-          <input type="text" id="entry-notes" placeholder="fasting, after meal…">
+          <input type="text" id="entry-notes" placeholder="fasting, after meal, follow-up…">
         </div>
-        <button class="save-btn" onclick="saveReading()">Save Reading</button>
+        <div class="confirm-row">
+          <button class="btn-confirm" id="btn-confirm" onclick="saveReading()">✓ Confirm</button>
+          <button class="btn-clear" onclick="clearEntry()">✕ Clear</button>
+        </div>
       </div>
 
       <div class="card">
@@ -224,7 +342,7 @@
 
       <div class="card">
         <div class="card-label">This week</div>
-        <div style="position:relative;width:100%;height:130px;">
+        <div style="position:relative;width:100%;height:150px;">
           <canvas id="weekChart" role="img" aria-label="This week's blood sugar readings"></canvas>
         </div>
       </div>
@@ -277,6 +395,7 @@
           <button class="range-btn" onclick="setRange(365,this)">1yr</button>
           <button class="range-btn" onclick="setRange(0,this)">All</button>
         </div>
+        <div id="graph-legend"></div>
         <div class="chart-wrap">
           <canvas id="glucoseChart" role="img" aria-label="Blood sugar readings over time"></canvas>
         </div>
@@ -326,6 +445,7 @@
               <th>Time</th>
               <th>mg/dL</th>
               <th>Notes</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="hist-body"></tbody>
@@ -334,6 +454,66 @@
           <button onclick="prevPage()" id="prev-btn">← Prev</button>
           <span id="page-info"></span>
           <button onclick="nextPage()" id="next-btn">Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div class="panel" id="panel-settings">
+      <div class="card">
+        <div class="card-label">Ranges</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Safe zone low</div>
+            <div class="settings-sub">Below this = low alert</div>
+          </div>
+          <input class="settings-input" type="number" id="set-safe-low" value="60">
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Safe zone high</div>
+            <div class="settings-sub">Above this = watch zone</div>
+          </div>
+          <input class="settings-input" type="number" id="set-safe-high" value="140">
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Doctor's target low</div>
+            <div class="settings-sub">Dr. Flieg's ideal range</div>
+          </div>
+          <input class="settings-input" type="number" id="set-dr-low" value="90">
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Doctor's target high</div>
+            <div class="settings-sub">Dr. Flieg's ideal range</div>
+          </div>
+          <input class="settings-input" type="number" id="set-dr-high" value="110">
+        </div>
+        <button onclick="saveSettings()" style="margin-top:14px;width:100%;padding:13px;background:linear-gradient(135deg,var(--teal-3),var(--teal-5));color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;cursor:pointer;">Save Settings</button>
+      </div>
+      <div class="card">
+        <div class="card-label">Cloud Sync</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Supabase sync</div>
+            <div class="settings-sub">Connect to sync across devices</div>
+          </div>
+          <label class="toggle"><input type="checkbox" id="set-supabase"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
+          <div class="settings-label">Supabase URL</div>
+          <input type="text" placeholder="https://xxx.supabase.co" style="width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:2px solid var(--border-strong);background:#f4fdfb;font-size:13px;color:var(--text);">
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">Data</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Export all readings</div>
+            <div class="settings-sub">Download as CSV file</div>
+          </div>
+          <button onclick="exportCSV()" style="padding:8px 16px;background:linear-gradient(135deg,var(--teal-3),var(--teal-5));color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;">Export</button>
         </div>
       </div>
     </div>
@@ -960,6 +1140,28 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================================
+// SETTINGS
+// ============================================================
+function getSettings() {
+  try { return JSON.parse(localStorage.getItem('glucose_settings') || 'null') || {safeLow:60,safeHigh:140,drLow:90,drHigh:110}; } catch(e) { return {safeLow:60,safeHigh:140,drLow:90,drHigh:110}; }
+}
+function saveSettings() {
+  const s = { safeLow: parseInt(document.getElementById('set-safe-low').value)||60,
+    safeHigh: parseInt(document.getElementById('set-safe-high').value)||140,
+    drLow: parseInt(document.getElementById('set-dr-low').value)||90,
+    drHigh: parseInt(document.getElementById('set-dr-high').value)||110 };
+  localStorage.setItem('glucose_settings', JSON.stringify(s));
+  alert('Settings saved!');
+}
+function loadSettingsUI() {
+  const s = getSettings();
+  document.getElementById('set-safe-low').value = s.safeLow;
+  document.getElementById('set-safe-high').value = s.safeHigh;
+  document.getElementById('set-dr-low').value = s.drLow;
+  document.getElementById('set-dr-high').value = s.drHigh;
+}
+
+// ============================================================
 // TAB SWITCHING
 // ============================================================
 function showTab(name, btn) {
@@ -971,6 +1173,65 @@ function showTab(name, btn) {
   if (name === 'charts') initChartsTab();
   if (name === 'a1c') initA1C();
   if (name === 'history') { histPage = 0; renderHistory(); }
+  if (name === 'settings') loadSettingsUI();
+}
+
+// ============================================================
+// DAILY AVERAGING — group all readings by date, return one avg per day
+// Each entry: {date, vals:[], avg, max, readings:[{time,val,notes}]}
+// ============================================================
+function getDailyData() {
+  const all = getAllReadings();
+  const byDate = {};
+  all.forEach(r => {
+    if (!byDate[r[0]]) byDate[r[0]] = [];
+    byDate[r[0]].push({time:r[1], val:r[2], notes:r[3]||''});
+  });
+  return Object.keys(byDate).sort().map(date => {
+    const readings = byDate[date];
+    const vals = readings.map(r=>r.val);
+    const avg = Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+    const max = Math.max(...vals);
+    return {date, avg, max, count:vals.length, readings, vals};
+  });
+}
+
+// Linear regression trendline
+function calcTrend(data) {
+  const n = data.length;
+  if (n < 2) return data.map(()=>null);
+  let sx=0, sy=0, sxy=0, sx2=0;
+  data.forEach((y,x)=>{ if(y!==null){sx+=x;sy+=y;sxy+=x*y;sx2+=x*x;} });
+  const slope = (n*sxy - sx*sy)/(n*sx2 - sx*sx);
+  const inter = (sy - slope*sx)/n;
+  return data.map((_,x) => Math.round(inter + slope*x));
+}
+
+// Build Chart.js annotation plugin shims (we use datasets for lines instead)
+function makeAvgDataset(avg, length, label) {
+  return { label, data: Array(length).fill(avg), borderColor: 'rgba(220,50,30,0.85)',
+    borderWidth: 2, borderDash: [6,4], pointRadius: 0, type:'line', fill:false, order:0 };
+}
+function makeTrendDataset(data, label) {
+  const trend = calcTrend(data);
+  return { label, data: trend, borderColor: 'rgba(210,190,0,0.9)',
+    borderWidth: 2.5, borderDash: [4,3], pointRadius: 0, type:'line', fill:false, order:0 };
+}
+function makeSafeZoneDataset(length) {
+  const s = getSettings();
+  return [
+    { label:'Safe high', data: Array(length).fill(s.safeHigh), borderColor:'rgba(29,160,120,0.35)',
+      borderWidth:1, borderDash:[2,4], pointRadius:0, type:'line', fill:'+1', backgroundColor:'rgba(29,160,120,0.07)', order:1 },
+    { label:'Safe low', data: Array(length).fill(s.safeLow), borderColor:'rgba(29,160,120,0.35)',
+      borderWidth:1, borderDash:[2,4], pointRadius:0, type:'line', fill:false, order:1 }
+  ];
+}
+function chartLegendHTML() {
+  return `<div class="chart-legend">
+    <div class="legend-item"><div class="legend-line" style="background:rgba(220,50,30,0.85);border-top:2px dashed rgba(220,50,30,0.85);height:0;margin-top:6px;"></div> Avg</div>
+    <div class="legend-item"><div class="legend-line" style="background:rgba(210,190,0,0.9);border-top:2px dashed rgba(210,190,0,0.9);height:0;margin-top:6px;"></div> Trend</div>
+    <div class="legend-item"><div class="legend-line" style="background:rgba(29,160,120,0.35);height:3px;border-radius:2px;"></div> Safe zone</div>
+  </div>`;
 }
 
 // ============================================================
@@ -978,14 +1239,24 @@ function showTab(name, btn) {
 // ============================================================
 function updateIndicator() {
   const v = parseInt(document.getElementById('bs-val').value);
-  const ind = document.getElementById('reading-indicator');
-  const dot = document.getElementById('ind-dot');
-  const lbl = document.getElementById('ind-label');
-  if (isNaN(v)) { dot.style.background='var(--border)'; lbl.textContent='enter a reading'; ind.style.color='var(--text3)'; return; }
+  const btn = document.getElementById('btn-confirm');
+  if (isNaN(v)) {
+    document.getElementById('ind-dot').style.background='rgba(180,255,235,0.25)';
+    document.getElementById('ind-label').textContent='enter a reading';
+    document.getElementById('ind-label').style.color='rgba(180,255,235,0.45)';
+    btn.classList.remove('ready'); return;
+  }
   const info = valLabel(v);
-  dot.style.background = info.dot;
-  lbl.textContent = info.label;
-  ind.style.color = info.color;
+  document.getElementById('ind-dot').style.background = info.dot;
+  document.getElementById('ind-label').textContent = info.label + ' — ' + v + ' mg/dL';
+  document.getElementById('ind-label').style.color = '#c8ffec';
+  btn.classList.add('ready');
+}
+
+function clearEntry() {
+  document.getElementById('bs-val').value = '';
+  document.getElementById('entry-notes').value = '';
+  updateIndicator();
 }
 
 function saveReading() {
@@ -995,18 +1266,18 @@ function saveReading() {
   const n = document.getElementById('entry-notes').value.trim();
   if (!v || v < 40 || v > 600 || !d || !t) { alert('Please enter a valid reading (40–600) and date/time.'); return; }
   saveNewReading({date:d, time:t, val:v, notes:n});
-  document.getElementById('bs-val').value = '';
-  document.getElementById('entry-notes').value = '';
-  updateIndicator();
+  clearEntry();
   renderRecent();
-  alert('Saved!');
+  // brief visual feedback
+  const btn = document.getElementById('btn-confirm');
+  btn.textContent = '✓ Saved!';
+  setTimeout(()=>{ btn.textContent='✓ Confirm'; }, 1500);
 }
 
 function renderRecent() {
-  const all = getAllReadings();
-  const recent = all.slice(-5).reverse();
-  const el = document.getElementById('recent-list');
-  el.innerHTML = recent.map(r => `
+  // Show 5 most recent individual readings
+  const all = getAllReadings().slice(-5).reverse();
+  document.getElementById('recent-list').innerHTML = all.map(r => `
     <div class="recent-item">
       <div>
         <div class="recent-date">${fmtDate(r[0])}</div>
@@ -1017,50 +1288,110 @@ function renderRecent() {
   renderWeekChart();
 }
 
+// ============================================================
+// WEEK CHART — stacked Option C bars, starts at 0, 150 line
+// ============================================================
 let weekChartInst = null;
 function renderWeekChart() {
-  const all = getAllReadings();
+  const daily = getDailyData();
   const today = new Date();
-  const dow = today.getDay(); // 0=Sun
+  const dow = today.getDay();
   const monday = new Date(today);
   monday.setDate(today.getDate() - ((dow + 6) % 7));
-  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const labels = [], vals = [], colors = [];
+  const dayLabels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  // Build per-reading datasets (up to 3 readings per day stacked)
+  // For stacked bars: each dataset is reading #N across all days
+  const maxReadings = 3;
+  const dayData = []; // array of 7 entries, each {readings:[], date}
   for (let i = 0; i < 7; i++) {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
+    const d = new Date(monday); d.setDate(monday.getDate() + i);
     const ds = d.toISOString().split('T')[0];
-    labels.push(days[i]);
-    const dayReadings = all.filter(r => r[0] === ds);
-    if (dayReadings.length) {
-      const avg = Math.round(dayReadings.reduce((s,r)=>s+r[2],0)/dayReadings.length);
-      vals.push(avg);
-      colors.push(avg > 180 ? '#c0392b99' : avg > 140 ? '#BA751799' : avg < 70 ? '#2471a399' : '#1D9E7599');
-    } else {
-      vals.push(null);
-      colors.push('#e0ded899');
-    }
+    const entry = daily.find(e=>e.date===ds);
+    dayData.push(entry ? entry.readings.slice(0,3) : []);
   }
+
+  // Teal shades for reading 1,2,3
+  const readingColors = ['rgba(30,140,120,0.85)','rgba(80,190,160,0.75)','rgba(160,230,210,0.70)'];
+  const datasets = [];
+  for (let ri = 0; ri < maxReadings; ri++) {
+    datasets.push({
+      label: ri===0 ? '1st reading' : ri===1 ? '2nd reading' : '3rd reading',
+      data: dayData.map(d => d[ri]?.val ?? null),
+      backgroundColor: dayData.map((d,di) => {
+        const v = d[ri]?.val;
+        if (!v) return 'transparent';
+        // tint by zone but use reading-layer opacity
+        const base = v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'30,150,120';
+        const alpha = [0.85,0.72,0.58][ri];
+        return `rgba(${base},${alpha})`;
+      }),
+      borderRadius: ri===maxReadings-1?4:0,
+      borderSkipped: false,
+      stack: 'day'
+    });
+  }
+  // Count badge — null datasets for labeling
+  const countLabels = dayData.map(d => d.length > 1 ? d.length : null);
+
+  // 150 reference line
+  datasets.push({ label:'150 line', data: Array(7).fill(150), type:'line',
+    borderColor:'rgba(180,100,0,0.6)', borderWidth:1.5, borderDash:[4,3],
+    pointRadius:0, fill:false });
+
   if (weekChartInst) weekChartInst.destroy();
   weekChartInst = new Chart(document.getElementById('weekChart'), {
     type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        data: vals,
-        backgroundColor: colors,
-        borderRadius: 4,
-        borderSkipped: false
-      }]
-    },
+    data: { labels: dayLabels, datasets },
     options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: {display:false}, tooltip: { callbacks: { label: ctx => ctx.raw ? ` ${ctx.raw} mg/dL` : ' no data' } } },
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend: {display:false},
+        tooltip: {
+          callbacks: {
+            title: ctx => {
+              const di = ctx[0].dataIndex;
+              return dayLabels[di] + (dayData[di].length>1 ? ` (${dayData[di].length} readings)` : '');
+            },
+            label: ctx => {
+              if (ctx.dataset.label==='150 line') return null;
+              const di = ctx.dataIndex; const ri = ctx.datasetIndex;
+              const r = dayData[di][ri];
+              return r ? ` ${r.val} mg/dL @ ${fmtTime(r.time)}` : null;
+            }
+          }
+        }
+      },
       scales: {
-        y: { min: 50, max: 260, ticks: { color:'#999', font:{size:10}, maxTicksLimit:4 }, grid: { color:'rgba(0,0,0,0.05)' } },
-        x: { ticks: { color:'#555', font:{size:12,weight:'500'} }, grid: {display:false} }
+        y: { min:0, stacked:true, ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:5}, grid:{color:'rgba(0,100,80,0.08)'} },
+        x: { stacked:true, ticks:{color:'#0d5a50',font:{size:12,weight:'700'}}, grid:{display:false} }
       }
-    }
+    },
+    plugins: [{
+      id:'countBadge',
+      afterDraw(chart) {
+        const ctx2 = chart.ctx;
+        chart.data.labels.forEach((_,i) => {
+          if (countLabels[i]) {
+            const meta = chart.getDatasetMeta(0);
+            const bar = meta.data[i];
+            if (!bar) return;
+            // find top of stacked bar
+            let top = bar.y;
+            for(let d=0;d<maxReadings;d++){
+              const m2=chart.getDatasetMeta(d);
+              if(m2.data[i] && m2.data[i].y < top) top=m2.data[i].y;
+            }
+            ctx2.save();
+            ctx2.fillStyle='rgba(10,60,50,0.85)';
+            ctx2.font='bold 10px system-ui';
+            ctx2.textAlign='center';
+            ctx2.fillText('×'+countLabels[i], bar.x, top-5);
+            ctx2.restore();
+          }
+        });
+      }
+    }]
   });
 }
 
@@ -1071,86 +1402,100 @@ let glucoseChart = null;
 let currentRange = 7;
 
 function setRange(days, btn) {
-  document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#panel-graph .range-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   currentRange = days;
   initGraph();
 }
 
 function initGraph() {
-  const all = getAllReadings();
-  let subset = all;
+  const daily = getDailyData();
+  let subset = daily;
   if (currentRange > 0) {
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - currentRange);
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - currentRange);
     const cutStr = cutoff.toISOString().split('T')[0];
-    subset = all.filter(r => r[0] >= cutStr);
+    subset = daily.filter(d => d.date >= cutStr);
   }
+  const s = getSettings();
+  const avgs = subset.map(d=>d.avg);
+  const avg = avgs.length ? Math.round(avgs.reduce((a,b)=>a+b,0)/avgs.length) : 0;
+  const high = avgs.length ? Math.max(...avgs) : 0;
+  const low = avgs.length ? Math.min(...avgs) : 0;
+  const inRange = avgs.filter(v=>v>=s.safeLow&&v<=s.safeHigh).length;
+  const pct = avgs.length ? Math.round(inRange/avgs.length*100) : 0;
 
-  const vals = subset.map(r => r[2]);
-  const avg = vals.length ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) : 0;
-  const high = vals.length ? Math.max(...vals) : 0;
-  const low = vals.length ? Math.min(...vals) : 0;
-
-  const statsEl = document.getElementById('graph-stats');
-  statsEl.innerHTML = [
-    {sv:avg, sl:'Average', color:'var(--text)'},
+  document.getElementById('graph-stats').innerHTML = [
+    {sv:avg, sl:'Avg mg/dL', color:'var(--text)'},
     {sv:high, sl:'High', color:'var(--red)'},
     {sv:low, sl:'Low', color:'var(--green)'},
-    {sv:vals.length, sl:'Readings', color:'var(--text)'},
-    {sv: '6.6%', sl:'Latest A1C', color:'var(--blue)'},
-    {sv:'90–110', sl:"Dr's target", color:'var(--amber)'}
-  ].map(s => `<div class="stat-box"><div class="sv" style="color:${s.color}">${s.sv}</div><div class="sl">${s.sl}</div></div>`).join('');
+    {sv:avgs.length, sl:'Days', color:'var(--text)'},
+    {sv:pct+'%', sl:'In safe zone', color:'var(--teal-4)'},
+    {sv:s.safeLow+'–'+s.safeHigh, sl:'Safe zone', color:'var(--teal-5)'}
+  ].map(s=>`<div class="stat-box"><div class="sv" style="color:${s.color}">${s.sv}</div><div class="sl">${s.sl}</div></div>`).join('');
 
-  // Thin out for performance if too many points
-  let displaySubset = subset;
-  if (subset.length > 200) {
-    const step = Math.ceil(subset.length / 200);
-    displaySubset = subset.filter((_,i) => i % step === 0 || i === subset.length-1);
+  // thin for perf
+  let disp = subset;
+  if (subset.length > 180) { const step=Math.ceil(subset.length/180); disp=subset.filter((_,i)=>i%step===0||i===subset.length-1); }
+
+  const labels = disp.map(d=>{ const [y,m,dy]=d.date.split('-'); return `${m}/${dy}`; });
+  const data = disp.map(d=>d.avg);
+  const ptColors = data.map(v=>v>180?'#c0392b':v<70?'#1a5f8a':'#1a7a6e');
+  const isBar = disp.length > 60;
+
+  // Build stacked datasets for multi-reading days on bar mode
+  let mainDatasets;
+  if (isBar) {
+    // Option C stacked bars
+    const max3 = 3;
+    const readingColors2 = ['rgba(26,122,110,0.85)','rgba(78,196,178,0.75)','rgba(160,230,215,0.68)'];
+    mainDatasets = [];
+    for (let ri=0; ri<max3; ri++) {
+      mainDatasets.push({
+        label: ri===0?'1st':'ri===1?\'2nd\':\'3rd\'',
+        data: disp.map(d=>d.readings[ri]?.val??null),
+        backgroundColor: disp.map(d=>{
+          const v=d.readings[ri]?.val; if(!v) return 'transparent';
+          const base=v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'26,122,110';
+          return `rgba(${base},${[0.85,0.72,0.58][ri]})`;
+        }),
+        borderRadius:ri===max3-1?3:0, borderSkipped:false, stack:'day', barPercentage:0.7
+      });
+    }
+  } else {
+    mainDatasets = [{
+      label:'Blood sugar', data,
+      borderColor:'#1a7a6e', backgroundColor:'rgba(26,122,110,0.10)',
+      pointBackgroundColor:ptColors, pointRadius:4, tension:0.3, fill:true, borderWidth:2, type:'line'
+    }];
   }
 
-  const labels = displaySubset.map(r => {
-    const [y,m,d] = r[0].split('-');
-    return `${m}/${d}`;
-  });
-  const data = displaySubset.map(r => r[2]);
-  const ptColors = data.map(v => v > 180 ? '#c0392b' : v < 70 ? '#2471a3' : '#1D9E75');
+  // add safe zone, avg, trend
+  const safeDS = makeSafeZoneDataset(disp.length);
+  const avgDS = makeAvgDataset(avg, disp.length, 'Average');
+  const trendDS = makeTrendDataset(data, 'Trend');
+
+  // legend
+  const legendEl = document.getElementById('graph-legend');
+  if (legendEl) legendEl.innerHTML = chartLegendHTML();
 
   if (glucoseChart) glucoseChart.destroy();
   glucoseChart = new Chart(document.getElementById('glucoseChart'), {
-    type: subset.length > 60 ? 'bar' : 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Blood sugar',
-        data,
-        borderColor: '#1D9E75',
-        backgroundColor: subset.length > 60 ? ptColors.map(c => c+'99') : 'rgba(29,158,117,0.08)',
-        pointBackgroundColor: ptColors,
-        pointRadius: subset.length > 60 ? 0 : 4,
-        tension: 0.3,
-        fill: subset.length <= 60,
-        borderWidth: subset.length > 60 ? 0 : 2,
-        barPercentage: 0.6
-      }]
-    },
+    type: isBar ? 'bar' : 'line',
+    data: { labels, datasets: [...mainDatasets, ...safeDS, avgDS, trendDS] },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
+      responsive:true, maintainAspectRatio:false,
       plugins: {
-        legend: {display:false},
-        tooltip: { callbacks: { label: ctx => ` ${ctx.raw} mg/dL` } }
+        legend:{display:false},
+        tooltip:{ callbacks:{ label: ctx => {
+          if(ctx.dataset.label==='Average') return ` Avg: ${ctx.raw}`;
+          if(ctx.dataset.label==='Trend') return ` Trend: ${ctx.raw}`;
+          if(ctx.dataset.label?.includes('Safe')) return null;
+          return ` ${ctx.raw} mg/dL`;
+        }}}
       },
       scales: {
-        y: {
-          min: 50, max: 280,
-          grid: { color:'rgba(0,0,0,0.05)' },
-          ticks: { color:'#999', font:{size:10} }
-        },
-        x: {
-          grid: {display:false},
-          ticks: { color:'#999', font:{size:10}, maxTicksLimit:10, maxRotation:0 }
-        }
+        y:{ min:50, max:280, stacked:isBar, grid:{color:'rgba(0,80,60,0.06)'}, ticks:{color:'#5a9990',font:{size:10}} },
+        x:{ stacked:isBar, grid:{display:false}, ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:10,maxRotation:0} }
       }
     }
   });
@@ -1160,255 +1505,250 @@ function initGraph() {
 // A1C TAB
 // ============================================================
 let a1cChart = null;
-
 function a1cBadge(v) {
-  if (v >= 8) return '<span class="badge badge-red">High</span>';
-  if (v >= 6.5) return '<span class="badge badge-amber">Watch</span>';
+  if (v>=8) return '<span class="badge badge-red">High</span>';
+  if (v>=6.5) return '<span class="badge badge-amber">Watch</span>';
   return '<span class="badge badge-green">Good</span>';
 }
-
 function initA1C() {
   const data = getA1CData();
-  const list = document.getElementById('a1c-list');
-  list.innerHTML = [...data].reverse().map(r => `
+  document.getElementById('a1c-list').innerHTML = [...data].reverse().map(r=>`
     <div class="a1c-row">
       <div><div class="a1c-date">${fmtDate(r.date)}</div></div>
       <div style="display:flex;align-items:center;gap:10px;">${a1cBadge(r.val)}<div class="a1c-val" style="color:${r.val>=8?'var(--red)':r.val>=6.5?'var(--amber)':'var(--green)'}">${r.val}%</div></div>
     </div>`).join('');
-
   if (a1cChart) a1cChart.destroy();
+  const vals = data.map(r=>r.val);
+  const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
+  const trendDS2 = makeTrendDataset(vals, 'Trend');
+  const avgDS2 = makeAvgDataset(avg, vals.length, 'Average');
   a1cChart = new Chart(document.getElementById('a1cChart'), {
     type:'line',
-    data:{
-      labels: data.map(r => fmtDate(r.date).replace(/,\s*\d{4}/,'')),
+    data:{ labels: data.map(r=>fmtDate(r.date).replace(/,\s*\d{4}/,'')),
       datasets:[{
-        label:'A1C',
-        data: data.map(r=>r.val),
-        borderColor:'#2471a3',
-        backgroundColor:'rgba(36,113,163,0.08)',
-        pointBackgroundColor: data.map(r => r.val>=8?'#c0392b':r.val>=6.5?'#BA7517':'#1D9E75'),
+        label:'A1C', data:vals, borderColor:'#1a7a6e', backgroundColor:'rgba(26,122,110,0.08)',
+        pointBackgroundColor:vals.map(v=>v>=8?'#b03020':v>=6.5?'#9a6200':'#0f8a6a'),
         pointRadius:6, tension:0.3, fill:true, borderWidth:2
-      }]
+      }, {...trendDS2, borderColor:'rgba(210,190,0,0.9)'}, {...avgDS2, borderColor:'rgba(220,50,30,0.85)'}]
     },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw}${ctx.dataset.label==='A1C'?'%':''}`}}},
       scales:{
-        y:{min:5,max:11, ticks:{callback:v=>v+'%', color:'#999', font:{size:10}}, grid:{color:'rgba(0,0,0,0.05)'}},
-        x:{ticks:{color:'#999',font:{size:10}}, grid:{display:false}}
+        y:{min:5,max:11,ticks:{callback:v=>v+'%',color:'#5a9990',font:{size:10}},grid:{color:'rgba(0,80,60,0.06)'}},
+        x:{ticks:{color:'#5a9990',font:{size:10}},grid:{display:false}}
       }
     }
   });
 }
-
 function saveA1C() {
-  const d = document.getElementById('a1c-date').value;
-  const v = parseFloat(document.getElementById('a1c-val').value);
-  if (!d || isNaN(v) || v < 4 || v > 15) { alert('Enter a valid date and A1C value (4–15).'); return; }
-  const arr = getA1CData();
-  arr.push({date:d, val:v});
-  arr.sort((a,b)=>a.date.localeCompare(b.date));
-  saveA1CData(arr);
-  document.getElementById('a1c-val').value = '';
-  if (a1cChart) { a1cChart.destroy(); a1cChart=null; }
-  initA1C();
+  const d=document.getElementById('a1c-date').value;
+  const v=parseFloat(document.getElementById('a1c-val').value);
+  if(!d||isNaN(v)||v<4||v>15){alert('Enter a valid date and A1C value (4–15).');return;}
+  const arr=getA1CData(); arr.push({date:d,val:v}); arr.sort((a,b)=>a.date.localeCompare(b.date));
+  saveA1CData(arr); document.getElementById('a1c-val').value='';
+  if(a1cChart){a1cChart.destroy();a1cChart=null;} initA1C();
 }
 
 // ============================================================
-// HISTORY TAB
+// HISTORY TAB — with inline edit
 // ============================================================
 let histPage = 0;
 const HIST_PAGE_SIZE = 30;
+let editingKey = null; // "date|time" of row being edited
 
 function renderHistory() {
   const all = getAllReadings().reverse();
   const search = document.getElementById('hist-search').value.toLowerCase();
   const filter = document.getElementById('hist-filter').value;
-
   let filtered = all.filter(r => {
-    if (search && !r[0].includes(search) && !String(r[2]).includes(search) && !fmtDate(r[0]).toLowerCase().includes(search)) return false;
-    if (filter === 'high' && r[2] <= 180) return false;
-    if (filter === 'watch' && (r[2] < 141 || r[2] > 180)) return false;
-    if (filter === 'normal' && (r[2] < 70 || r[2] > 140)) return false;
-    if (filter === 'low' && r[2] >= 70) return false;
+    if(search && !r[0].includes(search) && !String(r[2]).includes(search) && !fmtDate(r[0]).toLowerCase().includes(search)) return false;
+    if(filter==='high'&&r[2]<=180) return false;
+    if(filter==='watch'&&(r[2]<141||r[2]>180)) return false;
+    if(filter==='normal'&&(r[2]<70||r[2]>140)) return false;
+    if(filter==='low'&&r[2]>=70) return false;
     return true;
   });
-
-  const total = filtered.length;
-  const totalPages = Math.ceil(total / HIST_PAGE_SIZE);
-  if (histPage >= totalPages) histPage = Math.max(0, totalPages-1);
-  const page = filtered.slice(histPage*HIST_PAGE_SIZE, (histPage+1)*HIST_PAGE_SIZE);
-
-  document.getElementById('hist-count').textContent = `${total.toLocaleString()} readings`;
-  document.getElementById('hist-body').innerHTML = page.map(r => `
-    <tr>
+  const total=filtered.length, totalPages=Math.ceil(total/HIST_PAGE_SIZE);
+  if(histPage>=totalPages) histPage=Math.max(0,totalPages-1);
+  const page=filtered.slice(histPage*HIST_PAGE_SIZE,(histPage+1)*HIST_PAGE_SIZE);
+  document.getElementById('hist-count').textContent=`${total.toLocaleString()} readings`;
+  document.getElementById('hist-body').innerHTML=page.map(r=>{
+    const key=r[0]+'|'+r[1];
+    const isNew = getNewReadings().some(n=>n.date===r[0]&&n.time===r[1]);
+    if(editingKey===key) {
+      return `<tr class="edit-row">
+        <td class="date-col">${fmtDate(r[0])}</td>
+        <td class="time-col">${fmtTime(r[1])}</td>
+        <td><input id="edit-val" type="number" value="${r[2]}" style="width:72px"></td>
+        <td><input id="edit-notes" type="text" value="${r[3]||''}" style="width:80px;padding:4px 6px;border:2px solid var(--border-strong);border-radius:6px;font-size:13px;"></td>
+        <td><button class="edit-save-btn" onclick="saveEdit('${r[0]}','${r[1]}')">✓</button><button class="edit-cancel-btn" onclick="cancelEdit()">✕</button></td>
+      </tr>`;
+    }
+    return `<tr>
       <td class="date-col">${fmtDate(r[0])}</td>
       <td class="time-col">${fmtTime(r[1])}</td>
-      <td class="val-col ${valClass(r[2])}">${r[2]}</td>
-      <td style="color:var(--text3);font-size:12px;">${r[3]==='legacy'?'legacy':r[3]||''}</td>
-    </tr>`).join('');
-
-  document.getElementById('page-info').textContent = total ? `${histPage+1} / ${totalPages}` : '—';
-  document.getElementById('prev-btn').disabled = histPage === 0;
-  document.getElementById('next-btn').disabled = histPage >= totalPages-1;
+      <td class="val-col ${valClass(r[2])}">${r[2]}${r[0] && getNewReadings().filter(n=>n.date===r[0]).length>1?'<span style="font-size:9px;color:var(--text3);margin-left:3px;">+</span>':''}</td>
+      <td style="color:var(--text3);font-size:12px;">${r[3]==='legacy'?'<span style="font-size:10px;color:var(--text3)">legacy</span>':r[3]||''}</td>
+      <td>${isNew?`<button class="edit-btn" onclick="startEdit('${r[0]}','${r[1]}')">✎</button>`:''}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('page-info').textContent=total?`${histPage+1} / ${totalPages}`:'—';
+  document.getElementById('prev-btn').disabled=histPage===0;
+  document.getElementById('next-btn').disabled=histPage>=totalPages-1;
 }
 
-function prevPage() { if (histPage > 0) { histPage--; renderHistory(); } }
-function nextPage() { histPage++; renderHistory(); }
+function startEdit(date, time) { editingKey=date+'|'+time; renderHistory(); }
+function cancelEdit() { editingKey=null; renderHistory(); }
+function saveEdit(date, time) {
+  const newVal=parseInt(document.getElementById('edit-val').value);
+  const newNotes=document.getElementById('edit-notes').value.trim();
+  if(!newVal||newVal<40||newVal>600){alert('Enter a valid reading 40–600.');return;}
+  const arr=getNewReadings();
+  const idx=arr.findIndex(r=>r.date===date&&r.time===time);
+  if(idx>=0){arr[idx].val=newVal;arr[idx].notes=newNotes;localStorage.setItem('glucose_new',JSON.stringify(arr));}
+  editingKey=null; renderHistory(); renderRecent();
+}
+
+function prevPage(){if(histPage>0){histPage--;renderHistory();}}
+function nextPage(){histPage++;renderHistory();}
+
+// ============================================================
+// EXPORT CSV
+// ============================================================
+function exportCSV() {
+  const all = getAllReadings();
+  const rows = ['Date,Time,Value,Notes', ...all.map(r=>`${r[0]},${r[1]},${r[2]},"${(r[3]||'').replace(/"/g,'""')}"`)];
+  const blob = new Blob([rows.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='glucose-readings.csv'; a.click();
+}
 
 // ============================================================
 // CHARTS TAB
 // ============================================================
-let chartsView = 'yearly';
-let currentMonthOffset = 0; // 0 = current month
-let yearlyAvgChartInst = null, monthlyChartInst = null;
+let chartsView='yearly', currentMonthOffset=0;
+let yearlyAvgChartInst=null, monthlyChartInst=null;
 
 function setChartsView(view, btn) {
-  chartsView = view;
-  document.querySelectorAll('#panel-charts .range-btn').forEach(b => b.classList.remove('active'));
+  chartsView=view;
+  document.querySelectorAll('#panel-charts .range-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('charts-yearly').style.display = view === 'yearly' ? '' : 'none';
-  document.getElementById('charts-monthly').style.display = view === 'monthly' ? '' : 'none';
-  if (view === 'yearly') renderYearly();
-  if (view === 'monthly') renderMonthly();
+  document.getElementById('charts-yearly').style.display=view==='yearly'?'':'none';
+  document.getElementById('charts-monthly').style.display=view==='monthly'?'':'none';
+  if(view==='yearly') renderYearly();
+  if(view==='monthly') renderMonthly();
 }
-
-function initChartsTab() {
-  setChartsView('yearly', document.getElementById('charts-sub-yearly'));
-}
+function initChartsTab(){setChartsView('yearly',document.getElementById('charts-sub-yearly'));}
 
 function renderYearly() {
-  const all = getAllReadings();
-  // Group by year
-  const byYear = {};
-  all.forEach(r => {
-    const y = r[0].split('-')[0];
-    if (!byYear[y]) byYear[y] = [];
-    byYear[y].push(r[2]);
-  });
-  const years = Object.keys(byYear).sort();
-  const avgs = years.map(y => Math.round(byYear[y].reduce((a,b)=>a+b,0)/byYear[y].length));
-
-  if (yearlyAvgChartInst) yearlyAvgChartInst.destroy();
-  yearlyAvgChartInst = new Chart(document.getElementById('yearlyAvgChart'), {
-    type: 'bar',
-    data: {
-      labels: years,
-      datasets: [{
-        label: 'Avg mg/dL',
-        data: avgs,
-        backgroundColor: avgs.map(v => v > 180 ? '#c0392b99' : v > 140 ? '#BA751799' : '#1D9E7599'),
-        borderRadius: 6
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: {display:false},
-        tooltip: { callbacks: { label: ctx => ` ${ctx.raw} mg/dL avg` } }
-      },
-      scales: {
-        y: { min: 80, ticks:{color:'#999',font:{size:10}}, grid:{color:'rgba(0,0,0,0.05)'} },
-        x: { ticks:{color:'#555',font:{size:12,weight:'500'}}, grid:{display:false} }
-      }
-    }
+  const daily=getDailyData();
+  const byYear={};
+  daily.forEach(d=>{const y=d.date.split('-')[0];if(!byYear[y])byYear[y]=[];byYear[y].push(d.avg);});
+  const years=Object.keys(byYear).sort();
+  const avgs=years.map(y=>Math.round(byYear[y].reduce((a,b)=>a+b,0)/byYear[y].length));
+  const trendDS=makeTrendDataset(avgs,'Trend');
+  const avgDS=makeAvgDataset(Math.round(avgs.reduce((a,b)=>a+b,0)/avgs.length),avgs.length,'Average');
+  if(yearlyAvgChartInst)yearlyAvgChartInst.destroy();
+  yearlyAvgChartInst=new Chart(document.getElementById('yearlyAvgChart'),{
+    type:'bar',
+    data:{labels:years,datasets:[
+      {label:'Avg',data:avgs,backgroundColor:avgs.map(v=>v>180?'rgba(176,48,32,0.8)':v>140?'rgba(154,98,0,0.8)':'rgba(26,122,110,0.8)'),borderRadius:6},
+      {...trendDS},{...avgDS}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label==='Average'?` Avg: ${ctx.raw}`:ctx.dataset.label==='Trend'?` Trend: ${ctx.raw}`:` ${ctx.raw} mg/dL`}}},
+      scales:{y:{min:80,grid:{color:'rgba(0,80,60,0.06)'},ticks:{color:'#5a9990',font:{size:10}}},
+        x:{grid:{display:false},ticks:{color:'#0d5a50',font:{size:12,weight:'700'}}}}}
   });
 
-  // Monthly breakdown cards
-  const container = document.getElementById('yearly-months-container');
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  // Group by year-month
-  const byYM = {};
-  all.forEach(r => {
-    const ym = r[0].slice(0,7);
-    if (!byYM[ym]) byYM[ym] = [];
-    byYM[ym].push(r[2]);
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const byYM={};
+  daily.forEach(d=>{const ym=d.date.slice(0,7);if(!byYM[ym])byYM[ym]=[];byYM[ym].push(d.avg);});
+  const container=document.getElementById('yearly-months-container');
+  let html='';
+  years.forEach(y=>{
+    const mks=Object.keys(byYM).filter(k=>k.startsWith(y)).sort();
+    window['_ym_'+y]={
+      labels:mks.map(m=>MONTHS[parseInt(m.split('-')[1])-1]),
+      avgs:mks.map(m=>Math.round(byYM[m].reduce((a,b)=>a+b,0)/byYM[m].length))
+    };
+    html+=`<div class="card"><div class="card-label">${y} monthly</div><div style="position:relative;width:100%;height:140px;"><canvas id="ym-${y}"></canvas></div></div>`;
   });
-
-  let html = '';
-  years.forEach(y => {
-    const monthsInYear = Object.keys(byYM).filter(k=>k.startsWith(y)).sort();
-    const mLabels = monthsInYear.map(m => MONTHS[parseInt(m.split('-')[1])-1]);
-    const mAvgs = monthsInYear.map(m => Math.round(byYM[m].reduce((a,b)=>a+b,0)/byYM[m].length));
-    const mColors = mAvgs.map(v => v > 180 ? '#c0392b99' : v > 140 ? '#BA751799' : '#1D9E7599');
-    html += `<div class="card" style="margin-bottom:12px;">
-      <div class="card-label">${y} — monthly averages</div>
-      <div style="position:relative;width:100%;height:140px;">
-        <canvas id="ym-${y}" role="img" aria-label="${y} monthly averages"></canvas>
-      </div>
-    </div>`;
-    // Store data for after render
-    window['_ymData_'+y] = {labels:mLabels, avgs:mAvgs, colors:mColors};
-  });
-  container.innerHTML = html;
-
-  // Draw each year's monthly chart
-  years.forEach(y => {
-    const d = window['_ymData_'+y];
-    new Chart(document.getElementById('ym-'+y), {
+  container.innerHTML=html;
+  years.forEach(y=>{
+    const d=window['_ym_'+y];
+    const avg2=Math.round(d.avgs.reduce((a,b)=>a+b,0)/d.avgs.length);
+    new Chart(document.getElementById('ym-'+y),{
       type:'bar',
-      data:{
-        labels:d.labels,
-        datasets:[{data:d.avgs, backgroundColor:d.colors, borderRadius:4}]
-      },
-      options:{
-        responsive:true, maintainAspectRatio:false,
-        plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.raw}`}}},
-        scales:{
-          y:{min:80, ticks:{color:'#999',font:{size:9},maxTicksLimit:4}, grid:{color:'rgba(0,0,0,0.05)'}},
-          x:{ticks:{color:'#555',font:{size:10}}, grid:{display:false}}
-        }
-      }
+      data:{labels:d.labels,datasets:[
+        {data:d.avgs,backgroundColor:d.avgs.map(v=>v>180?'rgba(176,48,32,0.8)':v>140?'rgba(154,98,0,0.75)':'rgba(26,122,110,0.75)'),borderRadius:4},
+        makeTrendDataset(d.avgs,'Trend'),makeAvgDataset(avg2,d.avgs.length,'Avg')
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label==='Avg'?` Avg: ${ctx.raw}`:ctx.dataset.label==='Trend'?` Trend: ${ctx.raw}`:` ${ctx.raw}`}}},
+        scales:{y:{min:80,ticks:{color:'#5a9990',font:{size:9},maxTicksLimit:4},grid:{color:'rgba(0,80,60,0.06)'}},
+          x:{ticks:{color:'#0d5a50',font:{size:10}},grid:{display:false}}}}
     });
   });
 }
 
-function monthNav(dir) {
-  currentMonthOffset += dir;
-  renderMonthly();
-}
-
-function renderMonthly() {
-  const all = getAllReadings();
-  const now = new Date();
-  const target = new Date(now.getFullYear(), now.getMonth() + currentMonthOffset, 1);
-  const y = target.getFullYear();
-  const m = String(target.getMonth()+1).padStart(2,'0');
-  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('month-nav-label').textContent = `${MONTHS[target.getMonth()]} ${y}`;
-
-  const monthReadings = all.filter(r => r[0].startsWith(`${y}-${m}`));
-  const vals = monthReadings.map(r=>r[2]);
-  const avg = vals.length ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) : 0;
-  const high = vals.length ? Math.max(...vals) : 0;
-  const low = vals.length ? Math.min(...vals) : 0;
-
-  document.getElementById('month-stats').innerHTML = [
-    {sv:avg||'—', sl:'Average', color:'var(--text)'},
-    {sv:high||'—', sl:'High', color:'var(--red)'},
-    {sv:low||'—', sl:'Low', color:'var(--green)'}
+function monthNav(dir){currentMonthOffset+=dir;renderMonthly();}
+function renderMonthly(){
+  const daily=getDailyData();
+  const now=new Date();
+  const target=new Date(now.getFullYear(),now.getMonth()+currentMonthOffset,1);
+  const y=target.getFullYear(), m=String(target.getMonth()+1).padStart(2,'0');
+  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('month-nav-label').textContent=`${MONTHS[target.getMonth()]} ${y}`;
+  const mData=daily.filter(d=>d.date.startsWith(`${y}-${m}`));
+  const avgs=mData.map(d=>d.avg);
+  const avg=avgs.length?Math.round(avgs.reduce((a,b)=>a+b,0)/avgs.length):0;
+  const high=avgs.length?Math.max(...avgs):0, low=avgs.length?Math.min(...avgs):0;
+  document.getElementById('month-stats').innerHTML=[
+    {sv:avg||'—',sl:'Average',color:'var(--text)'},
+    {sv:high||'—',sl:'High',color:'var(--red)'},
+    {sv:low||'—',sl:'Low',color:'var(--green)'}
   ].map(s=>`<div class="stat-box"><div class="sv" style="color:${s.color}">${s.sv}</div><div class="sl">${s.sl}</div></div>`).join('');
+  if(monthlyChartInst){monthlyChartInst.destroy();monthlyChartInst=null;}
+  if(!mData.length)return;
 
-  const labels = monthReadings.map(r => parseInt(r[0].split('-')[2]));
-  const data = monthReadings.map(r => r[2]);
-  const ptColors = data.map(v => v>180?'#c0392b':v<70?'#2471a3':'#1D9E75');
+  const s=getSettings();
+  const labels=mData.map(d=>parseInt(d.date.split('-')[2]));
+  const trendDS=makeTrendDataset(avgs,'Trend');
+  const avgDS=makeAvgDataset(avg,avgs.length,'Average');
+  const safeDS=makeSafeZoneDataset(mData.length);
 
-  if (monthlyChartInst) monthlyChartInst.destroy();
-  if (!monthReadings.length) return;
-  monthlyChartInst = new Chart(document.getElementById('monthlyChart'), {
-    type: 'bar',
-    data: {
-      labels,
-      datasets:[{
-        data, backgroundColor: ptColors.map(c=>c+'99'), borderRadius:3
-      }]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.raw} mg/dL`}}},
+  // Option C stacked bars per day
+  const max3=3;
+  const stackedDS=[];
+  for(let ri=0;ri<max3;ri++){
+    stackedDS.push({
+      label:ri===0?'1st':'2nd',
+      data:mData.map(d=>d.readings[ri]?.val??null),
+      backgroundColor:mData.map(d=>{
+        const v=d.readings[ri]?.val; if(!v)return'transparent';
+        const base=v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'26,122,110';
+        return `rgba(${base},${[0.85,0.72,0.58][ri]})`;
+      }),
+      borderRadius:ri===max3-1?3:0, borderSkipped:false, stack:'day', barPercentage:0.75
+    });
+  }
+
+  monthlyChartInst=new Chart(document.getElementById('monthlyChart'),{
+    type:'bar',
+    data:{labels,datasets:[...stackedDS,...safeDS,trendDS,avgDS]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{
+        if(ctx.dataset.label==='Average')return` Avg: ${ctx.raw}`;
+        if(ctx.dataset.label==='Trend')return` Trend: ${ctx.raw}`;
+        if(ctx.dataset.label?.includes('Safe'))return null;
+        const di=ctx.dataIndex; const ri=ctx.datasetIndex;
+        const r=mData[di]?.readings[ri];
+        return r?` ${r.val} mg/dL @ ${fmtTime(r.time)}`:null;
+      }}}},
       scales:{
-        y:{min:50,max:280, ticks:{color:'#999',font:{size:10},maxTicksLimit:5}, grid:{color:'rgba(0,0,0,0.05)'}},
-        x:{ticks:{color:'#555',font:{size:10},maxTicksLimit:15}, grid:{display:false}}
+        y:{min:0,max:300,stacked:true,grid:{color:'rgba(0,80,60,0.06)'},ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:5}},
+        x:{stacked:true,grid:{display:false},ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:16}}
       }
     }
   });
