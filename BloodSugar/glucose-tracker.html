@@ -62,8 +62,9 @@
   .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding: 0 16px; }
   .app-title { font-size: 19px; font-weight: 800; letter-spacing: -0.5px; color: var(--teal-6); }
   .app-title span { color: var(--teal-3); }
-  .today-badge { font-size: 12px; color: var(--teal-6); background: rgba(255,255,255,0.7);
-    padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border); font-weight: 600; }
+  .today-badge { display:flex; flex-direction:column; align-items:flex-end; gap:1px; }
+  .today-date { font-size: 11px; color: var(--teal-6); font-weight: 600; }
+  .today-time { font-size: 13px; color: var(--teal-5); font-weight: 700; font-family: monospace; letter-spacing: 0.5px; }
 
   /* TABS — raised teal gradient, light→dark */
   .tabs { display: flex; align-items: flex-end; gap: 3px; padding: 0 8px; margin-top: 6px; }
@@ -277,7 +278,10 @@
   <div class="header">
     <div class="header-top">
       <div class="app-title">Glucose<span>Log</span></div>
-      <div class="today-badge" id="today-badge"></div>
+      <div class="today-badge">
+        <div class="today-date" id="today-date"></div>
+        <div class="today-time" id="today-time"></div>
+      </div>
     </div>
     <div class="tabs">
       <button class="tab-btn tab-log active" onclick="showTab('log',this)">
@@ -564,6 +568,16 @@
             <div class="settings-sub">Download as CSV file</div>
           </div>
           <button onclick="exportCSV()" style="padding:8px 16px;background:linear-gradient(135deg,var(--teal-3),var(--teal-5));color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;">Export</button>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Import CSV readings</div>
+            <div class="settings-sub">Re-import a previously exported CSV</div>
+          </div>
+          <label style="padding:8px 16px;background:linear-gradient(135deg,var(--teal-3),var(--teal-5));color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;">
+            Import
+            <input type="file" accept=".csv" onchange="importCSV(event)" style="display:none;">
+          </label>
         </div>
       </div>
     </div>
@@ -1179,17 +1193,34 @@ function fmtTime(t) {
 // INIT
 // ============================================================
 window.addEventListener('DOMContentLoaded', () => {
-  const now = new Date();
-  const h = now.getHours(), min = now.getMinutes();
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  const h12 = h % 12 || 12;
-  const timeStr = `${h12}:${String(min).padStart(2,'0')} ${ampm}`;
-  const dateStr = now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
-  document.getElementById('today-badge').textContent = `${dateStr} · ${timeStr}`;
-  document.getElementById('entry-date').value = now.toISOString().split('T')[0];
-  document.getElementById('entry-time').value =
-    String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-  document.getElementById('a1c-date').value = now.toISOString().split('T')[0];
+  // Live clock — updates every second
+  function updateClock() {
+    const now = new Date();
+    const h = now.getHours(), min = now.getMinutes(), sec = now.getSeconds();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    const timeStr = `${h12}:${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')} ${ampm}`;
+    const dateStr = now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    const dateEl = document.getElementById('today-date');
+    const timeEl = document.getElementById('today-time');
+    if (dateEl) dateEl.textContent = dateStr;
+    if (timeEl) timeEl.textContent = timeStr;
+    // Keep entry date/time current if fields are untouched
+    const entryDate = document.getElementById('entry-date');
+    const entryTime = document.getElementById('entry-time');
+    const a1cDate = document.getElementById('a1c-date');
+    if (entryDate && !entryDate.dataset.userSet) entryDate.value = now.toISOString().split('T')[0];
+    if (entryTime && !entryTime.dataset.userSet) entryTime.value = `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
+    if (a1cDate && !a1cDate.dataset.userSet) a1cDate.value = now.toISOString().split('T')[0];
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // Mark entry fields as user-modified so clock stops overwriting them
+  document.getElementById('entry-date')?.addEventListener('change', e => e.target.dataset.userSet = '1');
+  document.getElementById('entry-time')?.addEventListener('change', e => e.target.dataset.userSet = '1');
+  document.getElementById('a1c-date')?.addEventListener('change', e => e.target.dataset.userSet = '1');
+
   renderRecent();
 });
 
@@ -1563,11 +1594,19 @@ function a1cBadge(v) {
 }
 function initA1C() {
   const data = getA1CData();
-  document.getElementById('a1c-list').innerHTML = [...data].reverse().map(r=>`
-    <div class="a1c-row">
+  let editingA1C = null;
+  document.getElementById('a1c-list').innerHTML = [...data].reverse().map((r,ri)=>{
+    const origIdx = data.length - 1 - ri; // index in original array
+    return `<div class="a1c-row" id="a1c-row-${origIdx}">
       <div><div class="a1c-date">${fmtDate(r.date)}</div></div>
-      <div style="display:flex;align-items:center;gap:10px;">${a1cBadge(r.val)}<div class="a1c-val" style="color:${r.val>=8?'var(--red)':r.val>=6.5?'var(--amber)':'var(--green)'}">${r.val}%</div></div>
-    </div>`).join('');
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${a1cBadge(r.val)}
+        <div class="a1c-val" style="color:${r.val>=8?'var(--red)':r.val>=6.5?'var(--amber)':'var(--green)'}">${r.val}%</div>
+        <button class="edit-btn" onclick="startA1CEdit(${origIdx})" title="Edit">✎</button>
+        <button class="edit-btn" style="color:#b03020;border-color:#b03020;" onclick="deleteA1C(${origIdx})" title="Delete">✕</button>
+      </div>
+    </div>`;
+  }).join('');
   if (a1cChart) a1cChart.destroy();
   const vals = data.map(r=>r.val);
   const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
@@ -1590,6 +1629,49 @@ function initA1C() {
       }
     }
   });
+}
+
+function startA1CEdit(idx) {
+  const data = getA1CData();
+  const r = data[idx];
+  const row = document.getElementById('a1c-row-'+idx);
+  if (!row) return;
+  row.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;width:100%;flex-wrap:wrap;">
+      <input type="date" id="a1c-edit-date-${idx}" value="${r.date}"
+        style="padding:6px 8px;border-radius:6px;border:2px solid var(--accent);background:var(--surface2);font-size:13px;color:var(--text);">
+      <input type="number" id="a1c-edit-val-${idx}" value="${r.val}" step="0.1" min="4" max="15"
+        style="width:70px;padding:6px 8px;border-radius:6px;border:2px solid var(--accent);background:var(--surface2);font-size:13px;color:var(--text);">
+      <button class="edit-save-btn" onclick="saveA1CEdit(${idx})">✓ Save</button>
+      <button class="edit-cancel-btn" onclick="cancelA1CEdit()">✕</button>
+    </div>`;
+}
+
+function saveA1CEdit(idx) {
+  const newDate = document.getElementById('a1c-edit-date-'+idx)?.value;
+  const newVal = parseFloat(document.getElementById('a1c-edit-val-'+idx)?.value);
+  if (!newDate || isNaN(newVal) || newVal < 4 || newVal > 15) { alert('Enter a valid date and A1C (4–15).'); return; }
+  const arr = getA1CData();
+  arr[idx] = {date: newDate, val: newVal};
+  arr.sort((a,b) => a.date.localeCompare(b.date));
+  saveA1CData(arr);
+  if (a1cChart) { a1cChart.destroy(); a1cChart = null; }
+  initA1C();
+}
+
+function cancelA1CEdit() {
+  if (a1cChart) { a1cChart.destroy(); a1cChart = null; }
+  initA1C();
+}
+
+function deleteA1C(idx) {
+  const arr = getA1CData();
+  const r = arr[idx];
+  if (!confirm(`Delete A1C entry: ${fmtDate(r.date)} — ${r.val}%?`)) return;
+  arr.splice(idx, 1);
+  saveA1CData(arr);
+  if (a1cChart) { a1cChart.destroy(); a1cChart = null; }
+  initA1C();
 }
 function updateA1CIndicator() {
   const v = parseFloat(document.getElementById('a1c-val').value);
@@ -1695,6 +1777,43 @@ function exportCSV() {
   const blob = new Blob([rows.join('\n')], {type:'text/csv'});
   const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download='glucose-readings.csv'; a.click();
+}
+
+function importCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const lines = e.target.result.split('\n').filter(l=>l.trim());
+    const imported = [];
+    let skipped = 0;
+    lines.forEach((line, i) => {
+      if (i === 0 && line.toLowerCase().startsWith('date')) return; // skip header
+      const parts = line.match(/(".*?"|[^,]+)/g) || line.split(',');
+      const date = parts[0]?.trim().replace(/"/g,'');
+      const time = parts[1]?.trim().replace(/"/g,'');
+      const val = parseInt(parts[2]?.trim().replace(/"/g,''));
+      const notes = (parts[3]||'').trim().replace(/^"|"$/g,'').replace(/""/g,'"');
+      if (!date || !time || isNaN(val) || val < 40 || val > 999) { skipped++; return; }
+      // Only import if it's not already in legacy data
+      const inLegacy = LEGACY_DATA.some(r => r[0]===date && r[1]===time);
+      if (!inLegacy) imported.push({date, time, val, notes});
+    });
+    if (!imported.length) { alert(`No new readings found to import. ${skipped} rows skipped.`); return; }
+    const existing = getNewReadings();
+    const merged = [...existing];
+    let added = 0;
+    imported.forEach(r => {
+      const already = merged.some(e => e.date===r.date && e.time===r.time);
+      if (!already) { merged.push(r); added++; }
+    });
+    merged.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+    localStorage.setItem('glucose_new', JSON.stringify(merged));
+    alert(`✓ Imported ${added} readings. ${skipped} rows skipped.`);
+    renderRecent();
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // reset so same file can be re-imported if needed
 }
 
 // ============================================================
