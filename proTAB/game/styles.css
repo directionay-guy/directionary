@@ -1061,8 +1061,8 @@ body {
 .keyboard-row {
     display: flex;
     justify-content: center;
-    gap: 5px;
-    margin-bottom: 6px;
+    gap: 3px;
+    margin-bottom: 5px;
 }
 
 .keyboard-row:last-child {
@@ -1070,18 +1070,19 @@ body {
 }
 
 .key-btn {
-    min-width: 32px;
-    height: 48px;
+    min-width: 0;
+    width: 0;
+    height: 44px;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     background: white;
     color: #333;
-    font-size: 1em;
+    font-size: 0.85em;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 3px 0 #999;
+    box-shadow: 0 2px 0 #999;
     transition: all 0.1s ease;
-    padding: 0 4px;
+    padding: 0 2px;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     flex: 1;
