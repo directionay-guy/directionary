@@ -10,7 +10,6 @@ body {
             min-height: 100vh;
         }
         
-        /* ACCESSIBILITY: Global focus styles for keyboard navigation */
         a:focus-visible,
         [onclick]:focus-visible {
             outline: 3px solid #667eea;
@@ -18,7 +17,6 @@ body {
             border-radius: 4px;
         }
         
-        /* Remove default focus outline only when using :focus-visible (keyboard) */
         *:focus:not(:focus-visible) {
             outline: none;
         }
@@ -68,19 +66,16 @@ body {
             opacity: 1;
         }
         
-        /* AlphaHint active - remove bold from all letters to avoid confusion */
         .alphabet-display.hint-active span {
             font-weight: 500 !important;
             color: #5566cc !important;
         }
         
-        /* Make sure used letters also change color during hint */
         .alphabet-display.hint-active .used-letter {
             font-weight: 500 !important;
             color: #5566cc !important;
         }
         
-        /* AlphaHint - hide invalid letters instead of highlighting */
         .alphabet-display .hint-hidden {
             opacity: 0.15;
             color: rgba(85, 102, 204, 0.15);
@@ -204,7 +199,6 @@ body {
             justify-content: center;
         }
         
-        /* Streak button - clickable indicator */
         .score-item.streak-button {
             cursor: pointer;
             transition: all 0.3s ease;
@@ -212,16 +206,9 @@ body {
             animation: subtle-pulse 3s ease-in-out infinite;
         }
         
-        /* Gentle pulse to show it's clickable */
         @keyframes subtle-pulse {
-            0%, 100% { 
-                transform: scale(1);
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            }
-            50% { 
-                transform: scale(1.02);
-                box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
-            }
+            0%, 100% { transform: scale(1); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+            50% { transform: scale(1.02); box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2); }
         }
         
         .score-item.streak-button:hover {
@@ -282,7 +269,6 @@ body {
             line-height: 1.1;
         }
         
-        /* Cross-promotion box */
         .cross-promo-box {
             font-size: 0.85em;
             color: #666;
@@ -301,15 +287,9 @@ body {
             transition: color 0.2s ease;
         }
         
-        .cross-promo-link:hover {
-            color: #764ba2;
-        }
+        .cross-promo-link:hover { color: #764ba2; }
+        .cross-promo-link:active { color: #5a4d8a; }
         
-        .cross-promo-link:active {
-            color: #5a4d8a;
-        }
-        
-        /* AlphaHint text */
         .alphahint-text {
             font-size: 0.75em;
             color: #999;
@@ -318,7 +298,6 @@ body {
             font-style: italic;
         }
         
-        /* Highlight AlphaHint text when holding placeholder dots */
         .alphahint-text.demo-active {
             font-weight: 700;
             font-size: 1.1em;
@@ -383,7 +362,6 @@ body {
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
         
-        /* ACCESSIBILITY: Visible focus indicators for keyboard navigation */
         button:focus-visible {
             outline: 3px solid #667eea;
             outline-offset: 2px;
@@ -394,24 +372,22 @@ body {
             cursor: not-allowed;
         }
         
-        /* Submit button in Standard game - match input height */
         #submitBtn {
-            padding: 12px;  /* Match input padding exactly */
+            padding: 12px;
             font-size: 1.2em;
             border: 2px solid transparent;
-            height: 50px;  /* Explicit height to match input */
-            box-sizing: border-box;  /* Include padding and border in height */
-            margin: 0;  /* Remove any default margin */
-            display: flex;  /* Use flex to center text */
-            align-items: center;  /* Center text vertically */
-            justify-content: center;  /* Center text horizontally */
+            height: 50px;
+            box-sizing: border-box;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        /* Input box - set explicit height to match button */
         #guessInput {
-            height: 50px;  /* Explicit height to match button */
-            box-sizing: border-box;  /* Include padding and border in height */
-            margin: 0 !important;  /* Override the margin: 15px 0 from general input CSS */
+            height: 50px;
+            box-sizing: border-box;
+            margin: 0 !important;
         }
         
         .give-up-btn {
@@ -455,7 +431,6 @@ body {
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         
-        /* Previous guesses - inactive styling */
         .feedback-line.inactive-guess {
             background: #f5f5f5;
             box-shadow: 0 1px 2px rgba(0,0,0,0.03);
@@ -476,7 +451,6 @@ body {
             opacity: 0.6;
         }
         
-        /* Clickable words in feedback */
         .feedback-word {
             cursor: pointer;
             transition: all 0.2s ease;
@@ -502,9 +476,7 @@ body {
             transition: opacity 0.2s ease;
         }
         
-        .feedback-word:hover::after {
-            opacity: 0.6;
-        }
+        .feedback-word:hover::after { opacity: 0.6; }
         
         .feedback-arrows {
             display: flex;
@@ -526,7 +498,6 @@ body {
             -webkit-text-fill-color: transparent;
         }
         
-        /* Letter backgrounds under symbols */
         .symbol-with-letter {
             position: relative;
             width: 32px;
@@ -558,7 +529,6 @@ body {
             line-height: 1;
         }
         
-        /* AlphaHint - constraint highlighting in previous guesses */
         .overlay-symbol.hint-constraint {
             background: #8b4513 !important;
             color: white !important;
@@ -587,6 +557,14 @@ body {
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+
+        /* Placeholder grey dots */
+        .overlay-symbol.placeholder-dot {
+            background: none !important;
+            -webkit-background-clip: initial !important;
+            -webkit-text-fill-color: #666 !important;
+            color: #666 !important;
         }
         
         .new-game-message {
@@ -621,7 +599,6 @@ body {
             75% { transform: translateX(5px); }
         }
         
-        /* Definition Box */
         .definition-box {
             display: none;
             background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
@@ -635,41 +612,18 @@ body {
         }
         
         @keyframes slideDown {
-            from {
-                transform: translateY(-20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
         
-        .definition-word {
-            font-size: 1.3em;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
+        .definition-word { font-size: 1.3em; font-weight: bold; margin-bottom: 8px; }
+        .definition-text { font-size: 0.95em; line-height: 1.4; }
+        .definition-credit { font-size: 0.8em; opacity: 0.8; margin-top: 5px; }
         
-        .definition-text {
-            font-size: 0.95em;
-            line-height: 1.4;
-        }
-        
-        .definition-credit {
-            font-size: 0.8em;
-            opacity: 0.8;
-            margin-top: 5px;
-        }
-        
-        /* Success Modal */
         .success-modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0, 0, 0, 0.7);
             z-index: 2000;
             justify-content: center;
@@ -687,18 +641,14 @@ body {
             box-sizing: border-box;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             animation: slideUp 0.3s ease;
-            position: relative;  /* CRITICAL: Makes X button position relative to modal */
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
         @keyframes slideUp {
-            from {
-                transform: translateY(50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
         
         .success-title {
@@ -709,18 +659,8 @@ body {
             -webkit-text-fill-color: transparent;
         }
         
-        .success-word {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #333;
-            margin: 10px 0;
-        }
-        
-        .success-score {
-            font-size: 1.2em;
-            color: #666;
-            margin: 15px 0;
-        }
+        .success-word { font-size: 1.5em; font-weight: bold; color: #333; margin: 10px 0; }
+        .success-score { font-size: 1.2em; color: #666; margin: 15px 0; }
         
         .success-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -736,45 +676,14 @@ body {
             transition: all 0.3s ease;
         }
         
-        .success-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
+        .success-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); }
+        .success-btn:focus-visible { outline: 3px solid #667eea; outline-offset: 2px; }
         
-        /* ACCESSIBILITY: Focus indicators for modal buttons */
-        .success-btn:focus-visible {
-            outline: 3px solid #667eea;
-            outline-offset: 2px;
-        }
+        .modal-definition { margin-top: 20px; padding-top: 20px; border-top: 2px solid #f0f0f0; text-align: left; }
+        .modal-definition-word { font-size: 1.3em; font-weight: bold; color: #667eea; margin-bottom: 8px; }
+        .modal-definition-text { font-size: 0.95em; line-height: 1.6; color: #555; }
+        .modal-definition-credit { font-size: 0.75em; color: #999; margin-top: 8px; font-style: italic; }
         
-        .modal-definition {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 2px solid #f0f0f0;
-            text-align: left;
-        }
-        
-        .modal-definition-word {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 8px;
-        }
-        
-        .modal-definition-text {
-            font-size: 0.95em;
-            line-height: 1.6;
-            color: #555;
-        }
-        
-        .modal-definition-credit {
-            font-size: 0.75em;
-            color: #999;
-            margin-top: 8px;
-            font-style: italic;
-        }
-        
-        /* Bottom buttons container */
         .bottom-buttons-container {
             margin-top: 15px;
             margin-bottom: 0;
@@ -803,57 +712,22 @@ body {
             box-sizing: border-box;
         }
         
-        .share-btn {
-            background: #6b8dd3;  /* Brighter blue - was #8b9dc3 */
-        }
+        .share-btn { background: #6b8dd3; }
+        .share-btn:hover { background: #5a7dc5; }
+        .stats-btn { background: #e4988b; }
+        .stats-btn:hover { background: #d4887b; }
+        .info-btn { background: #8b7dcd; }
+        .info-btn:hover { background: #7b6dbd; }
+        .help-btn { background: #7bc9a8; }
+        .help-btn:hover { background: #6bb998; }
         
-        .share-btn:hover {
-            background: #5a7dc5;  /* Darker on hover - was #7a8cb5 */
-        }
+        .panel-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); }
+        .panel-btn:focus-visible { outline: 3px solid #ffffff; outline-offset: 2px; }
         
-        .stats-btn {
-            background: #e4988b;  /* More vibrant peach - was #d4a89b */
-        }
-        
-        .stats-btn:hover {
-            background: #d4887b;  /* Darker on hover - was #c4988b */
-        }
-        
-        .info-btn {
-            background: #8b7dcd;  /* Richer purple - was #9b8dbd */
-        }
-        
-        .info-btn:hover {
-            background: #7b6dbd;  /* Darker on hover - was #8b7dad */
-        }
-        
-        .help-btn {
-            background: #7bc9a8;  /* Brighter teal - was #9bb9a8 */
-        }
-        
-        .help-btn:hover {
-            background: #6bb998;  /* Darker on hover - was #8ba998 */
-        }
-        
-        .panel-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-        
-        /* ACCESSIBILITY: Focus indicators for panel buttons */
-        .panel-btn:focus-visible {
-            outline: 3px solid #ffffff;
-            outline-offset: 2px;
-        }
-        
-        /* Panels - now as overlays */
         .info-panel {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0, 0, 0, 0.7);
             z-index: 2000;
             justify-content: center;
@@ -883,45 +757,16 @@ body {
             -webkit-text-fill-color: transparent;
         }
         
-        .help-section {
-            margin-bottom: 20px;
-        }
+        .help-section { margin-bottom: 20px; }
+        .help-section h3 { color: #555; margin-bottom: 10px; font-size: 1.1em; }
+        .help-section p { color: #666; line-height: 1.6; margin: 5px 0; }
         
-        .help-section h3 {
-            color: #555;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-        }
-        
-        .help-section p {
-            color: #666;
-            line-height: 1.6;
-            margin: 5px 0;
-        }
-        
-        .help-symbols {
-            background: #e8e9ed;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 10px 0;
-        }
-        
-        .help-symbol {
-            display: flex;
-            align-items: center;
-            margin: 8px 0;
-            font-size: 0.95em;
-        }
-        
-        .help-symbol span:first-child {
-            font-size: 1.5em;
-            font-weight: bold;
-            width: 40px;
-            text-align: center;
-        }
+        .help-symbols { background: #e8e9ed; padding: 15px; border-radius: 10px; margin: 10px 0; }
+        .help-symbol { display: flex; align-items: center; margin: 8px 0; font-size: 0.95em; }
+        .help-symbol span:first-child { font-size: 1.5em; font-weight: bold; width: 40px; text-align: center; }
         
         .close-panel-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  /* Match main button gradient */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             padding: 10px 25px;
@@ -930,19 +775,18 @@ body {
             font-weight: 600;
             margin-top: 15px;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);  /* Add shadow like other buttons */
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
         
         .close-panel-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);  /* Stronger shadow on hover */
-            background: linear-gradient(135deg, #5569d0 0%, #653a88 100%);  /* Slightly darker on hover */
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #5569d0 0%, #653a88 100%);
         }
         
         .modal-close-x {
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 15px; right: 15px;
             font-size: 1.5em;
             color: #ccc;
             cursor: pointer;
@@ -950,16 +794,11 @@ body {
             background: none;
             border: none;
             padding: 0;
-            width: 30px;
-            height: 30px;
+            width: 30px; height: 30px;
             line-height: 1;
         }
         
-        .modal-close-x:hover {
-            color: #999;
-            transform: none;
-            box-shadow: none;
-        }
+        .modal-close-x:hover { color: #999; transform: none; box-shadow: none; }
         
         .share-preview {
             background: #f8f9fa;
@@ -985,331 +824,79 @@ body {
             width: 100%;
         }
         
-        .copy-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            background: #8ba998;
-        }
+        .copy-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); background: #8ba998; }
+        .game-link { color: #667eea; text-decoration: underline; cursor: pointer; }
         
-        .game-link {
-            color: #667eea;
-            text-decoration: underline;
-            cursor: pointer;
-        }
+        .feedback::-webkit-scrollbar { width: 8px; }
+        .feedback::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .feedback::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; }
         
-        .feedback::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .feedback::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        
-        .feedback::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
-        }
-        
-        /* Mobile optimizations */
         @media (max-width: 768px) {
-            .game-title {
-                font-size: 1.8em;
-                gap: 8px;
-            }
-            
-            .alphabet-display {
-                font-size: 0.7em;
-                letter-spacing: 1px;
-            }
+            .game-title { font-size: 1.8em; gap: 8px; }
+            .alphabet-display { font-size: 0.7em; letter-spacing: 1px; }
         }
         
-        /* Tablet/iPad optimizations */
         @media (min-width: 481px) and (max-width: 1024px) {
-            .alphabet-display {
-                letter-spacing: 2.5px;
-            }
+            .alphabet-display { letter-spacing: 2.5px; }
         }
         
         @media (max-width: 480px) {
-            .game-container {
-                padding: 10px 20px 10px 20px;
-            }
-            
-            .tagline {
-                font-size: 0.8em;
-            }
-            
-            .alphabet-display {
-                font-size: 0.58em;
-                letter-spacing: 0.5px;
-            }
-            
-            /* Make daily indicator + streak fit on one line */
-            .daily-indicator {
-                font-size: 0.7em;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                flex-wrap: nowrap;
-                white-space: nowrap;
-            }
-            
-            .streak-badge {
-                padding: 6px 10px;
-                font-size: 0.75em;
-                margin-left: 0;
-                border-radius: 12px;
-                white-space: nowrap;
-                min-width: fit-content;
-                display: inline-flex;
-                align-items: center;
-                gap: 3px;
-            }
-            
-            .streak-badge .streak-icon {
-                font-size: 0.95em;
-            }
-            
-            .game-over-badge {
-                padding: 6px 10px;
-                font-size: 0.75em;
-                margin-right: 3px;
-                border-radius: 12px;
-            }
-            
-            /* Make instructions more compact */
-            .instructions {
-                font-size: 0.75em;
-                padding: 8px;
-                line-height: 1.4;
-            }
-            
-            /* Make legend boxes smaller and fit better */
-            .legend {
-                font-size: 0.85em;
-                margin: 4px 3px;
-                padding: 2px 4px;
-            }
-            
-            /* Cross-promo mobile adjustments */
-            .cross-promo-box {
-                font-size: 0.75em;
-                padding: 6px 10px;
-                line-height: 1.4;
-            }
-            
-            /* Feedback/Results display - CRITICAL FIX */
-            .feedback-line {
-                font-size: 1em;
-                padding: 8px 6px;
-                margin: 6px 0;
-            }
-            
-            .feedback-arrows {
-                width: 140px;
-                font-size: 1.1em;
-                gap: 2px;
-                letter-spacing: 0;
-            }
-            
-            .feedback-arrows span {
-                letter-spacing: 2px;
-            }
-            
-            /* Mobile letter backgrounds */
-            .symbol-with-letter {
-                width: 26px;
-                height: 28px;
-            }
-            
-            .background-letter {
-                font-size: 24px;
-                font-weight: 900;
-                color: #ccc !important;
-                background: none !important;
-                -webkit-background-clip: initial !important;
-                -webkit-text-fill-color: #ccc !important;
-                background-clip: initial !important;
-            }
-            
-            
-            
-            }
-            
-            /* Input field adjustments */
-            input {
-                font-size: 1.1em;
-                padding: 10px;
-            }
-            
-            input:not(:placeholder-shown) {
-                letter-spacing: 6px;
-            }
-            
-            /* Buttons more compact */
-            button {
-                font-size: 0.9em;
-                padding: 10px 18px;
-            }
-            
-            /* Score display more compact */
-            .score-display {
-                font-size: 0.9em;
-                gap: 8px;
-            }
-            
-            .score-item {
-                min-height: 36px;
-            }
-            
-            /* Share modal mobile improvements */
-            .info-panel {
-                padding-top: 20px;
-                align-items: flex-start;
-            }
-            
-            .info-panel > div {
-                padding: 20px;
-                margin-bottom: 20px;
-                max-height: calc(100vh - 40px);
-                overflow-y: auto;
-            }
-            
-            .modal-close-x {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                background: rgba(255, 255, 255, 0.95);
-                border-radius: 50%;
-                width: 35px;
-                height: 35px;
-                font-size: 1.3em;
-                color: #666;
-            }
-            
-            /* Success/completion modals mobile improvements */
-            .success-modal {
-                padding-top: 20px;
-                padding-bottom: 20px;
-                align-items: flex-start;
-                overflow-y: auto;
-            }
-            
-            .success-content {
-                padding: 20px 15px;
-                margin: 0 auto 20px;
-                max-height: calc(100vh - 40px);
-                overflow-y: auto;
-            }
-            
-            .success-title {
-                font-size: 1.5em;
-            }
-            
-            .score-badge {
-                padding: 8px 12px;
-                font-size: 0.85em;
-            }
+            .game-container { padding: 10px 20px 10px 20px; }
+            .tagline { font-size: 0.8em; }
+            .alphabet-display { font-size: 0.58em; letter-spacing: 0.5px; }
+            .daily-indicator { font-size: 0.7em; display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap; white-space: nowrap; }
+            .streak-badge { padding: 6px 10px; font-size: 0.75em; margin-left: 0; border-radius: 12px; white-space: nowrap; min-width: fit-content; display: inline-flex; align-items: center; gap: 3px; }
+            .streak-badge .streak-icon { font-size: 0.95em; }
+            .game-over-badge { padding: 6px 10px; font-size: 0.75em; margin-right: 3px; border-radius: 12px; }
+            .instructions { font-size: 0.75em; padding: 8px; line-height: 1.4; }
+            .legend { font-size: 0.85em; margin: 4px 3px; padding: 2px 4px; }
+            .cross-promo-box { font-size: 0.75em; padding: 6px 10px; line-height: 1.4; }
+            .feedback-line { font-size: 1em; padding: 8px 6px; margin: 6px 0; }
+            .feedback-arrows { width: 140px; font-size: 1.1em; gap: 2px; letter-spacing: 0; }
+            .feedback-arrows span { letter-spacing: 2px; }
+            .symbol-with-letter { width: 26px; height: 28px; }
+            .background-letter { font-size: 24px; font-weight: 900; color: #ccc !important; background: none !important; -webkit-background-clip: initial !important; -webkit-text-fill-color: #ccc !important; background-clip: initial !important; }
+            input { font-size: 1.1em; padding: 10px; }
+            input:not(:placeholder-shown) { letter-spacing: 6px; }
+            button { font-size: 0.9em; padding: 10px 18px; }
+            .score-display { font-size: 0.9em; gap: 8px; }
+            .score-item { min-height: 36px; }
+            .info-panel { padding-top: 20px; align-items: flex-start; }
+            .info-panel > div { padding: 20px; margin-bottom: 20px; max-height: calc(100vh - 40px); overflow-y: auto; }
+            .modal-close-x { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.95); border-radius: 50%; width: 35px; height: 35px; font-size: 1.3em; color: #666; }
+            .success-modal { padding-top: 20px; padding-bottom: 20px; align-items: flex-start; overflow-y: auto; }
+            .success-content { padding: 20px 15px; margin: 0 auto 20px; max-height: calc(100vh - 40px); overflow-y: auto; }
+            .success-title { font-size: 1.5em; }
         }
 
-        /* Extra small phones (iPhone SE, etc.) */
         @media (max-width: 375px) {
-            .daily-indicator {
-                font-size: 0.65em;
-            }
-            
-            .streak-badge {
-                padding: 5px 8px;
-                font-size: 0.7em;
-                border-radius: 10px;
-            }
-            
-            .game-over-badge {
-                padding: 5px 8px;
-                font-size: 0.7em;
-                margin-right: 2px;
-                border-radius: 10px;
-            }
-            
-            .instructions {
-                font-size: 0.7em;
-            }
-            
-            .instructions-brief {
-                font-size: 0.75em;
-            }
-            
-            .legend-box {
-                font-size: 0.8em;
-                margin: 10px 0 8px 0;
-            }
-            
-            .score-item {
-                min-height: 32px;
-            }
-            
-            /* Share modal extra small improvements */
-            .info-panel {
-                padding-top: 15px;
-            }
-            
-            .info-panel > div {
-                padding: 15px;
-                font-size: 0.9em;
-            }
-            
-            .modal-close-x {
-                top: 20px;
-                right: 15px;
-                width: 32px;
-                height: 32px;
-                font-size: 1.2em;
-            }
-            
-            /* Success modal extra small improvements */
-            .success-modal {
-                padding-top: 15px;
-            }
-            
-            .success-content {
-                padding: 15px 12px;
-                font-size: 0.9em;
-            }
-            
-            .success-title {
-                font-size: 1.3em;
-            }
+            .daily-indicator { font-size: 0.65em; }
+            .streak-badge { padding: 5px 8px; font-size: 0.7em; border-radius: 10px; }
+            .game-over-badge { padding: 5px 8px; font-size: 0.7em; margin-right: 2px; border-radius: 10px; }
+            .instructions { font-size: 0.7em; }
+            .instructions-brief { font-size: 0.75em; }
+            .legend-box { font-size: 0.8em; margin: 10px 0 8px 0; }
+            .score-item { min-height: 32px; }
+            .info-panel { padding-top: 15px; }
+            .info-panel > div { padding: 15px; font-size: 0.9em; }
+            .modal-close-x { top: 20px; right: 15px; width: 32px; height: 32px; font-size: 1.2em; }
+            .success-modal { padding-top: 15px; }
+            .success-content { padding: 15px 12px; font-size: 0.9em; }
+            .success-title { font-size: 1.3em; }
         }
 
-        /* Desktop - More breathing room at top */
         @media (min-width: 768px) {
-            body {
-                padding: 30px 0 0 0;
-            }
+            body { padding: 30px 0 0 0; }
         }
 
-/* ===== TABLET & PHONE SPECIFIC OVERLAY SYMBOL POSITIONING ===== */
-
-/* Tablets (iPad, etc) - 601px to 1024px width */
 @media (min-width: 601px) and (max-width: 1024px) {
-    .overlay-symbol {
-        top: 0px;
-    }
+    .overlay-symbol { top: 0px; }
 }
 
-/* Phones (iPhone, etc) - up to 600px width */
 @media (max-width: 600px) {
-    .overlay-symbol {
-        top: -1px;
-    }
-    
-    .legend {
-        font-size: 1.05em;
-    }
+    .overlay-symbol { top: -1px; }
+    .legend { font-size: 1.05em; }
 }
-
-/* Rotate device overlay - Directionary style */
 
 /* ── CUSTOM KEYBOARD ── */
 
@@ -1334,41 +921,38 @@ body {
 .keyboard-row {
     display: flex;
     justify-content: center;
-    gap: 5px;
-    margin-bottom: 6px;
+    gap: 3px;
+    margin-bottom: 5px;
 }
 
-.keyboard-row:last-child {
-    margin-bottom: 0;
-}
+.keyboard-row:last-child { margin-bottom: 0; }
 
+/* FIXED: min-width: 0 and width: 0 forces keys to shrink to fit screen */
 .key-btn {
-    min-width: 32px;
-    height: 48px;
+    min-width: 0;
+    width: 0;
+    height: 44px;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     background: white;
     color: #333;
-    font-size: 1em;
+    font-size: 0.85em;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 3px 0 #999;
+    box-shadow: 0 2px 0 #999;
     transition: all 0.1s ease;
-    padding: 0 4px;
+    padding: 0 2px;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     flex: 1;
 }
 
-.key-btn:active {
-    transform: translateY(2px);
-    box-shadow: 0 0 0 #aaa;
-}
+.key-btn:active { transform: translateY(2px); box-shadow: 0 0 0 #aaa; }
 
 .key-btn.key-back {
     background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
     color: white;
-    min-width: 44px;
+    min-width: 0;
     box-shadow: 0 2px 0 #c0399e;
     font-size: 1.1em;
 }
@@ -1376,50 +960,29 @@ body {
 .key-btn.key-submit {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    min-width: 44px;
+    min-width: 0;
     box-shadow: 0 2px 0 #4a3580;
     font-size: 0.9em;
     letter-spacing: 1px;
 }
 
-/* Body padding so content isn't hidden behind keyboard */
-body.keyboard-active {
-    padding-bottom: 200px;
-}
+body.keyboard-active { padding-bottom: 200px; }
 
-/* Input focus state when keyboard is visible (mobile) */
 .keyboard-focus {
     border: 2px solid #667eea !important;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
 }
 
-/* Larger keys on bigger phones */
 @media (min-width: 400px) {
-    .key-btn {
-        min-width: 36px;
-        height: 50px;
-        font-size: 1.05em;
-    }
+    .key-btn { min-width: 0; height: 50px; font-size: 1.05em; }
 }
 
-/* Landscape mode adjustments */
 @media (orientation: landscape) and (max-width: 1024px) {
-    .custom-keyboard {
-        bottom: 8px;
-        padding: 8px 6px 10px 6px;
-    }
-    body.keyboard-active {
-        padding-bottom: 160px;
-    }
+    .custom-keyboard { bottom: 8px; padding: 8px 6px 10px 6px; }
+    body.keyboard-active { padding-bottom: 160px; }
 }
 
-/* Mobile-specific: Tighten Daily Complete modal spacing */
 @media (max-width: 600px) {
-    #dailyCompleteModal .success-content {
-        padding: 20px 15px;
-    }
-    
-    #dailyCompleteModal .success-score {
-        margin: 10px 0;
-    }
+    #dailyCompleteModal .success-content { padding: 20px 15px; }
+    #dailyCompleteModal .success-score { margin: 10px 0; }
 }
