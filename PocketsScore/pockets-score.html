@@ -546,11 +546,9 @@ function makeScoreCell(idx, player, cls) {
     inp.addEventListener('input', function() {
         var v = this.value.replace(/[^0-9]/g,'');
         // Cap score: Rolldown round = 40, regular round = 21
-        var isRD  = (idx === getRolldownIdx());
-        var cap   = isRD ? 40 : 21;
-        var floor = isRD ? 5  : 2;
-        if (v !== '' && parseInt(v) > cap)   { v = String(cap); }
-        if (v !== '' && parseInt(v) < floor) { v = String(floor); }
+        var isRD = (idx === getRolldownIdx());
+        var cap  = isRD ? 40 : 21;
+        if (v !== '' && parseInt(v) > cap) { v = String(cap); }
         this.value = v;
         rounds[idx][player] = v === '' ? null : parseInt(v);
         // Only update totals and rolldown label while typing — never add new row mid-input
@@ -560,6 +558,17 @@ function makeScoreCell(idx, player, cls) {
         if (newRD !== prevRD) { renderSheet(); }
     });
     inp.addEventListener('blur', function() {
+        // Enforce minimum on blur only — not while typing
+        var v = this.value;
+        if (v !== '') {
+            var isRD  = (idx === getRolldownIdx());
+            var floor = isRD ? 15 : 2;
+            if (parseInt(v) < floor) {
+                this.value = String(floor);
+                rounds[idx][player] = floor;
+                updateTotals();
+            }
+        }
         checkAutoAddRow(idx);
     });
     inp.addEventListener('keydown', function(e) {
