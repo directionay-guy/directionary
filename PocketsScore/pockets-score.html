@@ -474,16 +474,14 @@ function loadDB() {
 function fresh() { return { p1:'Blue Player', p2:'Red Player', games:[] }; }
 function saveDB() { localStorage.setItem(SKEY, JSON.stringify(db)); }
 
-// ── Wire up all buttons via addEventListener (no inline onclick) ──────────
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('tabSheet')   .addEventListener('click', function(){ showTab('sheet',   this); });
-    document.getElementById('tabHistory') .addEventListener('click', function(){ showTab('history', this); });
-    document.getElementById('tabRecords') .addEventListener('click', function(){ showTab('records', this); });
-    document.getElementById('btnSave')    .addEventListener('click', doSave);
-    document.getElementById('btnNew')     .addEventListener('click', doNew);
-    document.getElementById('clearHistBtn').addEventListener('click', doClearHist);
-    document.getElementById('oCancel')    .addEventListener('click', closeOverlay);
-});
+// ── Wire up all buttons ───────────────────────────────────────────────────
+document.getElementById('tabSheet')    .addEventListener('click', function(){ showTab('sheet',   this); });
+document.getElementById('tabHistory')  .addEventListener('click', function(){ showTab('history', this); });
+document.getElementById('tabRecords')  .addEventListener('click', function(){ showTab('records', this); });
+document.getElementById('btnSave')     .addEventListener('click', doSave);
+document.getElementById('btnNew')      .addEventListener('click', doNew);
+document.getElementById('clearHistBtn').addEventListener('click', doClearHist);
+document.getElementById('oCancel')     .addEventListener('click', closeOverlay);
 
 // ── Boot ──────────────────────────────────
 loadDB();
