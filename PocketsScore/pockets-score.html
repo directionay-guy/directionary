@@ -2,382 +2,206 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>POCKETS — Score Sheet</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>POCKETS Score Sheet</title>
 <style>
-:root {
-    --navy:     #1a2744;
-    --navy-mid: #243258;
-    --navy-lt:  #2e3f6e;
-    --burg:     #6e3030;
-    --burg-dk:  #4d2020;
-    --gold:     #c8a84b;
-    --gold-dim: rgba(200,168,75,0.30);
-    --parch:    #f5f0e4;
-    --parch-dk: #c8b88a;
-    --ink:      #1a1a1a;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
+* { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-    background: #1e3020;
-    color: var(--parch);
     font-family: Georgia, serif;
+    background: #1a3020;
+    color: #f5f0e4;
     font-size: 16px;
     min-height: 100vh;
 }
-
 #app {
     max-width: 560px;
     margin: 0 auto;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background: #1a2744;
 }
-
-/* ── Header ── */
 header {
     text-align: center;
     padding: 10px 12px 6px;
-    background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy) 100%);
-    border-bottom: 1px solid var(--gold-dim);
+    background: #243258;
+    border-bottom: 1px solid rgba(200,168,75,0.3);
 }
-header h1 {
-    font-size: 1.4em;
-    letter-spacing: 0.14em;
-    color: var(--gold);
-    font-weight: normal;
-    text-shadow: 0 0 12px rgba(200,168,75,0.4);
-}
-header p { font-size: 0.7em; color: var(--parch-dk); letter-spacing: 0.08em; }
+header h1 { font-size: 1.3em; color: #c8a84b; font-weight: normal; letter-spacing: 0.14em; }
+header p  { font-size: 0.7em; color: #c8b88a; letter-spacing: 0.08em; }
 
-/* ── Tabs ── */
-#tabBar {
-    display: flex;
-    background: rgba(0,0,0,0.25);
-    border-bottom: 1px solid var(--gold-dim);
-}
-.tab-btn {
+/* Tabs */
+#tabs { display: flex; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(200,168,75,0.2); }
+#tabs button {
     flex: 1; padding: 8px 4px;
-    background: transparent; border: none;
-    color: var(--parch-dk); font-family: inherit;
-    font-size: 0.76em; letter-spacing: 0.06em;
-    text-transform: uppercase; cursor: pointer;
-    border-bottom: 2px solid transparent;
+    background: none; border: none; border-bottom: 2px solid transparent;
+    color: #c8b88a; font-family: inherit; font-size: 0.75em;
+    letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;
 }
-.tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+#tabs button.on { color: #c8a84b; border-bottom-color: #c8a84b; }
 
-.panel { display: none; flex: 1; flex-direction: column; overflow-y: auto; }
-.panel.active { display: flex; }
+.panel { display: none; flex-direction: column; flex: 1; overflow-y: auto; }
+.panel.on { display: flex; }
 
-/* ══════════════════════════════
-   SCORE SHEET
-══════════════════════════════ */
-
-/* Player name bar */
-#nameBar {
-    display: grid;
-    grid-template-columns: 1fr 28px 1fr;
-    align-items: center;
-    gap: 6px;
+/* ── SCORE SHEET ── */
+#nameRow {
+    display: grid; grid-template-columns: 1fr 30px 1fr;
+    align-items: center; gap: 6px;
     padding: 8px 10px;
-    background: rgba(0,0,0,0.18);
-    border-bottom: 1px solid var(--gold-dim);
+    background: rgba(0,0,0,0.15);
+    border-bottom: 1px solid rgba(200,168,75,0.2);
 }
-.name-col { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.name-col { display: flex; flex-direction: column; align-items: center; }
 .name-input {
-    width: 100%;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--gold-dim);
-    color: inherit;
-    font-family: inherit;
-    font-size: 0.92em;
-    font-weight: bold;
-    text-align: center;
-    padding: 2px 2px 3px;
-    outline: none;
-    letter-spacing: 0.04em;
+    width: 100%; background: transparent; border: none;
+    border-bottom: 1px solid rgba(200,168,75,0.3);
+    color: inherit; font-family: inherit; font-size: 0.95em;
+    font-weight: bold; text-align: center; padding: 2px 4px; outline: none;
 }
-.name-input:focus { border-bottom-color: var(--gold); }
-#n1 .name-input { color: #80b8f8; }
-#n2 .name-input { color: #f08888; }
-.vs { color: var(--gold-dim); font-size: 0.75em; text-align: center; }
+.name-input:focus { border-bottom-color: #c8a84b; }
+#n1 .name-input { color: #90c0ff; }
+#n2 .name-input { color: #ff9090; }
+.vs { color: rgba(200,168,75,0.4); font-size: 0.8em; text-align: center; }
 
-/* Score table */
-#scoreTable {
-    width: 100%;
-    border-collapse: collapse;
+table { width: 100%; border-collapse: collapse; }
+thead th {
+    padding: 7px 4px; font-weight: normal; font-size: 0.74em;
+    letter-spacing: 0.07em; text-transform: uppercase;
+    border-bottom: 1px solid rgba(200,168,75,0.25);
+    position: sticky; top: 0; z-index: 2; background: #243258; color: #c8a84b;
 }
-#scoreTable thead th {
-    background: var(--navy-mid);
-    color: var(--gold);
-    font-weight: normal;
-    font-size: 0.75em;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    padding: 7px 4px;
-    border-bottom: 1px solid var(--gold-dim);
-    position: sticky; top: 0; z-index: 2;
-}
-#scoreTable thead th:nth-child(2) {
-    background: rgba(25,50,105,0.90);
-    color: #b8d8ff;
-}
-#scoreTable thead th:nth-child(3) {
-    background: rgba(80,22,22,0.90);
-    color: #ffb8b8;
-}
+thead th:nth-child(2) { background: #1e3060; color: #90c0ff; }
+thead th:nth-child(3) { background: #501818; color: #ff9090; }
 
-#scoreTable tbody tr { border-bottom: 1px solid rgba(200,168,75,0.07); }
-#scoreTable tbody tr.is-rolldown td { border-top: 1px solid var(--gold-dim); }
-#scoreTable td {
-    padding: 3px 3px;
-    text-align: center;
-    vertical-align: middle;
-}
-/* Blue column */
-#scoreTable tbody .p1-cell,
-#scoreTable tfoot .p1-cell,
-#totalsRow td:nth-child(2) {
-    background: rgba(30, 55, 110, 0.55);
-}
-/* Red column */
-#scoreTable tbody .p2-cell,
-#scoreTable tfoot .p2-cell,
-#totalsRow td:nth-child(3) {
-    background: rgba(90, 28, 28, 0.55);
-}
-/* Round column stays dark */
-#scoreTable tbody .rn { background: rgba(0,0,0,0.15); }
-.rn { width: 44px; font-size: 1.1em; font-weight: bold; color: var(--parch-dk); padding: 3px 6px; }
-.rn.rolldown-label { color: var(--gold); font-style: italic; font-size: 1em; font-weight: bold; }
+tbody tr { border-bottom: 1px solid rgba(255,255,255,0.05); }
+td { padding: 2px 3px; text-align: center; vertical-align: middle; }
+.rn { width: 48px; font-size: 1em; font-weight: bold; color: #c8b88a; background: rgba(0,0,0,0.12); }
+.rn.rd { color: #c8a84b; font-style: italic; font-size: 0.82em; }
+.p1c { background: rgba(30,48,96,0.55); }
+.p2c { background: rgba(80,24,24,0.55); }
 
-.score-cell input {
-    width: 100%;
-    background: transparent;
-    border: none;
+.score-input {
+    width: 100%; background: transparent; border: none;
     border-bottom: 1px solid rgba(200,168,75,0.15);
-    color: var(--parch);
-    font-family: inherit;
-    font-size: 1.15em;
-    text-align: center;
-    padding: 8px 2px;
-    outline: none;
-    min-height: 40px;
-    -webkit-appearance: none;
+    color: #f5f0e4; font-family: inherit; font-size: 1.1em;
+    text-align: center; padding: 8px 2px; outline: none;
+    min-height: 42px; -webkit-appearance: none;
 }
-.score-cell input:focus { background: rgba(255,255,255,0.08); border-bottom-color: var(--gold); }
-.p1-cell input { color: #b8d8ff; }
-.p2-cell input { color: #ffb8b8; }
+.score-input:focus { background: rgba(255,255,255,0.07); border-bottom-color: #c8a84b; }
+.p1c .score-input { color: #b0d0ff; }
+.p2c .score-input { color: #ffb0b0; }
 
-/* Totals row */
-#totalsRow td {
-    border-top: 2px solid #c8a84b;
-    padding: 12px 4px;
-    font-size: 0.72em;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    font-weight: bold;
+tfoot td {
+    padding: 10px 4px; border-top: 2px solid rgba(200,168,75,0.4);
+    font-size: 0.72em; letter-spacing: 0.05em; text-transform: uppercase;
+    font-weight: bold; color: #c8a84b;
 }
-#totalsRow td:first-child {
-    background: rgba(0,0,0,0.30);
-    color: #c8a84b;
-}
-#totalsRow td:nth-child(2) { background: rgba(25,50,105,0.90); }
-#totalsRow td:nth-child(3) { background: rgba(80,22,22,0.90); }
-#totalsRow .total-val { font-size: 2.6em; display: block; line-height: 1; margin-top: 3px; }
-#t1val { color: #c8a84b; }
-#t2val { color: #c8a84b; }
+tfoot td:nth-child(1) { background: rgba(0,0,0,0.2); }
+tfoot td:nth-child(2) { background: rgba(25,50,105,0.9); }
+tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
+.tval { font-size: 2.4em; display: block; line-height: 1; margin-top: 2px; color: #c8a84b; }
 
-/* Winner banner */
-#winBanner {
-    display: none;
-    text-align: center;
-    padding: 12px 10px;
-    background: rgba(200,168,75,0.10);
-    border-top: 1px solid var(--gold-dim);
+#announce {
+    display: none; text-align: center; padding: 10px 10px 4px;
+    font-size: 1em; font-weight: bold; letter-spacing: 0.08em;
 }
-#winBanner .wn {
-    font-size: 1.5em;
-    color: var(--gold);
-    letter-spacing: 0.1em;
-    animation: glow 2s ease-in-out infinite;
+#winner-banner {
+    display: none; text-align: center;
+    padding: 14px 10px;
+    background: rgba(200,168,75,0.08);
+    border-top: 1px solid rgba(200,168,75,0.25);
 }
-#winBanner .wm { font-size: 0.8em; color: var(--parch-dk); margin-top: 3px; }
-@keyframes glow {
-    0%,100% { text-shadow: 0 0 8px rgba(200,168,75,0.4); }
-    50%      { text-shadow: 0 0 20px rgba(200,168,75,0.9); }
+#winner-banner .wn {
+    font-size: 1.5em; color: #c8a84b; letter-spacing: 0.1em;
+    animation: glo 2s ease-in-out infinite;
 }
+#winner-banner .wm { font-size: 0.8em; color: #c8b88a; margin-top: 3px; }
+@keyframes glo { 0%,100%{text-shadow:0 0 8px rgba(200,168,75,0.4)} 50%{text-shadow:0 0 22px rgba(200,168,75,0.9)} }
 
-/* Buttons */
-#sheetBtns {
-    display: flex; gap: 8px;
-    padding: 10px;
-    background: rgba(0,0,0,0.18);
-    border-top: 1px solid var(--gold-dim);
+#btns {
+    display: flex; gap: 8px; padding: 10px;
+    background: rgba(0,0,0,0.15);
+    border-top: 1px solid rgba(200,168,75,0.2);
     margin-top: auto;
 }
-.sb {
-    flex: 1; padding: 11px 6px;
-    font-family: inherit; font-size: 0.82em;
-    letter-spacing: 0.06em; text-transform: uppercase;
-    cursor: pointer; border-radius: 4px;
-    border: 1px solid var(--gold-dim);
+#btns button {
+    flex: 1; padding: 12px 6px; font-family: inherit;
+    font-size: 0.82em; letter-spacing: 0.06em; text-transform: uppercase;
+    cursor: pointer; border-radius: 4px; border: 1px solid rgba(200,168,75,0.3);
 }
-.sb-save {
-    background: linear-gradient(180deg, var(--burg) 0%, var(--burg-dk) 100%);
-    color: var(--parch);
-}
-.sb-new {
-    background: rgba(200,168,75,0.10);
-    color: var(--parch-dk);
-}
+#btn-save { background: linear-gradient(180deg,#6e3030,#4d2020); color: #f5f0e4; }
+#btn-new  { background: rgba(200,168,75,0.1); color: #c8b88a; }
 
-/* ══════════════════════════════
-   HISTORY
-══════════════════════════════ */
-.win-bar {
-    display: grid; grid-template-columns: 1fr 1fr;
-    border-bottom: 1px solid var(--gold-dim);
-}
-.win-col { padding: 10px 12px; text-align: center; }
-.win-col:first-child { border-right: 1px solid var(--gold-dim); }
-.wc-lbl  { font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.08em; color: var(--parch-dk); }
+/* ── HISTORY ── */
+#wincounts { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid rgba(200,168,75,0.2); }
+.wc { padding: 10px; text-align: center; }
+.wc:first-child { border-right: 1px solid rgba(200,168,75,0.2); }
+.wc-lbl { font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.08em; color: #c8b88a; }
 .wc-name { font-size: 0.9em; font-weight: bold; margin: 2px 0; }
-.wc-num  { font-size: 1.8em; font-weight: bold; color: var(--gold); line-height: 1; }
-#wc1 .wc-name { color: #80b8f8; }
-#wc2 .wc-name { color: #f08888; }
+.wc-n { font-size: 1.8em; font-weight: bold; color: #c8a84b; line-height: 1; }
+#wc1 .wc-name { color: #90c0ff; }
+#wc2 .wc-name { color: #ff9090; }
 
-.empty-msg {
-    text-align: center; padding: 30px 20px;
-    color: var(--parch-dk); font-size: 0.85em;
-    font-style: italic; letter-spacing: 0.04em;
-}
+.game-card { padding: 10px 12px; border-bottom: 1px solid rgba(200,168,75,0.08); border-left: 3px solid transparent; }
+.game-card.gw1 { border-left-color: #90c0ff; }
+.game-card.gw2 { border-left-color: #ff9090; }
+.gc-top { display: flex; justify-content: space-between; font-size: 0.7em; color: #c8b88a; margin-bottom: 5px; }
+.gc-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 4px; }
+.gc-p1 { color: #90c0ff; }
+.gc-p2 { color: #ff9090; text-align: right; }
+.gc-sc { font-size: 1.5em; font-weight: bold; display: block; line-height: 1; }
+.gc-mid { text-align: center; font-size: 0.72em; color: #c8b88a; }
+.gc-wl { color: #c8a84b; display: block; }
+.empty { text-align: center; padding: 30px; color: #c8b88a; font-style: italic; font-size: 0.85em; }
+#btn-clr { margin: 10px; padding: 9px; width: calc(100% - 20px); background: rgba(110,48,48,0.25); border: 1px solid rgba(110,48,48,0.5); color: #c8b88a; font-family: inherit; font-size: 0.78em; letter-spacing: 0.05em; cursor: pointer; border-radius: 4px; }
 
-.game-card {
-    padding: 10px 12px;
-    border-bottom: 1px solid rgba(200,168,75,0.10);
-    border-left: 3px solid transparent;
-}
-.game-card.wp1 { border-left-color: #80b8f8; }
-.game-card.wp2 { border-left-color: #f08888; }
-.gc-top {
-    display: flex; justify-content: space-between;
-    font-size: 0.7em; color: var(--parch-dk); margin-bottom: 5px;
-}
-.gc-scores {
-    display: grid; grid-template-columns: 1fr auto 1fr;
-    align-items: center; gap: 6px;
-}
-.gc-p { font-size: 0.8em; }
-.gc-p .sc { font-size: 1.6em; font-weight: bold; display: block; line-height: 1; }
-.gc-p1 { color: #80b8f8; }
-.gc-p2 { color: #f08888; text-align: right; }
-.gc-mid { text-align: center; font-size: 0.72em; color: var(--parch-dk); }
-.gc-mid .wlbl { color: var(--gold); font-size: 0.95em; display: block; }
-
-#clearHistBtn {
-    margin: 12px;
-    padding: 9px; width: calc(100% - 24px);
-    background: rgba(110,48,48,0.25);
-    border: 1px solid rgba(110,48,48,0.5);
-    color: var(--parch-dk); font-family: inherit;
-    font-size: 0.78em; letter-spacing: 0.05em;
-    cursor: pointer; border-radius: 4px;
-}
-
-/* ══════════════════════════════
-   RECORDS
-══════════════════════════════ */
-.rec-section {
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--gold-dim);
-}
-.rec-title {
-    font-size: 0.74em; text-transform: uppercase;
-    letter-spacing: 0.1em; color: var(--gold); margin-bottom: 8px;
-}
-.stat-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-.sbox {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--gold-dim);
-    border-radius: 4px;
-    padding: 8px; text-align: center;
-}
-.sbox .sv { font-size: 1.5em; font-weight: bold; color: var(--gold); line-height: 1; }
-.sbox .sl { font-size: 0.66em; text-transform: uppercase; letter-spacing: 0.06em; color: var(--parch-dk); margin-top: 2px; }
-
+/* ── RECORDS ── */
+.rsec { padding: 10px 12px; border-bottom: 1px solid rgba(200,168,75,0.2); }
+.rtitle { font-size: 0.74em; text-transform: uppercase; letter-spacing: 0.1em; color: #c8a84b; margin-bottom: 8px; }
+.sg2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.sbox { background: rgba(255,255,255,0.04); border: 1px solid rgba(200,168,75,0.25); border-radius: 4px; padding: 8px; text-align: center; }
+.sbox .sv { font-size: 1.5em; font-weight: bold; color: #c8a84b; line-height: 1; }
+.sbox .sl { font-size: 0.65em; text-transform: uppercase; letter-spacing: 0.06em; color: #c8b88a; margin-top: 2px; }
 .t5 { width: 100%; border-collapse: collapse; font-size: 0.82em; }
-.t5 th {
-    text-align: left; padding: 4px 5px;
-    color: var(--gold-dim); font-weight: normal;
-    font-size: 0.85em; border-bottom: 1px solid var(--gold-dim);
-}
-.t5 td { padding: 5px 5px; border-bottom: 1px solid rgba(200,168,75,0.07); color: var(--parch); }
-.t5 tr:first-child td { color: var(--gold); }
-.t5 .rank { color: var(--gold-dim); width: 20px; text-align: center; }
-.t5 .sc   { font-weight: bold; }
-.t5 .dt   { color: var(--parch-dk); font-size: 0.88em; }
+.t5 th { text-align: left; padding: 4px 5px; color: rgba(200,168,75,0.5); font-weight: normal; font-size: 0.85em; border-bottom: 1px solid rgba(200,168,75,0.2); }
+.t5 td { padding: 5px 5px; border-bottom: 1px solid rgba(255,255,255,0.04); color: #f5f0e4; }
+.t5 tr:first-child td { color: #c8a84b; }
+.t5 .rk { color: rgba(200,168,75,0.4); width: 20px; text-align: center; }
+.t5 .sc { font-weight: bold; }
+.t5 .dt { color: #c8b88a; font-size: 0.88em; }
 
-/* ── Confirm modal ── */
-#confirmModal {
-    display: none;
-    position: fixed;
+/* Confirm modal */
+#modal {
+    display: none; position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.78);
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+    background: rgba(0,0,0,0.8); z-index: 9999;
+    align-items: center; justify-content: center; padding: 20px;
 }
-#confirmModal.show { display: flex; }
-#confirmBox {
-    background: #243258;
-    border: 2px solid var(--gold);
-    border-radius: 8px;
-    padding: 24px 20px;
-    max-width: 300px;
-    width: 100%;
-    text-align: center;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+#modal.on { display: flex; }
+#mbox {
+    background: #243258; border: 2px solid #c8a84b;
+    border-radius: 8px; padding: 24px 20px;
+    max-width: 300px; width: 100%; text-align: center;
 }
-#confirmMsg {
-    color: var(--parch);
-    font-size: 1em;
-    line-height: 1.5;
-    margin-bottom: 20px;
+#mbox p { color: #f5f0e4; font-size: 1em; line-height: 1.5; margin-bottom: 20px; }
+#mbox .mbts { display: flex; gap: 10px; }
+#mbox button {
+    flex: 1; padding: 14px 8px; font-family: inherit;
+    font-size: 1em; border-radius: 6px; cursor: pointer;
+    border: 1px solid rgba(200,168,75,0.3); min-height: 50px;
 }
-.confirm-btns { display: flex; gap: 10px; }
-.confirm-btns button {
-    flex: 1;
-    padding: 13px 8px;
-    font-family: inherit;
-    font-size: 1em;
-    border-radius: 6px;
-    cursor: pointer;
-    border: 1px solid var(--gold-dim);
-    min-height: 48px;
-}
-#confirmYes {
-    background: linear-gradient(180deg, var(--burg) 0%, var(--burg-dk) 100%);
-    color: var(--parch);
-}
-#confirmNo {
-    background: rgba(200,168,75,0.12);
-    color: var(--parch-dk);
-}
+#m-yes { background: linear-gradient(180deg,#6e3030,#4d2020); color: #f5f0e4; }
+#m-no  { background: rgba(200,168,75,0.1); color: #c8b88a; }
 
 /* Toast */
 #toast {
-    position: fixed; bottom: 18px; left: 50%;
-    transform: translateX(-50%) translateY(50px);
-    background: var(--navy-mid); border: 1px solid var(--gold);
-    color: var(--gold); padding: 7px 18px;
-    border-radius: 20px; font-size: 0.8em;
-    letter-spacing: 0.06em; opacity: 0;
-    transition: all 0.28s; z-index: 200;
-    white-space: nowrap; pointer-events: none;
+    position: fixed; bottom: 20px; left: 50%;
+    transform: translateX(-50%) translateY(60px);
+    background: #243258; border: 1px solid #c8a84b;
+    color: #c8a84b; padding: 8px 18px; border-radius: 20px;
+    font-size: 0.82em; letter-spacing: 0.06em;
+    opacity: 0; transition: all 0.28s; z-index: 1000;
+    pointer-events: none; white-space: nowrap;
 }
 #toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
@@ -385,504 +209,442 @@ header p { font-size: 0.7em; color: var(--parch-dk); letter-spacing: 0.08em; }
 <body>
 <div id="app">
 
-<header>
-  <h1>🎲 POCKETS</h1>
-  <p>Score Sheet</p>
-</header>
+  <header>
+    <h1>🎲 POCKETS</h1>
+    <p>Score Sheet</p>
+  </header>
 
-<div id="tabBar">
-  <button class="tab-btn active" id="tabSheet">Score Sheet</button>
-  <button class="tab-btn" id="tabHistory">History</button>
-  <button class="tab-btn" id="tabRecords">Records</button>
-</div>
-
-<!-- SCORE SHEET -->
-<div id="sheetPanel" class="panel active">
-  <div id="nameBar">
-    <div class="name-col" id="n1">
-      <input class="name-input" id="p1name" type="text" value="Blue Player"
-             autocomplete="off" autocorrect="off" spellcheck="false"
-             oninput="syncNames()">
-    </div>
-    <div class="vs">VS</div>
-    <div class="name-col" id="n2">
-      <input class="name-input" id="p2name" type="text" value="Red Player"
-             autocomplete="off" autocorrect="off" spellcheck="false"
-             oninput="syncNames()">
-    </div>
+  <div id="tabs">
+    <button id="t-sheet" class="on">Score Sheet</button>
+    <button id="t-hist">History</button>
+    <button id="t-rec">Records</button>
   </div>
 
-  <table id="scoreTable">
-    <thead>
-      <tr>
-        <th style="width:54px">Round</th>
-        <th id="h1">Blue Player</th>
-        <th id="h2">Red Player</th>
-      </tr>
-    </thead>
-    <tbody id="tbody"></tbody>
-    <tfoot>
-      <tr id="totalsRow">
-        <td style="color:var(--parch-dk);font-size:0.75em">TOTAL</td>
-        <td><span class="total-val" id="t1val">0</span></td>
-        <td><span class="total-val" id="t2val">0</span></td>
-      </tr>
-    </tfoot>
-  </table>
-
-  <div id="winBanner">
-    <div class="wn" id="wname"></div>
-    <div class="wm" id="wmargin"></div>
-  </div>
-
-  <div id="sheetBtns">
-    <button class="sb sb-save" id="btnSave">Save Game</button>
-    <button class="sb sb-new"  id="btnNew">New Game</button>
-  </div>
-</div>
-
-<!-- HISTORY -->
-<div id="historyPanel" class="panel">
-  <div class="win-bar">
-    <div class="win-col" id="wc1">
-      <div class="wc-lbl">Wins</div>
-      <div class="wc-name" id="wn1">Blue Player</div>
-      <div class="wc-num" id="wc1n">0</div>
+  <!-- SCORE SHEET -->
+  <div id="p-sheet" class="panel on">
+    <div id="nameRow">
+      <div class="name-col" id="n1">
+        <input class="name-input" id="p1name" type="text" value="Blue Player"
+               autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="vs">VS</div>
+      <div class="name-col" id="n2">
+        <input class="name-input" id="p2name" type="text" value="Red Player"
+               autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
     </div>
-    <div class="win-col" id="wc2">
-      <div class="wc-lbl">Wins</div>
-      <div class="wc-name" id="wn2">Red Player</div>
-      <div class="wc-num" id="wc2n">0</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:48px">#</th>
+          <th id="h1">Blue Player</th>
+          <th id="h2">Red Player</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+      <tfoot>
+        <tr>
+          <td style="font-size:0.7em;color:#c8b88a">TOTAL</td>
+          <td><span class="tval" id="t1">0</span></td>
+          <td><span class="tval" id="t2">0</span></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div id="announce"></div>
+
+    <div id="winner-banner">
+      <div class="wn" id="wn"></div>
+      <div class="wm" id="wm"></div>
+    </div>
+
+    <div id="btns">
+      <button id="btn-save">Save Game</button>
+      <button id="btn-new">New Game</button>
     </div>
   </div>
-  <div id="histList"></div>
-  <button id="clearHistBtn">Clear All History</button>
+
+  <!-- HISTORY -->
+  <div id="p-hist" class="panel">
+    <div id="wincounts">
+      <div class="wc" id="wc1">
+        <div class="wc-lbl">Wins</div>
+        <div class="wc-name" id="wn1">Blue Player</div>
+        <div class="wc-n" id="wc1n">0</div>
+      </div>
+      <div class="wc" id="wc2">
+        <div class="wc-lbl">Wins</div>
+        <div class="wc-name" id="wn2">Red Player</div>
+        <div class="wc-n" id="wc2n">0</div>
+      </div>
+    </div>
+    <div id="hist-list"></div>
+    <button id="btn-clr">Clear All History</button>
+  </div>
+
+  <!-- RECORDS -->
+  <div id="p-rec" class="panel">
+    <div id="rec-content"></div>
+  </div>
+
 </div>
 
-<!-- RECORDS -->
-<div id="recordsPanel" class="panel">
-  <div id="recContent"></div>
-</div>
-
-</div><!-- #app -->
-
-<div id="confirmModal">
-  <div id="confirmBox">
-    <p id="confirmMsg"></p>
-    <div class="confirm-btns">
-      <button id="confirmYes">Yes</button>
-      <button id="confirmNo">Cancel</button>
+<div id="modal">
+  <div id="mbox">
+    <p id="m-msg"></p>
+    <div class="mbts">
+      <button id="m-yes">Yes</button>
+      <button id="m-no">Cancel</button>
     </div>
   </div>
 </div>
 <div id="toast"></div>
 
 <script>
-var SKEY = 'pockets-score-v1';
-var db;
-var rounds = []; // [{p1,p2}]  p1/p2 = number or null
-var okCb = null;
+// ── Storage ───────────────────────────────────────────────────────────
+var KEY  = 'pockets-v1';
+var CKEY = 'pockets-v1-cur';
+var db   = {p1:'Blue Player', p2:'Red Player', games:[]};
+var rounds = [{p1:null, p2:null}];
+var pendingCb = null;
 
 function loadDB() {
-    try { db = JSON.parse(localStorage.getItem(SKEY)) || fresh(); }
-    catch(e) { db = fresh(); }
+    try { var d = JSON.parse(localStorage.getItem(KEY)); if (d) db = d; } catch(e){}
 }
-function fresh() { return { p1:'Blue Player', p2:'Red Player', games:[] }; }
-function saveDB() { localStorage.setItem(SKEY, JSON.stringify(db)); }
-
-// ── Wire up all buttons ───────────────────────────────────────────────────
-function wire(id, fn) {
-    var el = document.getElementById(id);
-    if (el) el.addEventListener('click', fn);
+function saveDB() {
+    try { localStorage.setItem(KEY, JSON.stringify(db)); } catch(e){}
 }
-wire('confirmYes', function(){ closeConfirm(); if(okCb){ var cb=okCb; okCb=null; cb(); } });
-wire('confirmNo',  closeConfirm);
-wire('tabSheet',   function(){ showTab('sheet',   this); });
-wire('tabHistory',  function(){ showTab('history', this); });
-wire('tabRecords',  function(){ showTab('records', this); });
-wire('btnSave',     doSave);
-wire('btnNew',      doNew);
-wire('clearHistBtn',doClearHist);
-// Name blur restores defaults
-var p1n = document.getElementById('p1name');
-var p2n = document.getElementById('p2name');
-if (p1n) { p1n.addEventListener('blur', function(){ restoreName(this,'Blue Player'); }); }
-if (p2n) { p2n.addEventListener('blur', function(){ restoreName(this,'Red Player');  }); }
+function saveCur() {
+    try { localStorage.setItem(CKEY, JSON.stringify(rounds)); } catch(e){}
+}
+function loadCur() {
+    try { var d = JSON.parse(localStorage.getItem(CKEY)); if (d && d.length) return d; } catch(e){}
+    return null;
+}
+function clearCur() {
+    try { localStorage.removeItem(CKEY); } catch(e){}
+}
 
-// ── Boot ──────────────────────────────────
-loadDB();
-document.getElementById('p1name').value = db.p1;
-document.getElementById('p2name').value = db.p2;
-syncNames();
-var saved = loadCurrentGame();
-rounds = (saved && saved.length) ? saved : [{ p1:null, p2:null }];
-renderSheet();
+// ── Confirm modal ─────────────────────────────────────────────────────
+function ask(msg, cb) {
+    document.getElementById('m-msg').textContent = msg;
+    pendingCb = cb;
+    document.getElementById('modal').classList.add('on');
+}
+document.getElementById('m-yes').addEventListener('click', function() {
+    document.getElementById('modal').classList.remove('on');
+    var cb = pendingCb; pendingCb = null;
+    if (cb) cb();
+});
+document.getElementById('m-no').addEventListener('click', function() {
+    document.getElementById('modal').classList.remove('on');
+    pendingCb = null;
+});
 
-// ── Names ─────────────────────────────────
+// ── Toast ─────────────────────────────────────────────────────────────
+function toast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('on');
+    setTimeout(function(){ t.classList.remove('on'); }, 2200);
+}
+
+// ── Tabs ─────────────────────────────────────────────────────────────
+function showTab(panel, btn) {
+    ['p-sheet','p-hist','p-rec'].forEach(function(id){
+        document.getElementById(id).classList.remove('on');
+    });
+    ['t-sheet','t-hist','t-rec'].forEach(function(id){
+        document.getElementById(id).classList.remove('on');
+    });
+    document.getElementById(panel).classList.add('on');
+    document.getElementById(btn).classList.add('on');
+    if (panel === 'p-hist') renderHistory();
+    if (panel === 'p-rec')  renderRecords();
+}
+document.getElementById('t-sheet').addEventListener('click', function(){ showTab('p-sheet','t-sheet'); });
+document.getElementById('t-hist') .addEventListener('click', function(){ showTab('p-hist', 't-hist');  });
+document.getElementById('t-rec')  .addEventListener('click', function(){ showTab('p-rec',  't-rec');   });
+
+// ── Names ─────────────────────────────────────────────────────────────
 function syncNames() {
-    db.p1 = document.getElementById('p1name').value || 'Blue Player';
-    db.p2 = document.getElementById('p2name').value || 'Red Player';
-    saveDB();
-    document.getElementById('h1').textContent = db.p1;
-    document.getElementById('h2').textContent = db.p2;
-    document.getElementById('wn1').textContent = db.p1;
-    document.getElementById('wn2').textContent = db.p2;
+    var n1 = document.getElementById('p1name').value.trim() || 'Blue Player';
+    var n2 = document.getElementById('p2name').value.trim() || 'Red Player';
+    db.p1 = n1; db.p2 = n2; saveDB();
+    document.getElementById('h1').textContent = n1;
+    document.getElementById('h2').textContent = n2;
+    document.getElementById('wn1').textContent = n1;
+    document.getElementById('wn2').textContent = n2;
 }
-function restoreName(el, def) {
-    if (!el.value.trim()) { el.value = def; syncNames(); }
-}
+document.getElementById('p1name').addEventListener('input', syncNames);
+document.getElementById('p2name').addEventListener('input', syncNames);
+document.getElementById('p1name').addEventListener('blur', function(){
+    if (!this.value.trim()) { this.value = 'Blue Player'; syncNames(); }
+});
+document.getElementById('p2name').addEventListener('blur', function(){
+    if (!this.value.trim()) { this.value = 'Red Player'; syncNames(); }
+});
 
-// ── Sheet rendering ───────────────────────
-function renderSheet() {
-    var tbody = document.getElementById('tbody');
-    tbody.innerHTML = '';
-
-    // Calculate running totals to find rolldown round
-    var run1 = 0, run2 = 0, triggerAfterIdx = -1;
-    for (var i = 0; i < rounds.length; i++) {
-        var p1 = rounds[i].p1 || 0;
-        var p2 = rounds[i].p2 || 0;
-        if (rounds[i].p1 !== null && rounds[i].p2 !== null) {
-            run1 += p1; run2 += p2;
-            if (triggerAfterIdx < 0 && (run1 >= 100 || run2 >= 100)) {
-                triggerAfterIdx = i;
-            }
-        }
-    }
-    var rolldownIdx = triggerAfterIdx >= 0 ? triggerAfterIdx + 1 : -1;
-
-    for (var i = 0; i < rounds.length; i++) {
-        var r = rounds[i];
-        var isRD = (i === rolldownIdx);
-        var tr = document.createElement('tr');
-        if (isRD) tr.className = 'is-rolldown';
-
-        // Round label
-        var tn = document.createElement('td');
-        tn.className = 'rn' + (isRD ? ' rolldown-label' : '');
-        tn.textContent = isRD ? 'RD' : (i + 1);
-        tr.appendChild(tn);
-
-        // P1 input
-        tr.appendChild(makeScoreCell(i, 'p1', 'p1-cell'));
-        // P2 input
-        tr.appendChild(makeScoreCell(i, 'p2', 'p2-cell'));
-
-        tbody.appendChild(tr);
-    }
-    updateTotals();
-}
-
-function makeScoreCell(idx, player, cls) {
-    var td = document.createElement('td');
-    td.className = 'score-cell ' + cls;
-    var inp = document.createElement('input');
-    inp.type = 'text';
-    inp.inputMode = 'numeric';
-    inp.pattern = '[0-9]*';
-    inp.autocomplete = 'off';
-    inp.value = rounds[idx][player] !== null ? rounds[idx][player] : '';
-    inp.addEventListener('input', function() {
-        var v = this.value.replace(/[^0-9]/g,'');
-        // Cap score: Rolldown round = 40, regular round = 21
-        var isRD = (idx === getRolldownIdx());
-        var cap  = isRD ? 40 : 21;
-        if (v !== '' && parseInt(v) > cap) { v = String(cap); }
-        this.value = v;
-        rounds[idx][player] = v === '' ? null : parseInt(v);
-        // Only update totals and rolldown label while typing — never add new row mid-input
-        var prevRD = getRolldownIdx();
-        updateTotals();
-        var newRD = getRolldownIdx();
-        if (newRD !== prevRD) { renderSheet(); }
-        saveCurrentGame(); // persist after every keystroke
-    });
-    inp.addEventListener('blur', function() {
-        // Enforce minimum on blur only — not while typing
-        var v = this.value;
-        if (v !== '') {
-            var isRD  = (idx === getRolldownIdx());
-            var floor = isRD ? 15 : 2;
-            if (parseInt(v) < floor) {
-                this.value = String(floor);
-                rounds[idx][player] = floor;
-                updateTotals();
-            }
-        }
-        checkAutoAddRow(idx);
-    });
-    inp.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' || e.keyCode === 13) {
-            e.preventDefault();
-            // Advance to next logical input
-            var allInputs = Array.from(document.querySelectorAll('.score-cell input'));
-            var next = allInputs[allInputs.indexOf(this) + 1];
-            if (next) { next.focus(); }
-            else { this.blur(); } // last input — trigger blur/new row
-        }
-    });
-    inp.addEventListener('focus', function() { this.select(); });
-    td.appendChild(inp);
-    return td;
-}
-
-function getRolldownIdx() {
-    var run1=0, run2=0;
+// ── Rolldown detection ────────────────────────────────────────────────
+function getRDIdx() {
+    var r1=0, r2=0;
     for (var i=0; i<rounds.length; i++) {
-        if (rounds[i].p1!==null && rounds[i].p2!==null) {
-            run1+=rounds[i].p1; run2+=rounds[i].p2;
-            if (run1>=100||run2>=100) return i+1;
+        if (rounds[i].p1 !== null && rounds[i].p2 !== null) {
+            r1 += rounds[i].p1; r2 += rounds[i].p2;
+            if (r1 >= 100 || r2 >= 100) return i + 1;
         }
     }
     return -1;
 }
 
-function checkAutoAddRow(idx) {
-    // Called on blur — add new row if both scores on last row are filled
-    // But NOT after the Rolldown round — game is over
-    var isRolldownRow = (idx === getRolldownIdx());
-    if (idx === rounds.length - 1 &&
-        rounds[idx].p1 !== null && rounds[idx].p2 !== null &&
-        !isRolldownRow) {
-        rounds.push({ p1:null, p2:null });
-        renderSheet();
-        setTimeout(function() {
-            var inputs = document.querySelectorAll('.p1-cell input');
-            var last = inputs[inputs.length - 1];
-            if (last) last.focus();
-        }, 40);
+// ── Render sheet ──────────────────────────────────────────────────────
+function renderSheet() {
+    var tbody = document.getElementById('tbody');
+    tbody.innerHTML = '';
+    var rdIdx = getRDIdx();
+    for (var i = 0; i < rounds.length; i++) {
+        var isRD = (i === rdIdx);
+        var tr   = document.createElement('tr');
+        // Round number cell
+        var tn = document.createElement('td');
+        tn.className = 'rn' + (isRD ? ' rd' : '');
+        tn.textContent = isRD ? 'RD' : (i + 1);
+        tr.appendChild(tn);
+        // Score cells
+        tr.appendChild(makeCell(i, 'p1', 'p1c', isRD));
+        tr.appendChild(makeCell(i, 'p2', 'p2c', isRD));
+        tbody.appendChild(tr);
     }
+    updateTotals();
+}
+
+function makeCell(idx, player, cls, isRD) {
+    var td  = document.createElement('td');
+    td.className = cls;
+    var inp = document.createElement('input');
+    inp.type        = 'text';
+    inp.inputMode   = 'numeric';
+    inp.pattern     = '[0-9]*';
+    inp.autocomplete = 'off';
+    inp.className   = 'score-input';
+    inp.value       = rounds[idx][player] !== null ? rounds[idx][player] : '';
+    inp.addEventListener('input', function() {
+        var v = this.value.replace(/[^0-9]/g, '');
+        var cap = isRD ? 40 : 21;
+        if (v !== '' && parseInt(v) > cap) v = String(cap);
+        this.value = v;
+        rounds[idx][player] = v === '' ? null : parseInt(v);
+        saveCur();
+        var prev = getRDIdx();
+        updateTotals();
+        if (getRDIdx() !== prev) renderSheet();
+    });
+    inp.addEventListener('blur', function() {
+        // Enforce minimum on leave
+        var v = this.value;
+        if (v !== '') {
+            var fl = isRD ? 15 : 2;
+            if (parseInt(v) < fl) {
+                this.value = String(fl);
+                rounds[idx][player] = fl;
+                saveCur();
+                updateTotals();
+            }
+        }
+        // Auto-add next row when last row is complete
+        if (idx === rounds.length - 1 && !isRD &&
+            rounds[idx].p1 !== null && rounds[idx].p2 !== null) {
+            rounds.push({p1:null, p2:null});
+            renderSheet();
+            setTimeout(function(){
+                var ins = document.querySelectorAll('.p1c input');
+                if (ins.length) ins[ins.length-1].focus();
+            }, 40);
+        }
+    });
+    inp.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            var all  = Array.from(document.querySelectorAll('.score-input'));
+            var next = all[all.indexOf(this) + 1];
+            if (next) next.focus(); else this.blur();
+        }
+    });
+    inp.addEventListener('focus', function(){ this.select(); });
+    td.appendChild(inp);
+    return td;
 }
 
 function updateTotals() {
     var t1=0, t2=0;
-    rounds.forEach(function(r) {
-        if (r.p1!==null) t1+=r.p1;
-        if (r.p2!==null) t2+=r.p2;
+    rounds.forEach(function(r){
+        if (r.p1 !== null) t1 += r.p1;
+        if (r.p2 !== null) t2 += r.p2;
     });
-    document.getElementById('t1val').textContent = t1;
-    document.getElementById('t2val').textContent = t2;
+    document.getElementById('t1').textContent = t1;
+    document.getElementById('t2').textContent = t2;
 
-    // Live announcement using winBanner
-    var banner = document.getElementById('winBanner');
-    var wname  = document.getElementById('wname');
-    var wmargin = document.getElementById('wmargin');
-    if (!banner || !wname || !wmargin) return;
-
-    var hasScores = rounds.some(function(r){ return r.p1!==null||r.p2!==null; });
-    if (!hasScores) { banner.style.display='none'; return; }
-
-    var n1 = db.p1||'Blue Player', n2 = db.p2||'Red Player';
-    var rdIdx = getRolldownIdx();
-    var rdComplete = rdIdx >= 0 && rounds[rdIdx] &&
-        rounds[rdIdx].p1 !== null && rounds[rdIdx].p2 !== null;
-    var margin = Math.abs(t1-t2);
-
-    if (rdComplete) {
-        if (t1 > t2) {
-            wname.textContent  = n1 + ' Wins!';
-            wname.style.color  = '#b8d8ff';
-            wmargin.textContent = 'By ' + margin + ' point' + (margin===1?'':'s');
-        } else if (t2 > t1) {
-            wname.textContent  = n2 + ' Wins!';
-            wname.style.color  = '#ffb8b8';
-            wmargin.textContent = 'By ' + margin + ' point' + (margin===1?'':'s');
-        } else {
-            wname.textContent  = "It's a Tie!";
-            wname.style.color  = '#c8a84b';
-            wmargin.textContent = '';
-        }
-        banner.style.display = 'block';
+    // Announce
+    var ann = document.getElementById('announce');
+    var rdIdx = getRDIdx();
+    var rdDone = rdIdx >= 0 && rounds[rdIdx] &&
+                 rounds[rdIdx].p1 !== null && rounds[rdIdx].p2 !== null;
+    var n1 = db.p1, n2 = db.p2, mg = Math.abs(t1-t2);
+    if (t1 === 0 && t2 === 0) {
+        ann.style.display = 'none';
+    } else if (rdDone) {
+        ann.style.display = 'block';
+        if (t1 > t2) { ann.style.color='#90c0ff'; ann.textContent = n1+' Wins by '+mg+'!'; }
+        else if (t2 > t1) { ann.style.color='#ff9090'; ann.textContent = n2+' Wins by '+mg+'!'; }
+        else { ann.style.color='#c8a84b'; ann.textContent = "It's a Tie!"; }
     } else if (t1 > 0 || t2 > 0) {
-        if (t1 > t2) {
-            wname.textContent  = n1 + ' leads';
-            wname.style.color  = '#b8d8ff';
-            wmargin.textContent = 'by ' + margin + ' point' + (margin===1?'':'s');
-        } else if (t2 > t1) {
-            wname.textContent  = n2 + ' leads';
-            wname.style.color  = '#ffb8b8';
-            wmargin.textContent = 'by ' + margin + ' point' + (margin===1?'':'s');
-        } else {
-            wname.textContent  = 'Tied at ' + t1;
-            wname.style.color  = '#c8a84b';
-            wmargin.textContent = '';
-        }
-        banner.style.display = 'block';
+        ann.style.display = 'block';
+        if (t1 > t2) { ann.style.color='#90c0ff'; ann.textContent = n1+' leads by '+mg; }
+        else if (t2 > t1) { ann.style.color='#ff9090'; ann.textContent = n2+' leads by '+mg; }
+        else { ann.style.color='#c8a84b'; ann.textContent = 'Tied at '+t1; }
     } else {
-        banner.style.display = 'none';
+        ann.style.display = 'none';
     }
 }
 
-// ── Save ──────────────────────────────────
-function doSave() {
-    var hasAny = rounds.some(function(r){ return r.p1!==null||r.p2!==null; });
-    if (!hasAny) { alert('No scores to save yet.'); return; }
-    showConfirm('Save this game to history?', function() {
+// ── Save / New ────────────────────────────────────────────────────────
+document.getElementById('btn-save').addEventListener('click', function() {
+    var hasAny = rounds.some(function(r){ return r.p1!==null || r.p2!==null; });
+    if (!hasAny) { toast('No scores to save yet.'); return; }
+    ask('Save this game to history?', function() {
         var t1=0, t2=0, saved=[];
-        rounds.forEach(function(r) {
-            if (r.p1!==null||r.p2!==null) {
-                var p1 = (r.p1 !== null) ? r.p1 : 0;
-                var p2 = (r.p2 !== null) ? r.p2 : 0;
+        rounds.forEach(function(r){
+            if (r.p1!==null || r.p2!==null) {
+                var p1 = r.p1||0, p2 = r.p2||0;
                 t1+=p1; t2+=p2;
-                saved.push({p1:p1, p2:p2});
+                saved.push({p1:p1,p2:p2});
             }
         });
-        var winner = t1>t2?'p1':t2>t1?'p2':'tie';
-        if (!db.games) db.games = [];
-        db.games.unshift({
+        var g = {
             date: new Date().toISOString(),
-            p1: db.p1||'Blue Player',
-            p2: db.p2||'Red Player',
+            p1: db.p1, p2: db.p2,
             t1: t1, t2: t2,
-            winner: winner,
+            winner: t1>t2?'p1':t2>t1?'p2':'tie',
             rounds: saved
-        });
-        try { saveDB(); } catch(e) {}
-        clearCurrentGame();
-        renderHistory();
-        renderRecords();
-        var wname  = t1>t2?(db.p1||'Blue Player'):t2>t1?(db.p2||'Red Player'):null;
-        var margin = Math.abs(t1-t2);
-        if (wname) {
-            document.getElementById('wname').textContent   = wname + ' Wins!';
-            document.getElementById('wmargin').textContent = 'By ' + margin + ' point' + (margin===1?'':'s') + ' — saved!';
-            document.getElementById('winBanner').style.display = 'block';
-            setTimeout(function(){ newSheet(); }, 2400);
-        } else {
-            newSheet();
-        }
+        };
+        if (!db.games) db.games = [];
+        db.games.unshift(g);
+        saveDB(); clearCur();
+        // Show winner
+        var wbn = document.getElementById('winner-banner');
+        var mg = Math.abs(t1-t2);
+        var wn = t1>t2?db.p1:t2>t1?db.p2:null;
+        document.getElementById('wn').textContent = wn ? wn+' Wins!' : "It's a Tie!";
+        document.getElementById('wm').textContent = wn ? 'By '+mg+' point'+(mg===1?'':'s')+' — saved!' : 'Saved!';
+        wbn.style.display = 'block';
+        setTimeout(function(){
+            wbn.style.display = 'none';
+            rounds = [{p1:null,p2:null}];
+            renderSheet();
+        }, 2500);
     });
-}
+});
 
-function doNew() {
-    var hasAny = rounds.some(function(r){ return r.p1!==null||r.p2!==null; });
-    if (!hasAny) { newSheet(); return; }
-    showConfirm('Clear current game and start fresh?', newSheet);
-}
+document.getElementById('btn-new').addEventListener('click', function() {
+    var hasAny = rounds.some(function(r){ return r.p1!==null || r.p2!==null; });
+    if (!hasAny) { rounds=[{p1:null,p2:null}]; renderSheet(); return; }
+    ask('Clear current game and start fresh?', function() {
+        clearCur();
+        rounds = [{p1:null,p2:null}];
+        document.getElementById('winner-banner').style.display = 'none';
+        document.getElementById('announce').style.display = 'none';
+        renderSheet();
+    });
+});
 
-function newSheet() {
-    rounds = [{ p1:null, p2:null }];
-    clearCurrentGame();
-    document.getElementById('winBanner').style.display = 'none';
-    renderSheet();
-}
-
-// ── History ───────────────────────────────
+// ── History ───────────────────────────────────────────────────────────
 function renderHistory() {
     var games = db.games || [];
     var w1=0, w2=0;
     games.forEach(function(g){ if(g.winner==='p1')w1++; else if(g.winner==='p2')w2++; });
     document.getElementById('wc1n').textContent = w1;
     document.getElementById('wc2n').textContent = w2;
-    document.getElementById('wn1').textContent = db.p1;
-    document.getElementById('wn2').textContent = db.p2;
-
-    var list = document.getElementById('histList');
+    document.getElementById('wn1').textContent  = db.p1;
+    document.getElementById('wn2').textContent  = db.p2;
+    var list = document.getElementById('hist-list');
     if (!games.length) {
-        list.innerHTML = '<p class="empty-msg">No games saved yet.</p>';
+        list.innerHTML = '<p class="empty">No games saved yet.</p>';
         return;
     }
     list.innerHTML = '';
     games.forEach(function(g, i) {
-        var d = new Date(g.date);
+        var d  = new Date(g.date);
         var ds = d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'2-digit'});
         var ts = d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
         var wn = g.winner==='p1'?g.p1:g.winner==='p2'?g.p2:'Tie';
-        var margin = Math.abs(g.t1-g.t2);
+        var mg = Math.abs((g.t1||0)-(g.t2||0));
         var div = document.createElement('div');
-        div.className = 'game-card' + (g.winner==='p1'?' wp1':g.winner==='p2'?' wp2':'');
+        div.className = 'game-card'+(g.winner==='p1'?' gw1':g.winner==='p2'?' gw2':'');
         div.innerHTML =
-            '<div class="gc-top"><span>' + ds + ' · ' + ts + '</span><span>Game #' + (games.length-i) + '</span></div>' +
-            '<div class="gc-scores">' +
-              '<div class="gc-p gc-p1">' + g.p1 + '<span class="sc">' + g.t1 + '</span></div>' +
-              '<div class="gc-mid"><span class="wlbl">' + wn + '</span>by ' + margin + '</div>' +
-              '<div class="gc-p gc-p2">' + g.p2 + '<span class="sc">' + g.t2 + '</span></div>' +
-            '</div>';
+          '<div class="gc-top"><span>'+ds+' · '+ts+'</span><span>Game #'+(games.length-i)+'</span></div>'+
+          '<div class="gc-row">'+
+            '<div class="gc-p1">'+g.p1+'<span class="gc-sc">'+g.t1+'</span></div>'+
+            '<div class="gc-mid"><span class="gc-wl">'+wn+'</span>by '+mg+'</div>'+
+            '<div class="gc-p2">'+g.p2+'<span class="gc-sc">'+g.t2+'</span></div>'+
+          '</div>';
         list.appendChild(div);
     });
 }
 
-function doClearHist() {
-    if (!(db.games||[]).length) return;
-    showConfirm('Clear all history? This cannot be undone.', function() {
-        db.games = [];
-        try { saveDB(); } catch(e) {}
-        renderHistory();
-        renderRecords();
+document.getElementById('btn-clr').addEventListener('click', function() {
+    if (!(db.games||[]).length) { toast('History is already empty.'); return; }
+    ask('Clear all history? This cannot be undone.', function() {
+        db.games = []; saveDB(); renderHistory(); renderRecords(); toast('History cleared.');
     });
-}
+});
 
-// ── Records ───────────────────────────────
+// ── Records ───────────────────────────────────────────────────────────
 function renderRecords() {
+    var el = document.getElementById('rec-content');
     var games = db.games || [];
-    var el = document.getElementById('recContent');
-    if (!games.length) {
-        el.innerHTML = '<p class="empty-msg">Records appear after<br>you save some games.</p>';
-        return;
-    }
-    var w1=0,w2=0,s1=0,s2=0,best1=[],best2=[];
+    if (!games.length) { el.innerHTML='<p class="empty">Records appear after you save some games.</p>'; return; }
+    var w1=0,w2=0,s1=0,s2=0,b1=[],b2=[];
     games.forEach(function(g){
         if(g.winner==='p1')w1++; if(g.winner==='p2')w2++;
-        s1+=g.t1; s2+=g.t2;
-        best1.push({s:g.t1,opp:g.t2,d:g.date});
-        best2.push({s:g.t2,opp:g.t1,d:g.date});
+        s1+=g.t1||0; s2+=g.t2||0;
+        b1.push({s:g.t1||0,o:g.t2||0,d:g.date});
+        b2.push({s:g.t2||0,o:g.t1||0,d:g.date});
     });
-    best1.sort(function(a,b){return b.s-a.s;}); best1=best1.slice(0,5);
-    best2.sort(function(a,b){return b.s-a.s;}); best2=best2.slice(0,5);
+    b1.sort(function(a,b){return b.s-a.s;}); b1=b1.slice(0,5);
+    b2.sort(function(a,b){return b.s-a.s;}); b2=b2.slice(0,5);
     function fd(iso){ var d=new Date(iso); return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}); }
-    function t5rows(arr){ return arr.map(function(g,i){
-        return '<tr><td class="rank">'+(i+1)+'</td><td class="sc">'+g.s+'</td><td class="dt">vs '+g.opp+'</td><td class="dt">'+fd(g.d)+'</td></tr>';
+    function rows(arr){ return arr.map(function(g,i){
+        return '<tr><td class="rk">'+(i+1)+'</td><td class="sc">'+g.s+'</td><td class="dt">vs '+g.o+'</td><td class="dt">'+fd(g.d)+'</td></tr>';
     }).join(''); }
-
+    var n = games.length;
     el.innerHTML =
-        '<div class="rec-section"><div class="rec-title">Overall</div>' +
-        '<div class="stat-row-2">' +
-          '<div class="sbox"><div class="sv">'+games.length+'</div><div class="sl">Games</div></div>' +
-          '<div class="sbox"><div class="sv">'+(w1>w2?db.p1:w2>w1?db.p2:'Even')+'</div><div class="sl">Series leader</div></div>' +
-        '</div></div>' +
-        '<div class="rec-section"><div class="rec-title" style="color:#80b8f8">'+db.p1+'</div>' +
-        '<div class="stat-row-2" style="margin-bottom:8px">' +
-          '<div class="sbox"><div class="sv" style="color:#80b8f8">'+w1+'</div><div class="sl">Wins</div></div>' +
-          '<div class="sbox"><div class="sv" style="color:#80b8f8">'+(games.length?Math.round(s1/games.length):0)+'</div><div class="sl">Avg score</div></div>' +
-        '</div>' +
-        '<table class="t5"><thead><tr><th>#</th><th>Score</th><th>Opponent</th><th>Date</th></tr></thead>' +
-        '<tbody>'+t5rows(best1)+'</tbody></table></div>' +
-        '<div class="rec-section"><div class="rec-title" style="color:#f08888">'+db.p2+'</div>' +
-        '<div class="stat-row-2" style="margin-bottom:8px">' +
-          '<div class="sbox"><div class="sv" style="color:#f08888">'+w2+'</div><div class="sl">Wins</div></div>' +
-          '<div class="sbox"><div class="sv" style="color:#f08888">'+(games.length?Math.round(s2/games.length):0)+'</div><div class="sl">Avg score</div></div>' +
-        '</div>' +
-        '<table class="t5"><thead><tr><th>#</th><th>Score</th><th>Opponent</th><th>Date</th></tr></thead>' +
-        '<tbody>'+t5rows(best2)+'</tbody></table></div>';
+      '<div class="rsec"><div class="rtitle">Overall</div>'+
+        '<div class="sg2">'+
+          '<div class="sbox"><div class="sv">'+n+'</div><div class="sl">Games</div></div>'+
+          '<div class="sbox"><div class="sv">'+(w1>w2?db.p1:w2>w1?db.p2:'Even')+'</div><div class="sl">Leader</div></div>'+
+        '</div></div>'+
+      '<div class="rsec"><div class="rtitle" style="color:#90c0ff">'+db.p1+'</div>'+
+        '<div class="sg2" style="margin-bottom:8px">'+
+          '<div class="sbox"><div class="sv" style="color:#90c0ff">'+w1+'</div><div class="sl">Wins</div></div>'+
+          '<div class="sbox"><div class="sv" style="color:#90c0ff">'+(n?Math.round(s1/n):0)+'</div><div class="sl">Avg</div></div>'+
+        '</div>'+
+        '<table class="t5"><thead><tr><th>#</th><th>Score</th><th>Opp</th><th>Date</th></tr></thead><tbody>'+rows(b1)+'</tbody></table></div>'+
+      '<div class="rsec"><div class="rtitle" style="color:#ff9090">'+db.p2+'</div>'+
+        '<div class="sg2" style="margin-bottom:8px">'+
+          '<div class="sbox"><div class="sv" style="color:#ff9090">'+w2+'</div><div class="sl">Wins</div></div>'+
+          '<div class="sbox"><div class="sv" style="color:#ff9090">'+(n?Math.round(s2/n):0)+'</div><div class="sl">Avg</div></div>'+
+        '</div>'+
+        '<table class="t5"><thead><tr><th>#</th><th>Score</th><th>Opp</th><th>Date</th></tr></thead><tbody>'+rows(b2)+'</tbody></table></div>';
 }
 
-// ── Tabs ──────────────────────────────────
-function showTab(name, btn) {
-    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
-    document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
-    document.getElementById(name+'Panel').classList.add('active');
-    btn.classList.add('active');
-    if (name==='history') renderHistory();
-    if (name==='records') renderRecords();
-}
-
-// ── Confirm modal ─────────────────────────
-function showConfirm(msg, cb) {
-    okCb = cb;
-    document.getElementById('confirmMsg').textContent = msg;
-    document.getElementById('confirmModal').classList.add('show');
-}
-function closeConfirm() {
-    document.getElementById('confirmModal').classList.remove('show');
-    okCb = null;
-}
-
-// ── Toast ─────────────────────────────────
-function toast(msg) {
-    var t=document.getElementById('toast');
-    t.textContent=msg; t.classList.add('on');
-    setTimeout(function(){ t.classList.remove('on'); },2200);
-}
+// ── Boot ─────────────────────────────────────────────────────────────
+loadDB();
+document.getElementById('p1name').value = db.p1 || 'Blue Player';
+document.getElementById('p2name').value = db.p2 || 'Red Player';
+syncNames();
+var cur = loadCur();
+if (cur && cur.length) rounds = cur;
+renderSheet();
 </script>
 </body>
 </html>
