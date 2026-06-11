@@ -320,35 +320,52 @@ header p { font-size: 0.7em; color: var(--parch-dk); letter-spacing: 0.08em; }
 .t5 .sc   { font-weight: bold; }
 .t5 .dt   { color: var(--parch-dk); font-size: 0.88em; }
 
-/* ── Confirm overlay ── */
-#overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.72);
-    z-index: 100; align-items: center;
-    justify-content: center; padding: 20px;
+/* ── Confirm modal ── */
+#confirmModal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.78);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
 }
-#overlay.on { display: flex; }
-#obox {
-    background: var(--navy-mid);
-    border: 1px solid var(--gold);
+#confirmModal.show { display: flex; }
+#confirmBox {
+    background: #243258;
+    border: 2px solid var(--gold);
+    border-radius: 8px;
+    padding: 24px 20px;
+    max-width: 300px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+}
+#confirmMsg {
+    color: var(--parch);
+    font-size: 1em;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+.confirm-btns { display: flex; gap: 10px; }
+.confirm-btns button {
+    flex: 1;
+    padding: 13px 8px;
+    font-family: inherit;
+    font-size: 1em;
     border-radius: 6px;
-    padding: 22px 18px; max-width: 300px;
-    width: 100%; text-align: center;
+    cursor: pointer;
+    border: 1px solid var(--gold-dim);
+    min-height: 48px;
 }
-#obox h3 { color: var(--gold); margin-bottom: 8px; font-size: 1em; letter-spacing: 0.05em; }
-#obox p  { color: var(--parch-dk); font-size: 0.84em; margin-bottom: 14px; line-height: 1.5; }
-.obts { display: flex; gap: 8px; }
-.obts button {
-    flex: 1; padding: 10px; font-family: inherit;
-    font-size: 0.84em; border-radius: 4px; cursor: pointer;
-}
-#oOK {
+#confirmYes {
     background: linear-gradient(180deg, var(--burg) 0%, var(--burg-dk) 100%);
-    border: 1px solid var(--gold-dim); color: var(--parch);
+    color: var(--parch);
 }
-#oCancel {
-    background: rgba(200,168,75,0.10);
-    border: 1px solid var(--gold-dim); color: var(--parch-dk);
+#confirmNo {
+    background: rgba(200,168,75,0.12);
+    color: var(--parch-dk);
 }
 
 /* Toast */
@@ -449,13 +466,12 @@ header p { font-size: 0.7em; color: var(--parch-dk); letter-spacing: 0.08em; }
 
 </div><!-- #app -->
 
-<div id="overlay">
-  <div id="obox">
-    <h3 id="otitle"></h3>
-    <p id="omsg"></p>
-    <div class="obts">
-      <button id="oOK">Yes</button>
-      <button id="oCancel">Cancel</button>
+<div id="confirmModal">
+  <div id="confirmBox">
+    <p id="confirmMsg"></p>
+    <div class="confirm-btns">
+      <button id="confirmYes">Yes</button>
+      <button id="confirmNo">Cancel</button>
     </div>
   </div>
 </div>
@@ -479,13 +495,14 @@ function wire(id, fn) {
     var el = document.getElementById(id);
     if (el) el.addEventListener('click', fn);
 }
-wire('tabSheet',    function(){ showTab('sheet',   this); });
+wire('confirmYes', function(){ closeConfirm(); if(okCb){ var cb=okCb; okCb=null; cb(); } });
+wire('confirmNo',  closeConfirm);
+wire('tabSheet',   function(){ showTab('sheet',   this); });
 wire('tabHistory',  function(){ showTab('history', this); });
 wire('tabRecords',  function(){ showTab('records', this); });
 wire('btnSave',     doSave);
 wire('btnNew',      doNew);
 wire('clearHistBtn',doClearHist);
-wire('oCancel',     closeOverlay);
 // Name blur restores defaults
 var p1n = document.getElementById('p1name');
 var p2n = document.getElementById('p2name');
@@ -497,7 +514,8 @@ loadDB();
 document.getElementById('p1name').value = db.p1;
 document.getElementById('p2name').value = db.p2;
 syncNames();
-rounds = [{ p1:null, p2:null }];
+var saved = loadCurrentGame();
+rounds = (saved && saved.length) ? saved : [{ p1:null, p2:null }];
 renderSheet();
 
 // ── Names ─────────────────────────────────
@@ -577,6 +595,7 @@ function makeScoreCell(idx, player, cls) {
         updateTotals();
         var newRD = getRolldownIdx();
         if (newRD !== prevRD) { renderSheet(); }
+        saveCurrentGame(); // persist after every keystroke
     });
     inp.addEventListener('blur', function() {
         // Enforce minimum on blur only — not while typing
@@ -736,11 +755,12 @@ function doSave() {
 function doNew() {
     var hasAny = rounds.some(function(r){ return r.p1!==null||r.p2!==null; });
     if (!hasAny) { newSheet(); return; }
-    if (confirm('Start a new game? Current scores will be cleared.')) { newSheet(); }
+    showConfirm('Clear current game and start fresh?', newSheet);
 }
 
 function newSheet() {
     rounds = [{ p1:null, p2:null }];
+    clearCurrentGame();
     document.getElementById('winBanner').style.display = 'none';
     renderSheet();
 }
@@ -781,13 +801,13 @@ function renderHistory() {
 }
 
 function doClearHist() {
-    if (!(db.games||[]).length) { alert('History already empty.'); return; }
-    if (!confirm('Clear all history? This cannot be undone.')) return;
-    db.games = [];
-    saveDB();
-    renderHistory();
-    renderRecords();
-    alert('History cleared.');
+    if (!(db.games||[]).length) return;
+    showConfirm('Clear all history? This cannot be undone.', function() {
+        db.games = [];
+        try { saveDB(); } catch(e) {}
+        renderHistory();
+        renderRecords();
+    });
 }
 
 // ── Records ───────────────────────────────
@@ -844,15 +864,16 @@ function showTab(name, btn) {
     if (name==='records') renderRecords();
 }
 
-// ── Confirm ───────────────────────────────
-function confirm_(title, msg, cb) {
-    document.getElementById('otitle').textContent = title;
-    document.getElementById('omsg').textContent = msg;
+// ── Confirm modal ─────────────────────────
+function showConfirm(msg, cb) {
     okCb = cb;
-    document.getElementById('overlay').classList.add('on');
-    document.getElementById('oOK').onclick = function(){ closeOverlay(); if(okCb)okCb(); };
+    document.getElementById('confirmMsg').textContent = msg;
+    document.getElementById('confirmModal').classList.add('show');
 }
-function closeOverlay() { document.getElementById('overlay').classList.remove('on'); okCb=null; }
+function closeConfirm() {
+    document.getElementById('confirmModal').classList.remove('show');
+    okCb = null;
+}
 
 // ── Toast ─────────────────────────────────
 function toast(msg) {
