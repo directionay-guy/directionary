@@ -511,6 +511,10 @@ function updateTotals() {
 document.getElementById('btn-save').addEventListener('click', function() {
     var hasAny = rounds.some(function(r){ return r.p1!==null || r.p2!==null; });
     if (!hasAny) { toast('No scores to save yet.'); return; }
+    var rdIdx  = getRDIdx();
+    var rdDone = rdIdx >= 0 && rounds[rdIdx] &&
+                 rounds[rdIdx].p1 !== null && rounds[rdIdx].p2 !== null;
+    if (!rdDone) { toast('Finish the Rolldown round before saving.'); return; }
     ask('Save this game to history?', function() {
         var t1=0, t2=0, saved=[];
         rounds.forEach(function(r){
