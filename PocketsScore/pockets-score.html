@@ -74,11 +74,15 @@ thead th:nth-child(2) { background: #1e3060; color: #90c0ff; }
 thead th:nth-child(3) { background: #501818; color: #ff9090; }
 
 tbody tr { border-bottom: 1px solid rgba(255,255,255,0.05); }
+tbody tr.rd-row { background: #c8a84b; }
+tbody tr.rd-row td { border-bottom: none; }
 td { padding: 2px 3px; text-align: center; vertical-align: middle; }
 .rn { width: 48px; font-size: 1em; font-weight: bold; color: #c8b88a; background: rgba(0,0,0,0.12); }
-.rn.rd { color: #c8a84b; font-style: italic; font-size: 0.82em; }
+.rn.rd { color: #2a1508; background: #c8a84b; font-style: italic; font-size: 0.9em; font-weight: bold; }
 .p1c { background: rgba(30,48,96,0.55); }
 .p2c { background: rgba(80,24,24,0.55); }
+tbody tr.rd-row .p1c,
+tbody tr.rd-row .p2c { background: rgba(180,140,30,0.35); }
 
 .score-input {
     width: 100%; background: transparent; border: none;
@@ -90,6 +94,8 @@ td { padding: 2px 3px; text-align: center; vertical-align: middle; }
 .score-input:focus { background: rgba(255,255,255,0.07); border-bottom-color: #c8a84b; }
 .p1c .score-input { color: #b0d0ff; }
 .p2c .score-input { color: #ffb0b0; }
+.rd-row .score-input { color: #2a1508; font-weight: bold; }
+.rd-row .score-input:focus { background: rgba(0,0,0,0.08); border-bottom-color: #2a1508; }
 
 tfoot td {
     padding: 10px 4px; border-top: 2px solid rgba(200,168,75,0.4);
@@ -405,6 +411,7 @@ function renderSheet() {
     for (var i = 0; i < rounds.length; i++) {
         var isRD = (i === rdIdx);
         var tr   = document.createElement('tr');
+        if (isRD) tr.className = 'rd-row';
         // Round number cell
         var tn = document.createElement('td');
         tn.className = 'rn' + (isRD ? ' rd' : '');
