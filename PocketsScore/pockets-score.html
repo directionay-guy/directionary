@@ -374,9 +374,9 @@ header p { font-size: 0.7em; color: var(--parch-dk); letter-spacing: 0.08em; }
 </header>
 
 <div id="tabBar">
-  <button class="tab-btn active" onclick="showTab('sheet',this)">Score Sheet</button>
-  <button class="tab-btn" onclick="showTab('history',this)">History</button>
-  <button class="tab-btn" onclick="showTab('records',this)">Records</button>
+  <button class="tab-btn active" id="tabSheet">Score Sheet</button>
+  <button class="tab-btn" id="tabHistory">History</button>
+  <button class="tab-btn" id="tabRecords">Records</button>
 </div>
 
 <!-- SCORE SHEET -->
@@ -419,8 +419,8 @@ header p { font-size: 0.7em; color: var(--parch-dk); letter-spacing: 0.08em; }
   </div>
 
   <div id="sheetBtns">
-    <button class="sb sb-save" onclick="doSave()">Save Game</button>
-    <button class="sb sb-new"  onclick="doNew()">New Game</button>
+    <button class="sb sb-save" id="btnSave">Save Game</button>
+    <button class="sb sb-new"  id="btnNew">New Game</button>
   </div>
 </div>
 
@@ -439,7 +439,7 @@ header p { font-size: 0.7em; color: var(--parch-dk); letter-spacing: 0.08em; }
     </div>
   </div>
   <div id="histList"></div>
-  <button id="clearHistBtn" onclick="doClearHist()">Clear All History</button>
+  <button id="clearHistBtn">Clear All History</button>
 </div>
 
 <!-- RECORDS -->
@@ -455,7 +455,7 @@ header p { font-size: 0.7em; color: var(--parch-dk); letter-spacing: 0.08em; }
     <p id="omsg"></p>
     <div class="obts">
       <button id="oOK">Yes</button>
-      <button id="oCancel" onclick="closeOverlay()">Cancel</button>
+      <button id="oCancel">Cancel</button>
     </div>
   </div>
 </div>
@@ -473,6 +473,17 @@ function loadDB() {
 }
 function fresh() { return { p1:'Blue Player', p2:'Red Player', games:[] }; }
 function saveDB() { localStorage.setItem(SKEY, JSON.stringify(db)); }
+
+// ── Wire up all buttons via addEventListener (no inline onclick) ──────────
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('tabSheet')   .addEventListener('click', function(){ showTab('sheet',   this); });
+    document.getElementById('tabHistory') .addEventListener('click', function(){ showTab('history', this); });
+    document.getElementById('tabRecords') .addEventListener('click', function(){ showTab('records', this); });
+    document.getElementById('btnSave')    .addEventListener('click', doSave);
+    document.getElementById('btnNew')     .addEventListener('click', doNew);
+    document.getElementById('clearHistBtn').addEventListener('click', doClearHist);
+    document.getElementById('oCancel')    .addEventListener('click', closeOverlay);
+});
 
 // ── Boot ──────────────────────────────────
 loadDB();
