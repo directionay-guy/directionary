@@ -176,6 +176,60 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 .t5 .sc { font-weight: bold; }
 .t5 .dt { color: #c8b88a; font-size: 0.88em; }
 
+
+/* ── Records: player-centric ── */
+#rec-search {
+    width: 100%; padding: 9px 12px;
+    background: rgba(0,0,0,0.2); border: none;
+    border-bottom: 1px solid rgba(200,168,75,0.25);
+    color: #f5f0e4; font-family: inherit; font-size: 0.9em;
+    outline: none;
+}
+#rec-search::placeholder { color: rgba(200,168,75,0.4); }
+.player-card {
+    border-bottom: 1px solid rgba(200,168,75,0.1);
+    overflow: hidden;
+}
+.player-card-hdr {
+    display: flex; align-items: center;
+    padding: 10px 12px; cursor: pointer;
+    gap: 10px;
+    background: rgba(0,0,0,0.1);
+    user-select: none; -webkit-user-select: none;
+}
+.player-card-hdr:active { background: rgba(200,168,75,0.08); }
+.pc-name  { flex: 1; font-weight: bold; font-size: 0.95em; color: #f5f0e4; }
+.pc-meta  { font-size: 0.75em; color: #c8b88a; text-align: right; line-height: 1.4; }
+.pc-arrow { color: rgba(200,168,75,0.5); font-size: 0.8em; transition: transform 0.2s; }
+.player-card.open .pc-arrow { transform: rotate(90deg); }
+.player-card-body {
+    display: none; padding: 10px 12px 14px;
+    background: rgba(0,0,0,0.08);
+    border-top: 1px solid rgba(200,168,75,0.1);
+}
+.player-card.open .player-card-body { display: block; }
+.pc-stat-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+.pc-sbox { background: rgba(255,255,255,0.04); border: 1px solid rgba(200,168,75,0.2); border-radius: 4px; padding: 6px 4px; text-align: center; }
+.pc-sbox .sv { font-size: 1.3em; font-weight: bold; color: #c8a84b; line-height: 1; }
+.pc-sbox .sl { font-size: 0.62em; text-transform: uppercase; letter-spacing: 0.05em; color: #c8b88a; margin-top: 1px; }
+.pc-section-title { font-size: 0.72em; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(200,168,75,0.6); margin: 8px 0 4px; }
+.h2h-table { width: 100%; border-collapse: collapse; font-size: 0.82em; }
+.h2h-table td { padding: 4px 5px; border-bottom: 1px solid rgba(255,255,255,0.04); color: #f5f0e4; }
+.h2h-table td:last-child { text-align: right; color: #c8b88a; }
+.h2h-table tr:first-child td { color: #c8a84b; }
+.top5-mini { width: 100%; border-collapse: collapse; font-size: 0.82em; }
+.top5-mini td { padding: 4px 5px; border-bottom: 1px solid rgba(255,255,255,0.04); color: #f5f0e4; }
+.top5-mini td:first-child { color: rgba(200,168,75,0.5); width: 20px; text-align: center; }
+.top5-mini td:nth-child(2) { font-weight: bold; }
+.top5-mini td:last-child { color: #c8b88a; font-size: 0.88em; text-align: right; }
+.top5-mini tr:first-child td { color: #c8a84b; }
+/* Name collision warning */
+.name-warn {
+    font-size: 0.7em; color: #c8a84b; padding: 3px 10px 4px;
+    background: rgba(200,168,75,0.08);
+    border-bottom: 1px solid rgba(200,168,75,0.15);
+    display: none;
+}
 /* Confirm modal */
 #modal {
     display: none; position: fixed;
@@ -291,6 +345,7 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 
   <!-- RECORDS -->
   <div id="p-rec" class="panel">
+    <input type="text" id="rec-search" placeholder="Search players…" autocomplete="off" autocorrect="off">
     <div id="rec-content"></div>
   </div>
 
@@ -366,7 +421,7 @@ function showTab(panel, btn) {
     document.getElementById(panel).classList.add('on');
     document.getElementById(btn).classList.add('on');
     if (panel === 'p-hist') renderHistory();
-    if (panel === 'p-rec')  renderRecords();
+    if (panel === 'p-rec')  { var srch=document.getElementById('rec-search'); renderRecords(srch?srch.value:''); }
 }
 document.getElementById('t-sheet').addEventListener('click', function(){ showTab('p-sheet','t-sheet'); });
 document.getElementById('t-hist') .addEventListener('click', function(){ showTab('p-hist', 't-hist');  });
@@ -386,9 +441,11 @@ document.getElementById('p1name').addEventListener('input', syncNames);
 document.getElementById('p2name').addEventListener('input', syncNames);
 document.getElementById('p1name').addEventListener('blur', function(){
     if (!this.value.trim()) { this.value = 'Blue Player'; syncNames(); }
+    checkCollision(this.value.trim(), 'p1warn');
 });
 document.getElementById('p2name').addEventListener('blur', function(){
     if (!this.value.trim()) { this.value = 'Red Player'; syncNames(); }
+    checkCollision(this.value.trim(), 'p2warn');
 });
 
 // ── Rolldown detection ────────────────────────────────────────────────
@@ -605,47 +662,108 @@ function renderHistory() {
 document.getElementById('btn-clr').addEventListener('click', function() {
     if (!(db.games||[]).length) { toast('History is already empty.'); return; }
     ask('Clear all history? This cannot be undone.', function() {
-        db.games = []; saveDB(); renderHistory(); renderRecords(); toast('History cleared.');
+        db.games = []; saveDB(); renderHistory(); renderRecords(''); toast('History cleared.');
     });
 });
 
-// ── Records ───────────────────────────────────────────────────────────
-function renderRecords() {
-    var el = document.getElementById('rec-content');
-    var games = db.games || [];
-    if (!games.length) { el.innerHTML='<p class="empty">Records appear after you save some games.</p>'; return; }
-    var w1=0,w2=0,s1=0,s2=0,b1=[],b2=[];
-    games.forEach(function(g){
-        if(g.winner==='p1')w1++; if(g.winner==='p2')w2++;
-        s1+=g.t1||0; s2+=g.t2||0;
-        b1.push({s:g.t1||0,o:g.t2||0,d:g.date});
-        b2.push({s:g.t2||0,o:g.t1||0,d:g.date});
+// ── Build player stats from all games ────────────────────────────────
+function buildStats() {
+    var ps = {};
+    (db.games||[]).forEach(function(g) {
+        var k1 = (g.p1||'').toLowerCase().trim();
+        var k2 = (g.p2||'').toLowerCase().trim();
+        if (!k1 || !k2) return;
+        if (!ps[k1]) ps[k1] = {name:g.p1, games:0, wins:0, losses:0, ties:0, total:0, scores:[], opps:{}};
+        if (!ps[k2]) ps[k2] = {name:g.p2, games:0, wins:0, losses:0, ties:0, total:0, scores:[], opps:{}};
+        var p1 = ps[k1], p2 = ps[k2];
+        var t1 = g.t1||0, t2 = g.t2||0;
+        p1.games++; p1.total+=t1; p1.scores.push({s:t1,opp:g.p2,d:g.date});
+        p2.games++; p2.total+=t2; p2.scores.push({s:t2,opp:g.p1,d:g.date});
+        if (g.winner==='p1')      { p1.wins++; p2.losses++; }
+        else if (g.winner==='p2') { p2.wins++; p1.losses++; }
+        else                       { p1.ties++; p2.ties++; }
+        if (!p1.opps[k2]) p1.opps[k2] = {name:g.p2,w:0,l:0,t:0};
+        if (!p2.opps[k1]) p2.opps[k1] = {name:g.p1,w:0,l:0,t:0};
+        if (g.winner==='p1')      { p1.opps[k2].w++; p2.opps[k1].l++; }
+        else if (g.winner==='p2') { p2.opps[k1].w++; p1.opps[k2].l++; }
+        else                       { p1.opps[k2].t++; p2.opps[k1].t++; }
     });
-    b1.sort(function(a,b){return b.s-a.s;}); b1=b1.slice(0,5);
-    b2.sort(function(a,b){return b.s-a.s;}); b2=b2.slice(0,5);
-    function fd(iso){ var d=new Date(iso); return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}); }
-    function rows(arr){ return arr.map(function(g,i){
-        return '<tr><td class="rk">'+(i+1)+'</td><td class="sc">'+g.s+'</td><td class="dt">vs '+g.o+'</td><td class="dt">'+fd(g.d)+'</td></tr>';
-    }).join(''); }
-    var n = games.length;
-    el.innerHTML =
-      '<div class="rsec"><div class="rtitle">Overall</div>'+
-        '<div class="sg2">'+
-          '<div class="sbox"><div class="sv">'+n+'</div><div class="sl">Games</div></div>'+
-          '<div class="sbox"><div class="sv">'+(w1>w2?db.p1:w2>w1?db.p2:'Even')+'</div><div class="sl">Leader</div></div>'+
-        '</div></div>'+
-      '<div class="rsec"><div class="rtitle" style="color:#90c0ff">'+db.p1+'</div>'+
-        '<div class="sg2" style="margin-bottom:8px">'+
-          '<div class="sbox"><div class="sv" style="color:#90c0ff">'+w1+'</div><div class="sl">Wins</div></div>'+
-          '<div class="sbox"><div class="sv" style="color:#90c0ff">'+(n?Math.round(s1/n):0)+'</div><div class="sl">Avg</div></div>'+
-        '</div>'+
-        '<table class="t5"><thead><tr><th>#</th><th>Score</th><th>Opp</th><th>Date</th></tr></thead><tbody>'+rows(b1)+'</tbody></table></div>'+
-      '<div class="rsec"><div class="rtitle" style="color:#ff9090">'+db.p2+'</div>'+
-        '<div class="sg2" style="margin-bottom:8px">'+
-          '<div class="sbox"><div class="sv" style="color:#ff9090">'+w2+'</div><div class="sl">Wins</div></div>'+
-          '<div class="sbox"><div class="sv" style="color:#ff9090">'+(n?Math.round(s2/n):0)+'</div><div class="sl">Avg</div></div>'+
-        '</div>'+
-        '<table class="t5"><thead><tr><th>#</th><th>Score</th><th>Opp</th><th>Date</th></tr></thead><tbody>'+rows(b2)+'</tbody></table></div>';
+    return ps;
+}
+
+// ── Name collision check ──────────────────────────────────────────────
+function checkCollision(name, warnId) {
+    var warn = document.getElementById(warnId);
+    if (!warn) return;
+    var ps  = buildStats();
+    var key = name.toLowerCase().trim();
+    var existing = ps[key];
+    if (existing && existing.name !== name && name.length > 1) {
+        warn.textContent = "⚠ There’s already a “" + existing.name + "” in records — add a last initial to tell them apart?";
+        warn.style.display = 'block';
+    } else {
+        warn.style.display = 'none';
+    }
+}
+
+// ── Records rendering ─────────────────────────────────────────────────
+function renderRecords(filter) {
+    var el  = document.getElementById('rec-content');
+    var ps  = buildStats();
+    var keys = Object.keys(ps);
+    if (!keys.length) { el.innerHTML='<p class="empty">Records appear after you save some games.</p>'; return; }
+    // Filter
+    var q = (filter||'').toLowerCase().trim();
+    if (q) keys = keys.filter(function(k){ return k.indexOf(q) >= 0; });
+    // Sort by games played desc
+    keys.sort(function(a,b){ return ps[b].games - ps[a].games; });
+    el.innerHTML = '';
+    keys.forEach(function(key) {
+        var p  = ps[key];
+        var avg = p.games ? Math.round(p.total/p.games) : 0;
+        var pct = p.games ? Math.round((p.wins/p.games)*100) : 0;
+        var best = p.scores.slice().sort(function(a,b){return b.s-a.s;}).slice(0,5);
+        function fd(iso){ var d=new Date(iso); return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}); }
+        // H2H rows
+        var oppKeys = Object.keys(p.opps).sort(function(a,b){ return (p.opps[b].w+p.opps[b].l+p.opps[b].t)-(p.opps[a].w+p.opps[a].l+p.opps[a].t); });
+        var h2h = oppKeys.map(function(ok){
+            var o = p.opps[ok];
+            var rec = o.w+'-'+o.l+(o.t?'-'+o.t:'');
+            return '<tr><td>vs '+o.name+'</td><td>'+rec+'</td></tr>';
+        }).join('');
+        var top5 = best.map(function(s,i){
+            return '<tr><td>'+(i+1)+'</td><td>'+s.s+'</td><td>vs '+s.opp+'</td><td>'+fd(s.d)+'</td></tr>';
+        }).join('');
+        var card = document.createElement('div');
+        card.className = 'player-card';
+        card.innerHTML =
+            '<div class="player-card-hdr">'+
+              '<div class="pc-name">'+p.name+'</div>'+
+              '<div class="pc-meta">'+p.games+' game'+(p.games!==1?'s':'')+' · '+pct+'% wins</div>'+
+              '<div class="pc-arrow">▶</div>'+
+            '</div>'+
+            '<div class="player-card-body">'+
+              '<div class="pc-stat-row">'+
+                '<div class="pc-sbox"><div class="sv">'+p.wins+'</div><div class="sl">Wins</div></div>'+
+                '<div class="pc-sbox"><div class="sv">'+p.losses+'</div><div class="sl">Losses</div></div>'+
+                '<div class="pc-sbox"><div class="sv">'+avg+'</div><div class="sl">Avg</div></div>'+
+                '<div class="pc-sbox"><div class="sv">'+p.games+'</div><div class="sl">Games</div></div>'+
+              '</div>'+
+              (h2h ? '<div class="pc-section-title">Head to Head</div><table class="h2h-table">'+h2h+'</table>' : '')+
+              (top5 ? '<div class="pc-section-title">Top Scores</div><table class="top5-mini">'+top5+'</table>' : '')+
+            '</div>';
+        // Tap to expand
+        card.querySelector('.player-card-hdr').addEventListener('click', function(){
+            card.classList.toggle('open');
+        });
+        el.appendChild(card);
+    });
+}
+
+// ── Search box ───────────────────────────────────────────────────────
+var recSearch = document.getElementById('rec-search');
+if (recSearch) {
+    recSearch.addEventListener('input', function(){ renderRecords(this.value); });
 }
 
 // ── Boot ─────────────────────────────────────────────────────────────
