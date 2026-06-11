@@ -716,37 +716,39 @@ function updateTotals() {
 // ── Save ──────────────────────────────────
 function doSave() {
     var hasAny = rounds.some(function(r){ return r.p1!==null||r.p2!==null; });
-    if (!hasAny) { toast('Nothing to save yet.'); return; }
-    confirm_('Save this game to history?', '', function() {
-        var t1=0, t2=0;
-        var saved = [];
+    if (!hasAny) { alert('No scores to save yet.'); return; }
+    showConfirm('Save this game to history?', function() {
+        var t1=0, t2=0, saved=[];
         rounds.forEach(function(r) {
             if (r.p1!==null||r.p2!==null) {
-                var p1=r.p1||0, p2=r.p2||0;
+                var p1 = (r.p1 !== null) ? r.p1 : 0;
+                var p2 = (r.p2 !== null) ? r.p2 : 0;
                 t1+=p1; t2+=p2;
-                saved.push({p1:p1,p2:p2});
+                saved.push({p1:p1, p2:p2});
             }
         });
         var winner = t1>t2?'p1':t2>t1?'p2':'tie';
+        if (!db.games) db.games = [];
         db.games.unshift({
             date: new Date().toISOString(),
-            p1:db.p1, p2:db.p2,
-            t1:t1, t2:t2,
-            winner:winner,
-            rounds:saved
+            p1: db.p1||'Blue Player',
+            p2: db.p2||'Red Player',
+            t1: t1, t2: t2,
+            winner: winner,
+            rounds: saved
         });
-        saveDB();
-
-        // Show winner then clear
-        var wname = t1>t2?db.p1:t2>t1?db.p2:null;
+        try { saveDB(); } catch(e) {}
+        clearCurrentGame();
+        renderHistory();
+        renderRecords();
+        var wname  = t1>t2?(db.p1||'Blue Player'):t2>t1?(db.p2||'Red Player'):null;
         var margin = Math.abs(t1-t2);
         if (wname) {
-            document.getElementById('wname').textContent = wname + ' Wins!';
+            document.getElementById('wname').textContent   = wname + ' Wins!';
             document.getElementById('wmargin').textContent = 'By ' + margin + ' point' + (margin===1?'':'s') + ' — saved!';
             document.getElementById('winBanner').style.display = 'block';
-            setTimeout(function(){ newSheet(); }, 2600);
+            setTimeout(function(){ newSheet(); }, 2400);
         } else {
-            toast('Tie game saved!');
             newSheet();
         }
     });
