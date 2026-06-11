@@ -20,7 +20,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 body {
-    background: var(--navy);
+    background: #1e3020;
     color: var(--parch);
     font-family: Georgia, serif;
     font-size: 16px;
@@ -475,13 +475,22 @@ function fresh() { return { p1:'Blue Player', p2:'Red Player', games:[] }; }
 function saveDB() { localStorage.setItem(SKEY, JSON.stringify(db)); }
 
 // ── Wire up all buttons ───────────────────────────────────────────────────
-document.getElementById('tabSheet')    .addEventListener('click', function(){ showTab('sheet',   this); });
-document.getElementById('tabHistory')  .addEventListener('click', function(){ showTab('history', this); });
-document.getElementById('tabRecords')  .addEventListener('click', function(){ showTab('records', this); });
-document.getElementById('btnSave')     .addEventListener('click', doSave);
-document.getElementById('btnNew')      .addEventListener('click', doNew);
-document.getElementById('clearHistBtn').addEventListener('click', doClearHist);
-document.getElementById('oCancel')     .addEventListener('click', closeOverlay);
+function wire(id, fn) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('click', fn);
+}
+wire('tabSheet',    function(){ showTab('sheet',   this); });
+wire('tabHistory',  function(){ showTab('history', this); });
+wire('tabRecords',  function(){ showTab('records', this); });
+wire('btnSave',     doSave);
+wire('btnNew',      doNew);
+wire('clearHistBtn',doClearHist);
+wire('oCancel',     closeOverlay);
+// Name blur restores defaults
+var p1n = document.getElementById('p1name');
+var p2n = document.getElementById('p2name');
+if (p1n) { p1n.addEventListener('blur', function(){ restoreName(this,'Blue Player'); }); }
+if (p2n) { p2n.addEventListener('blur', function(){ restoreName(this,'Red Player');  }); }
 
 // ── Boot ──────────────────────────────────
 loadDB();
@@ -500,6 +509,9 @@ function syncNames() {
     document.getElementById('h2').textContent = db.p2;
     document.getElementById('wn1').textContent = db.p1;
     document.getElementById('wn2').textContent = db.p2;
+}
+function restoreName(el, def) {
+    if (!el.value.trim()) { el.value = def; syncNames(); }
 }
 
 // ── Sheet rendering ───────────────────────
@@ -724,7 +736,7 @@ function doSave() {
 function doNew() {
     var hasAny = rounds.some(function(r){ return r.p1!==null||r.p2!==null; });
     if (!hasAny) { newSheet(); return; }
-    confirm_('Start a new game?', 'Current scores will be cleared.', newSheet);
+    if (confirm('Start a new game? Current scores will be cleared.')) { newSheet(); }
 }
 
 function newSheet() {
@@ -769,14 +781,13 @@ function renderHistory() {
 }
 
 function doClearHist() {
-    if (!(db.games||[]).length) { toast('History already empty.'); return; }
-    confirm_('Clear all history?', 'This cannot be undone.', function() {
-        db.games = [];
-        saveDB();
-        renderHistory();
-        renderRecords();
-        toast('History cleared.');
-    });
+    if (!(db.games||[]).length) { alert('History already empty.'); return; }
+    if (!confirm('Clear all history? This cannot be undone.')) return;
+    db.games = [];
+    saveDB();
+    renderHistory();
+    renderRecords();
+    alert('History cleared.');
 }
 
 // ── Records ───────────────────────────────
