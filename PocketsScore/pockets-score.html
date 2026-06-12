@@ -137,147 +137,214 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 #btn-new  { background: rgba(200,168,75,0.1); color: #c8b88a; }
 
 /* ════════════════════════════════
-   DICE MODE
+   DICE MODE — pockets surround score sheet
    ════════════════════════════════ */
-#dice-board {
+
+/* Wrapper: side pockets + center sheet */
+#dice-wrap {
     display: none;
     flex: 1;
-    flex-direction: column;
-    background: #1a2a1a;
+    overflow: hidden;
     user-select: none; -webkit-user-select: none;
 }
-#dice-board.on { display: flex; }
+#dice-wrap.on { display: flex; flex-direction: column; }
 
-/* Tablet layout */
-#dice-board.tablet .board-grid {
+/* Landscape: pockets left/right of sheet */
+#dice-wrap.tablet { flex-direction: column; }
+#dice-wrap.tablet .dice-main {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-columns: 120px 1fr 120px;
     flex: 1;
-    gap: 3px;
-    padding: 3px;
+    overflow: hidden;
+    gap: 2px;
+    padding: 2px;
 }
-#dice-board.tablet .pocket-bk1  { grid-column: 1; grid-row: 1; }
-#dice-board.tablet .pocket-bk2  { grid-column: 2; grid-row: 1; }
-#dice-board.tablet .pocket-rk1  { grid-column: 3; grid-row: 1; }
-#dice-board.tablet .pocket-rk2  { grid-column: 4; grid-row: 1; }
-#dice-board.tablet .pocket-bsave { grid-column: 1; grid-row: 2; }
-#dice-board.tablet .pocket-share { grid-column: 2 / 4; grid-row: 2; }
-#dice-board.tablet .pocket-rsave { grid-column: 4; grid-row: 2; }
-
-/* Phone layout */
-#dice-board.phone .board-grid {
+#dice-wrap.phone .dice-main {
     display: flex;
     flex-direction: column;
     flex: 1;
-    gap: 3px;
-    padding: 3px;
+    overflow: hidden;
 }
-#dice-board.phone .red-side {
-    transform: rotate(180deg);
-}
-#dice-board.phone .red-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3px;
-}
-#dice-board.phone .blue-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+
+/* Side pocket columns */
+.side-pockets {
+    display: flex;
+    flex-direction: column;
     gap: 3px;
 }
 
-/* Individual pocket */
+/* Center sheet stays as-is */
+.center-sheet-wrap {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Individual pocket box */
 .dice-pocket {
-    background: rgba(0,0,0,0.25);
-    border: 1px solid rgba(200,168,75,0.2);
-    border-radius: 4px;
+    flex: 1;
+    border: 2px solid rgba(200,168,75,0.25);
+    border-radius: 6px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 6px 4px;
-    min-height: 90px;
+    justify-content: space-between;
+    padding: 8px 4px 6px;
     position: relative;
-    transition: background 0.2s;
+    min-height: 80px;
+    transition: border-color 0.2s;
 }
-.dice-pocket.blue-pocket { background: rgba(20,40,90,0.6); border-color: rgba(100,150,220,0.3); }
-.dice-pocket.red-pocket  { background: rgba(70,15,15,0.6); border-color: rgba(180,80,80,0.3); }
-.dice-pocket.share-pocket { background: rgba(20,50,20,0.8); border-color: rgba(100,180,80,0.4); }
-.dice-pocket.done { opacity: 0.75; }
+.dice-pocket.blue-pocket {
+    background: rgba(15,30,80,0.7);
+    border-color: rgba(80,120,220,0.3);
+}
+.dice-pocket.red-pocket {
+    background: rgba(60,12,12,0.7);
+    border-color: rgba(160,60,60,0.3);
+}
+.dice-pocket.share-pocket {
+    background: rgba(10,40,10,0.85);
+    border-color: rgba(80,160,60,0.4);
+    border-width: 2px;
+}
+.dice-pocket.tapped { border-color: rgba(200,168,75,0.7); }
 
 .pocket-lbl {
-    font-size: 0.62em; text-transform: uppercase; letter-spacing: 0.1em;
-    color: rgba(200,168,75,0.6); margin-bottom: 6px; text-align: center;
+    font-size: 0.6em;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(200,168,75,0.55);
+    text-align: center;
+    line-height: 1.2;
 }
 .pocket-val {
-    font-size: 1.8em; font-weight: bold; color: #c8a84b;
-    min-height: 1.2em; line-height: 1; text-align: center;
-    margin-bottom: 6px;
+    font-size: 2em;
+    font-weight: bold;
+    line-height: 1;
+    text-align: center;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .pocket-val.blue-val { color: #90c0ff; }
 .pocket-val.red-val  { color: #ff9090; }
+.pocket-val.empty    { color: rgba(255,255,255,0.1); font-size: 1.2em; }
 
-/* Number buttons */
+/* Number row along bottom of pocket */
 .num-row {
-    display: flex; gap: 3px; justify-content: center;
-    flex-wrap: nowrap;
+    display: flex;
+    gap: 2px;
+    justify-content: center;
+    width: 100%;
 }
 .num-btn {
-    width: 32px; height: 32px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(200,168,75,0.2);
-    border-radius: 4px;
-    color: #f5f0e4; font-family: inherit; font-size: 1em;
-    font-weight: bold; cursor: pointer;
+    flex: 1;
+    min-width: 0;
+    height: 28px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 3px;
+    color: rgba(255,255,255,0.4);
+    font-family: inherit;
+    font-size: 0.82em;
+    font-weight: bold;
+    cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    transition: opacity 0.15s, background 0.15s;
-    flex-shrink: 0;
+    transition: all 0.12s;
+    padding: 0;
 }
-.num-btn.blue-btn { color: #90c0ff; border-color: rgba(100,150,220,0.4); }
-.num-btn.red-btn  { color: #ff9090; border-color: rgba(180,80,80,0.4); }
+.num-btn.blue-btn { color: rgba(144,192,255,0.5); }
+.num-btn.red-btn  { color: rgba(255,144,144,0.5); }
 .num-btn.selected {
-    background: rgba(200,168,75,0.35);
+    background: rgba(200,168,75,0.3);
     border-color: #c8a84b;
     color: #fff;
-    transform: scale(1.1);
+    font-size: 1em;
 }
-.num-btn.selected.blue-btn { background: rgba(80,120,220,0.5); border-color: #90c0ff; color: #fff; }
-.num-btn.selected.red-btn  { background: rgba(180,60,60,0.5); border-color: #ff9090; color: #fff; }
-.num-btn.faded { opacity: 0.2; }
+.num-btn.selected.blue-btn {
+    background: rgba(60,100,200,0.5);
+    border-color: #90c0ff;
+    color: #fff;
+}
+.num-btn.selected.red-btn {
+    background: rgba(160,50,50,0.5);
+    border-color: #ff9090;
+    color: #fff;
+}
+.num-btn.faded { opacity: 0.18; }
 
-/* Share pocket rows */
-.share-rows { display: flex; flex-direction: column; gap: 6px; width: 100%; align-items: center; }
-.share-row-label { font-size: 0.6em; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
-.share-result { display: flex; gap: 12px; justify-content: center; align-items: center; font-size: 0.85em; min-height: 22px; }
-.share-result span { font-weight: bold; }
-
-/* Round totals bar */
-#dice-totals {
+/* Share pocket — full width, two rows */
+#share-wrap {
+    padding: 3px;
+}
+.share-pocket-wide {
+    background: rgba(10,40,10,0.85);
+    border: 2px solid rgba(80,160,60,0.4);
+    border-radius: 6px;
+    padding: 8px 12px;
     display: flex;
-    border-top: 2px solid rgba(200,168,75,0.3);
-    background: rgba(0,0,0,0.2);
+    flex-direction: column;
+    gap: 6px;
 }
-.dice-total-col { flex: 1; text-align: center; padding: 6px 4px; }
-.dice-total-col:nth-child(1) { background: rgba(20,40,90,0.6); border-right: 1px solid rgba(200,168,75,0.2); }
-.dice-total-col:nth-child(2) { background: rgba(0,0,0,0.1); border-right: 1px solid rgba(200,168,75,0.2); }
-.dice-total-col:nth-child(3) { background: rgba(70,15,15,0.6); }
-.dtlbl { font-size: 0.6em; text-transform: uppercase; letter-spacing: 0.06em; color: #c8b88a; }
-.dtval { font-size: 1.6em; font-weight: bold; color: #c8a84b; line-height: 1; }
-.dtval.blue { color: #90c0ff; }
-.dtval.red  { color: #ff9090; }
+.share-player-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.share-player-lbl {
+    font-size: 0.68em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    width: 70px;
+    flex-shrink: 0;
+    text-align: right;
+}
+.share-player-lbl.blue-lbl { color: #90c0ff; }
+.share-player-lbl.red-lbl  { color: #ff9090; }
+.share-nums { display: flex; gap: 4px; flex: 1; }
+.share-nums .num-btn { height: 34px; font-size: 1em; }
+.share-val {
+    width: 30px;
+    text-align: center;
+    font-size: 1.4em;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+.share-result-line {
+    text-align: center;
+    font-size: 0.82em;
+    font-weight: bold;
+    min-height: 18px;
+    color: #c8a84b;
+    letter-spacing: 0.05em;
+}
+
+/* Bonus bar below share */
+#dice-bonus-bar {
+    text-align: center;
+    padding: 5px 10px;
+    font-size: 0.78em;
+    color: #c8b88a;
+    background: rgba(0,0,0,0.15);
+    border-top: 1px solid rgba(200,168,75,0.15);
+    letter-spacing: 0.04em;
+}
 
 /* Flash overlay */
 #flash {
     position: fixed; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(200,168,75,0.95);
+    background: rgba(200,168,75,0.96);
     color: #1a2744; font-weight: bold;
-    font-size: 1.2em; letter-spacing: 0.08em;
+    font-size: 1.1em; letter-spacing: 0.06em;
     padding: 12px 24px; border-radius: 8px;
     z-index: 500; display: none;
     text-align: center; pointer-events: none;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+    white-space: pre-line;
 }
 
 /* ════════════════════════════════
@@ -461,23 +528,33 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
       </div>
     </div>
 
-    <!-- Dice mode board -->
-    <div id="dice-board">
-      <div class="board-grid" id="board-grid"></div>
-      <div id="dice-totals">
-        <div class="dice-total-col">
-          <div class="dtlbl" id="dlbl1">Blue</div>
-          <div class="dtval blue" id="dv1">0</div>
+    <!-- Dice mode: score sheet stays center, pockets on sides -->
+    <div id="dice-wrap">
+      <div class="dice-main" id="dice-main">
+        <!-- Left blue pockets (built by JS) -->
+        <div class="side-pockets" id="blue-pockets"></div>
+        <!-- Center: score sheet clone -->
+        <div class="center-sheet-wrap" id="dice-sheet">
+          <table>
+            <thead><tr>
+              <th style="width:36px">#</th>
+              <th id="dh1" style="background:#1e3060;color:#90c0ff">Blue</th>
+              <th id="dh2" style="background:#501818;color:#ff9090">Red</th>
+            </tr></thead>
+            <tbody id="dtbody"></tbody>
+            <tfoot><tr>
+              <td style="font-size:0.65em;color:#c8b88a;background:rgba(0,0,0,0.2);padding:6px 2px">TOT</td>
+              <td style="background:rgba(25,50,105,0.9);padding:6px 2px"><span class="tval" style="font-size:1.8em" id="dt1">0</span></td>
+              <td style="background:rgba(80,22,22,0.9);padding:6px 2px"><span class="tval" style="font-size:1.8em" id="dt2">0</span></td>
+            </tr></tfoot>
+          </table>
         </div>
-        <div class="dice-total-col">
-          <div class="dtlbl">Bonus</div>
-          <div class="dtval" id="dbonus">—</div>
-        </div>
-        <div class="dice-total-col">
-          <div class="dtlbl" id="dlbl2">Red</div>
-          <div class="dtval red" id="dv2">0</div>
-        </div>
+        <!-- Right red pockets (built by JS) -->
+        <div class="side-pockets" id="red-pockets"></div>
       </div>
+      <!-- Share pocket spans full width below -->
+      <div id="share-wrap"></div>
+      <div id="dice-bonus-bar">Combo: —</div>
     </div>
 
     <div id="btns">
@@ -713,8 +790,7 @@ function syncNames() {
     document.getElementById('h2').textContent  = db.p2;
     document.getElementById('wn1').textContent = db.p1;
     document.getElementById('wn2').textContent = db.p2;
-    document.getElementById('dlbl1').textContent = db.p1;
-    document.getElementById('dlbl2').textContent = db.p2;
+    // Dice board headers update when buildDiceBoard() is called
     // Rebuild dice board labels if in dice mode
     if (diceMode) buildDiceBoard();
 }
@@ -859,137 +935,120 @@ var isTablet = false;
 
 function detectLayout() {
     var w = window.innerWidth, h = window.innerHeight;
-    isTablet = (w >= 600) || (w > h && w >= 480);
+    isTablet = (w >= 580) || (w > h && w >= 480);
 }
 
 function switchMode() {
     diceMode = !diceMode;
     var btn = document.getElementById('btn-mode');
     var ms  = document.getElementById('manual-section');
-    var db2 = document.getElementById('dice-board');
+    var dw  = document.getElementById('dice-wrap');
     if (diceMode) {
         btn.textContent = 'Switch to Manual Mode';
-        ms.style.display  = 'none';
-        db2.classList.add('on');
+        ms.style.display = 'none';
+        dw.classList.add('on');
         detectLayout();
-        db2.className = 'on ' + (isTablet ? 'tablet' : 'phone');
+        dw.className = 'on ' + (isTablet ? 'tablet' : 'phone');
         buildDiceBoard();
     } else {
         btn.textContent = 'Switch to Dice Mode';
-        ms.style.display  = '';
-        db2.classList.remove('on');
+        ms.style.display = '';
+        dw.classList.remove('on');
     }
 }
 
 document.getElementById('btn-mode').addEventListener('click', switchMode);
 window.addEventListener('resize', function(){
     if (!diceMode) return;
-    var wasTablet = isTablet;
-    detectLayout();
-    if (wasTablet !== isTablet) {
-        var db2 = document.getElementById('dice-board');
-        db2.className = 'on ' + (isTablet ? 'tablet' : 'phone');
+    var was = isTablet; detectLayout();
+    if (was !== isTablet) {
+        var dw = document.getElementById('dice-wrap');
+        dw.className = 'on ' + (isTablet ? 'tablet' : 'phone');
         buildDiceBoard();
     }
 });
 
 function buildDiceBoard() {
-    var grid = document.getElementById('board-grid');
-    grid.innerHTML = '';
+    // Reset dice values
     dv = { bk1:null, bk2:null, bsave:null, rk1:null, rk2:null, rsave:null, shareB:null, shareR:null };
+
+    // Blue side pockets
+    var bEl = document.getElementById('blue-pockets');
+    bEl.innerHTML = '';
+    bEl.appendChild(makePocket('blue-pocket','bk1','Keep 1','blue'));
+    bEl.appendChild(makePocket('blue-pocket','bk2','Keep 2','blue'));
+    bEl.appendChild(makePocket('blue-pocket','bsave','Save','blue'));
+
+    // Red side pockets
+    var rEl = document.getElementById('red-pockets');
+    rEl.innerHTML = '';
+    rEl.appendChild(makePocket('red-pocket','rk1','Keep 1','red'));
+    rEl.appendChild(makePocket('red-pocket','rk2','Keep 2','red'));
+    rEl.appendChild(makePocket('red-pocket','rsave','Save','red'));
+
+    // Share pocket
+    buildSharePocket();
+
+    // Sync dice score sheet header names
+    var dh1 = document.getElementById('dh1');
+    var dh2 = document.getElementById('dh2');
+    if (dh1) dh1.textContent = db.p1;
+    if (dh2) dh2.textContent = db.p2;
+
+    // Render dice score table from current rounds
+    renderDiceSheet();
     updateDiceTotals();
-
-    if (isTablet) {
-        buildTabletLayout(grid);
-    } else {
-        buildPhoneLayout(grid);
-    }
 }
 
-function buildTabletLayout(grid) {
-    // Top row: BK1, BK2, RK1, RK2
-    // Bottom row: BSave, Share(2 wide), RSave
-    grid.appendChild(makePocket('pocket-bk1 blue-pocket','bk1',db.p1+' Keep 1','blue'));
-    grid.appendChild(makePocket('pocket-bk2 blue-pocket','bk2',db.p1+' Keep 2','blue'));
-    grid.appendChild(makePocket('pocket-rk1 red-pocket', 'rk1',db.p2+' Keep 1','red'));
-    grid.appendChild(makePocket('pocket-rk2 red-pocket', 'rk2',db.p2+' Keep 2','red'));
-    grid.appendChild(makePocket('pocket-bsave blue-pocket','bsave',db.p1+' Save','blue'));
-    grid.appendChild(makeSharePocket());
-    grid.appendChild(makePocket('pocket-rsave red-pocket','rsave',db.p2+' Save','red'));
-}
+function buildSharePocket() {
+    var wrap = document.getElementById('share-wrap');
+    wrap.innerHTML = '';
+    var sp = document.createElement('div');
+    sp.className = 'share-pocket-wide';
 
-function buildPhoneLayout(grid) {
-    // Red side (rotated 180°) on top, Blue side on bottom
-    var redSide = document.createElement('div');
-    redSide.className = 'red-side';
-    var redRow = document.createElement('div');
-    redRow.className = 'red-row';
-    redRow.appendChild(makePocket('red-pocket','rk1',db.p2+' Keep 1','red'));
-    redRow.appendChild(makePocket('red-pocket','rk2',db.p2+' Keep 2','red'));
-    redSide.appendChild(redRow);
-    redSide.appendChild(makePocket('red-pocket','rsave',db.p2+' Save','red'));
-    grid.appendChild(redSide);
-    grid.appendChild(makeSharePocket());
-    grid.appendChild(makePocket('blue-pocket','bsave',db.p1+' Save','blue'));
-    var blueRow = document.createElement('div');
-    blueRow.className = 'blue-row';
-    blueRow.appendChild(makePocket('blue-pocket','bk1',db.p1+' Keep 1','blue'));
-    blueRow.appendChild(makePocket('blue-pocket','bk2',db.p1+' Keep 2','blue'));
-    grid.appendChild(blueRow);
+    // Blue row
+    var bRow = document.createElement('div');
+    bRow.className = 'share-player-row';
+    var bLbl = document.createElement('div');
+    bLbl.className = 'share-player-lbl blue-lbl';
+    bLbl.textContent = db.p1;
+    var bNums = document.createElement('div'); bNums.className = 'share-nums';
+    for (var n=1;n<=6;n++) bNums.appendChild(makeNumBtn(n,'shareB','blue'));
+    var bVal = document.createElement('div');
+    bVal.className='share-val blue-val'; bVal.id='dval-shareB'; bVal.textContent='—';
+    bRow.appendChild(bLbl); bRow.appendChild(bNums); bRow.appendChild(bVal);
+
+    // Red row
+    var rRow = document.createElement('div');
+    rRow.className = 'share-player-row';
+    var rLbl = document.createElement('div');
+    rLbl.className = 'share-player-lbl red-lbl';
+    rLbl.textContent = db.p2;
+    var rNums = document.createElement('div'); rNums.className = 'share-nums';
+    for (var n=1;n<=6;n++) rNums.appendChild(makeNumBtn(n,'shareR','red'));
+    var rVal = document.createElement('div');
+    rVal.className='share-val red-val'; rVal.id='dval-shareR'; rVal.textContent='—';
+    rRow.appendChild(rLbl); rRow.appendChild(rNums); rRow.appendChild(rVal);
+
+    // Result line
+    var res = document.createElement('div');
+    res.className = 'share-result-line'; res.id = 'share-result';
+
+    sp.appendChild(bRow); sp.appendChild(rRow); sp.appendChild(res);
+    wrap.appendChild(sp);
 }
 
 function makePocket(cls, key, label, color) {
     var div = document.createElement('div');
     div.className = 'dice-pocket ' + cls;
-    div.dataset.key = key;
     var lbl = document.createElement('div');
-    lbl.className = 'pocket-lbl';
-    lbl.textContent = label;
+    lbl.className = 'pocket-lbl'; lbl.textContent = label;
     var val = document.createElement('div');
-    val.className = 'pocket-val ' + (color==='blue'?'blue-val':'red-val');
-    val.id = 'dval-'+key;
-    val.textContent = '—';
-    var row = document.createElement('div');
-    row.className = 'num-row';
-    for (var n=1; n<=6; n++) {
-        row.appendChild(makeNumBtn(n, key, color));
-    }
-    div.appendChild(lbl);
-    div.appendChild(val);
-    div.appendChild(row);
-    return div;
-}
-
-function makeSharePocket() {
-    var div = document.createElement('div');
-    div.className = 'dice-pocket share-pocket pocket-share';
-    var lbl = document.createElement('div');
-    lbl.className = 'pocket-lbl';
-    lbl.textContent = 'Share';
-    div.appendChild(lbl);
-    var rows = document.createElement('div');
-    rows.className = 'share-rows';
-    // Blue row
-    var bRow = document.createElement('div');
-    var bLbl = document.createElement('div');
-    bLbl.className='share-row-label'; bLbl.style.color='#90c0ff'; bLbl.textContent=db.p1;
-    var bNums = document.createElement('div'); bNums.className='num-row';
-    for (var n=1;n<=6;n++) bNums.appendChild(makeNumBtn(n,'shareB','blue'));
-    bRow.appendChild(bLbl); bRow.appendChild(bNums);
-    // Red row
-    var rRow = document.createElement('div');
-    var rLbl = document.createElement('div');
-    rLbl.className='share-row-label'; rLbl.style.color='#ff9090'; rLbl.textContent=db.p2;
-    var rNums = document.createElement('div'); rNums.className='num-row';
-    for (var n=1;n<=6;n++) rNums.appendChild(makeNumBtn(n,'shareR','red'));
-    rRow.appendChild(rLbl); rRow.appendChild(rNums);
-    // Result
-    var result = document.createElement('div');
-    result.className='share-result'; result.id='share-result';
-    rows.appendChild(bRow);
-    rows.appendChild(rRow);
-    rows.appendChild(result);
-    div.appendChild(rows);
+    val.className = 'pocket-val ' + (color==='blue'?'blue-val':'red-val') + ' empty';
+    val.id = 'dval-'+key; val.textContent = '·';
+    var row = document.createElement('div'); row.className = 'num-row';
+    for (var n=1; n<=6; n++) row.appendChild(makeNumBtn(n, key, color));
+    div.appendChild(lbl); div.appendChild(val); div.appendChild(row);
     return div;
 }
 
@@ -997,12 +1056,31 @@ function makeNumBtn(n, key, color) {
     var btn = document.createElement('button');
     btn.className = 'num-btn '+(color==='blue'?'blue-btn':'red-btn');
     btn.textContent = n;
-    btn.dataset.key = key;
-    btn.dataset.val = n;
-    btn.addEventListener('click', function(){
-        tapDie(key, n, color, btn);
-    });
+    btn.dataset.key = key; btn.dataset.val = n;
+    (function(k,v,c){ btn.addEventListener('click', function(){ tapDie(k,v,c); }); })(key,n,color);
     return btn;
+}
+
+function renderDiceSheet() {
+    var tbody = document.getElementById('dtbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    var rdIdx = getRDIdx();
+    rounds.forEach(function(r, i) {
+        if (r.p1===null && r.p2===null && i===rounds.length-1) return; // skip empty last row
+        var tr = document.createElement('tr');
+        if (i===rdIdx) tr.className='rd-row';
+        var tn=document.createElement('td'); tn.className='rn'+(i===rdIdx?' rd':''); tn.textContent=i===rdIdx?'RD':(i+1);
+        var t1=document.createElement('td'); t1.className='p1c'; t1.style.padding='4px'; t1.style.textAlign='center'; t1.style.color='#b0d0ff'; t1.textContent=r.p1!==null?r.p1:'';
+        var t2=document.createElement('td'); t2.className='p2c'; t2.style.padding='4px'; t2.style.textAlign='center'; t2.style.color='#ffb0b0'; t2.textContent=r.p2!==null?r.p2:'';
+        tr.appendChild(tn); tr.appendChild(t1); tr.appendChild(t2);
+        tbody.appendChild(tr);
+    });
+    // Running totals
+    var t1=0,t2=0;
+    rounds.forEach(function(r){if(r.p1!==null)t1+=r.p1;if(r.p2!==null)t2+=r.p2;});
+    var dt1=document.getElementById('dt1'); var dt2=document.getElementById('dt2');
+    if(dt1) dt1.textContent=t1; if(dt2) dt2.textContent=t2;
 }
 
 function tapDie(key, val, color, btn) {
@@ -1059,47 +1137,7 @@ function getDiceScores() {
     return {bScore:bScore+bCombo, rScore:rScore+rCombo, bCombo:bCombo, rCombo:rCombo};
 }
 
-function updateDiceTotals() {
-    var s = getDiceScores();
-    document.getElementById('dv1').textContent = s.bScore;
-    document.getElementById('dv2').textContent = s.rScore;
-    var bCn = comboName(s.bCombo), rCn = comboName(s.rCombo);
-    var bns = '';
-    if (bCn) bns += db.p1+': '+bCn;
-    if (bCn && rCn) bns += ' / ';
-    if (rCn) bns += db.p2+': '+rCn;
-    document.getElementById('dbonus').textContent = bns || '—';
-}
 
-function checkRoundComplete() {
-    if (dv.bk1===null||dv.bk2===null||dv.bsave===null||
-        dv.rk1===null||dv.rk2===null||dv.rsave===null||
-        dv.shareB===null||dv.shareR===null) return;
-    // All 8 placed — finalize round
-    setTimeout(function(){ finalizeRound(); }, 600);
-}
-
-function finalizeRound() {
-    var s = getDiceScores();
-    // Add to manual rounds
-    rounds[rounds.length-1] = {p1:s.bScore, p2:s.rScore};
-    saveCur();
-    // Check if we need to add a new round
-    var rdIdx = getRDIdx();
-    var isRDRound = (rounds.length-1 === rdIdx);
-    if (!isRDRound) {
-        rounds.push({p1:null, p2:null});
-    }
-    renderSheet(); // update manual table too
-    // Show completion flash
-    showFlash('Round '+rounds.length+' done!\n'+db.p1+': '+s.bScore+' · '+db.p2+': '+s.rScore, 2000);
-    // Reset dice board after flash
-    setTimeout(function(){
-        dv={bk1:null,bk2:null,bsave:null,rk1:null,rk2:null,rsave:null,shareB:null,shareR:null};
-        buildDiceBoard();
-        updateTotals();
-    }, 2100);
-}
 
 // ══ Save / New game ════════════════════════════════════════════════
 document.getElementById('btn-save').addEventListener('click', function(){
