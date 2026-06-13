@@ -892,7 +892,7 @@ function comboName(pts) {
 }
 
 // == Dice Mode ======================================================
-var dv = { bk1:null, bk2:null, bsave:null, bextra:null, rk1:null, rk2:null, rsave:null, rextra:null, shareB:null, shareR:null };
+var dv = { bk1:null, bk2:null, bdie3:null, bdie4:null, bsave:null, rk1:null, rk2:null, rdie3:null, rdie4:null, rsave:null, shareB:null, shareR:null };
 var savedBSave = null, savedRSave = null;
 var isTablet = false;
 
@@ -902,31 +902,19 @@ function detectLayout() {
 }
 
 function isLandscapeTablet() {
-    var w = window.innerWidth, h = window.innerHeight;
-    return (w > h) && (w >= 480);
+    return true; // always allow dice mode; CSS handles layout
 }
 
 function applyOrientationMode() {
     var btn = document.getElementById('btn-mode');
-    var ms  = document.getElementById('manual-section');
-    var dw  = document.getElementById('dice-wrap');
-    if (!isLandscapeTablet()) {
-        if (diceMode) {
-            diceMode = false;
-            btn.textContent = 'Switch to Dice Mode';
-            ms.style.display = '';
-            dw.classList.remove('on');
-        }
-        btn.style.opacity = '0.45';
-        btn.title = 'Rotate to landscape for Dice Mode';
-    } else {
-        btn.style.opacity = '';
-        btn.title = '';
-        if (diceMode) {
-            ms.style.display = 'none';
-            dw.className = 'on tablet';
-            buildDiceBoard();
-        }
+    btn.style.opacity = '';
+    btn.title = '';
+    if (diceMode) {
+        var ms = document.getElementById('manual-section');
+        var dw = document.getElementById('dice-wrap');
+        ms.style.display = 'none';
+        dw.className = 'on tablet';
+        buildDiceBoard();
     }
 }
 
@@ -940,7 +928,7 @@ function doSwitchMode() {
         ms.style.display = 'none';
         dw.className     = 'on tablet';
         rounds = [{p1:null, p2:null}];
-        dv = {bk1:null,bk2:null,bsave:null,bextra:null,rk1:null,rk2:null,rsave:null,rextra:null,shareB:null,shareR:null};
+        dv = {bk1:null,bk2:null,bdie3:null,bdie4:null,bsave:null,rk1:null,rk2:null,rdie3:null,rdie4:null,rsave:null,shareB:null,shareR:null};
         savedBSave=null; savedRSave=null;
         clearCur();
         buildDiceBoard();
@@ -956,7 +944,6 @@ function doSwitchMode() {
 }
 
 function switchMode() {
-    if (!isLandscapeTablet()) { toast('Rotate to landscape for Dice Mode.'); return; }
     var hasAny = rounds.some(function(r){ return r.p1!==null||r.p2!==null; });
     if (!hasAny) { doSwitchMode(); return; }
     var toMode = diceMode ? 'Manual' : 'Dice';
@@ -1001,8 +988,8 @@ function buildDiceBoard() {
     if (isRD && savedBSave!==null) { preTapPocket('bsave', savedBSave, 'blue'); }
     if (isRD && savedRSave!==null) { preTapPocket('rsave', savedRSave, 'red'); }
 
-    // Share pockets + extra pockets for RD
-    buildShareRows(isRD);
+    // Build center area (Share for regular, RD banner for Rolldown)
+    buildCenterBottom(isRD);
 
     // Header names
     var dh1=document.getElementById('dh1'), dh2=document.getElementById('dh2');
@@ -1042,62 +1029,37 @@ function makeSharePlayerRow(containerId, key, color, name) {
     row.appendChild(lbl); row.appendChild(nums); row.appendChild(val);
 }
 
-function buildShareRows(isRD) {
+function buildCenterBottom(isRD) {
     var sp = document.getElementById('share-pocket');
-    if (!sp) return;
+    var grid = document.getElementById('dice-main');
+    if (!sp || !grid) return;
     if (isRD) {
-        // RD mode: replace share pocket with split layout
+        // RD mode: no Share, just show gold banner in center-bot area
         sp.innerHTML = '';
-        sp.style.background = 'transparent';
-        sp.style.border = 'none';
-        sp.style.padding = '0';
-        sp.style.gap = '4px';
-        sp.style.flexDirection = 'column';
-
-        // Gold RD label banner
-        var rdBanner = document.createElement('div');
-        rdBanner.style.cssText = 'text-align:center;font-size:0.65em;font-weight:bold;letter-spacing:0.14em;color:#c8a84b;padding:3px 0;text-transform:uppercase;border:1px solid rgba(200,168,75,0.3);border-radius:4px;background:rgba(200,168,75,0.08);';
-        rdBanner.textContent = '\u2605 Rolldown Round \u2605';
-        sp.appendChild(rdBanner);
-
-        // Extra pockets row (blue left, red right)
-        var extraRow = document.createElement('div');
-        extraRow.style.cssText = 'display:flex;gap:4px;flex:1;';
-        var bExtra = makePocket('blue-pocket rd-half','bextra','','blue',false);
-        var rExtra = makePocket('red-pocket rd-half','rextra','','red',false);
-        extraRow.appendChild(bExtra);
-        extraRow.appendChild(rExtra);
-        sp.appendChild(extraRow);
-
-        // Share pockets row (blue left, red right)
-        var shareRow = document.createElement('div');
-        shareRow.style.cssText = 'display:flex;gap:4px;flex:1;';
-        var bShare = makeSplitShare('shareB','blue',db.p1);
-        var rShare = makeSplitShare('shareR','red',db.p2);
-        shareRow.appendChild(bShare);
-        shareRow.appendChild(rShare);
-        sp.appendChild(shareRow);
-
-        // Result line
+        sp.style.cssText = 'background:transparent;border:none;padding:0;';
+        // Add rd-mode class to grid for different row layout
+        grid.classList.add('rd-mode');
+        // Show gold RD banner above total
+        var banner = document.createElement('div');
+        banner.style.cssText = 'text-align:center;padding:6px;font-size:0.72em;font-weight:bold;letter-spacing:0.12em;color:#c8a84b;text-transform:uppercase;border:1px solid rgba(200,168,75,0.3);border-radius:4px;background:rgba(200,168,75,0.08);margin:0 4px 4px;';
+        banner.textContent = '\u2605 Rolldown \u2014 All 5 Dice Score \u2605';
+        sp.appendChild(banner);
         var res = document.createElement('div');
-        res.className = 'share-result-line'; res.id = 'share-result';
+        res.className='share-result-line'; res.id='share-result';
         sp.appendChild(res);
     } else {
-        // Regular mode: restore green share pocket
-        sp.style.background = '';
-        sp.style.border = '';
-        sp.style.padding = '';
-        sp.style.gap = '';
-        sp.style.flexDirection = '';
+        grid.classList.remove('rd-mode');
+        sp.style.cssText = '';
         sp.innerHTML =
             '<div class="spr" id="share-top-row"></div>'+
             '<div class="share-die-space">&#9633;&nbsp;&nbsp;&#9633;</div>'+
             '<div class="spr" id="share-bot-row"></div>'+
             '<div class="share-result-line" id="share-result"></div>';
-        makeSharePlayerRow('share-top-row', 'shareB', 'blue', db.p1);
-        makeSharePlayerRow('share-bot-row', 'shareR', 'red',  db.p2);
+        makeSharePlayerRow('share-top-row','shareB','blue',db.p1);
+        makeSharePlayerRow('share-bot-row','shareR','red', db.p2);
     }
 }
+
 
 function makeSplitShare(key, color, name) {
     var div = document.createElement('div');
@@ -1219,6 +1181,20 @@ function resolveShare() {
 }
 
 function getDiceScores() {
+    var rdIdx = getRDIdx();
+    var lastR = rounds[rounds.length-1];
+    var isRD = (rdIdx >= 0 && rounds.length - 1 === rdIdx && lastR.p1===null && lastR.p2===null);
+    if (isRD) {
+        // Rolldown: all 5 dice score face value, combo on all 5, no Share
+        var bScore = (dv.bk1||0)+(dv.bk2||0)+(dv.bdie3||0)+(dv.bdie4||0)+(dv.bsave||0);
+        var rScore = (dv.rk1||0)+(dv.rk2||0)+(dv.rdie3||0)+(dv.rdie4||0)+(dv.rsave||0);
+        var bDice = [dv.bk1,dv.bk2,dv.bdie3,dv.bdie4,dv.bsave].filter(function(d){return d!==null;});
+        var rDice = [dv.rk1,dv.rk2,dv.rdie3,dv.rdie4,dv.rsave].filter(function(d){return d!==null;});
+        var bCombo = calcCombo(bDice); bScore += bCombo;
+        var rCombo = calcCombo(rDice); rScore += rCombo;
+        return {bScore:bScore, rScore:rScore, bCombo:bCombo, rCombo:rCombo};
+    }
+    // Regular round: K1+K2 score; Save=0; winner of Share scores diff + combo on 4 dice
     var bScore = (dv.bk1||0) + (dv.bk2||0);
     var rScore = (dv.rk1||0) + (dv.rk2||0);
     var bShareWon = dv.shareB!==null && dv.shareR!==null && dv.shareB > dv.shareR;
@@ -1226,16 +1202,13 @@ function getDiceScores() {
     var shareDiff = (dv.shareB!==null && dv.shareR!==null) ? Math.abs(dv.shareB - dv.shareR) : 0;
     if (bShareWon) bScore += shareDiff;
     if (rShareWon) rScore += shareDiff;
-    // Combo bonus ONLY if you win Share \u2014 uses all 4 of winner's dice
     var bCombo = 0, rCombo = 0;
     if (bShareWon) {
-        var bDice = [dv.bk1, dv.bk2, dv.shareB, dv.bsave].filter(function(d){return d!==null;});
-        bCombo = calcCombo(bDice);
+        bCombo = calcCombo([dv.bk1,dv.bk2,dv.shareB,dv.bsave].filter(function(d){return d!==null;}));
         bScore += bCombo;
     }
     if (rShareWon) {
-        var rDice = [dv.rk1, dv.rk2, dv.shareR, dv.rsave].filter(function(d){return d!==null;});
-        rCombo = calcCombo(rDice);
+        rCombo = calcCombo([dv.rk1,dv.rk2,dv.shareR,dv.rsave].filter(function(d){return d!==null;}));
         rScore += rCombo;
     }
     return {bScore:bScore, rScore:rScore, bCombo:bCombo, rCombo:rCombo};
@@ -1266,12 +1239,12 @@ function updateDiceTotals() {
 
 function checkRoundComplete() {
     var rdIdx = getRDIdx();
-    var lastR = rounds[rounds.length-1];
-    var isRD = (rdIdx >= 0 && rounds.length - 1 === rdIdx && lastR.p1===null && lastR.p2===null);
+    var lastR2 = rounds[rounds.length-1];
+    var isRD = (rdIdx >= 0 && rounds.length - 1 === rdIdx && lastR2.p1===null && lastR2.p2===null);
     if (isRD) {
-        if (dv.bk1===null||dv.bk2===null||dv.bsave===null||dv.bextra===null||
-            dv.rk1===null||dv.rk2===null||dv.rsave===null||dv.rextra===null||
-            dv.shareB===null||dv.shareR===null) return;
+        // 5 dice per player, no Share
+        if (dv.bk1===null||dv.bk2===null||dv.bdie3===null||dv.bdie4===null||dv.bsave===null||
+            dv.rk1===null||dv.rk2===null||dv.rdie3===null||dv.rdie4===null||dv.rsave===null) return;
     } else {
         if (dv.bk1===null||dv.bk2===null||dv.bsave===null||
             dv.rk1===null||dv.rk2===null||dv.rsave===null||
@@ -1340,7 +1313,7 @@ function finalizeRound() {
         f.style.pointerEvents = 'none';
         f.removeEventListener('click', dismiss);
         savedBSave = dv.bsave; savedRSave = dv.rsave;
-        dv={bk1:null,bk2:null,bsave:null,bextra:null,rk1:null,rk2:null,rsave:null,rextra:null,shareB:null,shareR:null};
+        dv={bk1:null,bk2:null,bdie3:null,bdie4:null,bsave:null,rk1:null,rk2:null,rdie3:null,rdie4:null,rsave:null,shareB:null,shareR:null};
         // Check if game is over (RD round just completed)
         var rdIdx = getRDIdx();
         var rdDone = rdIdx >= 0 && rounds[rdIdx] && rounds[rdIdx].p1!==null && rounds[rdIdx].p2!==null;
