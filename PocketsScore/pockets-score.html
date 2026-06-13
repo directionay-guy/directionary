@@ -215,7 +215,15 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 .num-btn.selected.red-btn  { background:rgba(150,40,40,0.5); border-color:#ff9090; color:#fff; }
 .num-btn.faded { opacity:0.15; }
 
-/* Score table inside center */
+/* Rolldown half-width pockets (extra + split share) */
+.dice-pocket.rd-half {
+    flex: 1;
+    width: auto;
+    height: calc(var(--ps) * 0.85);
+    min-height: 70px;
+    aspect-ratio: unset;
+}
+
 #dice-score-center table { width:100%; border-collapse:collapse; table-layout:fixed; }
 #dice-score-center thead th {
     background:#243258; color:#c8a84b; padding:5px 3px;
@@ -265,6 +273,13 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 .share-result-line {
     text-align:center; font-size:0.76em; font-weight:bold;
     color:#c8a84b; letter-spacing:0.04em; min-height:16px;
+}
+@keyframes shareGlow {
+    0%,100% { opacity:1; text-shadow:none; }
+    50% { opacity:0.75; text-shadow:0 0 10px currentColor; }
+}
+.share-result-line.throbbing {
+    animation: shareGlow 0.8s ease-in-out 4;
 }
 #dice-bonus-bar {
     text-align:center; padding:3px 10px; font-size:0.74em;
@@ -877,7 +892,8 @@ function comboName(pts) {
 }
 
 // == Dice Mode ======================================================
-var dv = { bk1:null, bk2:null, bsave:null, rk1:null, rk2:null, rsave:null, shareB:null, shareR:null };
+var dv = { bk1:null, bk2:null, bsave:null, bextra:null, rk1:null, rk2:null, rsave:null, rextra:null, shareB:null, shareR:null };
+var savedBSave = null, savedRSave = null;
 var isTablet = false;
 
 function detectLayout() {
@@ -895,13 +911,17 @@ function applyOrientationMode() {
     var ms  = document.getElementById('manual-section');
     var dw  = document.getElementById('dice-wrap');
     if (!isLandscapeTablet()) {
-        // Force manual mode in portrait / phone
-        diceMode = false;
-        btn.style.display  = 'none';
-        ms.style.display   = '';
-        dw.classList.remove('on');
+        if (diceMode) {
+            diceMode = false;
+            btn.textContent = 'Switch to Dice Mode';
+            ms.style.display = '';
+            dw.classList.remove('on');
+        }
+        btn.style.opacity = '0.45';
+        btn.title = 'Rotate to landscape for Dice Mode';
     } else {
-        btn.style.display = '';
+        btn.style.opacity = '';
+        btn.title = '';
         if (diceMode) {
             ms.style.display = 'none';
             dw.className = 'on tablet';
@@ -920,7 +940,8 @@ function doSwitchMode() {
         ms.style.display = 'none';
         dw.className     = 'on tablet';
         rounds = [{p1:null, p2:null}];
-        dv = {bk1:null,bk2:null,bsave:null,rk1:null,rk2:null,rsave:null,shareB:null,shareR:null};
+        dv = {bk1:null,bk2:null,bsave:null,bextra:null,rk1:null,rk2:null,rsave:null,rextra:null,shareB:null,shareR:null};
+        savedBSave=null; savedRSave=null;
         clearCur();
         buildDiceBoard();
     } else {
@@ -935,7 +956,7 @@ function doSwitchMode() {
 }
 
 function switchMode() {
-    if (!isLandscapeTablet()) return;
+    if (!isLandscapeTablet()) { toast('Rotate to landscape for Dice Mode.'); return; }
     var hasAny = rounds.some(function(r){ return r.p1!==null||r.p2!==null; });
     if (!hasAny) { doSwitchMode(); return; }
     var toMode = diceMode ? 'Manual' : 'Dice';
@@ -948,30 +969,39 @@ window.addEventListener('resize', applyOrientationMode);
 function buildDiceBoard() {
     dv = { bk1:null, bk2:null, bsave:null, rk1:null, rk2:null, rsave:null, shareB:null, shareR:null };
 
+    var rdIdx = getRDIdx();
+    var isRD = (rdIdx >= 0 && rounds.length - 1 === rdIdx);
+
     // Blue keeps
     var bk = document.getElementById('blue-keeps');
     bk.innerHTML = '';
-    bk.appendChild(makePocket('blue-pocket','bk1','Keep 1','blue'));
-    bk.appendChild(makePocket('blue-pocket','bk2','Keep 2','blue'));
+    bk.appendChild(makePocket('blue-pocket','bk1','','blue',false));
+    bk.appendChild(makePocket('blue-pocket','bk2','','blue',false));
 
     // Red keeps
     var rk = document.getElementById('red-keeps');
     rk.innerHTML = '';
-    rk.appendChild(makePocket('red-pocket','rk1','Keep 1','red'));
-    rk.appendChild(makePocket('red-pocket','rk2','Keep 2','red'));
+    rk.appendChild(makePocket('red-pocket','rk1','','red',false));
+    rk.appendChild(makePocket('red-pocket','rk2','','red',false));
 
-    // Blue save
+    // Blue save \u2014 always labeled
     var bs = document.getElementById('blue-save-wrap');
     bs.innerHTML = '';
-    bs.appendChild(makePocket('blue-pocket','bsave','Save','blue'));
+    var bsp = makePocket('blue-pocket','bsave','Save','blue',true);
+    bs.appendChild(bsp);
 
-    // Red save
+    // Red save \u2014 always labeled
     var rs = document.getElementById('red-save-wrap');
     rs.innerHTML = '';
-    rs.appendChild(makePocket('red-pocket','rsave','Save','red'));
+    var rsp = makePocket('red-pocket','rsave','Save','red',true);
+    rs.appendChild(rsp);
 
-    // Share pocket rows
-    buildShareRows();
+    // Pre-fill save values in Rolldown
+    if (isRD && savedBSave!==null) { preTapPocket('bsave', savedBSave, 'blue'); }
+    if (isRD && savedRSave!==null) { preTapPocket('rsave', savedRSave, 'red'); }
+
+    // Share pockets + extra pockets for RD
+    buildShareRows(isRD);
 
     // Header names
     var dh1=document.getElementById('dh1'), dh2=document.getElementById('dh2');
@@ -980,6 +1010,19 @@ function buildDiceBoard() {
 
     renderDiceSheet();
     updateDiceTotals();
+}
+
+function preTapPocket(key, val, color) {
+    dv[key] = val;
+    var valEl = document.getElementById('dval-'+key);
+    if (valEl) { valEl.textContent = val; valEl.classList.remove('empty'); }
+    var allBtns = document.querySelectorAll('[data-key="'+key+'"]');
+    allBtns.forEach(function(b){
+        if (parseInt(b.dataset.val)===val) { b.classList.add('selected'); b.classList.remove('faded'); }
+        else { b.classList.add('faded'); b.classList.remove('selected'); }
+    });
+    var pocket = valEl && valEl.closest ? valEl.closest('.dice-pocket') : null;
+    if (pocket) pocket.classList.add('tapped');
 }
 
 function makeSharePlayerRow(containerId, key, color, name) {
@@ -998,24 +1041,92 @@ function makeSharePlayerRow(containerId, key, color, name) {
     row.appendChild(lbl); row.appendChild(nums); row.appendChild(val);
 }
 
-function buildShareRows() {
-    makeSharePlayerRow('share-top-row', 'shareB', 'blue', db.p1);
-    makeSharePlayerRow('share-bot-row', 'shareR', 'red',  db.p2);
-    var res = document.getElementById('share-result');
-    if (res) res.textContent = '';
+function buildShareRows(isRD) {
+    var sp = document.getElementById('share-pocket');
+    if (!sp) return;
+    if (isRD) {
+        // RD mode: replace share pocket with split layout
+        sp.innerHTML = '';
+        sp.style.background = 'transparent';
+        sp.style.border = 'none';
+        sp.style.padding = '0';
+        sp.style.gap = '4px';
+        sp.style.flexDirection = 'column';
+
+        // Gold RD label banner
+        var rdBanner = document.createElement('div');
+        rdBanner.style.cssText = 'text-align:center;font-size:0.65em;font-weight:bold;letter-spacing:0.14em;color:#c8a84b;padding:3px 0;text-transform:uppercase;border:1px solid rgba(200,168,75,0.3);border-radius:4px;background:rgba(200,168,75,0.08);';
+        rdBanner.textContent = '\u2605 Rolldown Round \u2605';
+        sp.appendChild(rdBanner);
+
+        // Extra pockets row (blue left, red right)
+        var extraRow = document.createElement('div');
+        extraRow.style.cssText = 'display:flex;gap:4px;flex:1;';
+        var bExtra = makePocket('blue-pocket rd-half','bextra','','blue',false);
+        var rExtra = makePocket('red-pocket rd-half','rextra','','red',false);
+        extraRow.appendChild(bExtra);
+        extraRow.appendChild(rExtra);
+        sp.appendChild(extraRow);
+
+        // Share pockets row (blue left, red right)
+        var shareRow = document.createElement('div');
+        shareRow.style.cssText = 'display:flex;gap:4px;flex:1;';
+        var bShare = makeSplitShare('shareB','blue',db.p1);
+        var rShare = makeSplitShare('shareR','red',db.p2);
+        shareRow.appendChild(bShare);
+        shareRow.appendChild(rShare);
+        sp.appendChild(shareRow);
+
+        // Result line
+        var res = document.createElement('div');
+        res.className = 'share-result-line'; res.id = 'share-result';
+        sp.appendChild(res);
+    } else {
+        // Regular mode: restore green share pocket
+        sp.style.background = '';
+        sp.style.border = '';
+        sp.style.padding = '';
+        sp.style.gap = '';
+        sp.style.flexDirection = '';
+        sp.innerHTML =
+            '<div class="spr" id="share-top-row"></div>'+
+            '<div class="share-die-space">&#9633;&nbsp;&nbsp;&#9633;</div>'+
+            '<div class="spr" id="share-bot-row"></div>'+
+            '<div class="share-result-line" id="share-result"></div>';
+        makeSharePlayerRow('share-top-row', 'shareB', 'blue', db.p1);
+        makeSharePlayerRow('share-bot-row', 'shareR', 'red',  db.p2);
+    }
 }
 
-function makePocket(cls, key, label, color) {
+function makeSplitShare(key, color, name) {
+    var div = document.createElement('div');
+    div.className = 'dice-pocket rd-half ' + (color==='blue'?'blue-pocket':'red-pocket');
+    var lbl = document.createElement('div');
+    lbl.className = 'pocket-lbl'; lbl.style.color = (color==='blue'?'#90c0ff':'#ff9090');
+    lbl.textContent = 'Share';
+    var val = document.createElement('div');
+    val.className = 'pocket-val '+(color==='blue'?'blue-val':'red-val')+' empty';
+    val.id = 'dval-'+key; val.textContent = '\u00b7';
+    var nums = document.createElement('div'); nums.className = 'num-row';
+    for (var n=1; n<=6; n++) nums.appendChild(makeNumBtn(n, key, color));
+    div.appendChild(lbl); div.appendChild(val); div.appendChild(nums);
+    return div;
+}
+
+function makePocket(cls, key, label, color, showLabel) {
     var div = document.createElement('div');
     div.className = 'dice-pocket ' + cls;
-    var lbl = document.createElement('div');
-    lbl.className = 'pocket-lbl'; lbl.textContent = label;
+    if (showLabel) {
+        var lbl = document.createElement('div');
+        lbl.className = 'pocket-lbl'; lbl.textContent = label;
+        div.appendChild(lbl);
+    }
     var val = document.createElement('div');
     val.className = 'pocket-val ' + (color==='blue'?'blue-val':'red-val') + ' empty';
     val.id = 'dval-'+key; val.textContent = '\u00b7';
     var row = document.createElement('div'); row.className = 'num-row';
     for (var n=1; n<=6; n++) row.appendChild(makeNumBtn(n, key, color));
-    div.appendChild(lbl); div.appendChild(val); div.appendChild(row);
+    div.appendChild(val); div.appendChild(row);
     return div;
 }
 
@@ -1090,17 +1201,20 @@ function resolveShare() {
     var b=dv.shareB, r=dv.shareR;
     var diff = Math.abs(b-r);
     if (b>r) {
-        result.textContent = db.p1+' takes Share \u2014 +'+diff;
+        result.textContent = db.p1+' takes Share +'+diff+' \u2014 bonus after round';
         result.style.color = '#90c0ff';
-        showFlash(db.p1+' takes Share! +'+diff+' pts', 800);
     } else if (r>b) {
-        result.textContent = db.p2+' takes Share \u2014 +'+diff;
+        result.textContent = db.p2+' takes Share +'+diff+' \u2014 bonus after round';
         result.style.color = '#ff9090';
-        showFlash(db.p2+' takes Share! +'+diff+' pts', 800);
     } else {
         result.textContent = 'Tied \u2014 Share scores 0';
         result.style.color = '#c8b88a';
     }
+    // Throb for ~3 seconds
+    result.classList.remove('throbbing');
+    void result.offsetWidth; // restart animation
+    result.classList.add('throbbing');
+    setTimeout(function(){ result.classList.remove('throbbing'); }, 3200);
 }
 
 function getDiceScores() {
@@ -1150,15 +1264,41 @@ function updateDiceTotals() {
 }
 
 function checkRoundComplete() {
-    if (dv.bk1===null||dv.bk2===null||dv.bsave===null||
-        dv.rk1===null||dv.rk2===null||dv.rsave===null||
-        dv.shareB===null||dv.shareR===null) return;
+    var rdIdx = getRDIdx();
+    var isRD = (rdIdx >= 0 && rounds.length - 1 === rdIdx);
+    if (isRD) {
+        if (dv.bk1===null||dv.bk2===null||dv.bsave===null||dv.bextra===null||
+            dv.rk1===null||dv.rk2===null||dv.rsave===null||dv.rextra===null||
+            dv.shareB===null||dv.shareR===null) return;
+    } else {
+        if (dv.bk1===null||dv.bk2===null||dv.bsave===null||
+            dv.rk1===null||dv.rk2===null||dv.rsave===null||
+            dv.shareB===null||dv.shareR===null) return;
+    }
     setTimeout(finalizeRound, 700);
 }
 
 function finalizeRound() {
     var s = getDiceScores();
     var rn = rounds.length;
+    // Update share result line with actual bonus
+    var shareRes = document.getElementById('share-result');
+    if (shareRes && shareRes.textContent.indexOf('bonus after round') >= 0) {
+        var bShareWon = dv.shareB!==null && dv.shareR!==null && dv.shareB > dv.shareR;
+        var rShareWon = dv.shareR!==null && dv.shareB!==null && dv.shareR > dv.shareB;
+        var sdiff = (dv.shareB!==null && dv.shareR!==null) ? Math.abs(dv.shareB-dv.shareR) : 0;
+        var sWinner = bShareWon ? db.p1 : rShareWon ? db.p2 : null;
+        var sCombo = bShareWon ? s.bCombo : rShareWon ? s.rCombo : 0;
+        var sColor = bShareWon ? '#90c0ff' : '#ff9090';
+        if (sWinner) {
+            if (sCombo > 0) {
+                shareRes.textContent = sWinner+' takes Share +'+sdiff+' + '+comboName(sCombo)+' (+'+sCombo+')';
+            } else {
+                shareRes.textContent = sWinner+' takes Share +'+sdiff+' (no combo bonus)';
+            }
+            shareRes.style.color = sColor;
+        }
+    }
     if (rounds[rounds.length-1].p1===null && rounds[rounds.length-1].p2===null) {
         rounds[rounds.length-1] = {p1:s.bScore, p2:s.rScore};
     } else {
@@ -1197,7 +1337,8 @@ function finalizeRound() {
         f.style.display = 'none';
         f.style.pointerEvents = 'none';
         f.removeEventListener('click', dismiss);
-        dv={bk1:null,bk2:null,bsave:null,rk1:null,rk2:null,rsave:null,shareB:null,shareR:null};
+        savedBSave = dv.bsave; savedRSave = dv.rsave;
+        dv={bk1:null,bk2:null,bsave:null,bextra:null,rk1:null,rk2:null,rsave:null,rextra:null,shareB:null,shareR:null};
         buildDiceBoard();
         // Announce Rolldown if this is now the RD round
         var rdIdx = getRDIdx();
@@ -1361,7 +1502,17 @@ function renderRecords(filter) {
 
 document.getElementById('rec-search').addEventListener('input',function(){renderRecords(this.value);});
 
-// == Boot ===========================================================
+// == Boot ==========================================================
+// Debug: window.goRD() jumps straight to Rolldown for testing
+window.goRD = function() {
+    rounds = [{p1:18, p2:16},{p1:21,p2:14},{p1:19,p2:17},{p1:20,p2:18},{p1:16,p2:21},{p1:null,p2:null}];
+    savedBSave = 4; savedRSave = 3;
+    clearCur(); saveCur();
+    if (diceMode) { buildDiceBoard(); }
+    renderSheet();
+    updateTotals();
+    console.log('Jumped to Rolldown. Blue=94 Red=86. Next round is RD.');
+};
 loadDB();
 document.getElementById('p1name').value = db.p1||'Blue Player';
 document.getElementById('p2name').value = db.p2||'Red Player';
