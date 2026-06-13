@@ -32,18 +32,12 @@ header p  { font-size: 0.68em; color: #c8b88a; letter-spacing: 0.08em; }
 #tabs button.on { color: #c8a84b; border-bottom-color: #c8a84b; }
 
 .panel { display: none; flex-direction: column; flex: 1; overflow-y: auto; }
-.panel.on { display: flex; }
+.panel.on { display: flex; position: relative; }
 
 /* ════════════════════════════════
    SCORE SHEET — Manual mode
    ════════════════════════════════ */
-#nameRow {
-    display: grid; grid-template-columns: 1fr 30px 1fr;
-    align-items: center; gap: 6px;
-    padding: 8px 10px;
-    background: rgba(0,0,0,0.15);
-    border-bottom: 1px solid rgba(200,168,75,0.2);
-}
+
 .name-col { display: flex; flex-direction: column; align-items: center; width: 100%; }
 .name-input {
     width: 100%; background: transparent; border: none;
@@ -63,12 +57,14 @@ header p  { font-size: 0.68em; color: #c8b88a; letter-spacing: 0.08em; }
 #n2 .name-input, #n2 .name-select { color: #ff9090; }
 .vs { color: rgba(200,168,75,0.4); font-size: 0.8em; text-align: center; }
 
-/* Mode toggle */
+/* Mode bar — buttons + name selectors */
 #mode-bar {
-    display: flex; justify-content: center; align-items: center;
-    gap: 10px; padding: 5px 10px;
     background: rgba(0,0,0,0.1);
     border-bottom: 1px solid rgba(200,168,75,0.15);
+}
+#mode-btns {
+    display: flex; justify-content: center; align-items: center;
+    gap: 10px; padding: 5px 10px 4px;
 }
 #btn-mode {
     background: rgba(200,168,75,0.12); border: 1px solid rgba(200,168,75,0.3);
@@ -80,6 +76,12 @@ header p  { font-size: 0.68em; color: #c8b88a; letter-spacing: 0.08em; }
     color: #90d870; font-family: inherit; font-size: 0.75em;
     letter-spacing: 0.06em; padding: 4px 12px; border-radius: 3px; cursor: pointer;
 }
+#name-bar {
+    display: grid; grid-template-columns: 1fr 30px 1fr;
+    align-items: center; gap: 6px;
+    padding: 5px 10px 7px;
+    border-top: 1px solid rgba(200,168,75,0.1);
+}
 
 /* Manual score table */
 table { width: 100%; border-collapse: collapse; }
@@ -89,8 +91,8 @@ thead th {
     border-bottom: 1px solid rgba(200,168,75,0.25);
     position: sticky; top: 0; z-index: 2; background: #243258; color: #c8a84b;
 }
-thead th:nth-child(2) { background: #1e3060; color: #90c0ff; }
-thead th:nth-child(3) { background: #501818; color: #ff9090; }
+thead th:nth-child(2) { background: #1e3060; color: #90c0ff; width:50%; }
+thead th:nth-child(3) { background: #501818; color: #ff9090; width:50%; }
 tbody tr { border-bottom: 1px solid rgba(255,255,255,0.05); }
 tbody tr.rd-row { background: #c8a84b; }
 tbody tr.rd-row td { border-bottom: none; }
@@ -137,214 +139,147 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 #btn-new  { background: rgba(200,168,75,0.1); color: #c8b88a; }
 
 /* ════════════════════════════════
-   DICE MODE — pockets surround score sheet
+   DICE MODE
    ════════════════════════════════ */
+#dice-wrap { display:none; flex-direction:column; user-select:none; -webkit-user-select:none; position:relative; }
+#dice-wrap.on { display:flex; }
+#dice-wrap { --ps: clamp(96px, 15vw, 136px); }
 
-/* Wrapper: side pockets + center sheet */
-#dice-wrap {
-    display: none;
-    flex: 1;
-    overflow: hidden;
-    user-select: none; -webkit-user-select: none;
+/* Three-section column layout */
+#dice-top-row {
+    display:flex; flex-direction:row; align-items:flex-start;
+    gap:4px; padding:4px 4px 2px;
 }
-#dice-wrap.on { display: flex; flex-direction: column; }
-
-/* Landscape: pockets left/right of sheet */
-#dice-wrap.tablet { flex-direction: column; }
-#dice-wrap.tablet .dice-main {
-    display: grid;
-    grid-template-columns: 120px 1fr 120px;
-    flex: 1;
-    overflow: hidden;
-    gap: 2px;
-    padding: 2px;
+#blue-keeps, #red-keeps {
+    display:flex; flex-direction:column; gap:4px;
+    flex-shrink:0; width:var(--ps);
 }
-#dice-wrap.phone .dice-main {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
+#dice-score-center {
+    flex:1; min-width:0;
+    height:calc(var(--ps) * 2 + 4px);
+    overflow-y:auto;
+    border:1px solid rgba(200,168,75,0.2);
+    border-radius:6px;
+    background:#1a2744;
 }
-
-/* Side pocket columns */
-.side-pockets {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
+#dice-mid-row {
+    display:flex; flex-direction:row; align-items:center;
+    gap:4px; padding:2px 4px;
+}
+#dice-bot-row {
+    display:flex; flex-direction:row;
+    border-top:2px solid rgba(200,168,75,0.4);
+    margin:0 4px 2px;
+    border-radius:0 0 6px 6px; overflow:hidden;
 }
 
-/* Center sheet stays as-is */
-.center-sheet-wrap {
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    flex: 1;
-}
-
-/* Individual pocket box */
+/* Individual pocket — always square */
 .dice-pocket {
-    flex: 1;
-    border: 2px solid rgba(200,168,75,0.25);
-    border-radius: 6px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 4px 6px;
-    position: relative;
-    min-height: 80px;
-    transition: border-color 0.2s;
+    width:var(--ps); height:var(--ps); flex-shrink:0;
+    border:2px solid rgba(200,168,75,0.2); border-radius:6px;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:space-between;
+    padding:7px 4px 5px; transition:border-color 0.2s;
+    background:transparent;
 }
-.dice-pocket.blue-pocket {
-    background: rgba(15,30,80,0.7);
-    border-color: rgba(80,120,220,0.3);
-}
-.dice-pocket.red-pocket {
-    background: rgba(60,12,12,0.7);
-    border-color: rgba(160,60,60,0.3);
-}
-.dice-pocket.share-pocket {
-    background: rgba(10,40,10,0.85);
-    border-color: rgba(80,160,60,0.4);
-    border-width: 2px;
-}
-.dice-pocket.tapped { border-color: rgba(200,168,75,0.7); }
+.dice-pocket.blue-pocket { border-color:rgba(80,130,240,0.4); background:rgba(20,40,100,0.35); }
+.dice-pocket.red-pocket  { border-color:rgba(200,80,80,0.55); background:rgba(80,20,20,0.35); }
+.dice-pocket.tapped.blue-pocket { border-color:#90c0ff; background:rgba(30,60,140,0.4); }
+.dice-pocket.tapped.red-pocket  { border-color:#ff9090; background:rgba(120,30,30,0.4); }
 
 .pocket-lbl {
-    font-size: 0.6em;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: rgba(200,168,75,0.55);
-    text-align: center;
-    line-height: 1.2;
+    font-size:0.58em; text-transform:uppercase; letter-spacing:0.1em;
+    color:rgba(200,168,75,0.5); text-align:center; line-height:1.1;
 }
 .pocket-val {
-    font-size: 2em;
-    font-weight: bold;
-    line-height: 1;
-    text-align: center;
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-size:1.8em; font-weight:bold; line-height:1;
+    flex:1; display:flex; align-items:center; justify-content:center;
 }
-.pocket-val.blue-val { color: #90c0ff; }
-.pocket-val.red-val  { color: #ff9090; }
-.pocket-val.empty    { color: rgba(255,255,255,0.1); font-size: 1.2em; }
+.pocket-val.blue-val { color:#90c0ff; }
+.pocket-val.red-val  { color:#ff9090; }
+.pocket-val.empty    { color:rgba(255,255,255,0.08); font-size:1em; }
 
-/* Number row along bottom of pocket */
-.num-row {
-    display: flex;
-    gap: 2px;
-    justify-content: center;
-    width: 100%;
-}
+.num-row { display:flex; gap:2px; width:100%; }
 .num-btn {
-    flex: 1;
-    min-width: 0;
-    height: 28px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 3px;
-    color: rgba(255,255,255,0.4);
-    font-family: inherit;
-    font-size: 0.82em;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.12s;
-    padding: 0;
+    flex:1; min-width:0; height:22px;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.1); border-radius:2px;
+    color:rgba(255,255,255,0.3); font-family:inherit;
+    font-size:0.74em; font-weight:bold; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:all 0.12s; padding:0;
 }
-.num-btn.blue-btn { color: rgba(144,192,255,0.5); }
-.num-btn.red-btn  { color: rgba(255,144,144,0.5); }
-.num-btn.selected {
-    background: rgba(200,168,75,0.3);
-    border-color: #c8a84b;
-    color: #fff;
-    font-size: 1em;
-}
-.num-btn.selected.blue-btn {
-    background: rgba(60,100,200,0.5);
-    border-color: #90c0ff;
-    color: #fff;
-}
-.num-btn.selected.red-btn {
-    background: rgba(160,50,50,0.5);
-    border-color: #ff9090;
-    color: #fff;
-}
-.num-btn.faded { opacity: 0.18; }
+.num-btn.blue-btn { color:rgba(144,192,255,0.45); }
+.num-btn.red-btn  { color:rgba(255,144,144,0.45); }
+.num-btn.selected.blue-btn { background:rgba(50,90,200,0.5); border-color:#90c0ff; color:#fff; }
+.num-btn.selected.red-btn  { background:rgba(150,40,40,0.5); border-color:#ff9090; color:#fff; }
+.num-btn.faded { opacity:0.15; }
 
-/* Share pocket — full width, two rows */
-#share-wrap {
-    padding: 3px;
+/* Score table inside center */
+#dice-score-center table { width:100%; border-collapse:collapse; table-layout:fixed; }
+#dice-score-center thead th {
+    background:#243258; color:#c8a84b; padding:5px 3px;
+    font-size:0.7em; letter-spacing:0.05em; font-weight:normal;
+    position:sticky; top:0; z-index:2;
+    border-bottom:1px solid rgba(200,168,75,0.25);
 }
-.share-pocket-wide {
-    background: rgba(10,40,10,0.85);
-    border: 2px solid rgba(80,160,60,0.4);
-    border-radius: 6px;
-    padding: 8px 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+#dice-score-center thead th:nth-child(2) { background:#1e3060; color:#90c0ff; width:50%; }
+#dice-score-center thead th:nth-child(3) { background:#501818; color:#ff9090; width:50%; }
+#dice-score-center .live-row td { background:rgba(200,168,75,0.06); }
+
+/* TOTAL row */
+.dtc { flex:1; text-align:center; padding:6px 3px;
+       display:flex; align-items:center; justify-content:center; }
+.dtc-lbl { flex:0 0 34px; background:rgba(0,0,0,0.3);
+           font-size:0.52em; text-transform:uppercase;
+           letter-spacing:0.07em; color:#c8b88a; }
+.dtc-b { background:rgba(20,50,110,0.9); flex:1.2; }
+.dtc-r { background:rgba(80,20,20,0.9); }
+.dtval { font-size:1.5em; font-weight:bold; color:#c8a84b; }
+
+/* Share pocket — flex:1, green, numbers top+bottom, space middle */
+#share-pocket {
+    flex:1; min-width:0;
+    background:rgba(8,35,8,0.92);
+    border:2px solid rgba(80,180,60,0.5); border-radius:6px;
+    display:flex; flex-direction:column;
+    padding:5px 8px; gap:2px;
+    min-height:var(--ps);
 }
-.share-player-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.spr { display:flex; align-items:center; gap:5px; }
+.spr-lbl {
+    font-size:0.6em; font-weight:bold; text-transform:uppercase;
+    letter-spacing:0.05em; width:56px; flex-shrink:0; text-align:right;
 }
-.share-player-lbl {
-    font-size: 0.68em;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    width: 70px;
-    flex-shrink: 0;
-    text-align: right;
-}
-.share-player-lbl.blue-lbl { color: #90c0ff; }
-.share-player-lbl.red-lbl  { color: #ff9090; }
-.share-nums { display: flex; gap: 4px; flex: 1; }
-.share-nums .num-btn { height: 34px; font-size: 1em; }
-.share-val {
-    width: 30px;
-    text-align: center;
-    font-size: 1.4em;
-    font-weight: bold;
-    flex-shrink: 0;
+.spr-lbl.bl { color:#90c0ff; }
+.spr-lbl.rl { color:#ff9090; }
+.spr-nums { display:flex; gap:2px; flex:1; }
+.spr-nums .num-btn { height:22px; font-size:0.74em; }
+.spr-val { width:22px; text-align:center; font-size:1.1em; font-weight:bold; }
+.spr-val.bl { color:#90c0ff; }
+.spr-val.rl { color:#ff9090; }
+.share-die-space {
+    flex:1; display:flex; align-items:center; justify-content:center;
+    gap:20%; color:rgba(255,255,255,0.07); font-size:2em; min-height:36px;
 }
 .share-result-line {
-    text-align: center;
-    font-size: 0.82em;
-    font-weight: bold;
-    min-height: 18px;
-    color: #c8a84b;
-    letter-spacing: 0.05em;
+    text-align:center; font-size:0.76em; font-weight:bold;
+    color:#c8a84b; letter-spacing:0.04em; min-height:16px;
 }
-
-/* Bonus bar below share */
 #dice-bonus-bar {
-    text-align: center;
-    padding: 5px 10px;
-    font-size: 0.78em;
-    color: #c8b88a;
-    background: rgba(0,0,0,0.15);
-    border-top: 1px solid rgba(200,168,75,0.15);
-    letter-spacing: 0.04em;
+    text-align:center; padding:3px 10px; font-size:0.74em;
+    color:#c8b88a; background:rgba(0,0,0,0.15);
+    border-top:1px solid rgba(200,168,75,0.1); letter-spacing:0.04em;
 }
-
-/* Flash overlay */
 #flash {
-    position: fixed; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(200,168,75,0.96);
-    color: #1a2744; font-weight: bold;
-    font-size: 1.1em; letter-spacing: 0.06em;
-    padding: 12px 24px; border-radius: 8px;
-    z-index: 500; display: none;
-    text-align: center; pointer-events: none;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.6);
-    white-space: pre-line;
+    position:absolute; top:30%; left:50%;
+    transform:translate(-50%,-50%);
+    background:rgba(200,168,75,0.96); color:#1a2744;
+    font-weight:bold; font-size:1.1em; letter-spacing:0.06em;
+    padding:16px 24px; border-radius:8px; z-index:500;
+    display:none; text-align:center; pointer-events:none;
+    box-shadow:0 4px 24px rgba(0,0,0,0.7); white-space:pre-line;
+    width:80%; max-width:320px;
 }
 
 /* ════════════════════════════════
@@ -448,7 +383,7 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 .top5-mini tr:first-child td { color: #c8a84b; }
 
 /* ── Bonus modal ── */
-#bonus-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
+#bonus-modal { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: flex-start; justify-content: center; padding: 20px; padding-top: 80px; }
 #bonus-modal.on { display: flex; }
 #bonus-box { background: #1a3020; border: 2px solid #c8a84b; border-radius: 8px; padding: 20px; max-width: 320px; width: 100%; }
 #bonus-box h3 { color: #c8a84b; margin-bottom: 12px; font-size: 1em; letter-spacing: 0.08em; text-align: center; }
@@ -458,7 +393,7 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 #btn-dismiss { display: block; margin: 14px auto 0; padding: 9px 24px; background: rgba(200,168,75,0.15); border: 1px solid rgba(200,168,75,0.4); color: #c8a84b; font-family: inherit; font-size: 0.85em; border-radius: 4px; cursor: pointer; }
 
 /* ── Confirm modal ── */
-#modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
+#modal { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: flex-start; justify-content: center; padding: 20px; padding-top: 80px; }
 #modal.on { display: flex; }
 #mbox { background: #243258; border: 2px solid #c8a84b; border-radius: 8px; padding: 24px 20px; max-width: 300px; width: 100%; text-align: center; }
 #mbox p { color: #f5f0e4; font-size: 1em; line-height: 1.5; margin-bottom: 20px; }
@@ -475,7 +410,7 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 <body>
 <div id="app">
   <header>
-    <h1>🎲 POCKETS</h1>
+    <h1><svg viewBox="-25 -25 50 50" width="36" height="36" aria-hidden="true" style="vertical-align:middle;opacity:0.92"><polygon style="fill:#ffffff;stroke:#cccccc;stroke-width:1" points="0,-20 17.3,-10 0,0 -17.3,-10"/><polygon style="fill:#aaaaaa;stroke:#cccccc;stroke-width:1" points="17.3,-10 17.3,10 0,20 0,0"/><polygon style="fill:#cccccc;stroke:#cccccc;stroke-width:1" points="-17.3,-10 -17.3,10 0,20 0,0"/><circle fill="#1a2744" cx="0" cy="-15" r="1.5"/><circle fill="#1a2744" cx="-8.65" cy="-10" r="1.5"/><circle fill="#1a2744" cx="0" cy="-10" r="1.5"/><circle fill="#1a2744" cx="8.65" cy="-10" r="1.5"/><circle fill="#1a2744" cx="0" cy="-5" r="1.5"/><circle fill="#1a2744" cx="5.2" cy="1" r="1.5"/><circle fill="#1a2744" cx="12.1" cy="-3" r="1.5"/><circle fill="#1a2744" cx="5.2" cy="7" r="1.5"/><circle fill="#1a2744" cx="12.1" cy="3" r="1.5"/><circle fill="#1a2744" cx="5.2" cy="13" r="1.5"/><circle fill="#1a2744" cx="12.1" cy="9" r="1.5"/><circle fill="#1a2744" cx="-12.97" cy="-2.5" r="1.5"/><circle fill="#1a2744" cx="-4.33" cy="2.5" r="1.5"/><circle fill="#1a2744" cx="-12.97" cy="7.5" r="1.5"/><circle fill="#1a2744" cx="-4.33" cy="12.5" r="1.5"/></svg> POCKETS <svg viewBox="-25 -25 50 50" width="36" height="36" aria-hidden="true" style="vertical-align:middle;opacity:0.92"><polygon style="fill:#ffffff;stroke:#cccccc;stroke-width:1" points="0,-20 17.3,-10 0,0 -17.3,-10"/><polygon style="fill:#aaaaaa;stroke:#cccccc;stroke-width:1" points="17.3,-10 17.3,10 0,20 0,0"/><polygon style="fill:#cccccc;stroke:#cccccc;stroke-width:1" points="-17.3,-10 -17.3,10 0,20 0,0"/><circle fill="#1a2744" cx="0" cy="-15" r="1.5"/><circle fill="#1a2744" cx="-8.65" cy="-10" r="1.5"/><circle fill="#1a2744" cx="0" cy="-10" r="1.5"/><circle fill="#1a2744" cx="8.65" cy="-10" r="1.5"/><circle fill="#1a2744" cx="0" cy="-5" r="1.5"/><circle fill="#1a2744" cx="5.2" cy="1" r="1.5"/><circle fill="#1a2744" cx="12.1" cy="-3" r="1.5"/><circle fill="#1a2744" cx="5.2" cy="7" r="1.5"/><circle fill="#1a2744" cx="12.1" cy="3" r="1.5"/><circle fill="#1a2744" cx="5.2" cy="13" r="1.5"/><circle fill="#1a2744" cx="12.1" cy="9" r="1.5"/><circle fill="#1a2744" cx="-12.97" cy="-2.5" r="1.5"/><circle fill="#1a2744" cx="-4.33" cy="2.5" r="1.5"/><circle fill="#1a2744" cx="-12.97" cy="7.5" r="1.5"/><circle fill="#1a2744" cx="-4.33" cy="12.5" r="1.5"/></svg></h1>
     <p>Score Sheet</p>
   </header>
 
@@ -489,21 +424,22 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
   <!-- ══ SCORE SHEET ══ -->
   <div id="p-sheet" class="panel on">
 
-    <div id="nameRow">
-      <div class="name-col" id="n1">
-        <select class="name-select" id="p1sel" style="display:none"></select>
-        <input class="name-input" id="p1name" type="text" value="Blue Player" autocomplete="off" autocorrect="off" spellcheck="false">
-      </div>
-      <div class="vs">VS</div>
-      <div class="name-col" id="n2">
-        <select class="name-select" id="p2sel" style="display:none"></select>
-        <input class="name-input" id="p2name" type="text" value="Red Player" autocomplete="off" autocorrect="off" spellcheck="false">
-      </div>
-    </div>
-
     <div id="mode-bar">
-      <button id="btn-bonus">Show Bonus Legend</button>
-      <button id="btn-mode">Switch to Dice Mode</button>
+      <div id="mode-btns">
+        <button id="btn-bonus">Show Bonus Legend</button>
+        <button id="btn-mode">Switch to Dice Mode</button>
+      </div>
+      <div id="name-bar">
+        <div class="name-col" id="n1">
+          <select class="name-select" id="p1sel" style="display:none"></select>
+          <input class="name-input" id="p1name" type="text" value="Blue Player" autocomplete="off" autocorrect="off" spellcheck="false">
+        </div>
+        <div class="vs">VS</div>
+        <div class="name-col" id="n2">
+          <select class="name-select" id="p2sel" style="display:none"></select>
+          <input class="name-input" id="p2name" type="text" value="Red Player" autocomplete="off" autocorrect="off" spellcheck="false">
+        </div>
+      </div>
     </div>
 
     <!-- Manual entry table -->
@@ -530,31 +466,40 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 
     <!-- Dice mode: score sheet stays center, pockets on sides -->
     <div id="dice-wrap">
-      <div class="dice-main" id="dice-main">
-        <!-- Left blue pockets (built by JS) -->
-        <div class="side-pockets" id="blue-pockets"></div>
-        <!-- Center: score sheet clone -->
-        <div class="center-sheet-wrap" id="dice-sheet">
+      <!-- Row 1: Keep squares flanking scrollable score sheet -->
+      <div id="dice-top-row">
+        <div id="blue-keeps"></div>
+        <div id="dice-score-center">
           <table>
             <thead><tr>
-              <th style="width:36px">#</th>
-              <th id="dh1" style="background:#1e3060;color:#90c0ff">Blue</th>
-              <th id="dh2" style="background:#501818;color:#ff9090">Red</th>
+              <th style="width:30px">#</th>
+              <th id="dh1">Blue</th>
+              <th id="dh2">Red</th>
             </tr></thead>
             <tbody id="dtbody"></tbody>
-            <tfoot><tr>
-              <td style="font-size:0.65em;color:#c8b88a;background:rgba(0,0,0,0.2);padding:6px 2px">TOT</td>
-              <td style="background:rgba(25,50,105,0.9);padding:6px 2px"><span class="tval" style="font-size:1.8em" id="dt1">0</span></td>
-              <td style="background:rgba(80,22,22,0.9);padding:6px 2px"><span class="tval" style="font-size:1.8em" id="dt2">0</span></td>
-            </tr></tfoot>
           </table>
         </div>
-        <!-- Right red pockets (built by JS) -->
-        <div class="side-pockets" id="red-pockets"></div>
+        <div id="red-keeps"></div>
       </div>
-      <!-- Share pocket spans full width below -->
-      <div id="share-wrap"></div>
-      <div id="dice-bonus-bar">Combo: —</div>
+      <!-- Row 2: Save squares flanking green Share pocket -->
+      <div id="dice-mid-row">
+        <div id="blue-save-wrap"></div>
+        <div id="share-pocket">
+          <div class="spr" id="share-top-row"></div>
+          <div class="share-die-space">&#9633;&nbsp;&nbsp;&#9633;</div>
+          <div class="spr" id="share-bot-row"></div>
+          <div class="share-result-line" id="share-result"></div>
+        </div>
+        <div id="red-save-wrap"></div>
+      </div>
+      <!-- Row 3: Totals -->
+      <div id="dice-bot-row">
+        <div class="dtc dtc-lbl">TOTAL</div>
+        <div class="dtc dtc-b"><span class="dtval" id="dt1">0</span></div>
+        <div class="dtc dtc-r"><span class="dtval" id="dt2">0</span></div>
+      </div>
+      <div id="dice-bonus-bar">Combo: &#8212;</div>
+      <div id="flash"></div>
     </div>
 
     <div id="btns">
@@ -617,11 +562,10 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
   </div>
 </div>
 
-<div id="flash"></div>
 <div id="toast"></div>
 
 <script>
-// ══ Storage ════════════════════════════════════════════════════════
+// == Storage ========================================================
 var KEY  = 'pockets-v1';
 var CKEY = 'pockets-v1-cur';
 var db   = {p1:'Blue Player', p2:'Red Player', games:[], roster:[]};
@@ -639,7 +583,7 @@ function saveCur() { try { localStorage.setItem(CKEY, JSON.stringify(rounds)); }
 function loadCur() { try { var d=JSON.parse(localStorage.getItem(CKEY)); if(d&&d.length) return d; } catch(e){} return null; }
 function clearCur() { try { localStorage.removeItem(CKEY); } catch(e){} }
 
-// ══ Utilities ══════════════════════════════════════════════════════
+// == Utilities ======================================================
 function genId() { return 'p'+Date.now()+Math.random().toString(36).substr(2,4); }
 function getDisplayName(p) { return p.initials ? p.name+' '+p.initials : p.name; }
 
@@ -648,13 +592,16 @@ function toast(msg) {
     t.textContent=msg; t.classList.add('on');
     setTimeout(function(){ t.classList.remove('on'); }, 2200);
 }
+var flashTimer = null;
 function showFlash(msg, dur) {
     var f=document.getElementById('flash');
+    if (flashTimer) { clearTimeout(flashTimer); flashTimer=null; }
     f.textContent=msg; f.style.display='block';
-    setTimeout(function(){ f.style.display='none'; }, dur||1500);
+    f.style.pointerEvents='none'; f.style.cursor='default';
+    flashTimer = setTimeout(function(){ f.style.display='none'; flashTimer=null; }, dur||1500);
 }
 
-// ══ Confirm modal ══════════════════════════════════════════════════
+// == Confirm modal ==================================================
 function ask(msg, cb) {
     document.getElementById('m-msg').textContent=msg;
     pendingCb=cb;
@@ -668,7 +615,7 @@ document.getElementById('m-no').addEventListener('click', function(){
     document.getElementById('modal').classList.remove('on'); pendingCb=null;
 });
 
-// ══ Bonus modal ════════════════════════════════════════════════════
+// == Bonus modal ====================================================
 document.getElementById('btn-bonus').addEventListener('click', function(){
     document.getElementById('bonus-modal').classList.add('on');
 });
@@ -676,7 +623,7 @@ document.getElementById('btn-dismiss').addEventListener('click', function(){
     document.getElementById('bonus-modal').classList.remove('on');
 });
 
-// ══ Tabs ═══════════════════════════════════════════════════════════
+// == Tabs ===========================================================
 function showTab(panel, btn) {
     ['p-sheet','p-signup','p-hist','p-rec'].forEach(function(id){ document.getElementById(id).classList.remove('on'); });
     ['t-sheet','t-signup','t-hist','t-rec'].forEach(function(id){ document.getElementById(id).classList.remove('on'); });
@@ -691,7 +638,7 @@ document.getElementById('t-signup').addEventListener('click', function(){ showTa
 document.getElementById('t-hist')  .addEventListener('click', function(){ showTab('p-hist',  't-hist'); });
 document.getElementById('t-rec')   .addEventListener('click', function(){ showTab('p-rec',   't-rec'); });
 
-// ══ Roster / Sign Up ════════════════════════════════════════════════
+// == Roster / Sign Up ================================================
 function renderRoster() {
     var list = document.getElementById('roster-list');
     var cnt  = document.getElementById('roster-count');
@@ -744,7 +691,7 @@ document.getElementById('inp-init').addEventListener('keydown', function(e){
     if (e.key==='Enter') { e.preventDefault(); document.getElementById('btn-add').click(); }
 });
 
-// ══ Name selects / inputs ═══════════════════════════════════════════
+// == Name selects / inputs ===========================================
 function updateNameSelects() {
     var r = db.roster || [];
     var useDropdowns = r.length > 0;
@@ -755,7 +702,7 @@ function updateNameSelects() {
 
     if (useDropdowns) {
         // Build options
-        var opts = '<option value="">— Select Player —</option>';
+        var opts = '<option value="">\u2014 Select Player \u2014</option>';
         r.forEach(function(p){ opts += '<option value="'+p.id+'">'+getDisplayName(p)+'</option>'; });
         p1sel.innerHTML = opts;
         p2sel.innerHTML = opts;
@@ -802,7 +749,7 @@ document.getElementById('p2name').addEventListener('blur', function(){ if(!this.
 document.getElementById('p1sel').addEventListener('change', syncNames);
 document.getElementById('p2sel').addEventListener('change', syncNames);
 
-// ══ Rolldown detection ═════════════════════════════════════════════
+// == Rolldown detection =============================================
 function getRDIdx() {
     var r1=0, r2=0;
     for (var i=0; i<rounds.length; i++) {
@@ -814,7 +761,7 @@ function getRDIdx() {
     return -1;
 }
 
-// ══ Manual score sheet ═════════════════════════════════════════════
+// == Manual score sheet =============================================
 function renderSheet() {
     var tbody = document.getElementById('tbody');
     tbody.innerHTML = '';
@@ -895,7 +842,7 @@ function updateTotals() {
     } else { ann.style.display='none'; }
 }
 
-// ══ Combo calculation ══════════════════════════════════════════════
+// == Combo calculation ==============================================
 function calcCombo(dice) {
     var vals = dice.filter(function(d){ return d!==null&&d!==undefined; });
     if (vals.length < 2) return 0;
@@ -929,113 +876,133 @@ function comboName(pts) {
     return names[pts]||'';
 }
 
-// ══ Dice Mode ══════════════════════════════════════════════════════
+// == Dice Mode ======================================================
 var dv = { bk1:null, bk2:null, bsave:null, rk1:null, rk2:null, rsave:null, shareB:null, shareR:null };
 var isTablet = false;
 
 function detectLayout() {
     var w = window.innerWidth, h = window.innerHeight;
-    isTablet = (w >= 580) || (w > h && w >= 480);
+    isTablet = (w > h) && (w >= 480);
 }
 
-function switchMode() {
-    diceMode = !diceMode;
+function isLandscapeTablet() {
+    var w = window.innerWidth, h = window.innerHeight;
+    return (w > h) && (w >= 480);
+}
+
+function applyOrientationMode() {
     var btn = document.getElementById('btn-mode');
     var ms  = document.getElementById('manual-section');
     var dw  = document.getElementById('dice-wrap');
-    if (diceMode) {
-        btn.textContent = 'Switch to Manual Mode';
-        ms.style.display = 'none';
-        dw.classList.add('on');
-        detectLayout();
-        dw.className = 'on ' + (isTablet ? 'tablet' : 'phone');
-        buildDiceBoard();
-    } else {
-        btn.textContent = 'Switch to Dice Mode';
-        ms.style.display = '';
+    if (!isLandscapeTablet()) {
+        // Force manual mode in portrait / phone
+        diceMode = false;
+        btn.style.display  = 'none';
+        ms.style.display   = '';
         dw.classList.remove('on');
+    } else {
+        btn.style.display = '';
+        if (diceMode) {
+            ms.style.display = 'none';
+            dw.className = 'on tablet';
+            buildDiceBoard();
+        }
     }
 }
 
-document.getElementById('btn-mode').addEventListener('click', switchMode);
-window.addEventListener('resize', function(){
-    if (!diceMode) return;
-    var was = isTablet; detectLayout();
-    if (was !== isTablet) {
-        var dw = document.getElementById('dice-wrap');
-        dw.className = 'on ' + (isTablet ? 'tablet' : 'phone');
+function doSwitchMode() {
+    var btn = document.getElementById('btn-mode');
+    var ms  = document.getElementById('manual-section');
+    var dw  = document.getElementById('dice-wrap');
+    if (!diceMode) {
+        diceMode = true;
+        btn.textContent  = 'Switch to Manual Mode';
+        ms.style.display = 'none';
+        dw.className     = 'on tablet';
+        rounds = [{p1:null, p2:null}];
+        dv = {bk1:null,bk2:null,bsave:null,rk1:null,rk2:null,rsave:null,shareB:null,shareR:null};
+        clearCur();
         buildDiceBoard();
+    } else {
+        diceMode = false;
+        btn.textContent  = 'Switch to Dice Mode';
+        ms.style.display = '';
+        dw.classList.remove('on');
+        rounds = [{p1:null, p2:null}];
+        clearCur();
+        renderSheet();
     }
-});
+}
+
+function switchMode() {
+    if (!isLandscapeTablet()) return;
+    var hasAny = rounds.some(function(r){ return r.p1!==null||r.p2!==null; });
+    if (!hasAny) { doSwitchMode(); return; }
+    var toMode = diceMode ? 'Manual' : 'Dice';
+    ask('Switch to ' + toMode + ' Mode? The current game will be cleared.', doSwitchMode);
+}
+
+document.getElementById('btn-mode').addEventListener('click', switchMode);
+window.addEventListener('resize', applyOrientationMode);
 
 function buildDiceBoard() {
-    // Reset dice values
     dv = { bk1:null, bk2:null, bsave:null, rk1:null, rk2:null, rsave:null, shareB:null, shareR:null };
 
-    // Blue side pockets
-    var bEl = document.getElementById('blue-pockets');
-    bEl.innerHTML = '';
-    bEl.appendChild(makePocket('blue-pocket','bk1','Keep 1','blue'));
-    bEl.appendChild(makePocket('blue-pocket','bk2','Keep 2','blue'));
-    bEl.appendChild(makePocket('blue-pocket','bsave','Save','blue'));
+    // Blue keeps
+    var bk = document.getElementById('blue-keeps');
+    bk.innerHTML = '';
+    bk.appendChild(makePocket('blue-pocket','bk1','Keep 1','blue'));
+    bk.appendChild(makePocket('blue-pocket','bk2','Keep 2','blue'));
 
-    // Red side pockets
-    var rEl = document.getElementById('red-pockets');
-    rEl.innerHTML = '';
-    rEl.appendChild(makePocket('red-pocket','rk1','Keep 1','red'));
-    rEl.appendChild(makePocket('red-pocket','rk2','Keep 2','red'));
-    rEl.appendChild(makePocket('red-pocket','rsave','Save','red'));
+    // Red keeps
+    var rk = document.getElementById('red-keeps');
+    rk.innerHTML = '';
+    rk.appendChild(makePocket('red-pocket','rk1','Keep 1','red'));
+    rk.appendChild(makePocket('red-pocket','rk2','Keep 2','red'));
 
-    // Share pocket
-    buildSharePocket();
+    // Blue save
+    var bs = document.getElementById('blue-save-wrap');
+    bs.innerHTML = '';
+    bs.appendChild(makePocket('blue-pocket','bsave','Save','blue'));
 
-    // Sync dice score sheet header names
-    var dh1 = document.getElementById('dh1');
-    var dh2 = document.getElementById('dh2');
+    // Red save
+    var rs = document.getElementById('red-save-wrap');
+    rs.innerHTML = '';
+    rs.appendChild(makePocket('red-pocket','rsave','Save','red'));
+
+    // Share pocket rows
+    buildShareRows();
+
+    // Header names
+    var dh1=document.getElementById('dh1'), dh2=document.getElementById('dh2');
     if (dh1) dh1.textContent = db.p1;
     if (dh2) dh2.textContent = db.p2;
 
-    // Render dice score table from current rounds
     renderDiceSheet();
     updateDiceTotals();
 }
 
-function buildSharePocket() {
-    var wrap = document.getElementById('share-wrap');
-    wrap.innerHTML = '';
-    var sp = document.createElement('div');
-    sp.className = 'share-pocket-wide';
+function makeSharePlayerRow(containerId, key, color, name) {
+    var row = document.getElementById(containerId);
+    if (!row) return;
+    row.innerHTML = '';
+    var lbl = document.createElement('div');
+    lbl.className = 'spr-lbl ' + (color==='blue'?'bl':'rl');
+    lbl.textContent = name;
+    var nums = document.createElement('div');
+    nums.className = 'spr-nums';
+    for (var n=1; n<=6; n++) nums.appendChild(makeNumBtn(n, key, color));
+    var val = document.createElement('div');
+    val.className = 'spr-val ' + (color==='blue'?'bl':'rl');
+    val.id = 'dval-' + key; val.textContent = '\u2014';
+    row.appendChild(lbl); row.appendChild(nums); row.appendChild(val);
+}
 
-    // Blue row
-    var bRow = document.createElement('div');
-    bRow.className = 'share-player-row';
-    var bLbl = document.createElement('div');
-    bLbl.className = 'share-player-lbl blue-lbl';
-    bLbl.textContent = db.p1;
-    var bNums = document.createElement('div'); bNums.className = 'share-nums';
-    for (var n=1;n<=6;n++) bNums.appendChild(makeNumBtn(n,'shareB','blue'));
-    var bVal = document.createElement('div');
-    bVal.className='share-val blue-val'; bVal.id='dval-shareB'; bVal.textContent='—';
-    bRow.appendChild(bLbl); bRow.appendChild(bNums); bRow.appendChild(bVal);
-
-    // Red row
-    var rRow = document.createElement('div');
-    rRow.className = 'share-player-row';
-    var rLbl = document.createElement('div');
-    rLbl.className = 'share-player-lbl red-lbl';
-    rLbl.textContent = db.p2;
-    var rNums = document.createElement('div'); rNums.className = 'share-nums';
-    for (var n=1;n<=6;n++) rNums.appendChild(makeNumBtn(n,'shareR','red'));
-    var rVal = document.createElement('div');
-    rVal.className='share-val red-val'; rVal.id='dval-shareR'; rVal.textContent='—';
-    rRow.appendChild(rLbl); rRow.appendChild(rNums); rRow.appendChild(rVal);
-
-    // Result line
-    var res = document.createElement('div');
-    res.className = 'share-result-line'; res.id = 'share-result';
-
-    sp.appendChild(bRow); sp.appendChild(rRow); sp.appendChild(res);
-    wrap.appendChild(sp);
+function buildShareRows() {
+    makeSharePlayerRow('share-top-row', 'shareB', 'blue', db.p1);
+    makeSharePlayerRow('share-bot-row', 'shareR', 'red',  db.p2);
+    var res = document.getElementById('share-result');
+    if (res) res.textContent = '';
 }
 
 function makePocket(cls, key, label, color) {
@@ -1045,7 +1012,7 @@ function makePocket(cls, key, label, color) {
     lbl.className = 'pocket-lbl'; lbl.textContent = label;
     var val = document.createElement('div');
     val.className = 'pocket-val ' + (color==='blue'?'blue-val':'red-val') + ' empty';
-    val.id = 'dval-'+key; val.textContent = '·';
+    val.id = 'dval-'+key; val.textContent = '\u00b7';
     var row = document.createElement('div'); row.className = 'num-row';
     for (var n=1; n<=6; n++) row.appendChild(makeNumBtn(n, key, color));
     div.appendChild(lbl); div.appendChild(val); div.appendChild(row);
@@ -1067,15 +1034,26 @@ function renderDiceSheet() {
     tbody.innerHTML = '';
     var rdIdx = getRDIdx();
     rounds.forEach(function(r, i) {
-        if (r.p1===null && r.p2===null && i===rounds.length-1) return; // skip empty last row
+        if (r.p1===null && r.p2===null && i===rounds.length-1) return;
         var tr = document.createElement('tr');
         if (i===rdIdx) tr.className='rd-row';
         var tn=document.createElement('td'); tn.className='rn'+(i===rdIdx?' rd':''); tn.textContent=i===rdIdx?'RD':(i+1);
-        var t1=document.createElement('td'); t1.className='p1c'; t1.style.padding='4px'; t1.style.textAlign='center'; t1.style.color='#b0d0ff'; t1.textContent=r.p1!==null?r.p1:'';
-        var t2=document.createElement('td'); t2.className='p2c'; t2.style.padding='4px'; t2.style.textAlign='center'; t2.style.color='#ffb0b0'; t2.textContent=r.p2!==null?r.p2:'';
+        var t1=document.createElement('td'); t1.className='p1c'; t1.style.cssText='padding:5px 3px;text-align:center;color:#b0d0ff;font-size:1.05em;'; t1.textContent=r.p1!==null?r.p1:'';
+        var t2=document.createElement('td'); t2.className='p2c'; t2.style.cssText='padding:5px 3px;text-align:center;color:#ffb0b0;font-size:1.05em;'; t2.textContent=r.p2!==null?r.p2:'';
         tr.appendChild(tn); tr.appendChild(t1); tr.appendChild(t2);
         tbody.appendChild(tr);
     });
+    // Live current round row \u2014 always visible
+    var ltr = document.createElement('tr');
+    ltr.style.background = 'rgba(200,168,75,0.06)';
+    var ln=document.createElement('td'); ln.className='rn'; ln.textContent=rounds.length; ln.style.color='#c8a84b';
+    var lb=document.createElement('td'); lb.id='live-b'; lb.className='p1c'; lb.style.cssText='padding:5px 3px;text-align:center;color:#90c0ff;font-weight:bold;font-size:1.1em;'; lb.textContent='\u2014';
+    var lr=document.createElement('td'); lr.id='live-r'; lr.className='p2c'; lr.style.cssText='padding:5px 3px;text-align:center;color:#ff9090;font-weight:bold;font-size:1.1em;'; lr.textContent='\u2014';
+    ltr.appendChild(ln); ltr.appendChild(lb); ltr.appendChild(lr);
+    tbody.appendChild(ltr);
+    // Scroll to bottom
+    var wrap = document.getElementById('dice-sheet');
+    if (wrap) setTimeout(function(){ wrap.scrollTop = wrap.scrollHeight; }, 30);
     // Running totals
     var t1=0,t2=0;
     rounds.forEach(function(r){if(r.p1!==null)t1+=r.p1;if(r.p2!==null)t2+=r.p2;});
@@ -1108,38 +1086,131 @@ function tapDie(key, val, color, btn) {
 function resolveShare() {
     var result = document.getElementById('share-result');
     if (!result) return;
-    if (dv.shareB===null || dv.shareR===null) { result.innerHTML=''; return; }
+    if (dv.shareB===null || dv.shareR===null) { result.textContent=''; return; }
     var b=dv.shareB, r=dv.shareR;
+    var diff = Math.abs(b-r);
     if (b>r) {
-        result.innerHTML='<span style="color:#90c0ff">'+db.p1+' takes it! +'+b+'</span>';
-        showFlash(db.p1+' takes Share! +'+b, 1200);
+        result.textContent = db.p1+' takes Share \u2014 +'+diff;
+        result.style.color = '#90c0ff';
+        showFlash(db.p1+' takes Share! +'+diff+' pts', 800);
     } else if (r>b) {
-        result.innerHTML='<span style="color:#ff9090">'+db.p2+' takes it! +'+r+'</span>';
-        showFlash(db.p2+' takes Share! +'+r, 1200);
+        result.textContent = db.p2+' takes Share \u2014 +'+diff;
+        result.style.color = '#ff9090';
+        showFlash(db.p2+' takes Share! +'+diff+' pts', 800);
     } else {
-        result.innerHTML='<span style="color:#c8b88a">Tied — no score</span>';
+        result.textContent = 'Tied \u2014 Share scores 0';
+        result.style.color = '#c8b88a';
     }
 }
 
 function getDiceScores() {
-    // Blue: Keep1 + Keep2 + Share(if won) + Save(for combo only)
     var bScore = (dv.bk1||0) + (dv.bk2||0);
     var rScore = (dv.rk1||0) + (dv.rk2||0);
-    var bShareWon = dv.shareB!==null && dv.shareR!==null && dv.shareB>dv.shareR;
-    var rShareWon = dv.shareR!==null && dv.shareB!==null && dv.shareR>dv.shareB;
-    if (bShareWon) bScore += dv.shareB;
-    if (rShareWon) rScore += dv.shareR;
-    // Combo: all four dice
-    var bDice = [dv.bk1, dv.bk2, bShareWon?dv.shareB:null, dv.bsave].filter(function(d){return d!==null;});
-    var rDice = [dv.rk1, dv.rk2, rShareWon?dv.shareR:null, dv.rsave].filter(function(d){return d!==null;});
-    var bCombo = calcCombo(bDice);
-    var rCombo = calcCombo(rDice);
-    return {bScore:bScore+bCombo, rScore:rScore+rCombo, bCombo:bCombo, rCombo:rCombo};
+    var bShareWon = dv.shareB!==null && dv.shareR!==null && dv.shareB > dv.shareR;
+    var rShareWon = dv.shareR!==null && dv.shareB!==null && dv.shareR > dv.shareB;
+    var shareDiff = (dv.shareB!==null && dv.shareR!==null) ? Math.abs(dv.shareB - dv.shareR) : 0;
+    if (bShareWon) bScore += shareDiff;
+    if (rShareWon) rScore += shareDiff;
+    // Combo bonus ONLY if you win Share \u2014 uses all 4 of winner's dice
+    var bCombo = 0, rCombo = 0;
+    if (bShareWon) {
+        var bDice = [dv.bk1, dv.bk2, dv.shareB, dv.bsave].filter(function(d){return d!==null;});
+        bCombo = calcCombo(bDice);
+        bScore += bCombo;
+    }
+    if (rShareWon) {
+        var rDice = [dv.rk1, dv.rk2, dv.shareR, dv.rsave].filter(function(d){return d!==null;});
+        rCombo = calcCombo(rDice);
+        rScore += rCombo;
+    }
+    return {bScore:bScore, rScore:rScore, bCombo:bCombo, rCombo:rCombo};
 }
 
+function updateDiceTotals() {
+    var s = getDiceScores();
+    var t1=0, t2=0;
+    rounds.forEach(function(r){ if(r.p1!==null)t1+=r.p1; if(r.p2!==null)t2+=r.p2; });
+    var dt1=document.getElementById('dt1');
+    var dt2=document.getElementById('dt2');
+    if (dt1) dt1.textContent = t1 + s.bScore;
+    if (dt2) dt2.textContent = t2 + s.rScore;
+    // Update live current-round row
+    var lb=document.getElementById('live-b');
+    var lr=document.getElementById('live-r');
+    if (lb) lb.textContent = s.bScore > 0 ? s.bScore : '\u2014';
+    if (lr) lr.textContent = s.rScore > 0 ? s.rScore : '\u2014';
+    // Bonus bar
+    var bCn=comboName(s.bCombo), rCn=comboName(s.rCombo);
+    var bar='';
+    if (bCn) bar += db.p1+': '+bCn+' +'+s.bCombo;
+    if (bCn&&rCn) bar += '   \u2014   ';
+    if (rCn) bar += db.p2+': '+rCn+' +'+s.rCombo;
+    var bonusEl=document.getElementById('dice-bonus-bar');
+    if (bonusEl) bonusEl.textContent = bar || 'Combo: \u2014';
+}
 
+function checkRoundComplete() {
+    if (dv.bk1===null||dv.bk2===null||dv.bsave===null||
+        dv.rk1===null||dv.rk2===null||dv.rsave===null||
+        dv.shareB===null||dv.shareR===null) return;
+    setTimeout(finalizeRound, 700);
+}
 
-// ══ Save / New game ════════════════════════════════════════════════
+function finalizeRound() {
+    var s = getDiceScores();
+    var rn = rounds.length;
+    if (rounds[rounds.length-1].p1===null && rounds[rounds.length-1].p2===null) {
+        rounds[rounds.length-1] = {p1:s.bScore, p2:s.rScore};
+    } else {
+        rounds.push({p1:s.bScore, p2:s.rScore});
+    }
+    saveCur();
+    var rdIdx = getRDIdx();
+    if (rounds.length-1 !== rdIdx) rounds.push({p1:null, p2:null});
+    renderSheet();
+    renderDiceSheet();
+    // Cancel any pending Share flash, then show round result until tapped
+    if (flashTimer) { clearTimeout(flashTimer); flashTimer=null; }
+    var lead = '';
+    var t1=0,t2=0;
+    rounds.forEach(function(r){if(r.p1!==null)t1+=r.p1;if(r.p2!==null)t2+=r.p2;});
+    var mg = Math.abs(t1-t2);
+    if (t1>t2) lead = db.p1+' leads by '+mg;
+    else if (t2>t1) lead = db.p2+' leads by '+mg;
+    else lead = 'Tied at '+t1;
+    var f = document.getElementById('flash');
+    f.innerHTML =
+        '<div style="font-size:0.8em;letter-spacing:0.1em;margin-bottom:8px">ROUND '+rn+' COMPLETE</div>'+
+        '<div style="display:flex;gap:20px;justify-content:center;margin-bottom:10px">'+
+          '<div><div style="font-size:0.7em;color:rgba(26,39,68,0.7)">'+db.p1+'</div>'+
+              '<div style="font-size:2em;font-weight:bold">'+s.bScore+'</div></div>'+
+          '<div style="font-size:1.4em;align-self:center">&#8212;</div>'+
+          '<div><div style="font-size:0.7em;color:rgba(26,39,68,0.7)">'+db.p2+'</div>'+
+              '<div style="font-size:2em;font-weight:bold">'+s.rScore+'</div></div>'+
+        '</div>'+
+        '<div style="font-size:0.75em;margin-bottom:12px;color:rgba(26,39,68,0.8)">'+lead+'</div>'+
+        '<div style="font-size:0.8em;background:rgba(26,39,68,0.15);border-radius:4px;padding:7px 16px;display:inline-block">Tap to continue</div>';
+    f.style.display = 'block';
+    f.style.cursor = 'pointer';
+    f.style.pointerEvents = 'auto';
+    function dismiss() {
+        f.style.display = 'none';
+        f.style.pointerEvents = 'none';
+        f.removeEventListener('click', dismiss);
+        dv={bk1:null,bk2:null,bsave:null,rk1:null,rk2:null,rsave:null,shareB:null,shareR:null};
+        buildDiceBoard();
+        // Announce Rolldown if this is now the RD round
+        var rdIdx = getRDIdx();
+        if (rdIdx >= 0 && rounds.length - 1 === rdIdx) {
+            setTimeout(function(){
+                showFlash('\u2605 ROLLDOWN ROUND! \u2605\nUse all your dice \u2014 score big!', 2500);
+            }, 150);
+        }
+    }
+    f.addEventListener('click', dismiss);
+}
+
+// == Save / New game ================================================
 document.getElementById('btn-save').addEventListener('click', function(){
     var hasAny = rounds.some(function(r){ return r.p1!==null||r.p2!==null; });
     if (!hasAny) { toast('No scores to save yet.'); return; }
@@ -1158,7 +1229,7 @@ document.getElementById('btn-save').addEventListener('click', function(){
         db.games.unshift(g); saveDB(); clearCur();
         var wname=t1>t2?db.p1:t2>t1?db.p2:null, mg=Math.abs(t1-t2);
         document.getElementById('wn').textContent=wname?wname+' Wins!':"It's a Tie!";
-        document.getElementById('wm').textContent=wname?'By '+mg+' point'+(mg===1?'':'s')+' — saved!':'Saved!';
+        document.getElementById('wm').textContent=wname?'By '+mg+' point'+(mg===1?'':'s')+' \u2014 saved!':'Saved!';
         document.getElementById('winner-banner').style.display='block';
         setTimeout(function(){
             document.getElementById('winner-banner').style.display='none';
@@ -1179,7 +1250,7 @@ document.getElementById('btn-new').addEventListener('click', function(){
     });
 });
 
-// ══ History ════════════════════════════════════════════════════════
+// == History ========================================================
 function renderHistory() {
     var games=db.games||[];
     var w1=0,w2=0;
@@ -1200,7 +1271,7 @@ function renderHistory() {
         var div=document.createElement('div');
         div.className='game-card'+(g.winner==='p1'?' gw1':g.winner==='p2'?' gw2':'');
         div.innerHTML=
-            '<div class="gc-top"><span>'+ds+' · '+ts+'</span><span>Game #'+(games.length-i)+'</span></div>'+
+            '<div class="gc-top"><span>'+ds+' \u00b7 '+ts+'</span><span>Game #'+(games.length-i)+'</span></div>'+
             '<div class="gc-row">'+
               '<div class="gc-p1">'+g.p1+'<span class="gc-sc">'+g.t1+'</span></div>'+
               '<div class="gc-mid"><span class="gc-wl">'+wn+'</span>by '+mg+'</div>'+
@@ -1217,7 +1288,7 @@ document.getElementById('btn-clr').addEventListener('click', function(){
     });
 });
 
-// ══ Records ════════════════════════════════════════════════════════
+// == Records ========================================================
 function buildStats() {
     var ps={};
     (db.games||[]).forEach(function(g){
@@ -1270,8 +1341,8 @@ function renderRecords(filter) {
         card.innerHTML=
             '<div class="player-card-hdr">'+
               '<div class="pc-name">'+p.name+'</div>'+
-              '<div class="pc-meta">'+p.games+' game'+(p.games!==1?'s':'')+' · '+pct+'% wins</div>'+
-              '<div class="pc-arrow">▶</div>'+
+              '<div class="pc-meta">'+p.games+' game'+(p.games!==1?'s':'')+' \u00b7 '+pct+'% wins</div>'+
+              '<div class="pc-arrow">\u25b6</div>'+
             '</div>'+
             '<div class="player-card-body">'+
               '<div class="pc-stat-row">'+
@@ -1290,7 +1361,7 @@ function renderRecords(filter) {
 
 document.getElementById('rec-search').addEventListener('input',function(){renderRecords(this.value);});
 
-// ══ Boot ═══════════════════════════════════════════════════════════
+// == Boot ===========================================================
 loadDB();
 document.getElementById('p1name').value = db.p1||'Blue Player';
 document.getElementById('p2name').value = db.p2||'Red Player';
@@ -1299,6 +1370,7 @@ syncNames();
 var cur=loadCur();
 if(cur&&cur.length) rounds=cur;
 renderSheet();
+applyOrientationMode();
 </script>
 </body>
 </html>
