@@ -1252,14 +1252,14 @@ function checkRoundComplete() {
     var rdIdx = getRDIdx();
     var lastR2 = rounds[rounds.length-1];
     var isRD = (rdIdx >= 0 && rounds.length - 1 === rdIdx && lastR2.p1===null && lastR2.p2===null);
+    function unset(v){ return v == null; } // catches both null and undefined
     if (isRD) {
-        // 5 dice per player, no Share
-        if (dv.bk1===null||dv.bk2===null||dv.bdie3===null||dv.bdie4===null||dv.bsave===null||
-            dv.rk1===null||dv.rk2===null||dv.rdie3===null||dv.rdie4===null||dv.rsave===null) return;
+        if (unset(dv.bk1)||unset(dv.bk2)||unset(dv.bdie3)||unset(dv.bdie4)||unset(dv.bsave)||
+            unset(dv.rk1)||unset(dv.rk2)||unset(dv.rdie3)||unset(dv.rdie4)||unset(dv.rsave)) return;
     } else {
-        if (dv.bk1===null||dv.bk2===null||dv.bsave===null||
-            dv.rk1===null||dv.rk2===null||dv.rsave===null||
-            dv.shareB===null||dv.shareR===null) return;
+        if (unset(dv.bk1)||unset(dv.bk2)||unset(dv.bsave)||
+            unset(dv.rk1)||unset(dv.rk2)||unset(dv.rsave)||
+            unset(dv.shareB)||unset(dv.shareR)) return;
     }
     setTimeout(finalizeRound, 700);
 }
@@ -1382,7 +1382,7 @@ document.getElementById('btn-new').addEventListener('click', function(){
         document.getElementById('winner-banner').style.display='none';
         document.getElementById('announce').style.display='none';
         renderSheet();
-        if(diceMode){dv={bk1:null,bk2:null,bsave:null,rk1:null,rk2:null,rsave:null,shareB:null,shareR:null};buildDiceBoard();}
+        if(diceMode){dv={bk1:null,bk2:null,bdie3:null,bdie4:null,bsave:null,rk1:null,rk2:null,rdie3:null,rdie4:null,rsave:null,shareB:null,shareR:null};savedBSave=null;savedRSave=null;buildDiceBoard();}
     });
 });
 
