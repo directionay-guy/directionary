@@ -1329,9 +1329,45 @@ function finalizeRound() {
         var rdIdx = getRDIdx();
         var rdDone = rdIdx >= 0 && rounds[rdIdx] && rounds[rdIdx].p1!==null && rounds[rdIdx].p2!==null;
         if (rdDone) {
-            // Game over — show score sheet, prompt to save
-            renderSheet(); renderDiceSheet();
-            setTimeout(function(){ toast('Game complete! Tap Save Game to record it.'); }, 300);
+            var t1=0, t2=0;
+            rounds.forEach(function(r){ if(r.p1!==null)t1+=r.p1; if(r.p2!==null)t2+=r.p2; });
+            var rdP1 = rounds[rdIdx].p1, rdP2 = rounds[rdIdx].p2;
+            var winner=null, margin=0, tiebreak=false;
+            if (t1 > t2)       { winner=db.p1; margin=t1-t2; }
+            else if (t2 > t1)  { winner=db.p2; margin=t2-t1; }
+            else {
+                tiebreak=true;
+                if (rdP1 > rdP2)      { winner=db.p1; margin=rdP1-rdP2; }
+                else if (rdP2 > rdP1) { winner=db.p2; margin=rdP2-rdP1; }
+            }
+            var f = document.getElementById('flash');
+            if (winner) {
+                f.innerHTML =
+                    '<div style="font-size:0.65em;letter-spacing:0.14em;margin-bottom:10px;opacity:0.7">GAME OVER</div>'+
+                    '<div style="font-size:2.2em;font-weight:bold;line-height:1;margin-bottom:4px">'+winner+'</div>'+
+                    '<div style="font-size:1em;font-weight:bold;letter-spacing:0.1em;margin-bottom:10px">WINS!</div>'+
+                    '<div style="font-size:0.8em;opacity:0.75;margin-bottom:'+(tiebreak?'4':'10')+'px">'+t1+' \u2014 '+t2+'</div>'+
+                    (tiebreak?'<div style="font-size:0.65em;opacity:0.6;margin-bottom:10px">Tied on total \u2014 '+winner+' wins by Rolldown ('+rdP1+' vs '+rdP2+')</div>':'')+
+                    '<div style="font-size:0.78em;background:rgba(26,39,68,0.2);border-radius:4px;padding:8px 20px;display:inline-block;cursor:pointer">Tap to save game</div>';
+            } else {
+                f.innerHTML =
+                    '<div style="font-size:0.65em;letter-spacing:0.14em;margin-bottom:10px;opacity:0.7">GAME OVER</div>'+
+                    '<div style="font-size:1.8em;font-weight:bold;margin-bottom:8px">Perfect Tie!</div>'+
+                    '<div style="font-size:0.85em;opacity:0.75;margin-bottom:10px">'+t1+' \u2014 '+t2+' (Rolldown '+rdP1+' vs '+rdP2+')</div>'+
+                    '<div style="font-size:0.78em;background:rgba(26,39,68,0.2);border-radius:4px;padding:8px 20px;display:inline-block">Tap to save game</div>';
+            }
+            f.style.display = 'block';
+            f.style.cursor = 'pointer';
+            f.style.pointerEvents = 'auto';
+            f.style.fontSize = '1em';
+            function winDismiss() {
+                f.style.display = 'none';
+                f.style.pointerEvents = 'none';
+                f.removeEventListener('click', winDismiss);
+                renderSheet(); renderDiceSheet();
+                setTimeout(function(){ toast('Tap Save Game to record this one!'); }, 200);
+            }
+            f.addEventListener('click', winDismiss);
             return;
         }
         buildDiceBoard();
