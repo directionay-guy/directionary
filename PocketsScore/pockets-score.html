@@ -1264,25 +1264,75 @@ function checkRoundComplete() {
     setTimeout(finalizeRound, 700);
 }
 
+// ---- Flash card handlers (module-level, no closure traps) ----
+function getFlash() { return document.getElementById('flash'); }
+function hideFlashCard() {
+    var el = getFlash(); if (!el) return;
+    el.style.display = 'none';
+    el.style.pointerEvents = 'none';
+    el.style.cursor = 'default';
+    el.onclick = null;
+}
+function onRoundDismiss() {
+    hideFlashCard();
+    savedBSave = dv.bsave; savedRSave = dv.rsave;
+    dv = {bk1:null,bk2:null,bdie3:null,bdie4:null,bsave:null,rk1:null,rk2:null,rdie3:null,rdie4:null,rsave:null,shareB:null,shareR:null};
+    var rdIdx = getRDIdx();
+    var rdDone = rdIdx >= 0 && rounds[rdIdx] && rounds[rdIdx].p1!==null && rounds[rdIdx].p2!==null;
+    if (rdDone) { showWinnerCard(rdIdx); return; }
+    buildDiceBoard();
+    var lastR = rounds[rounds.length-1];
+    if (rdIdx >= 0 && rounds.length-1 === rdIdx && lastR.p1===null && lastR.p2===null) {
+        setTimeout(function(){
+            showFlash('\u2605 ROLLDOWN ROUND! \u2605 Use all your dice \u2014 score big!', 2500);
+        }, 150);
+    }
+}
+function onWinnerDismiss() {
+    hideFlashCard();
+    renderSheet(); renderDiceSheet();
+    setTimeout(function(){ toast('Tap Save Game to record this one!'); }, 200);
+}
+function showWinnerCard(rdIdx) {
+    var el = getFlash(); if (!el) return;
+    var t1=0, t2=0;
+    rounds.forEach(function(r){ if(r.p1!==null)t1+=r.p1; if(r.p2!==null)t2+=r.p2; });
+    var rdP1 = rounds[rdIdx].p1, rdP2 = rounds[rdIdx].p2;
+    var winner=null, tiebreak=false;
+    if (t1>t2) { winner=db.p1; }
+    else if (t2>t1) { winner=db.p2; }
+    else { tiebreak=true; if(rdP1>rdP2) winner=db.p1; else if(rdP2>rdP1) winner=db.p2; }
+    el.innerHTML = winner
+        ? '<div style="font-size:0.65em;letter-spacing:0.14em;margin-bottom:10px;opacity:0.7">GAME OVER</div>'+
+          '<div style="font-size:2.2em;font-weight:bold;line-height:1;margin-bottom:4px">'+winner+'</div>'+
+          '<div style="font-size:1em;font-weight:bold;letter-spacing:0.1em;margin-bottom:10px">WINS!</div>'+
+          '<div style="font-size:0.8em;opacity:0.75;margin-bottom:'+(tiebreak?'4':'10')+'px">'+t1+' \u2014 '+t2+'</div>'+
+          (tiebreak?'<div style="font-size:0.65em;opacity:0.6;margin-bottom:10px">Tied \u2014 '+winner+' wins by Rolldown ('+rdP1+' vs '+rdP2+')</div>':'')+
+          '<div style="font-size:0.78em;background:rgba(26,39,68,0.2);border-radius:4px;padding:8px 20px;display:inline-block">Tap to save game</div>'
+        : '<div style="font-size:0.65em;letter-spacing:0.14em;margin-bottom:10px;opacity:0.7">GAME OVER</div>'+
+          '<div style="font-size:1.8em;font-weight:bold;margin-bottom:8px">Perfect Tie!</div>'+
+          '<div style="font-size:0.85em;opacity:0.75;margin-bottom:10px">'+t1+' \u2014 '+t2+' (Rolldown '+rdP1+' vs '+rdP2+')</div>'+
+          '<div style="font-size:0.78em;background:rgba(26,39,68,0.2);border-radius:4px;padding:8px 20px;display:inline-block">Tap to save game</div>';
+    el.style.display = 'block';
+    el.style.cursor = 'pointer';
+    el.style.pointerEvents = 'auto';
+    el.onclick = onWinnerDismiss;
+}
 function finalizeRound() {
     var s = getDiceScores();
     var rn = rounds.length;
-    // Update share result line with actual bonus
     var shareRes = document.getElementById('share-result');
     if (shareRes && shareRes.textContent.indexOf('bonus after round') >= 0) {
         var bShareWon = dv.shareB!==null && dv.shareR!==null && dv.shareB > dv.shareR;
         var rShareWon = dv.shareR!==null && dv.shareB!==null && dv.shareR > dv.shareB;
         var sdiff = (dv.shareB!==null && dv.shareR!==null) ? Math.abs(dv.shareB-dv.shareR) : 0;
         var sWinner = bShareWon ? db.p1 : rShareWon ? db.p2 : null;
-        var sCombo = bShareWon ? s.bCombo : rShareWon ? s.rCombo : 0;
-        var sColor = bShareWon ? '#90c0ff' : '#ff9090';
+        var sCombo  = bShareWon ? s.bCombo : rShareWon ? s.rCombo : 0;
         if (sWinner) {
-            if (sCombo > 0) {
-                shareRes.textContent = sWinner+' takes Share +'+sdiff+' + '+comboName(sCombo)+' (+'+sCombo+')';
-            } else {
-                shareRes.textContent = sWinner+' takes Share +'+sdiff+' (no combo bonus)';
-            }
-            shareRes.style.color = sColor;
+            shareRes.textContent = sCombo > 0
+                ? sWinner+' takes Share +'+sdiff+' + '+comboName(sCombo)+' (+'+sCombo+')'
+                : sWinner+' takes Share +'+sdiff+' (no combo bonus)';
+            shareRes.style.color = bShareWon ? '#90c0ff' : '#ff9090';
         }
     }
     if (rounds[rounds.length-1].p1===null && rounds[rounds.length-1].p2===null) {
@@ -1295,91 +1345,28 @@ function finalizeRound() {
     if (rounds.length-1 !== rdIdx) rounds.push({p1:null, p2:null});
     renderSheet();
     renderDiceSheet();
-    // Cancel any pending Share flash, then show round result until tapped
     if (flashTimer) { clearTimeout(flashTimer); flashTimer=null; }
-    var lead = '';
-    var t1=0,t2=0;
+    var t1=0, t2=0;
     rounds.forEach(function(r){if(r.p1!==null)t1+=r.p1;if(r.p2!==null)t2+=r.p2;});
     var mg = Math.abs(t1-t2);
-    if (t1>t2) lead = db.p1+' leads by '+mg;
-    else if (t2>t1) lead = db.p2+' leads by '+mg;
-    else lead = 'Tied at '+t1;
-    var f = document.getElementById('flash');
-    f.innerHTML =
+    var lead = t1>t2 ? db.p1+' leads by '+mg : t2>t1 ? db.p2+' leads by '+mg : 'Tied at '+t1;
+    var el = getFlash();
+    if (!el) return;
+    el.innerHTML =
         '<div style="font-size:0.8em;letter-spacing:0.1em;margin-bottom:8px">ROUND '+rn+' COMPLETE</div>'+
         '<div style="display:flex;gap:20px;justify-content:center;margin-bottom:10px">'+
           '<div><div style="font-size:0.7em;color:rgba(26,39,68,0.7)">'+db.p1+'</div>'+
               '<div style="font-size:2em;font-weight:bold">'+s.bScore+'</div></div>'+
-          '<div style="font-size:1.4em;align-self:center">&#8212;</div>'+
+          '<div style="font-size:1.4em;align-self:center">\u2014</div>'+
           '<div><div style="font-size:0.7em;color:rgba(26,39,68,0.7)">'+db.p2+'</div>'+
               '<div style="font-size:2em;font-weight:bold">'+s.rScore+'</div></div>'+
         '</div>'+
         '<div style="font-size:0.75em;margin-bottom:12px;color:rgba(26,39,68,0.8)">'+lead+'</div>'+
         '<div style="font-size:0.8em;background:rgba(26,39,68,0.15);border-radius:4px;padding:7px 16px;display:inline-block">Tap to continue</div>';
-    f.style.display = 'block';
-    f.style.cursor = 'pointer';
-    f.style.pointerEvents = 'auto';
-    function dismiss() {
-        f.style.display = 'none';
-        f.style.pointerEvents = 'none';
-        f.removeEventListener('click', dismiss);
-        savedBSave = dv.bsave; savedRSave = dv.rsave;
-        dv={bk1:null,bk2:null,bdie3:null,bdie4:null,bsave:null,rk1:null,rk2:null,rdie3:null,rdie4:null,rsave:null,shareB:null,shareR:null};
-        // Check if game is over (RD round just completed)
-        var rdIdx = getRDIdx();
-        var rdDone = rdIdx >= 0 && rounds[rdIdx] && rounds[rdIdx].p1!==null && rounds[rdIdx].p2!==null;
-        if (rdDone) {
-            var t1=0, t2=0;
-            rounds.forEach(function(r){ if(r.p1!==null)t1+=r.p1; if(r.p2!==null)t2+=r.p2; });
-            var rdP1 = rounds[rdIdx].p1, rdP2 = rounds[rdIdx].p2;
-            var winner=null, margin=0, tiebreak=false;
-            if (t1 > t2)       { winner=db.p1; margin=t1-t2; }
-            else if (t2 > t1)  { winner=db.p2; margin=t2-t1; }
-            else {
-                tiebreak=true;
-                if (rdP1 > rdP2)      { winner=db.p1; margin=rdP1-rdP2; }
-                else if (rdP2 > rdP1) { winner=db.p2; margin=rdP2-rdP1; }
-            }
-            var fWin = document.getElementById('flash');
-            if (winner) {
-                fWin.innerHTML =
-                    '<div style="font-size:0.65em;letter-spacing:0.14em;margin-bottom:10px;opacity:0.7">GAME OVER</div>'+
-                    '<div style="font-size:2.2em;font-weight:bold;line-height:1;margin-bottom:4px">'+winner+'</div>'+
-                    '<div style="font-size:1em;font-weight:bold;letter-spacing:0.1em;margin-bottom:10px">WINS!</div>'+
-                    '<div style="font-size:0.8em;opacity:0.75;margin-bottom:'+(tiebreak?'4':'10')+'px">'+t1+' \u2014 '+t2+'</div>'+
-                    (tiebreak?'<div style="font-size:0.65em;opacity:0.6;margin-bottom:10px">Tied on total \u2014 '+winner+' wins by Rolldown ('+rdP1+' vs '+rdP2+')</div>':'')+
-                    '<div style="font-size:0.78em;background:rgba(26,39,68,0.2);border-radius:4px;padding:8px 20px;display:inline-block;cursor:pointer">Tap to save game</div>';
-            } else {
-                fWin.innerHTML =
-                    '<div style="font-size:0.65em;letter-spacing:0.14em;margin-bottom:10px;opacity:0.7">GAME OVER</div>'+
-                    '<div style="font-size:1.8em;font-weight:bold;margin-bottom:8px">Perfect Tie!</div>'+
-                    '<div style="font-size:0.85em;opacity:0.75;margin-bottom:10px">'+t1+' \u2014 '+t2+' (Rolldown '+rdP1+' vs '+rdP2+')</div>'+
-                    '<div style="font-size:0.78em;background:rgba(26,39,68,0.2);border-radius:4px;padding:8px 20px;display:inline-block">Tap to save game</div>';
-            }
-            fWin.style.display = 'block';
-            fWin.style.cursor = 'pointer';
-            fWin.style.pointerEvents = 'auto';
-            fWin.style.fontSize = '1em';
-            function winDismiss() {
-                fWin.style.display = 'none';
-                fWin.style.pointerEvents = 'none';
-                fWin.removeEventListener('click', winDismiss);
-                renderSheet(); renderDiceSheet();
-                setTimeout(function(){ toast('Tap Save Game to record this one!'); }, 200);
-            }
-            f.addEventListener('click', winDismiss);
-            return;
-        }
-        buildDiceBoard();
-        // Announce Rolldown if next round is RD
-        var lastR = rounds[rounds.length-1];
-        if (rdIdx >= 0 && rounds.length - 1 === rdIdx && lastR.p1===null && lastR.p2===null) {
-            setTimeout(function(){
-                showFlash('\u2605 ROLLDOWN ROUND! \u2605\nUse all your dice \u2014 score big!', 2500);
-            }, 150);
-        }
-    }
-    f.addEventListener('click', dismiss);
+    el.style.display = 'block';
+    el.style.cursor = 'pointer';
+    el.style.pointerEvents = 'auto';
+    el.onclick = onRoundDismiss;
 }
 
 // == Save / New game ================================================
