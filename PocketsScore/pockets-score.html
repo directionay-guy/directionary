@@ -162,6 +162,9 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
     border-radius:6px;
     background:#1a2744;
 }
+#dice-wrap.rd-mode #dice-score-center {
+    height:calc(var(--ps) * 4 + 12px);
+}
 #dice-mid-row {
     display:flex; flex-direction:row; align-items:center;
     gap:4px; padding:2px 4px;
@@ -965,12 +968,20 @@ function buildDiceBoard() {
     bk.innerHTML = '';
     bk.appendChild(makePocket('blue-pocket','bk1','','blue',false));
     bk.appendChild(makePocket('blue-pocket','bk2','','blue',false));
+    if (isRD) {
+        bk.appendChild(makePocket('blue-pocket','bdie3','','blue',false));
+        bk.appendChild(makePocket('blue-pocket','bdie4','','blue',false));
+    }
 
     // Red keeps
     var rk = document.getElementById('red-keeps');
     rk.innerHTML = '';
     rk.appendChild(makePocket('red-pocket','rk1','','red',false));
     rk.appendChild(makePocket('red-pocket','rk2','','red',false));
+    if (isRD) {
+        rk.appendChild(makePocket('red-pocket','rdie3','','red',false));
+        rk.appendChild(makePocket('red-pocket','rdie4','','red',false));
+    }
 
     // Blue save \u2014 always labeled
     var bs = document.getElementById('blue-save-wrap');
@@ -1225,8 +1236,8 @@ function updateDiceTotals() {
     // Update live current-round row
     var lb=document.getElementById('live-b');
     var lr=document.getElementById('live-r');
-    if (lb) lb.textContent = s.bScore > 0 ? s.bScore : '\u2014';
-    if (lr) lr.textContent = s.rScore > 0 ? s.rScore : '\u2014';
+    if (lb) lb.textContent = s.bScore > 0 && (dv.bk1!==null||dv.bk2!==null) ? s.bScore : '\u2014';
+    if (lr) lr.textContent = s.rScore > 0 && (dv.rk1!==null||dv.rk2!==null) ? s.rScore : '\u2014';
     // Bonus bar
     var bCn=comboName(s.bCombo), rCn=comboName(s.rCombo);
     var bar='';
