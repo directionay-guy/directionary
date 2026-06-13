@@ -1290,7 +1290,15 @@ function onRoundDismiss() {
 }
 function onWinnerDismiss() {
     hideFlashCard();
-    renderSheet(); renderDiceSheet();
+    // Switch to manual mode so the score sheet and save flow are fully visible
+    diceMode = false;
+    var ms = document.getElementById('manual-section');
+    var dw = document.getElementById('dice-wrap');
+    var btn = document.getElementById('btn-mode');
+    if (ms) ms.style.display = '';
+    if (dw) dw.classList.remove('on');
+    if (btn) btn.textContent = 'Switch to Dice Mode';
+    renderSheet();
     setTimeout(function(){ toast('Tap Save Game to record this one!'); }, 200);
 }
 function showWinnerCard(rdIdx) {
