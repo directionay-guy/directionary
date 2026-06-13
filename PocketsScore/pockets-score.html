@@ -970,7 +970,8 @@ function buildDiceBoard() {
     dv = { bk1:null, bk2:null, bsave:null, rk1:null, rk2:null, rsave:null, shareB:null, shareR:null };
 
     var rdIdx = getRDIdx();
-    var isRD = (rdIdx >= 0 && rounds.length - 1 === rdIdx);
+    var lastR = rounds[rounds.length-1];
+    var isRD = (rdIdx >= 0 && rounds.length - 1 === rdIdx && lastR.p1===null && lastR.p2===null);
 
     // Blue keeps
     var bk = document.getElementById('blue-keeps');
@@ -1265,7 +1266,8 @@ function updateDiceTotals() {
 
 function checkRoundComplete() {
     var rdIdx = getRDIdx();
-    var isRD = (rdIdx >= 0 && rounds.length - 1 === rdIdx);
+    var lastR = rounds[rounds.length-1];
+    var isRD = (rdIdx >= 0 && rounds.length - 1 === rdIdx && lastR.p1===null && lastR.p2===null);
     if (isRD) {
         if (dv.bk1===null||dv.bk2===null||dv.bsave===null||dv.bextra===null||
             dv.rk1===null||dv.rk2===null||dv.rsave===null||dv.rextra===null||
@@ -1339,10 +1341,19 @@ function finalizeRound() {
         f.removeEventListener('click', dismiss);
         savedBSave = dv.bsave; savedRSave = dv.rsave;
         dv={bk1:null,bk2:null,bsave:null,bextra:null,rk1:null,rk2:null,rsave:null,rextra:null,shareB:null,shareR:null};
-        buildDiceBoard();
-        // Announce Rolldown if this is now the RD round
+        // Check if game is over (RD round just completed)
         var rdIdx = getRDIdx();
-        if (rdIdx >= 0 && rounds.length - 1 === rdIdx) {
+        var rdDone = rdIdx >= 0 && rounds[rdIdx] && rounds[rdIdx].p1!==null && rounds[rdIdx].p2!==null;
+        if (rdDone) {
+            // Game over — show score sheet, prompt to save
+            renderSheet(); renderDiceSheet();
+            setTimeout(function(){ toast('Game complete! Tap Save Game to record it.'); }, 300);
+            return;
+        }
+        buildDiceBoard();
+        // Announce Rolldown if next round is RD
+        var lastR = rounds[rounds.length-1];
+        if (rdIdx >= 0 && rounds.length - 1 === rdIdx && lastR.p1===null && lastR.p2===null) {
             setTimeout(function(){
                 showFlash('\u2605 ROLLDOWN ROUND! \u2605\nUse all your dice \u2014 score big!', 2500);
             }, 150);
