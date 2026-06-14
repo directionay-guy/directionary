@@ -195,12 +195,12 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
     color:rgba(200,168,75,0.5); text-align:center; line-height:1.1;
 }
 .pocket-val {
-    font-size:1.8em; font-weight:bold; line-height:1;
+    font-size:2.2em; font-weight:bold; line-height:1;
     flex:1; display:flex; align-items:center; justify-content:center;
 }
-.pocket-val.blue-val { color:#90c0ff; }
-.pocket-val.red-val  { color:#ff9090; }
-.pocket-val.empty    { color:rgba(255,255,255,0.08); font-size:1em; }
+.pocket-val.blue-val { color:#90c0ff; text-shadow:0 0 12px rgba(144,192,255,0.5); }
+.pocket-val.red-val  { color:#ff9090; text-shadow:0 0 12px rgba(255,144,144,0.5); }
+.pocket-val.empty    { color:rgba(255,255,255,0.06); font-size:1em; text-shadow:none; }
 
 .num-row { display:flex; gap:2px; width:100%; }
 .num-btn {
@@ -251,10 +251,7 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 /* Share pocket — flex:1, green, numbers top+bottom, space middle */
 #share-pocket {
     flex:1; min-width:0;
-    background:rgba(8,35,8,0.92);
-    border:2px solid rgba(80,180,60,0.5); border-radius:6px;
-    display:flex; flex-direction:column;
-    padding:5px 8px; gap:2px;
+    display:flex; flex-direction:row; gap:4px;
     min-height:var(--ps);
 }
 .spr { display:flex; align-items:center; gap:5px; }
@@ -401,7 +398,7 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 .top5-mini tr:first-child td { color: #c8a84b; }
 
 /* ── Bonus modal ── */
-#bonus-modal { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: flex-start; justify-content: center; padding: 20px; padding-top: 80px; }
+#bonus-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: flex-start; justify-content: center; padding: 20px; padding-top: 80px; }
 #bonus-modal.on { display: flex; }
 #bonus-box { background: #1a3020; border: 2px solid #c8a84b; border-radius: 8px; padding: 20px; max-width: 320px; width: 100%; }
 #bonus-box h3 { color: #c8a84b; margin-bottom: 12px; font-size: 1em; letter-spacing: 0.08em; text-align: center; }
@@ -411,7 +408,7 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 #btn-dismiss { display: block; margin: 14px auto 0; padding: 9px 24px; background: rgba(200,168,75,0.15); border: 1px solid rgba(200,168,75,0.4); color: #c8a84b; font-family: inherit; font-size: 0.85em; border-radius: 4px; cursor: pointer; }
 
 /* ── Confirm modal ── */
-#modal { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: flex-start; justify-content: center; padding: 20px; padding-top: 80px; }
+#modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: flex-start; justify-content: center; padding: 20px; padding-top: 80px; }
 #modal.on { display: flex; }
 #mbox { background: #243258; border: 2px solid #c8a84b; border-radius: 8px; padding: 24px 20px; max-width: 300px; width: 100%; text-align: center; }
 #mbox p { color: #f5f0e4; font-size: 1em; line-height: 1.5; margin-bottom: 20px; }
@@ -502,12 +499,7 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
       <!-- Row 2: Save squares flanking green Share pocket -->
       <div id="dice-mid-row">
         <div id="blue-save-wrap"></div>
-        <div id="share-pocket">
-          <div class="spr" id="share-top-row"></div>
-          <div class="share-die-space">&#9633;&nbsp;&nbsp;&#9633;</div>
-          <div class="spr" id="share-bot-row"></div>
-          <div class="share-result-line" id="share-result"></div>
-        </div>
+        <div id="share-pocket"></div>
         <div id="red-save-wrap"></div>
       </div>
       <!-- Row 3: Totals -->
@@ -621,6 +613,9 @@ function showFlash(msg, dur) {
 
 // == Confirm modal ==================================================
 function ask(msg, cb) {
+    // Hide flash card if visible so they don't stack
+    var fl = document.getElementById('flash');
+    if (fl && fl.style.display === 'block') { fl.style.display = 'none'; }
     document.getElementById('m-msg').textContent=msg;
     pendingCb=cb;
     document.getElementById('modal').classList.add('on');
@@ -947,6 +942,12 @@ function doSwitchMode() {
 }
 
 function switchMode() {
+    // Warn on small phone screens
+    if (!diceMode && window.innerWidth < 500) {
+        ask('Dice Mode is designed for tablets in landscape.\nOn a small phone it\'s hard to use, but you can still try.\n\nSwitch to Dice Mode anyway?',
+            doSwitchMode);
+        return;
+    }
     var hasAny = rounds.some(function(r){ return r.p1!==null||r.p2!==null; });
     if (!hasAny) { doSwitchMode(); return; }
     var toMode = diceMode ? 'Manual' : 'Dice';
@@ -966,38 +967,38 @@ function buildDiceBoard() {
     // Blue keeps
     var bk = document.getElementById('blue-keeps');
     bk.innerHTML = '';
-    bk.appendChild(makePocket('blue-pocket','bk1','','blue',false));
-    bk.appendChild(makePocket('blue-pocket','bk2','','blue',false));
+    bk.appendChild(makePocket('blue-pocket','bk1', isRD?'RD 1':'Keep 1','blue',true));
+    bk.appendChild(makePocket('blue-pocket','bk2', isRD?'RD 2':'Keep 2','blue',true));
     if (isRD) {
-        bk.appendChild(makePocket('blue-pocket','bdie3','','blue',false));
-        bk.appendChild(makePocket('blue-pocket','bdie4','','blue',false));
+        bk.appendChild(makePocket('blue-pocket','bdie3','RD 3','blue',true));
+        bk.appendChild(makePocket('blue-pocket','bdie4','RD 4','blue',true));
     }
 
     // Red keeps
     var rk = document.getElementById('red-keeps');
     rk.innerHTML = '';
-    rk.appendChild(makePocket('red-pocket','rk1','','red',false));
-    rk.appendChild(makePocket('red-pocket','rk2','','red',false));
+    rk.appendChild(makePocket('red-pocket','rk1', isRD?'RD 1':'Keep 1','red',true));
+    rk.appendChild(makePocket('red-pocket','rk2', isRD?'RD 2':'Keep 2','red',true));
     if (isRD) {
-        rk.appendChild(makePocket('red-pocket','rdie3','','red',false));
-        rk.appendChild(makePocket('red-pocket','rdie4','','red',false));
+        rk.appendChild(makePocket('red-pocket','rdie3','RD 3','red',true));
+        rk.appendChild(makePocket('red-pocket','rdie4','RD 4','red',true));
     }
 
     // Blue save \u2014 always labeled
     var bs = document.getElementById('blue-save-wrap');
     bs.innerHTML = '';
-    var bsp = makePocket('blue-pocket','bsave','Save','blue',true);
+    var bsp = makePocket('blue-pocket','bsave', isRD?'RD 5':'Save','blue',true);
     bs.appendChild(bsp);
 
     // Red save \u2014 always labeled
     var rs = document.getElementById('red-save-wrap');
     rs.innerHTML = '';
-    var rsp = makePocket('red-pocket','rsave','Save','red',true);
+    var rsp = makePocket('red-pocket','rsave', isRD?'RD 5':'Save','red',true);
     rs.appendChild(rsp);
 
     // Pre-fill save values in Rolldown
-    if (isRD && savedBSave!==null) { preTapPocket('bsave', savedBSave, 'blue'); }
-    if (isRD && savedRSave!==null) { preTapPocket('rsave', savedRSave, 'red'); }
+    if (isRD && savedBSave!==null) { preTapPocket('bsave', savedBSave, 'blue'); lockPocket('bsave'); }
+    if (isRD && savedRSave!==null) { preTapPocket('rsave', savedRSave, 'red');  lockPocket('rsave'); }
 
     // Build center area (Share for regular, RD banner for Rolldown)
     buildCenterBottom(isRD);
@@ -1009,6 +1010,7 @@ function buildDiceBoard() {
 
     renderDiceSheet();
     updateDiceTotals();
+    setShareResult('','');
 }
 
 function preTapPocket(key, val, color) {
@@ -1022,6 +1024,20 @@ function preTapPocket(key, val, color) {
     });
     var pocket = valEl && valEl.closest ? valEl.closest('.dice-pocket') : null;
     if (pocket) pocket.classList.add('tapped');
+}
+
+function lockPocket(key) {
+    var valEl = document.getElementById('dval-'+key);
+    if (!valEl) return;
+    var pocket = valEl.closest ? valEl.closest('.dice-pocket') : null;
+    if (!pocket) return;
+    var numRow = pocket.querySelector('.num-row');
+    if (numRow) {
+        numRow.style.pointerEvents = 'none';
+        numRow.style.opacity = '0.25';
+    }
+    pocket.style.opacity = '0.8';
+    pocket.title = 'Carried over from last round';
 }
 
 function makeSharePlayerRow(containerId, key, color, name) {
@@ -1060,24 +1076,27 @@ function buildCenterBottom(isRD) {
         sp.appendChild(res);
     } else {
         grid.classList.remove('rd-mode');
-        sp.style.cssText = '';
-        sp.innerHTML =
-            '<div class="spr" id="share-top-row"></div>'+
-            '<div class="share-die-space">&#9633;&nbsp;&nbsp;&#9633;</div>'+
-            '<div class="spr" id="share-bot-row"></div>'+
-            '<div class="share-result-line" id="share-result"></div>';
-        makeSharePlayerRow('share-top-row','shareB','blue',db.p1);
-        makeSharePlayerRow('share-bot-row','shareR','red', db.p2);
+        // Two separate colored Share pockets side by side
+        sp.style.cssText = 'background:transparent;border:none;padding:0;display:flex;flex-direction:row;gap:4px;';
+        sp.innerHTML = '';
+        sp.appendChild(makeSplitShare('shareB','blue','Share'));
+        sp.appendChild(makeSplitShare('shareR','red','Share'));
+        // Result line below (appended to share-pocket container)
+        var res = document.createElement('div');
+        res.className = 'share-result-line'; res.id = 'share-result';
+        res.style.cssText = 'text-align:center;padding:2px 4px;font-size:0.75em;';
+        sp.appendChild(res);
     }
 }
 
 
-function makeSplitShare(key, color, name) {
+function makeSplitShare(key, color, label) {
     var div = document.createElement('div');
-    div.className = 'dice-pocket rd-half ' + (color==='blue'?'blue-pocket':'red-pocket');
+    div.className = 'dice-pocket ' + (color==='blue'?'blue-pocket':'red-pocket');
+    div.style.flex = '1';
     var lbl = document.createElement('div');
-    lbl.className = 'pocket-lbl'; lbl.style.color = (color==='blue'?'#90c0ff':'#ff9090');
-    lbl.textContent = 'Share';
+    lbl.className = 'pocket-lbl';
+    lbl.textContent = label || 'Share';
     var val = document.createElement('div');
     val.className = 'pocket-val '+(color==='blue'?'blue-val':'red-val')+' empty';
     val.id = 'dval-'+key; val.textContent = '\u00b7';
@@ -1168,28 +1187,35 @@ function tapDie(key, val, color, btn) {
     checkRoundComplete();
 }
 
-function resolveShare() {
-    var result = document.getElementById('share-result');
-    if (!result) return;
-    if (dv.shareB===null || dv.shareR===null) { result.textContent=''; return; }
-    var b=dv.shareB, r=dv.shareR;
-    var diff = Math.abs(b-r);
-    if (b>r) {
-        result.textContent = db.p1+' takes Share +'+diff+' \u2014 bonus after round';
-        result.style.color = '#90c0ff';
-    } else if (r>b) {
-        result.textContent = db.p2+' takes Share +'+diff+' \u2014 bonus after round';
-        result.style.color = '#ff9090';
-    } else {
-        result.textContent = 'Tied \u2014 Share scores 0';
-        result.style.color = '#c8b88a';
-    }
-    // Throb for ~3 seconds
-    result.classList.remove('throbbing');
-    void result.offsetWidth; // restart animation
-    result.classList.add('throbbing');
-    setTimeout(function(){ result.classList.remove('throbbing'); }, 3200);
+function setShareResult(msg, color) {
+    var bar = document.getElementById('dice-bonus-bar');
+    if (!bar) return;
+    bar.dataset.shareResult = msg;
+    bar.dataset.shareColor  = color || '';
+    refreshBonusBar();
 }
+function refreshBonusBar() {
+    var bar = document.getElementById('dice-bonus-bar');
+    if (!bar) return;
+    var sm = bar.dataset.shareResult || '';
+    var sc = bar.dataset.shareColor  || '#c8b88a';
+    var cm = bar.dataset.comboResult || '';
+    if (sm && cm) {
+        bar.innerHTML = '<span style="color:'+sc+'">'+sm+'</span>  —  '+cm;
+    } else if (sm) {
+        bar.innerHTML = '<span style="color:'+sc+'">'+sm+'</span>';
+    } else {
+        bar.textContent = cm || 'Combo: —';
+    }
+}
+function resolveShare() {
+    if (dv.shareB===null || dv.shareR===null) { setShareResult('',''); return; }
+    var b=dv.shareB, r=dv.shareR, diff=Math.abs(b-r);
+    if (b>r)      setShareResult(db.p1+' takes Share +'+diff+' — bonus after round','#90c0ff');
+    else if (r>b) setShareResult(db.p2+' takes Share +'+diff+' — bonus after round','#ff9090');
+    else          setShareResult('Tied — Share scores 0','#c8b88a');
+}
+
 
 function getDiceScores() {
     var rdIdx = getRDIdx();
@@ -1245,7 +1271,7 @@ function updateDiceTotals() {
     if (bCn&&rCn) bar += '   \u2014   ';
     if (rCn) bar += db.p2+': '+rCn+' +'+s.rCombo;
     var bonusEl=document.getElementById('dice-bonus-bar');
-    if (bonusEl) bonusEl.textContent = bar || 'Combo: \u2014';
+    if (bonusEl) { bonusEl.dataset.comboResult = bar; refreshBonusBar(); }
 }
 
 function checkRoundComplete() {
