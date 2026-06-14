@@ -147,23 +147,24 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 
 /* Three-section column layout */
 #dice-top-row {
-    display:flex; flex-direction:row; align-items:flex-start;
+    display:flex; flex-direction:row; align-items:stretch;
     gap:4px; padding:4px 4px 2px;
 }
 #blue-keeps, #red-keeps {
     display:flex; flex-direction:column; gap:4px;
     flex-shrink:0; width:var(--ps);
+    justify-content:flex-start;
 }
 #dice-score-center {
-    flex:1; min-width:0;
-    height:calc(var(--ps) * 2 + 4px);
+    flex:1; min-width:0; min-height:0;
+    max-height:calc(var(--ps) * 2 + 4px);
     overflow-y:auto;
     border:1px solid rgba(200,168,75,0.2);
     border-radius:6px;
     background:#1a2744;
 }
 #dice-wrap.rd-mode #dice-score-center {
-    height:calc(var(--ps) * 4 + 12px);
+    max-height:calc(var(--ps) * 4 + 12px);
 }
 #dice-mid-row {
     display:flex; flex-direction:row; align-items:center;
