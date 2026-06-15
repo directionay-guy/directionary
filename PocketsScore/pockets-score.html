@@ -149,8 +149,11 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 #dice-main-area {
     display:flex; flex-direction:row; align-items:stretch;
     gap:4px; padding:4px 4px 2px;
-    height:calc(var(--ps) * 3 + 8px + 6px); /* 3 pockets + 2 gaps + padding */
+    height:calc(var(--ps) * 3 + 8px + 6px);
     flex-shrink:0;
+}
+#dice-wrap.rd-mode #dice-main-area {
+    height:calc(var(--ps) * 5 + 20px + 6px); /* 5 pockets + 4 gaps + padding */
 }
 #blue-keeps, #red-keeps {
     display:flex; flex-direction:column; gap:4px;
@@ -991,20 +994,32 @@ function buildDiceBoard() {
     // Blue keeps
     var bk = document.getElementById('blue-keeps');
     bk.innerHTML = '';
-    bk.appendChild(makePocket('blue-pocket','bk1', isRD?'RD 1':'Keep 1','blue',true));
-    bk.appendChild(makePocket('blue-pocket','bk2', isRD?'RD 2':'Keep 2','blue',true));
-
-
     // Red keeps
     var rk = document.getElementById('red-keeps');
     rk.innerHTML = '';
-    rk.appendChild(makePocket('red-pocket','rk1', isRD?'RD 1':'Keep 1','red',true));
-    rk.appendChild(makePocket('red-pocket','rk2', isRD?'RD 2':'Keep 2','red',true));
 
+    if (isRD) {
+        // RD mode: 5 full-size pockets per side
+        bk.appendChild(makePocket('blue-pocket','bk1','RD 1','blue',true));
+        bk.appendChild(makePocket('blue-pocket','bk2','RD 2','blue',true));
+        bk.appendChild(makePocket('blue-pocket','bdie3','RD 3','blue',true));
+        bk.appendChild(makePocket('blue-pocket','bdie4','RD 4','blue',true));
+        bk.appendChild(makePocket('blue-pocket','bsave','Save','blue',true));
 
-    // Save pocket goes at bottom of keeps column — no separate row, no gap possible
-    bk.appendChild(makePocket('blue-pocket','bsave','Save','blue',true));
-    rk.appendChild(makePocket('red-pocket','rsave','Save','red',true));
+        rk.appendChild(makePocket('red-pocket','rk1','RD 1','red',true));
+        rk.appendChild(makePocket('red-pocket','rk2','RD 2','red',true));
+        rk.appendChild(makePocket('red-pocket','rdie3','RD 3','red',true));
+        rk.appendChild(makePocket('red-pocket','rdie4','RD 4','red',true));
+        rk.appendChild(makePocket('red-pocket','rsave','Save','red',true));
+    } else {
+        bk.appendChild(makePocket('blue-pocket','bk1','Keep 1','blue',true));
+        bk.appendChild(makePocket('blue-pocket','bk2','Keep 2','blue',true));
+        bk.appendChild(makePocket('blue-pocket','bsave','Save','blue',true));
+
+        rk.appendChild(makePocket('red-pocket','rk1','Keep 1','red',true));
+        rk.appendChild(makePocket('red-pocket','rk2','Keep 2','red',true));
+        rk.appendChild(makePocket('red-pocket','rsave','Save','red',true));
+    }
 
     // Pre-fill save values in Rolldown
     if (isRD && savedBSave!==null) { preTapPocket('bsave', savedBSave, 'blue'); lockPocket('bsave'); }
@@ -1076,17 +1091,14 @@ function buildCenterBottom(isRD) {
     var grid = document.getElementById('dice-wrap');
     if (!sp || !grid) return;
     if (isRD) {
-        // RD mode: center bottom gets RD3+RD4 for each player instead of Share
+        // RD mode: center bottom is a gold banner (RD3/RD4 are now on the sides)
         grid.classList.add('rd-mode');
-        sp.style.cssText = 'background:transparent;border:none;padding:0;display:flex;flex-direction:row;justify-content:center;gap:4px;height:var(--ps);flex-shrink:0;';
-        sp.innerHTML = '';
-        sp.appendChild(makeSplitShare('bdie3','blue','RD 3'));
-        sp.appendChild(makeSplitShare('bdie4','blue','RD 4'));
-        var div = document.createElement('div');
-        div.style.cssText = 'width:3px;flex-shrink:0;background:rgba(200,168,75,0.15);border-radius:2px;';
-        sp.appendChild(div);
-        sp.appendChild(makeSplitShare('rdie3','red','RD 3'));
-        sp.appendChild(makeSplitShare('rdie4','red','RD 4'));
+        sp.style.cssText = 'flex:1;display:flex;align-items:center;justify-content:center;background:rgba(200,168,75,0.08);border:1px solid rgba(200,168,75,0.3);border-radius:6px;';
+        sp.innerHTML =
+            '<div style="text-align:center;color:#c8a84b;font-weight:bold;letter-spacing:0.1em;text-transform:uppercase;line-height:1.6;">' +
+            '\u2605 Rolldown \u2605<br>' +
+            '<span style="font-size:0.78em;opacity:0.8;font-weight:normal;letter-spacing:0.05em;">All 5 dice score &mdash; no Share</span>' +
+            '</div>';
     } else {
         grid.classList.remove('rd-mode');
         // Two separate colored Share pockets side by side
@@ -1149,27 +1161,55 @@ function renderDiceSheet() {
     if (!tbody) return;
     tbody.innerHTML = '';
     var rdIdx = getRDIdx();
-    rounds.forEach(function(r, i) {
-        if (r.p1===null && r.p2===null && i===rounds.length-1) return;
-        var tr = document.createElement('tr');
-        if (i===rdIdx) tr.className='rd-row';
-        var tn=document.createElement('td'); tn.className='rn'+(i===rdIdx?' rd':''); tn.textContent=i===rdIdx?'RD':(i+1);
-        var t1=document.createElement('td'); t1.className='p1c'; t1.style.cssText='padding:5px 3px;text-align:center;color:#b0d0ff;font-size:1.05em;'; t1.textContent=r.p1!==null?r.p1:'';
-        var t2=document.createElement('td'); t2.className='p2c'; t2.style.cssText='padding:5px 3px;text-align:center;color:#ffb0b0;font-size:1.05em;'; t2.textContent=r.p2!==null?r.p2:'';
-        tr.appendChild(tn); tr.appendChild(t1); tr.appendChild(t2);
-        tbody.appendChild(tr);
-    });
-    // Live current round row \u2014 always visible
+
+    if (rdIdx >= 0) {
+        // RD mode: show only last 2 complete regular rounds + RD row (compact, no scroll needed)
+        var regularDone = rounds.slice(0, rdIdx).filter(function(r){ return r.p1!==null; });
+        var last2 = regularDone.slice(-2);
+        var last2Start = rdIdx - last2.length;
+        last2.forEach(function(r, di) {
+            var realIdx = last2Start + di;
+            var tr = document.createElement('tr');
+            var tn=document.createElement('td'); tn.className='rn'; tn.textContent=(realIdx+1);
+            var t1=document.createElement('td'); t1.className='p1c'; t1.style.cssText='padding:5px 3px;text-align:center;color:#b0d0ff;font-size:1.05em;'; t1.textContent=r.p1!==null?r.p1:'';
+            var t2=document.createElement('td'); t2.className='p2c'; t2.style.cssText='padding:5px 3px;text-align:center;color:#ffb0b0;font-size:1.05em;'; t2.textContent=r.p2!==null?r.p2:'';
+            tr.appendChild(tn); tr.appendChild(t1); tr.appendChild(t2);
+            tbody.appendChild(tr);
+        });
+        // RD row if complete
+        var rdRound = rounds[rdIdx];
+        if (rdRound && rdRound.p1!==null) {
+            var tr = document.createElement('tr'); tr.className='rd-row';
+            var tn=document.createElement('td'); tn.className='rn rd'; tn.textContent='RD';
+            var t1=document.createElement('td'); t1.className='p1c'; t1.style.cssText='padding:5px 3px;text-align:center;color:#1a2744;font-size:1.05em;font-weight:bold;'; t1.textContent=rdRound.p1;
+            var t2=document.createElement('td'); t2.className='p2c'; t2.style.cssText='padding:5px 3px;text-align:center;color:#1a2744;font-size:1.05em;font-weight:bold;'; t2.textContent=rdRound.p2;
+            tr.appendChild(tn); tr.appendChild(t1); tr.appendChild(t2);
+            tbody.appendChild(tr);
+        }
+    } else {
+        // Regular mode: show all complete rounds, auto-scroll to bottom
+        rounds.forEach(function(r, i) {
+            if (r.p1===null && r.p2===null && i===rounds.length-1) return;
+            var tr = document.createElement('tr');
+            var tn=document.createElement('td'); tn.className='rn'; tn.textContent=(i+1);
+            var t1=document.createElement('td'); t1.className='p1c'; t1.style.cssText='padding:5px 3px;text-align:center;color:#b0d0ff;font-size:1.05em;'; t1.textContent=r.p1!==null?r.p1:'';
+            var t2=document.createElement('td'); t2.className='p2c'; t2.style.cssText='padding:5px 3px;text-align:center;color:#ffb0b0;font-size:1.05em;'; t2.textContent=r.p2!==null?r.p2:'';
+            tr.appendChild(tn); tr.appendChild(t1); tr.appendChild(t2);
+            tbody.appendChild(tr);
+        });
+        var wrap = document.getElementById('dice-score-center');
+        if (wrap) setTimeout(function(){ wrap.scrollTop = wrap.scrollHeight; }, 30);
+    }
+
+    // Live current round row
     var ltr = document.createElement('tr');
     ltr.style.background = 'rgba(200,168,75,0.06)';
     var ln=document.createElement('td'); ln.className='rn'; ln.textContent=rounds.length; ln.style.color='#c8a84b';
-    var lb=document.createElement('td'); lb.id='live-b'; lb.className='p1c'; lb.style.cssText='padding:5px 3px;text-align:center;color:#90c0ff;font-weight:bold;font-size:1.1em;'; lb.textContent='\u2014';
-    var lr=document.createElement('td'); lr.id='live-r'; lr.className='p2c'; lr.style.cssText='padding:5px 3px;text-align:center;color:#ff9090;font-weight:bold;font-size:1.1em;'; lr.textContent='\u2014';
+    var lb=document.createElement('td'); lb.id='live-b'; lb.className='p1c'; lb.style.cssText='padding:5px 3px;text-align:center;color:#90c0ff;font-weight:bold;font-size:1.1em;'; lb.textContent='—';
+    var lr=document.createElement('td'); lr.id='live-r'; lr.className='p2c'; lr.style.cssText='padding:5px 3px;text-align:center;color:#ff9090;font-weight:bold;font-size:1.1em;'; lr.textContent='—';
     ltr.appendChild(ln); ltr.appendChild(lb); ltr.appendChild(lr);
     tbody.appendChild(ltr);
-    // Scroll to bottom
-    var wrap = document.getElementById('dice-sheet');
-    if (wrap) setTimeout(function(){ wrap.scrollTop = wrap.scrollHeight; }, 30);
+
     // Running totals
     var t1=0,t2=0;
     rounds.forEach(function(r){if(r.p1!==null)t1+=r.p1;if(r.p2!==null)t2+=r.p2;});
