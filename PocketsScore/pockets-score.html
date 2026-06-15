@@ -157,10 +157,11 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 #dice-center-col {
     flex:1; min-width:0;
     display:flex; flex-direction:column; gap:4px;
+    overflow:hidden;
 }
 #dice-score-center {
     flex:1; min-width:0; min-height:0;
-    overflow-y:auto;
+    overflow-y:auto; overflow-x:hidden;
     border:1px solid rgba(200,168,75,0.2);
     border-radius:6px; background:#1a2744;
 }
@@ -438,7 +439,7 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
     <div id="mode-bar">
       <div id="mode-btns">
         <button id="btn-bonus">Show Bonus Legend</button>
-        <button id="btn-mode">Switch to Dice Mode</button>
+        <button id="btn-mode">Switch to Dice Board</button>
       </div>
       <div id="name-bar">
         <div class="name-col" id="n1">
@@ -744,7 +745,7 @@ function syncNames() {
     document.getElementById('wn1').textContent = db.p1;
     document.getElementById('wn2').textContent = db.p2;
     // Dice board headers update when buildDiceBoard() is called
-    // Rebuild dice board labels if in dice mode
+    // Rebuild dice board labels if in Dice Board
     if (diceMode) buildDiceBoard();
 }
 
@@ -882,30 +883,59 @@ function comboName(pts) {
     return names[pts]||'';
 }
 
-// == Dice Mode ======================================================
+// == Dice Board ======================================================
 var dv = { bk1:null, bk2:null, bdie3:null, bdie4:null, bsave:null, rk1:null, rk2:null, rdie3:null, rdie4:null, rsave:null, shareB:null, shareR:null };
 var savedBSave = null, savedRSave = null;
 var isTablet = false;
 
-function detectLayout() {
-    var w = window.innerWidth, h = window.innerHeight;
-    isTablet = (w > h) && (w >= 480);
+// Dice Board only works in landscape on a screen >= 600px wide
+function diceBoardAllowed() {
+    return window.innerWidth >= 600 && window.innerWidth > window.innerHeight;
 }
 
-function isLandscapeTablet() {
-    return true; // always allow dice mode; CSS handles layout
+function switchToDiceBoardBlocked() {
+    var w = window.innerWidth;
+    var landscape = window.innerWidth > window.innerHeight;
+    var msg, btn;
+    if (w < 500) {
+        msg = 'Dice Board isn\u2019t available on small screens.\n\nTally Mode works great for keeping score on your phone!';
+        btn = 'Use Tally Mode';
+    } else if (!landscape) {
+        msg = 'Dice Board needs landscape orientation.\n\nRotate your device sideways, then tap \u201cSwitch to Dice Board\u201d again.';
+        btn = 'Stay in Tally Mode';
+    } else {
+        msg = 'Dice Board requires a wider screen.\n\nTry on a tablet or desktop in landscape mode.';
+        btn = 'Stay in Tally Mode';
+    }
+    // Show as a simple modal — just inform, no choice
+    var m = document.getElementById('modal');
+    var msgEl = document.getElementById('m-msg');
+    if (msgEl) msgEl.textContent = msg;
+    // Reuse the modal but override buttons to single OK
+    var yes = document.getElementById('m-yes');
+    var no  = document.getElementById('m-no');
+    if (yes) { yes.textContent = btn; yes.style.width = '100%'; }
+    if (no)  { no.style.display = 'none'; }
+    pendingCb = function() {
+        if (yes) yes.style.width = '';
+        if (no)  no.style.display = '';
+    };
+    if (m) m.classList.add('on');
 }
 
 function applyOrientationMode() {
-    var btn = document.getElementById('btn-mode');
-    btn.style.opacity = '';
-    btn.title = '';
-    if (diceMode) {
+    // If currently in Dice Board and orientation/size no longer supports it, switch back
+    if (diceMode && !diceBoardAllowed()) {
+        diceMode = false;
         var ms = document.getElementById('manual-section');
         var dw = document.getElementById('dice-wrap');
-        ms.style.display = 'none';
-        dw.className = 'on tablet';
-        buildDiceBoard();
+        var btn = document.getElementById('btn-mode');
+        if (ms) ms.style.display = '';
+        if (dw) dw.classList.remove('on');
+        if (btn) btn.textContent = 'Switch to Dice Board';
+        rounds = [{p1:null, p2:null}];
+        clearCur(); renderSheet();
+        toast('Rotated to portrait \u2014 switched to Tally Mode.');
     }
 }
 
@@ -915,7 +945,7 @@ function doSwitchMode() {
     var dw  = document.getElementById('dice-wrap');
     if (!diceMode) {
         diceMode = true;
-        btn.textContent  = 'Switch to Manual Mode';
+        btn.textContent  = 'Switch to Tally Mode';
         ms.style.display = 'none';
         dw.className     = 'on tablet';
         rounds = [{p1:null, p2:null}];
@@ -925,7 +955,7 @@ function doSwitchMode() {
         buildDiceBoard();
     } else {
         diceMode = false;
-        btn.textContent  = 'Switch to Dice Mode';
+        btn.textContent  = 'Switch to Dice Board';
         ms.style.display = '';
         dw.classList.remove('on');
         rounds = [{p1:null, p2:null}];
@@ -935,20 +965,19 @@ function doSwitchMode() {
 }
 
 function switchMode() {
-    // Warn on small phone screens
-    if (!diceMode && window.innerWidth < 500) {
-        ask('Dice Mode is designed for tablets in landscape.\nOn a small phone it\'s hard to use, but you can still try.\n\nSwitch to Dice Mode anyway?',
-            doSwitchMode);
+    if (!diceMode && !diceBoardAllowed()) {
+        switchToDiceBoardBlocked();
         return;
     }
     var hasAny = rounds.some(function(r){ return r.p1!==null||r.p2!==null; });
     if (!hasAny) { doSwitchMode(); return; }
-    var toMode = diceMode ? 'Manual' : 'Dice';
-    ask('Switch to ' + toMode + ' Mode? The current game will be cleared.', doSwitchMode);
+    var toMode = diceMode ? 'Tally' : 'Dice Board';
+    ask('Switch to ' + toMode + '? The current game will be cleared.', doSwitchMode);
 }
 
 document.getElementById('btn-mode').addEventListener('click', switchMode);
 window.addEventListener('resize', applyOrientationMode);
+window.addEventListener('orientationchange', function(){ setTimeout(applyOrientationMode, 300); });
 
 function buildDiceBoard() {
     dv = { bk1:null, bk2:null, bdie3:null, bdie4:null, bsave:null, rk1:null, rk2:null, rdie3:null, rdie4:null, rsave:null, shareB:null, shareR:null };
@@ -1311,14 +1340,14 @@ function onRoundDismiss() {
 }
 function onWinnerDismiss() {
     hideFlashCard();
-    // Switch to manual mode so the score sheet and save flow are fully visible
+    // Switch to tally mode so the score sheet and save flow are fully visible
     diceMode = false;
     var ms = document.getElementById('manual-section');
     var dw = document.getElementById('dice-wrap');
     var btn = document.getElementById('btn-mode');
     if (ms) ms.style.display = '';
     if (dw) dw.classList.remove('on');
-    if (btn) btn.textContent = 'Switch to Dice Mode';
+    if (btn) btn.textContent = 'Switch to Dice Board';
     renderSheet();
     setTimeout(function(){ toast('Tap Save Game to record this one!'); }, 200);
 }
