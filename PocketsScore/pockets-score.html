@@ -152,9 +152,7 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
     height:calc(var(--ps) * 3 + 8px + 6px);
     flex-shrink:0;
 }
-#dice-wrap.rd-mode #dice-main-area {
-    height:calc(var(--ps) * 5 + 20px + 6px); /* 5 pockets + 4 gaps + padding */
-}
+
 #blue-keeps, #red-keeps {
     display:flex; flex-direction:column; gap:4px;
     flex-shrink:0; width:var(--ps);
@@ -255,6 +253,12 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
     flex-shrink:0;
     display:flex; flex-direction:row; justify-content:center; gap:4px;
     height:var(--ps);
+}
+/* In RD mode, share-pocket becomes a 2-row column of pocket pairs */
+#dice-wrap.rd-mode #share-pocket {
+    flex-direction:column;
+    height:calc(var(--ps) * 2 + 4px);
+    justify-content:flex-start;
 }
 .spr { display:flex; align-items:center; gap:5px; }
 .spr-lbl {
@@ -998,28 +1002,14 @@ function buildDiceBoard() {
     var rk = document.getElementById('red-keeps');
     rk.innerHTML = '';
 
-    if (isRD) {
-        // RD mode: 5 full-size pockets per side
-        bk.appendChild(makePocket('blue-pocket','bk1','RD 1','blue',true));
-        bk.appendChild(makePocket('blue-pocket','bk2','RD 2','blue',true));
-        bk.appendChild(makePocket('blue-pocket','bdie3','RD 3','blue',true));
-        bk.appendChild(makePocket('blue-pocket','bdie4','RD 4','blue',true));
-        bk.appendChild(makePocket('blue-pocket','bsave','Save','blue',true));
+    // Side columns: RD1/RD2/Save in RD mode, Keep1/Keep2/Save in regular
+    bk.appendChild(makePocket('blue-pocket','bk1', isRD?'RD 1':'Keep 1','blue',true));
+    bk.appendChild(makePocket('blue-pocket','bk2', isRD?'RD 2':'Keep 2','blue',true));
+    bk.appendChild(makePocket('blue-pocket','bsave','Save','blue',true));
 
-        rk.appendChild(makePocket('red-pocket','rk1','RD 1','red',true));
-        rk.appendChild(makePocket('red-pocket','rk2','RD 2','red',true));
-        rk.appendChild(makePocket('red-pocket','rdie3','RD 3','red',true));
-        rk.appendChild(makePocket('red-pocket','rdie4','RD 4','red',true));
-        rk.appendChild(makePocket('red-pocket','rsave','Save','red',true));
-    } else {
-        bk.appendChild(makePocket('blue-pocket','bk1','Keep 1','blue',true));
-        bk.appendChild(makePocket('blue-pocket','bk2','Keep 2','blue',true));
-        bk.appendChild(makePocket('blue-pocket','bsave','Save','blue',true));
-
-        rk.appendChild(makePocket('red-pocket','rk1','Keep 1','red',true));
-        rk.appendChild(makePocket('red-pocket','rk2','Keep 2','red',true));
-        rk.appendChild(makePocket('red-pocket','rsave','Save','red',true));
-    }
+    rk.appendChild(makePocket('red-pocket','rk1', isRD?'RD 1':'Keep 1','red',true));
+    rk.appendChild(makePocket('red-pocket','rk2', isRD?'RD 2':'Keep 2','red',true));
+    rk.appendChild(makePocket('red-pocket','rsave','Save','red',true));
 
     // Pre-fill save values in Rolldown
     if (isRD && savedBSave!==null) { preTapPocket('bsave', savedBSave, 'blue'); lockPocket('bsave'); }
@@ -1091,14 +1081,22 @@ function buildCenterBottom(isRD) {
     var grid = document.getElementById('dice-wrap');
     if (!sp || !grid) return;
     if (isRD) {
-        // RD mode: center bottom is a gold banner (RD3/RD4 are now on the sides)
+        // RD mode: center bottom = 2x2 grid [Blue RD3 | Red RD3] / [Blue RD4 | Red RD4]
         grid.classList.add('rd-mode');
-        sp.style.cssText = 'flex:1;display:flex;align-items:center;justify-content:center;background:rgba(200,168,75,0.08);border:1px solid rgba(200,168,75,0.3);border-radius:6px;';
-        sp.innerHTML =
-            '<div style="text-align:center;color:#c8a84b;font-weight:bold;letter-spacing:0.1em;text-transform:uppercase;line-height:1.6;">' +
-            '\u2605 Rolldown \u2605<br>' +
-            '<span style="font-size:0.78em;opacity:0.8;font-weight:normal;letter-spacing:0.05em;">All 5 dice score &mdash; no Share</span>' +
-            '</div>';
+        sp.style.cssText = 'background:transparent;border:none;padding:0;display:flex;flex-direction:column;gap:4px;flex-shrink:0;';
+        sp.innerHTML = '';
+        var rdRow1 = document.createElement('div');
+        rdRow1.style.cssText = 'display:flex;flex-direction:row;gap:4px;';
+        var brd3 = makeSplitShare('bdie3','blue','RD 3'); brd3.style.flex='1';
+        var rrd3 = makeSplitShare('rdie3','red','RD 3');  rrd3.style.flex='1';
+        rdRow1.appendChild(brd3); rdRow1.appendChild(rrd3);
+        var rdRow2 = document.createElement('div');
+        rdRow2.style.cssText = 'display:flex;flex-direction:row;gap:4px;';
+        var brd4 = makeSplitShare('bdie4','blue','RD 4'); brd4.style.flex='1';
+        var rrd4 = makeSplitShare('rdie4','red','RD 4');  rrd4.style.flex='1';
+        rdRow2.appendChild(brd4); rdRow2.appendChild(rrd4);
+        sp.appendChild(rdRow1);
+        sp.appendChild(rdRow2);
     } else {
         grid.classList.remove('rd-mode');
         // Two separate colored Share pockets side by side
