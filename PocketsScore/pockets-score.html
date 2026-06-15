@@ -149,6 +149,8 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 #dice-main-area {
     display:flex; flex-direction:row; align-items:stretch;
     gap:4px; padding:4px 4px 2px;
+    height:calc(var(--ps) * 3 + 8px + 6px); /* 3 pockets + 2 gaps + padding */
+    flex-shrink:0;
 }
 #blue-keeps, #red-keeps {
     display:flex; flex-direction:column; gap:4px;
@@ -991,24 +993,18 @@ function buildDiceBoard() {
     bk.innerHTML = '';
     bk.appendChild(makePocket('blue-pocket','bk1', isRD?'RD 1':'Keep 1','blue',true));
     bk.appendChild(makePocket('blue-pocket','bk2', isRD?'RD 2':'Keep 2','blue',true));
-    if (isRD) {
-        bk.appendChild(makePocket('blue-pocket','bdie3','RD 3','blue',true));
-        bk.appendChild(makePocket('blue-pocket','bdie4','RD 4','blue',true));
-    }
+
 
     // Red keeps
     var rk = document.getElementById('red-keeps');
     rk.innerHTML = '';
     rk.appendChild(makePocket('red-pocket','rk1', isRD?'RD 1':'Keep 1','red',true));
     rk.appendChild(makePocket('red-pocket','rk2', isRD?'RD 2':'Keep 2','red',true));
-    if (isRD) {
-        rk.appendChild(makePocket('red-pocket','rdie3','RD 3','red',true));
-        rk.appendChild(makePocket('red-pocket','rdie4','RD 4','red',true));
-    }
+
 
     // Save pocket goes at bottom of keeps column — no separate row, no gap possible
-    bk.appendChild(makePocket('blue-pocket','bsave', isRD?'RD 5':'Save','blue',true));
-    rk.appendChild(makePocket('red-pocket','rsave', isRD?'RD 5':'Save','red',true));
+    bk.appendChild(makePocket('blue-pocket','bsave','Save','blue',true));
+    rk.appendChild(makePocket('red-pocket','rsave','Save','red',true));
 
     // Pre-fill save values in Rolldown
     if (isRD && savedBSave!==null) { preTapPocket('bsave', savedBSave, 'blue'); lockPocket('bsave'); }
@@ -1080,19 +1076,17 @@ function buildCenterBottom(isRD) {
     var grid = document.getElementById('dice-wrap');
     if (!sp || !grid) return;
     if (isRD) {
-        // RD mode: no Share, just show gold banner in center-bot area
-        sp.innerHTML = '';
-        sp.style.cssText = 'background:transparent;border:none;padding:0;';
-        // Add rd-mode class to grid for different row layout
+        // RD mode: center bottom gets RD3+RD4 for each player instead of Share
         grid.classList.add('rd-mode');
-        // Show gold RD banner above total
-        var banner = document.createElement('div');
-        banner.style.cssText = 'text-align:center;padding:6px;font-size:0.72em;font-weight:bold;letter-spacing:0.12em;color:#c8a84b;text-transform:uppercase;border:1px solid rgba(200,168,75,0.3);border-radius:4px;background:rgba(200,168,75,0.08);margin:0 4px 4px;';
-        banner.textContent = '\u2605 Rolldown \u2014 All 5 Dice Score \u2605';
-        sp.appendChild(banner);
-        var res = document.createElement('div');
-        res.className='share-result-line'; res.id='share-result';
-        sp.appendChild(res);
+        sp.style.cssText = 'background:transparent;border:none;padding:0;display:flex;flex-direction:row;justify-content:center;gap:4px;height:var(--ps);flex-shrink:0;';
+        sp.innerHTML = '';
+        sp.appendChild(makeSplitShare('bdie3','blue','RD 3'));
+        sp.appendChild(makeSplitShare('bdie4','blue','RD 4'));
+        var div = document.createElement('div');
+        div.style.cssText = 'width:3px;flex-shrink:0;background:rgba(200,168,75,0.15);border-radius:2px;';
+        sp.appendChild(div);
+        sp.appendChild(makeSplitShare('rdie3','red','RD 3'));
+        sp.appendChild(makeSplitShare('rdie4','red','RD 4'));
     } else {
         grid.classList.remove('rd-mode');
         // Two separate colored Share pockets side by side
