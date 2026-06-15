@@ -146,30 +146,25 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 #dice-wrap { --ps: clamp(96px, 15vw, 136px); }
 
 /* Three-section column layout */
-#dice-top-row {
+#dice-main-area {
     display:flex; flex-direction:row; align-items:stretch;
     gap:4px; padding:4px 4px 2px;
 }
 #blue-keeps, #red-keeps {
     display:flex; flex-direction:column; gap:4px;
     flex-shrink:0; width:var(--ps);
-    justify-content:flex-start;
+}
+#dice-center-col {
+    flex:1; min-width:0;
+    display:flex; flex-direction:column; gap:4px;
 }
 #dice-score-center {
     flex:1; min-width:0; min-height:0;
-    max-height:calc(var(--ps) * 2 + 4px);
     overflow-y:auto;
     border:1px solid rgba(200,168,75,0.2);
-    border-radius:6px;
-    background:#1a2744;
+    border-radius:6px; background:#1a2744;
 }
-#dice-wrap.rd-mode #dice-score-center {
-    max-height:calc(var(--ps) * 4 + 12px);
-}
-#dice-mid-row {
-    display:flex; flex-direction:row; align-items:center;
-    gap:4px; padding:2px 4px;
-}
+
 #dice-bot-row {
     display:flex; flex-direction:row;
     border-top:2px solid rgba(200,168,75,0.4);
@@ -192,15 +187,15 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 .dice-pocket.tapped.red-pocket  { border-color:#ff9090; background:rgba(120,30,30,0.4); }
 
 .pocket-lbl {
-    font-size:0.58em; text-transform:uppercase; letter-spacing:0.1em;
-    color:rgba(200,168,75,0.5); text-align:center; line-height:1.1;
+    font-size:0.72em; text-transform:uppercase; letter-spacing:0.08em;
+    color:rgba(200,168,75,0.65); text-align:center; line-height:1.1; font-weight:bold;
 }
 .pocket-val {
-    font-size:2.2em; font-weight:bold; line-height:1;
+    font-size:3.2em; font-weight:bold; line-height:1;
     flex:1; display:flex; align-items:center; justify-content:center;
 }
-.pocket-val.blue-val { color:#90c0ff; text-shadow:0 0 12px rgba(144,192,255,0.5); }
-.pocket-val.red-val  { color:#ff9090; text-shadow:0 0 12px rgba(255,144,144,0.5); }
+.pocket-val.blue-val { color:#ffffff; text-shadow:0 0 20px rgba(144,192,255,0.9); }
+.pocket-val.red-val  { color:#ffffff; text-shadow:0 0 20px rgba(255,144,144,0.9); }
 .pocket-val.empty    { color:rgba(255,255,255,0.06); font-size:1em; text-shadow:none; }
 
 .num-row { display:flex; gap:2px; width:100%; }
@@ -249,11 +244,11 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 .dtc-r { background:rgba(80,20,20,0.9); }
 .dtval { font-size:1.5em; font-weight:bold; color:#c8a84b; }
 
-/* Share pocket — flex:1, green, numbers top+bottom, space middle */
+/* Share pocket — fixed row of two --ps pockets at bottom of center col */
 #share-pocket {
-    flex:1; min-width:0;
-    display:flex; flex-direction:row; gap:4px;
-    min-height:var(--ps);
+    flex-shrink:0;
+    display:flex; flex-direction:row; justify-content:center; gap:4px;
+    height:var(--ps);
 }
 .spr { display:flex; align-items:center; gap:5px; }
 .spr-lbl {
@@ -482,26 +477,23 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 
     <!-- Dice mode: score sheet stays center, pockets on sides -->
     <div id="dice-wrap">
-      <!-- Row 1: Keep squares flanking scrollable score sheet -->
-      <div id="dice-top-row">
+      <!-- Single flex area: side columns hold K1/K2/Save, center holds score+share stacked -->
+      <div id="dice-main-area">
         <div id="blue-keeps"></div>
-        <div id="dice-score-center">
-          <table>
-            <thead><tr>
-              <th style="width:30px">#</th>
-              <th id="dh1">Blue</th>
-              <th id="dh2">Red</th>
-            </tr></thead>
-            <tbody id="dtbody"></tbody>
-          </table>
+        <div id="dice-center-col">
+          <div id="dice-score-center">
+            <table>
+              <thead><tr>
+                <th style="width:30px">#</th>
+                <th id="dh1">Blue</th>
+                <th id="dh2">Red</th>
+              </tr></thead>
+              <tbody id="dtbody"></tbody>
+            </table>
+          </div>
+          <div id="share-pocket"></div>
         </div>
         <div id="red-keeps"></div>
-      </div>
-      <!-- Row 2: Save squares flanking green Share pocket -->
-      <div id="dice-mid-row">
-        <div id="blue-save-wrap"></div>
-        <div id="share-pocket"></div>
-        <div id="red-save-wrap"></div>
       </div>
       <!-- Row 3: Totals -->
       <div id="dice-bot-row">
@@ -985,17 +977,9 @@ function buildDiceBoard() {
         rk.appendChild(makePocket('red-pocket','rdie4','RD 4','red',true));
     }
 
-    // Blue save \u2014 always labeled
-    var bs = document.getElementById('blue-save-wrap');
-    bs.innerHTML = '';
-    var bsp = makePocket('blue-pocket','bsave', isRD?'RD 5':'Save','blue',true);
-    bs.appendChild(bsp);
-
-    // Red save \u2014 always labeled
-    var rs = document.getElementById('red-save-wrap');
-    rs.innerHTML = '';
-    var rsp = makePocket('red-pocket','rsave', isRD?'RD 5':'Save','red',true);
-    rs.appendChild(rsp);
+    // Save pocket goes at bottom of keeps column — no separate row, no gap possible
+    bk.appendChild(makePocket('blue-pocket','bsave', isRD?'RD 5':'Save','blue',true));
+    rk.appendChild(makePocket('red-pocket','rsave', isRD?'RD 5':'Save','red',true));
 
     // Pre-fill save values in Rolldown
     if (isRD && savedBSave!==null) { preTapPocket('bsave', savedBSave, 'blue'); lockPocket('bsave'); }
@@ -1017,7 +1001,12 @@ function buildDiceBoard() {
 function preTapPocket(key, val, color) {
     dv[key] = val;
     var valEl = document.getElementById('dval-'+key);
-    if (valEl) { valEl.textContent = val; valEl.classList.remove('empty'); }
+    if (valEl) {
+        valEl.textContent = val;
+        valEl.classList.remove('empty');
+        valEl.style.color = (color==='blue') ? '#7ab8f5' : '#e07878';
+        valEl.style.textShadow = '0 2px 4px rgba(0,0,0,0.7), 0 1px 0 rgba(0,0,0,0.5)';
+    }
     var allBtns = document.querySelectorAll('[data-key="'+key+'"]');
     allBtns.forEach(function(b){
         if (parseInt(b.dataset.val)===val) { b.classList.add('selected'); b.classList.remove('faded'); }
@@ -1078,7 +1067,7 @@ function buildCenterBottom(isRD) {
     } else {
         grid.classList.remove('rd-mode');
         // Two separate colored Share pockets side by side
-        sp.style.cssText = 'background:transparent;border:none;padding:0;display:flex;flex-direction:row;gap:4px;';
+        sp.style.cssText = 'background:transparent;border:none;padding:0;display:flex;flex-direction:row;justify-content:center;gap:4px;height:var(--ps);flex-shrink:0;';
         sp.innerHTML = '';
         sp.appendChild(makeSplitShare('shareB','blue','Share'));
         sp.appendChild(makeSplitShare('shareR','red','Share'));
@@ -1094,7 +1083,6 @@ function buildCenterBottom(isRD) {
 function makeSplitShare(key, color, label) {
     var div = document.createElement('div');
     div.className = 'dice-pocket ' + (color==='blue'?'blue-pocket':'red-pocket');
-    div.style.flex = '1';
     var lbl = document.createElement('div');
     lbl.className = 'pocket-lbl';
     lbl.textContent = label || 'Share';
@@ -1170,7 +1158,13 @@ function tapDie(key, val, color, btn) {
     dv[key] = val;
     // Update value display for non-share pockets
     var valEl = document.getElementById('dval-'+key);
-    if (valEl) valEl.textContent = val;
+    if (valEl) {
+        valEl.textContent = val;
+        valEl.classList.remove('empty');
+        valEl.style.color = (color==='blue') ? '#7ab8f5' : '#e07878';
+        valEl.style.textShadow = '0 2px 4px rgba(0,0,0,0.7), 0 1px 0 rgba(0,0,0,0.5)';
+        valEl.style.fontSize = '';
+    }
     // Fade other buttons in this pocket, highlight selected
     var allBtns = document.querySelectorAll('[data-key="'+key+'"]');
     allBtns.forEach(function(b){
