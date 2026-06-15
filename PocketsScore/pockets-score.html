@@ -143,13 +143,13 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
    ════════════════════════════════ */
 #dice-wrap { display:none; flex-direction:column; user-select:none; -webkit-user-select:none; position:relative; }
 #dice-wrap.on { display:flex; }
-#dice-wrap { --ps: clamp(96px, 15vw, 136px); }
+#dice-wrap { --ps: clamp(56px, 9vw, 92px); }
 
 /* Three-section column layout */
 #dice-main-area {
     display:flex; flex-direction:row; align-items:stretch;
     gap:4px; padding:4px 4px 2px;
-    height:calc(var(--ps) * 3 + 8px + 6px);
+    height:calc(var(--ps) * 3 + 8px + 6px); /* 3 pockets + 2 gaps + row padding */
     flex-shrink:0;
 }
 
@@ -158,7 +158,8 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
     flex-shrink:0; width:var(--ps);
 }
 #dice-center-col {
-    flex:1; min-width:0;
+    width:calc(var(--ps) * 2 + 4px);
+    flex-shrink:0; flex-grow:0;
     display:flex; flex-direction:column; gap:4px;
     overflow:hidden;
 }
@@ -1169,8 +1170,8 @@ function renderDiceSheet() {
             var realIdx = last2Start + di;
             var tr = document.createElement('tr');
             var tn=document.createElement('td'); tn.className='rn'; tn.textContent=(realIdx+1);
-            var t1=document.createElement('td'); t1.className='p1c'; t1.style.cssText='padding:5px 3px;text-align:center;color:#b0d0ff;font-size:1.05em;'; t1.textContent=r.p1!==null?r.p1:'';
-            var t2=document.createElement('td'); t2.className='p2c'; t2.style.cssText='padding:5px 3px;text-align:center;color:#ffb0b0;font-size:1.05em;'; t2.textContent=r.p2!==null?r.p2:'';
+            var t1=document.createElement('td'); t1.className='p1c'; t1.style.cssText='padding:3px 2px;text-align:center;color:#b0d0ff;font-size:0.95em;'; t1.textContent=r.p1!==null?r.p1:'';
+            var t2=document.createElement('td'); t2.className='p2c'; t2.style.cssText='padding:3px 2px;text-align:center;color:#ffb0b0;font-size:0.95em;'; t2.textContent=r.p2!==null?r.p2:'';
             tr.appendChild(tn); tr.appendChild(t1); tr.appendChild(t2);
             tbody.appendChild(tr);
         });
@@ -1190,8 +1191,8 @@ function renderDiceSheet() {
             if (r.p1===null && r.p2===null && i===rounds.length-1) return;
             var tr = document.createElement('tr');
             var tn=document.createElement('td'); tn.className='rn'; tn.textContent=(i+1);
-            var t1=document.createElement('td'); t1.className='p1c'; t1.style.cssText='padding:5px 3px;text-align:center;color:#b0d0ff;font-size:1.05em;'; t1.textContent=r.p1!==null?r.p1:'';
-            var t2=document.createElement('td'); t2.className='p2c'; t2.style.cssText='padding:5px 3px;text-align:center;color:#ffb0b0;font-size:1.05em;'; t2.textContent=r.p2!==null?r.p2:'';
+            var t1=document.createElement('td'); t1.className='p1c'; t1.style.cssText='padding:3px 2px;text-align:center;color:#b0d0ff;font-size:0.95em;'; t1.textContent=r.p1!==null?r.p1:'';
+            var t2=document.createElement('td'); t2.className='p2c'; t2.style.cssText='padding:3px 2px;text-align:center;color:#ffb0b0;font-size:0.95em;'; t2.textContent=r.p2!==null?r.p2:'';
             tr.appendChild(tn); tr.appendChild(t1); tr.appendChild(t2);
             tbody.appendChild(tr);
         });
@@ -1203,8 +1204,8 @@ function renderDiceSheet() {
     var ltr = document.createElement('tr');
     ltr.style.background = 'rgba(200,168,75,0.06)';
     var ln=document.createElement('td'); ln.className='rn'; ln.textContent=rounds.length; ln.style.color='#c8a84b';
-    var lb=document.createElement('td'); lb.id='live-b'; lb.className='p1c'; lb.style.cssText='padding:5px 3px;text-align:center;color:#90c0ff;font-weight:bold;font-size:1.1em;'; lb.textContent='—';
-    var lr=document.createElement('td'); lr.id='live-r'; lr.className='p2c'; lr.style.cssText='padding:5px 3px;text-align:center;color:#ff9090;font-weight:bold;font-size:1.1em;'; lr.textContent='—';
+    var lb=document.createElement('td'); lb.id='live-b'; lb.className='p1c'; lb.style.cssText='padding:3px 2px;text-align:center;color:#90c0ff;font-weight:bold;font-size:1em;'; lb.textContent='—';
+    var lr=document.createElement('td'); lr.id='live-r'; lr.className='p2c'; lr.style.cssText='padding:3px 2px;text-align:center;color:#ff9090;font-weight:bold;font-size:1em;'; lr.textContent='—';
     ltr.appendChild(ln); ltr.appendChild(lb); ltr.appendChild(lr);
     tbody.appendChild(ltr);
 
@@ -1372,15 +1373,7 @@ function onRoundDismiss() {
 }
 function onWinnerDismiss() {
     hideFlashCard();
-    // Switch to tally mode so the score sheet and save flow are fully visible
-    diceMode = false;
-    var ms = document.getElementById('manual-section');
-    var dw = document.getElementById('dice-wrap');
-    var btn = document.getElementById('btn-mode');
-    if (ms) ms.style.display = '';
-    if (dw) dw.classList.remove('on');
-    if (btn) btn.textContent = 'Switch to Dice Board';
-    renderSheet();
+    // Stay in current mode — no surprise switch
     setTimeout(function(){ toast('Tap Save Game to record this one!'); }, 200);
 }
 function showWinnerCard(rdIdx) {
@@ -1477,13 +1470,25 @@ document.getElementById('btn-save').addEventListener('click', function(){
         var g={date:new Date().toISOString(),p1:db.p1,p2:db.p2,t1:t1,t2:t2,winner:t1>t2?'p1':t2>t1?'p2':'tie',rounds:saved};
         db.games.unshift(g); saveDB(); clearCur();
         var wname=t1>t2?db.p1:t2>t1?db.p2:null, mg=Math.abs(t1-t2);
-        document.getElementById('wn').textContent=wname?wname+' Wins!':"It's a Tie!";
-        document.getElementById('wm').textContent=wname?'By '+mg+' point'+(mg===1?'':'s')+' \u2014 saved!':'Saved!';
-        document.getElementById('winner-banner').style.display='block';
-        setTimeout(function(){
-            document.getElementById('winner-banner').style.display='none';
-            rounds=[{p1:null,p2:null}]; renderSheet();
-        },2500);
+        if (diceMode) {
+            // Dice Board: stay in mode, toast result, reset board
+            toast((wname ? wname+' wins! ' : "Tie! ") + 'Saved ★');
+            setTimeout(function(){
+                rounds=[{p1:null,p2:null}];
+                dv={bk1:null,bk2:null,bdie3:null,bdie4:null,bsave:null,rk1:null,rk2:null,rdie3:null,rdie4:null,rsave:null,shareB:null,shareR:null};
+                savedBSave=null; savedRSave=null;
+                buildDiceBoard();
+            }, 1800);
+        } else {
+            // Tally Mode: show winner banner, reset sheet
+            document.getElementById('wn').textContent=wname?wname+' Wins!':"It's a Tie!";
+            document.getElementById('wm').textContent=wname?'By '+mg+' point'+(mg===1?'':'s')+' — saved!':'Saved!';
+            document.getElementById('winner-banner').style.display='block';
+            setTimeout(function(){
+                document.getElementById('winner-banner').style.display='none';
+                rounds=[{p1:null,p2:null}]; renderSheet();
+            },2500);
+        }
     });
 });
 
@@ -1494,8 +1499,7 @@ document.getElementById('btn-new').addEventListener('click', function(){
         clearCur(); rounds=[{p1:null,p2:null}];
         document.getElementById('winner-banner').style.display='none';
         document.getElementById('announce').style.display='none';
-        renderSheet();
-        if(diceMode){dv={bk1:null,bk2:null,bdie3:null,bdie4:null,bsave:null,rk1:null,rk2:null,rdie3:null,rdie4:null,rsave:null,shareB:null,shareR:null};savedBSave=null;savedRSave=null;buildDiceBoard();}
+        if(diceMode){dv={bk1:null,bk2:null,bdie3:null,bdie4:null,bsave:null,rk1:null,rk2:null,rdie3:null,rdie4:null,rsave:null,shareB:null,shareR:null};savedBSave=null;savedRSave=null;buildDiceBoard();}else{renderSheet();}
     });
 });
 
