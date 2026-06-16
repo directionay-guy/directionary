@@ -430,7 +430,7 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 #m-no  { background: rgba(200,168,75,0.1); color: #c8b88a; }
 
 /* Toast */
-#toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(60px); background: #243258; border: 1px solid #c8a84b; color: #c8a84b; padding: 7px 18px; border-radius: 20px; font-size: 0.8em; letter-spacing: 0.06em; opacity: 0; transition: all 0.28s; z-index: 1000; pointer-events: none; white-space: nowrap; }
+#toast { position: fixed; top: 35%; left: 50%; transform: translateX(-50%) translateY(-20px); background: #1a2744; border: 2px solid #c8a84b; color: #c8a84b; padding: 14px 32px; border-radius: 10px; font-size: 1.1em; letter-spacing: 0.08em; font-weight: bold; opacity: 0; transition: all 0.35s; z-index: 9500; pointer-events: none; white-space: nowrap; box-shadow: 0 4px 24px rgba(0,0,0,0.5); }
 #toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
@@ -609,7 +609,7 @@ function getDisplayName(p) { return p.initials ? p.name+' '+p.initials : p.name;
 function toast(msg) {
     var t=document.getElementById('toast');
     t.textContent=msg; t.classList.add('on');
-    setTimeout(function(){ t.classList.remove('on'); }, 2200);
+    setTimeout(function(){ t.classList.remove('on'); }, 4000);
 }
 var flashTimer = null;
 function showFlash(msg, dur) {
@@ -939,18 +939,26 @@ function switchToDiceBoardBlocked() {
 }
 
 function applyOrientationMode() {
-    // If currently in Dice Board and orientation/size no longer supports it, switch back
-    if (diceMode && !diceBoardAllowed()) {
-        diceMode = false;
-        var ms = document.getElementById('manual-section');
-        var dw = document.getElementById('dice-wrap');
-        var btn = document.getElementById('btn-mode');
-        if (ms) ms.style.display = '';
-        if (dw) dw.classList.remove('on');
-        if (btn) btn.textContent = 'Switch to Dice Board';
-        rounds = [{p1:null, p2:null}];
-        clearCur(); renderSheet();
-        toast('Rotated to portrait \u2014 switched to Tally Mode.');
+    if (!diceMode) return;
+    var isPortrait = window.innerWidth <= window.innerHeight;
+    var banner = document.getElementById('portrait-warning');
+    if (isPortrait) {
+        if (!banner) {
+            banner = document.createElement('div');
+            banner.id = 'portrait-warning';
+            banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:8000;background:rgba(200,168,75,0.95);color:#1a2744;text-align:center;padding:8px 40px 8px 12px;font-size:0.85em;font-weight:bold;letter-spacing:0.05em;';
+            banner.innerHTML = '\u21BB Rotate to landscape for best Dice Board experience &nbsp;';
+            var x = document.createElement('span');
+            x.textContent = '\u2715';
+            x.style.cssText = 'position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:1.1em;';
+            x.onclick = function(){ banner.style.display='none'; };
+            banner.appendChild(x);
+            document.body.appendChild(banner);
+        } else {
+            banner.style.display = '';
+        }
+    } else {
+        if (banner) banner.style.display = 'none';
     }
 }
 
@@ -1378,8 +1386,7 @@ function onRoundDismiss() {
 }
 function onWinnerDismiss() {
     hideFlashCard();
-    // Stay in current mode — no surprise switch
-    setTimeout(function(){ toast('Tap Save Game to record this one!'); }, 200);
+    // Stay in current mode — players choose Save Game or New Game themselves
 }
 function showWinnerCard(rdIdx) {
     var el = getFlash(); if (!el) return;
@@ -1396,11 +1403,11 @@ function showWinnerCard(rdIdx) {
           '<div style="font-size:1em;font-weight:bold;letter-spacing:0.1em;margin-bottom:10px">WINS!</div>'+
           '<div style="font-size:0.8em;opacity:0.75;margin-bottom:'+(tiebreak?'4':'10')+'px">'+t1+' \u2014 '+t2+'</div>'+
           (tiebreak?'<div style="font-size:0.65em;opacity:0.6;margin-bottom:10px">Tied \u2014 '+winner+' wins by Rolldown ('+rdP1+' vs '+rdP2+')</div>':'')+
-          '<div style="font-size:0.78em;background:rgba(26,39,68,0.2);border-radius:4px;padding:8px 20px;display:inline-block">Tap to save game</div>'
+          '<div style="font-size:0.78em;background:rgba(26,39,68,0.2);border-radius:4px;padding:8px 28px;display:inline-block;letter-spacing:0.08em">✕&nbsp; Close</div>'
         : '<div style="font-size:0.65em;letter-spacing:0.14em;margin-bottom:10px;opacity:0.7">GAME OVER</div>'+
           '<div style="font-size:1.8em;font-weight:bold;margin-bottom:8px">Perfect Tie!</div>'+
           '<div style="font-size:0.85em;opacity:0.75;margin-bottom:10px">'+t1+' \u2014 '+t2+' (Rolldown '+rdP1+' vs '+rdP2+')</div>'+
-          '<div style="font-size:0.78em;background:rgba(26,39,68,0.2);border-radius:4px;padding:8px 20px;display:inline-block">Tap to save game</div>';
+          '<div style="font-size:0.78em;background:rgba(26,39,68,0.2);border-radius:4px;padding:8px 28px;display:inline-block;letter-spacing:0.08em">✕&nbsp; Close</div>';
     el.style.display = 'block';
     el.style.cursor = 'pointer';
     el.style.pointerEvents = 'auto';
