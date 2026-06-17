@@ -194,11 +194,6 @@ function generatePlayerTabHTML(color) {
     const s       = profile.stats;
     const label   = color === 'blue' ? '🔵 Blue Player' : '🔴 Red Player';
     const winRate = s.totalGames > 0 ? Math.round((s.gamesWon / s.totalGames) * 100) : 0;
-    const recentGames = profile.gameHistory.slice(-10);
-    const recentWins  = recentGames.filter(g => g.won).length;
-    const recentWR    = recentGames.length > 0 ? Math.round((recentWins / recentGames.length) * 100) : 0;
-    const recentAvg   = recentGames.length > 0
-        ? Math.round(recentGames.reduce((a,g) => a + g.myScore, 0) / recentGames.length) : 0;
 
     // VS AI stats
     const vsAI = s.vsAIWon && s.vsAILost ? `
@@ -210,12 +205,6 @@ function generatePlayerTabHTML(color) {
                 <span class="stat-value">${s.vsAIWon[d]||0}W-${s.vsAILost[d]||0}L</span>
             </div>`).join('')}
         </div>` : '';
-
-    const dots = recentGames.map((g, idx) => {
-        const emoji = g.won ? (color==='blue'?'🔵':'🔴') : (g.tied ? '🟨' : (color==='blue'?'🔴':'🔵'));
-        const br = (idx > 0 && idx % 5 === 0) ? '<br>' : '';
-        return br + `<span class="game-result" title="${g.myScore}-${g.theirScore}">${emoji}</span>`;
-    }).join('');
 
     const achievements = profile.achievements.slice(-4);
     const achHTML = achievements.length === 0
@@ -233,6 +222,7 @@ function generatePlayerTabHTML(color) {
             <div class="stat-card">
                 <h4>🏆 ${label}</h4>
                 <div class="stat-row"><span>Games Played:</span><span class="stat-value">${s.totalGames}</span></div>
+                <div class="stat-row"><span>Games Won:</span><span class="stat-value">${s.gamesWon}</span></div>
                 <div class="stat-row"><span>Win Rate:</span><span class="stat-value">${winRate}%</span></div>
                 <div class="stat-row"><span>Average Score:</span><span class="stat-value">${s.averageScore}</span></div>
                 <div class="stat-row"><span>Best Score:</span><span class="stat-value">${s.bestScore}</span></div>
@@ -245,12 +235,6 @@ function generatePlayerTabHTML(color) {
                 <div class="stat-row"><span>Achievements:</span><span class="stat-value">${profile.achievements.length}</span></div>
                 <div class="stat-row"><span>Perfect Games:</span><span class="stat-value">${s.perfectGames}</span></div>
                 <div class="stat-row"><span>Comeback Wins:</span><span class="stat-value">${s.comebackWins||0}</span></div>
-            </div>
-            <div class="stat-card">
-                <h4>📈 Recent Form (Last 10)</h4>
-                <div class="stat-row"><span>Win Rate:</span><span class="stat-value">${recentWR}%</span></div>
-                <div class="stat-row"><span>Avg Score:</span><span class="stat-value">${recentAvg}</span></div>
-                <div class="recent-games">${dots || '<div class="no-games">No recent games</div>'}</div>
             </div>
         </div>
         <div class="achievements-section">
