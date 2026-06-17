@@ -268,7 +268,8 @@ body.theme-compact {
     fill: var(--burgundy); stroke: var(--gold); stroke-width: 1.5;
 }
 .theme-compact #redRolloffDie svg.dice .dice-dot { fill: var(--cream); }
-.theme-compact .rolloff-die { transform: scale(0.76); transform-origin: center; }
+.theme-compact .rolloff-die { width: 48px !important; height: 48px !important; }
+.theme-compact .rolloff-die svg.dice { width: 42px !important; height: 42px !important; }
 .theme-compact .rolloff-result { color: var(--parchment); font-size: 0.85em; }
 .theme-compact .rolloff-vs { color: var(--gold-dim); }
 
@@ -327,7 +328,7 @@ body.theme-compact {
 }
 .theme-compact .player-area.red  svg.dice .dice-dot { fill: var(--cream); }
 /* Scale dice down slightly */
-.theme-compact .dice-area svg.dice { transform: scale(0.76); transform-origin: center; }
+.theme-compact .dice-area svg.dice { width: 33px !important; height: 33px !important; }
 /* Round score summary shown in dice area after scoring */
 .theme-compact .round-score-display {
     color: var(--parchment-hi) !important;
@@ -423,8 +424,8 @@ body.theme-compact {
     flex-shrink: 0;
 }
 .theme-compact .pocket-dice svg.dice {
-    transform: scale(0.68);
-    transform-origin: center;
+    width: 30px;
+    height: 30px;
     flex-shrink: 0;
 }
 .theme-compact .pocket-score {
