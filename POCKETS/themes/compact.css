@@ -7,6 +7,9 @@
 /* ==========================================================
    PALETTE — Victorian colors, simplified
    ========================================================== */
+html:has(body.theme-compact) {
+    overflow-x: hidden;
+}
 body.theme-compact {
     --navy:           #1a2744;
     --navy-mid:       #243258;
@@ -191,6 +194,7 @@ body.theme-compact {
    ========================================================== */
 .theme-compact .round-info {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     background: var(--parchment-soft);
