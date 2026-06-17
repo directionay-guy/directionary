@@ -26,6 +26,7 @@ body.theme-compact {
     font-family: Georgia, 'Times New Roman', serif;
     font-size: 14px;
     padding: 4px !important;
+    overflow-x: hidden;
 }
 
 /* ==========================================================
@@ -127,25 +128,27 @@ body.theme-compact {
     align-items: center;
     gap: 4px;
     flex: 1;
-    flex-wrap: nowrap;
-    overflow: hidden;
+    flex-wrap: wrap;
+    min-width: 0;
+    overflow: visible;
 }
 .compact-sel { display: none; }
 .theme-compact .compact-sel {
     display: inline-block !important;
     background-color: var(--navy-mid);
     background-repeat: no-repeat !important;
-    background-position: right 5px center !important;
-    background-size: 10px !important;
+    background-position: right 4px center !important;
+    background-size: 9px !important;
     color: var(--parchment);
     border: 1px solid var(--gold-dim);
-    padding: 2px 22px 2px 7px;
+    padding: 2px 18px 2px 5px;
     font-family: inherit;
-    font-size: 0.75em;
+    font-size: 0.72em;
     cursor: pointer;
     border-radius: 3px;
     appearance: none;
     -webkit-appearance: none;
+    min-width: 0;
 }
 .theme-compact .compact-sel option {
     background: var(--navy-mid);
