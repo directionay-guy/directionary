@@ -914,13 +914,13 @@ function switchToDiceBoardBlocked() {
     var msg, btn;
     if (w < 500) {
         msg = 'Dice Board isn\u2019t available on small screens.\n\nTally Mode works great for keeping score on your phone!';
-        btn = 'Use Tally Mode';
+        btn = 'OK';
     } else if (!landscape) {
         msg = 'Dice Board needs landscape orientation.\n\nRotate your device sideways, then tap \u201cSwitch to Dice Board\u201d again.';
-        btn = 'Stay in Tally Mode';
+        btn = 'OK';
     } else {
         msg = 'Dice Board requires a wider screen.\n\nTry on a tablet or desktop in landscape mode.';
-        btn = 'Stay in Tally Mode';
+        btn = 'OK';
     }
     // Show as a simple modal — just inform, no choice
     var m = document.getElementById('modal');
@@ -994,7 +994,7 @@ function switchMode() {
     }
     var hasAny = rounds.some(function(r){ return r.p1!==null||r.p2!==null; });
     if (!hasAny) { doSwitchMode(); return; }
-    var toMode = diceMode ? 'Tally' : 'Dice Board';
+    var toMode = diceMode ? 'Tally Mode' : 'Dice Board';
     ask('Switch to ' + toMode + '? The current game will be cleared.', doSwitchMode);
 }
 
