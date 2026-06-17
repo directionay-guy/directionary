@@ -38,26 +38,22 @@ header p  { font-size: 0.68em; color: #c8b88a; letter-spacing: 0.08em; }
    SCORE SHEET — Manual mode
    ════════════════════════════════ */
 
-.name-col { display: flex; flex-direction: column; align-items: center; width: 100%; }
-.name-input {
-    width: 100%; background: transparent; border: none;
-    border-bottom: 1px solid rgba(200,168,75,0.3);
-    color: inherit; font-family: inherit; font-size: 0.95em;
-    font-weight: bold; text-align: center; padding: 2px 4px; outline: none;
+.th-sel-wrap { position: relative; padding: 0 !important; }
+.th-select {
+    width: 100%; background: transparent; border: none; outline: none;
+    color: inherit; font-family: inherit; font-weight: normal;
+    font-size: 0.74em; letter-spacing: 0.07em; text-transform: uppercase;
+    text-align: center; padding: 7px 18px 7px 4px;
+    -webkit-appearance: none; appearance: none; cursor: pointer;
 }
-.name-input:focus { border-bottom-color: #c8a84b; }
-.name-select {
-    width: 100%; background: #1a2744; border: none;
-    border-bottom: 1px solid rgba(200,168,75,0.3);
-    color: inherit; font-family: inherit; font-size: 0.88em;
-    font-weight: bold; text-align: center; padding: 3px 4px; outline: none;
-    -webkit-appearance: none; cursor: pointer;
+.th-select option { background: #1a2744; color: #f5f0e4; text-transform: none; letter-spacing: 0; }
+.th-select:disabled { opacity: 0.7; cursor: not-allowed; }
+.th-arrow {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    font-size: 0.7em; pointer-events: none; opacity: 0.7;
 }
-#n1 .name-input, #n1 .name-select { color: #90c0ff; }
-#n2 .name-input, #n2 .name-select { color: #ff9090; }
-.vs { color: rgba(200,168,75,0.4); font-size: 0.8em; text-align: center; }
 
-/* Mode bar — buttons + name selectors */
+/* Mode bar — buttons */
 #mode-bar {
     background: rgba(0,0,0,0.1);
     border-bottom: 1px solid rgba(200,168,75,0.15);
@@ -77,12 +73,6 @@ header p  { font-size: 0.68em; color: #c8b88a; letter-spacing: 0.08em; }
     color: #90d870; font-family: inherit; font-size: 0.75em;
     letter-spacing: 0.06em; padding: 4px 12px; border-radius: 3px; cursor: pointer;
 }
-#name-bar {
-    display: grid; grid-template-columns: 1fr 30px 1fr;
-    align-items: center; gap: 6px;
-    padding: 5px 10px 7px;
-    border-top: 1px solid rgba(200,168,75,0.1);
-}
 
 /* Manual score table */
 table { width: 100%; border-collapse: collapse; }
@@ -92,8 +82,8 @@ thead th {
     border-bottom: 1px solid rgba(200,168,75,0.25);
     position: sticky; top: 0; z-index: 2; background: #243258; color: #c8a84b;
 }
-thead th:nth-child(2) { background: #1e3060; color: #90c0ff; width:50%; }
-thead th:nth-child(3) { background: #501818; color: #ff9090; width:50%; }
+thead th:nth-child(2) { background: #1e3060; color: #90c0ff; width:calc(50% - 24px); }
+thead th:nth-child(3) { background: #501818; color: #ff9090; width:calc(50% - 24px); }
 tbody tr { border-bottom: 1px solid rgba(255,255,255,0.05); }
 tbody tr.rd-row { background: #c8a84b; }
 tbody tr.rd-row td { border-bottom: none; }
@@ -177,7 +167,7 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 }
 
 #dice-bot-row {
-    display:flex; flex-direction:row;
+    display:flex; flex-direction:row; position:relative;
     border-top:2px solid rgba(200,168,75,0.4);
     margin:0 4px 2px;
     border-radius:0 0 6px 6px; overflow:hidden;
@@ -241,17 +231,28 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
     position:sticky; top:0; z-index:2;
     border-bottom:1px solid rgba(200,168,75,0.25);
 }
-#dice-score-center thead th:nth-child(1) { width:24px; }
-#dice-score-center thead th:nth-child(2) { background:#1e3060; color:#90c0ff; width:calc(50% - 12px); }
-#dice-score-center thead th:nth-child(3) { background:#501818; color:#ff9090; width:calc(50% - 12px); }
+#dice-score-center thead th:nth-child(1) { background:#1e3060; color:#90c0ff; width:50%; }
+#dice-score-center thead th:nth-child(2) { background:#501818; color:#ff9090; width:50%; }
 #dice-score-center .live-row td { background:rgba(200,168,75,0.06); }
+.rn-badge {
+    position:absolute; left:4px; top:50%; transform:translateY(-50%);
+    font-size:0.6em; font-weight:bold; color:rgba(200,168,75,0.6);
+    background:rgba(0,0,0,0.2); border-radius:3px; padding:1px 4px;
+    pointer-events:none; letter-spacing:0.03em;
+}
+.rn-badge.rd { color:#1a2744; background:rgba(255,255,255,0.3); }
 
 /* TOTAL row */
 .dtc { flex:1; text-align:center; padding:6px 3px;
        display:flex; align-items:center; justify-content:center; }
-.dtc-lbl { flex:0 0 34px; background:rgba(0,0,0,0.3);
-           font-size:0.52em; text-transform:uppercase;
-           letter-spacing:0.07em; color:#c8b88a; }
+.dtc-lbl {
+    position:absolute; left:0; top:0; bottom:0; width:30px;
+    background:rgba(0,0,0,0.3); z-index:2;
+    font-size:0.52em; text-transform:uppercase;
+    letter-spacing:0.07em; color:#c8b88a;
+    display:flex; align-items:center; justify-content:center;
+    pointer-events:none;
+}
 .dtc-b { background:rgba(20,50,110,0.9); }
 .dtc-r { background:rgba(80,20,20,0.9); }
 .dtval { font-size:1.5em; font-weight:bold; color:#c8a84b; }
@@ -458,17 +459,6 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
         <button id="btn-bonus">Show Bonus Legend</button>
         <button id="btn-mode">Switch to Dice Board</button>
       </div>
-      <div id="name-bar">
-        <div class="name-col" id="n1">
-          <select class="name-select" id="p1sel" style="display:none"></select>
-          <input class="name-input" id="p1name" type="text" value="Blue Player" autocomplete="off" autocorrect="off" spellcheck="false">
-        </div>
-        <div class="vs">VS</div>
-        <div class="name-col" id="n2">
-          <select class="name-select" id="p2sel" style="display:none"></select>
-          <input class="name-input" id="p2name" type="text" value="Red Player" autocomplete="off" autocorrect="off" spellcheck="false">
-        </div>
-      </div>
     </div>
 
     <!-- Manual entry table -->
@@ -476,8 +466,14 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
       <table>
         <thead><tr>
           <th style="width:48px">#</th>
-          <th id="h1">Blue Player</th>
-          <th id="h2">Red Player</th>
+          <th class="th-sel-wrap">
+            <select id="h1sel" class="th-select"></select>
+            <span class="th-arrow" id="h1arrow">&#9662;</span>
+          </th>
+          <th class="th-sel-wrap">
+            <select id="h2sel" class="th-select"></select>
+            <span class="th-arrow" id="h2arrow">&#9662;</span>
+          </th>
         </tr></thead>
         <tbody id="tbody"></tbody>
         <tfoot><tr>
@@ -502,7 +498,6 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
           <div id="dice-score-center">
             <table>
               <thead><tr>
-                <th style="width:30px">#</th>
                 <th id="dh1">Blue</th>
                 <th id="dh2">Red</th>
               </tr></thead>
@@ -533,8 +528,8 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
   <div id="p-signup" class="panel">
     <div class="signup-title">Player Roster</div>
     <div class="add-form">
-      <label>First Name<input type="text" id="inp-name" placeholder="e.g. Mary" maxlength="20" autocomplete="off" autocorrect="off"></label>
-      <label>Initials (opt.)<input type="text" id="inp-init" placeholder="e.g. DJ" maxlength="2" autocomplete="off" autocorrect="off"></label>
+      <label>First Name<input type="text" id="inp-name" placeholder="e.g. Mary" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="words"></label>
+      <label>Initials (opt.)<input type="text" id="inp-init" placeholder="e.g. DJ" maxlength="2" autocomplete="off" autocorrect="off" autocapitalize="characters"></label>
       <button id="btn-add">+ Add Player</button>
     </div>
     <div class="roster-count" id="roster-count">0 players in roster</div>
@@ -607,6 +602,16 @@ function clearCur() { try { localStorage.removeItem(CKEY); } catch(e){} }
 // == Utilities ======================================================
 function genId() { return 'p'+Date.now()+Math.random().toString(36).substr(2,4); }
 function getDisplayName(p) { return p.initials ? p.name+' '+p.initials : p.name; }
+// Permanent, unremovable defaults — always selectable, never part of the editable roster
+var DEFAULT_PLAYERS = [
+    {id:'__blue__', name:'Blue Player', initials:'', builtin:true},
+    {id:'__red__',  name:'Red Player',  initials:'', builtin:true}
+];
+function getAllSelectable() { return DEFAULT_PLAYERS.concat(db.roster||[]); }
+function getIdForName(name) {
+    var m = getAllSelectable().find(function(p){ return getDisplayName(p)===name; });
+    return m ? m.id : '__blue__';
+}
 
 function toast(msg) {
     var t=document.getElementById('toast');
@@ -692,11 +697,12 @@ function renderRoster() {
 }
 
 document.getElementById('btn-add').addEventListener('click', function(){
-    var name = document.getElementById('inp-name').value.trim();
+    var rawName = document.getElementById('inp-name').value.trim();
+    var name = rawName ? rawName.charAt(0).toUpperCase() + rawName.slice(1) : rawName;
     var init = document.getElementById('inp-init').value.trim().toUpperCase();
     if (!name) { toast('Please enter a first name.'); return; }
     var display = init ? name+' '+init : name;
-    var exists = (db.roster||[]).some(function(p){ return getDisplayName(p).toLowerCase()===display.toLowerCase(); });
+    var exists = getAllSelectable().some(function(p){ return getDisplayName(p).toLowerCase()===display.toLowerCase(); });
     if (exists) { toast(display+' is already in the roster.'); return; }
     if (!db.roster) db.roster=[];
     db.roster.push({id:genId(), name:name, initials:init});
@@ -714,64 +720,76 @@ document.getElementById('inp-name').addEventListener('keydown', function(e){
 document.getElementById('inp-init').addEventListener('keydown', function(e){
     if (e.key==='Enter') { e.preventDefault(); document.getElementById('btn-add').click(); }
 });
+// Live capitalization as the user types
+document.getElementById('inp-name').addEventListener('input', function(){
+    var v = this.value;
+    if (v) {
+        var capped = v.charAt(0).toUpperCase() + v.slice(1);
+        if (capped !== v) {
+            var pos = this.selectionStart;
+            this.value = capped;
+            this.setSelectionRange(pos, pos);
+        }
+    }
+});
+document.getElementById('inp-init').addEventListener('input', function(){
+    var v = this.value;
+    var upper = v.toUpperCase();
+    if (upper !== v) {
+        var pos = this.selectionStart;
+        this.value = upper;
+        this.setSelectionRange(pos, pos);
+    }
+});
 
 // == Name selects / inputs ===========================================
 function updateNameSelects() {
-    var r = db.roster || [];
-    var useDropdowns = r.length > 0;
-    var p1sel = document.getElementById('p1sel');
-    var p2sel = document.getElementById('p2sel');
-    var p1inp = document.getElementById('p1name');
-    var p2inp = document.getElementById('p2name');
+    var h1sel = document.getElementById('h1sel');
+    var h2sel = document.getElementById('h2sel');
+    if (!h1sel || !h2sel) return;
+    var all = getAllSelectable();
+    var id1 = getIdForName(db.p1);
+    var id2 = getIdForName(db.p2);
 
-    if (useDropdowns) {
-        // Build options
-        var opts = '<option value="">\u2014 Select Player \u2014</option>';
-        r.forEach(function(p){ opts += '<option value="'+p.id+'">'+getDisplayName(p)+'</option>'; });
-        p1sel.innerHTML = opts;
-        p2sel.innerHTML = opts;
-        // Restore previous selection if still in roster
-        var cur1 = (db.roster||[]).find(function(p){ return getDisplayName(p)===db.p1; });
-        var cur2 = (db.roster||[]).find(function(p){ return getDisplayName(p)===db.p2; });
-        if (cur1) p1sel.value = cur1.id;
-        if (cur2) p2sel.value = cur2.id;
-        p1sel.style.display='block'; p1inp.style.display='none';
-        p2sel.style.display='block'; p2inp.style.display='none';
-    } else {
-        p1sel.style.display='none'; p1inp.style.display='block';
-        p2sel.style.display='none'; p2inp.style.display='block';
+    function buildOptions(excludeId, selId) {
+        var html = '';
+        all.forEach(function(p){
+            if (p.id === excludeId) return; // mutual exclusion: can't pick same player both sides
+            html += '<option value="'+p.id+'"'+(p.id===selId?' selected':'')+'>'+getDisplayName(p)+'</option>';
+        });
+        return html;
     }
+    h1sel.innerHTML = buildOptions(id2, id1);
+    h2sel.innerHTML = buildOptions(id1, id2);
+    h1sel.value = id1; h2sel.value = id2;
+
+    // Lock once Round 1 has any score, to protect game/history integrity
+    var locked = rounds.length>0 && (rounds[0].p1!==null || rounds[0].p2!==null);
+    h1sel.disabled = locked; h2sel.disabled = locked;
+    var a1=document.getElementById('h1arrow'), a2=document.getElementById('h2arrow');
+    var lockChar='\u{1F512}', arrowChar='\u25BE';
+    if (a1) a1.textContent = locked ? lockChar : arrowChar;
+    if (a2) a2.textContent = locked ? lockChar : arrowChar;
 }
 
 function syncNames() {
-    var r = db.roster || [];
-    if (r.length > 0) {
-        var id1 = document.getElementById('p1sel').value;
-        var id2 = document.getElementById('p2sel').value;
-        var p1  = r.find(function(p){ return p.id===id1; });
-        var p2  = r.find(function(p){ return p.id===id2; });
-        db.p1 = p1 ? getDisplayName(p1) : 'Blue Player';
-        db.p2 = p2 ? getDisplayName(p2) : 'Red Player';
-    } else {
-        db.p1 = document.getElementById('p1name').value.trim() || 'Blue Player';
-        db.p2 = document.getElementById('p2name').value.trim() || 'Red Player';
-    }
+    var h1sel = document.getElementById('h1sel');
+    var h2sel = document.getElementById('h2sel');
+    if (!h1sel || !h2sel) return;
+    var all = getAllSelectable();
+    var p1 = all.find(function(p){ return p.id===h1sel.value; });
+    var p2 = all.find(function(p){ return p.id===h2sel.value; });
+    db.p1 = p1 ? getDisplayName(p1) : 'Blue Player';
+    db.p2 = p2 ? getDisplayName(p2) : 'Red Player';
     saveDB();
-    document.getElementById('h1').textContent  = db.p1;
-    document.getElementById('h2').textContent  = db.p2;
+    updateNameSelects();
     document.getElementById('wn1').textContent = db.p1;
     document.getElementById('wn2').textContent = db.p2;
-    // Dice board headers update when buildDiceBoard() is called
-    // Rebuild dice board labels if in Dice Board
     if (diceMode) buildDiceBoard();
 }
 
-document.getElementById('p1name').addEventListener('input', syncNames);
-document.getElementById('p2name').addEventListener('input', syncNames);
-document.getElementById('p1name').addEventListener('blur', function(){ if(!this.value.trim()){this.value='Blue Player';} syncNames(); });
-document.getElementById('p2name').addEventListener('blur', function(){ if(!this.value.trim()){this.value='Red Player';} syncNames(); });
-document.getElementById('p1sel').addEventListener('change', syncNames);
-document.getElementById('p2sel').addEventListener('change', syncNames);
+document.getElementById('h1sel').addEventListener('change', syncNames);
+document.getElementById('h2sel').addEventListener('change', syncNames);
 
 // == Rolldown detection =============================================
 function getRDIdx() {
@@ -848,6 +866,7 @@ function updateTotals() {
     rounds.forEach(function(r){ if(r.p1!==null)t1+=r.p1; if(r.p2!==null)t2+=r.p2; });
     document.getElementById('t1').textContent=t1;
     document.getElementById('t2').textContent=t2;
+    updateNameSelects(); // keep lock state in sync as scores are entered
     var ann=document.getElementById('announce');
     var rdIdx=getRDIdx();
     var rdDone=rdIdx>=0&&rounds[rdIdx]&&rounds[rdIdx].p1!==null&&rounds[rdIdx].p2!==null;
@@ -1184,20 +1203,24 @@ function renderDiceSheet() {
         last2.forEach(function(r, di) {
             var realIdx = last2Start + di;
             var tr = document.createElement('tr');
-            var tn=document.createElement('td'); tn.className='rn'; tn.textContent=(realIdx+1);
-            var t1=document.createElement('td'); t1.className='p1c'; t1.style.cssText='padding:3px 2px;text-align:center;color:#b0d0ff;font-size:0.95em;'; t1.textContent=r.p1!==null?r.p1:'';
+            var t1=document.createElement('td'); t1.className='p1c'; t1.style.cssText='position:relative;padding:3px 2px;text-align:center;color:#b0d0ff;font-size:0.95em;';
+            var badge1=document.createElement('span'); badge1.className='rn-badge'; badge1.textContent=(realIdx+1);
+            var sp1=document.createElement('span'); sp1.textContent = r.p1!==null?r.p1:'';
+            t1.appendChild(badge1); t1.appendChild(sp1);
             var t2=document.createElement('td'); t2.className='p2c'; t2.style.cssText='padding:3px 2px;text-align:center;color:#ffb0b0;font-size:0.95em;'; t2.textContent=r.p2!==null?r.p2:'';
-            tr.appendChild(tn); tr.appendChild(t1); tr.appendChild(t2);
+            tr.appendChild(t1); tr.appendChild(t2);
             tbody.appendChild(tr);
         });
         // RD row if complete
         var rdRound = rounds[rdIdx];
         if (rdRound && rdRound.p1!==null) {
             var tr = document.createElement('tr'); tr.className='rd-row';
-            var tn=document.createElement('td'); tn.className='rn rd'; tn.textContent='RD';
-            var t1=document.createElement('td'); t1.className='p1c'; t1.style.cssText='padding:5px 3px;text-align:center;color:#1a2744;font-size:1.05em;font-weight:bold;'; t1.textContent=rdRound.p1;
+            var t1=document.createElement('td'); t1.className='p1c'; t1.style.cssText='position:relative;padding:5px 3px;text-align:center;color:#1a2744;font-size:1.05em;font-weight:bold;';
+            var badge1=document.createElement('span'); badge1.className='rn-badge rd'; badge1.textContent='RD';
+            var sp1=document.createElement('span'); sp1.textContent=rdRound.p1;
+            t1.appendChild(badge1); t1.appendChild(sp1);
             var t2=document.createElement('td'); t2.className='p2c'; t2.style.cssText='padding:5px 3px;text-align:center;color:#1a2744;font-size:1.05em;font-weight:bold;'; t2.textContent=rdRound.p2;
-            tr.appendChild(tn); tr.appendChild(t1); tr.appendChild(t2);
+            tr.appendChild(t1); tr.appendChild(t2);
             tbody.appendChild(tr);
         }
     } else {
@@ -1205,10 +1228,12 @@ function renderDiceSheet() {
         rounds.forEach(function(r, i) {
             if (r.p1===null && r.p2===null && i===rounds.length-1) return;
             var tr = document.createElement('tr');
-            var tn=document.createElement('td'); tn.className='rn'; tn.textContent=(i+1);
-            var t1=document.createElement('td'); t1.className='p1c'; t1.style.cssText='padding:3px 2px;text-align:center;color:#b0d0ff;font-size:0.95em;'; t1.textContent=r.p1!==null?r.p1:'';
+            var t1=document.createElement('td'); t1.className='p1c'; t1.style.cssText='position:relative;padding:3px 2px;text-align:center;color:#b0d0ff;font-size:0.95em;';
+            var badge1=document.createElement('span'); badge1.className='rn-badge'; badge1.textContent=(i+1);
+            var sp1=document.createElement('span'); sp1.textContent = r.p1!==null?r.p1:'';
+            t1.appendChild(badge1); t1.appendChild(sp1);
             var t2=document.createElement('td'); t2.className='p2c'; t2.style.cssText='padding:3px 2px;text-align:center;color:#ffb0b0;font-size:0.95em;'; t2.textContent=r.p2!==null?r.p2:'';
-            tr.appendChild(tn); tr.appendChild(t1); tr.appendChild(t2);
+            tr.appendChild(t1); tr.appendChild(t2);
             tbody.appendChild(tr);
         });
         var wrap = document.getElementById('dice-score-center');
@@ -1218,10 +1243,14 @@ function renderDiceSheet() {
     // Live current round row
     var ltr = document.createElement('tr');
     ltr.style.background = 'rgba(200,168,75,0.06)';
-    var ln=document.createElement('td'); ln.className='rn'; ln.textContent=rounds.length; ln.style.color='#c8a84b';
-    var lb=document.createElement('td'); lb.id='live-b'; lb.className='p1c'; lb.style.cssText='padding:3px 2px;text-align:center;color:#90c0ff;font-weight:bold;font-size:1em;'; lb.textContent='—';
-    var lr=document.createElement('td'); lr.id='live-r'; lr.className='p2c'; lr.style.cssText='padding:3px 2px;text-align:center;color:#ff9090;font-weight:bold;font-size:1em;'; lr.textContent='—';
-    ltr.appendChild(ln); ltr.appendChild(lb); ltr.appendChild(lr);
+    var lb=document.createElement('td'); lb.className='p1c'; lb.style.cssText='position:relative;padding:3px 2px;text-align:center;color:#90c0ff;font-weight:bold;font-size:1em;';
+    var liveBadge=document.createElement('span'); liveBadge.className='rn-badge'; liveBadge.textContent=rounds.length; liveBadge.style.color='#c8a84b';
+    var liveBVal=document.createElement('span'); liveBVal.id='live-b'; liveBVal.textContent='\u2014';
+    lb.appendChild(liveBadge); lb.appendChild(liveBVal);
+    var lr=document.createElement('td'); lr.className='p2c'; lr.style.cssText='padding:3px 2px;text-align:center;color:#ff9090;font-weight:bold;font-size:1em;';
+    var liveRVal=document.createElement('span'); liveRVal.id='live-r'; liveRVal.textContent='\u2014';
+    lr.appendChild(liveRVal);
+    ltr.appendChild(lb); ltr.appendChild(lr);
     tbody.appendChild(ltr);
 
     // Running totals
@@ -1640,12 +1669,9 @@ window.goRD = function() {
     console.log('Jumped to Rolldown. Blue=94 Red=86. Next round is RD.');
 };
 loadDB();
-document.getElementById('p1name').value = db.p1||'Blue Player';
-document.getElementById('p2name').value = db.p2||'Red Player';
-updateNameSelects();
-syncNames();
 var cur=loadCur();
 if(cur&&cur.length) rounds=cur;
+updateNameSelects();
 renderSheet();
 applyOrientationMode();
 </script>
