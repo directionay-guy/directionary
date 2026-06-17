@@ -41,16 +41,16 @@ header p  { font-size: 0.68em; color: #c8b88a; letter-spacing: 0.08em; }
 .th-sel-wrap { position: relative; padding: 0 !important; }
 .th-select {
     width: 100%; background: transparent; border: none; outline: none;
-    color: inherit; font-family: inherit; font-weight: normal;
-    font-size: 0.74em; letter-spacing: 0.07em; text-transform: uppercase;
-    text-align: center; padding: 7px 18px 7px 4px;
+    color: inherit; font-family: inherit; font-weight: bold;
+    font-size: 0.92em; letter-spacing: 0.05em; text-transform: uppercase;
+    text-align: center; padding: 8px 22px 8px 4px;
     -webkit-appearance: none; appearance: none; cursor: pointer;
 }
-.th-select option { background: #1a2744; color: #f5f0e4; text-transform: none; letter-spacing: 0; }
+.th-select option { background: #1a2744; color: #f5f0e4; text-transform: none; letter-spacing: 0; font-size: 1em; }
 .th-select:disabled { opacity: 0.7; cursor: not-allowed; }
 .th-arrow {
-    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
-    font-size: 0.7em; pointer-events: none; opacity: 0.7;
+    position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
+    font-size: 1.05em; pointer-events: none; opacity: 0.9;
 }
 
 /* Mode bar — buttons */
@@ -498,8 +498,14 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
           <div id="dice-score-center">
             <table>
               <thead><tr>
-                <th id="dh1">Blue</th>
-                <th id="dh2">Red</th>
+                <th id="dh1" class="th-sel-wrap">
+                  <select id="dh1sel" class="th-select"></select>
+                  <span class="th-arrow" id="dh1arrow">&#9662;</span>
+                </th>
+                <th id="dh2" class="th-sel-wrap">
+                  <select id="dh2sel" class="th-select"></select>
+                  <span class="th-arrow" id="dh2arrow">&#9662;</span>
+                </th>
               </tr></thead>
               <tbody id="dtbody"></tbody>
             </table>
@@ -744,12 +750,11 @@ document.getElementById('inp-init').addEventListener('input', function(){
 
 // == Name selects / inputs ===========================================
 function updateNameSelects() {
-    var h1sel = document.getElementById('h1sel');
-    var h2sel = document.getElementById('h2sel');
-    if (!h1sel || !h2sel) return;
     var all = getAllSelectable();
     var id1 = getIdForName(db.p1);
     var id2 = getIdForName(db.p2);
+    var locked = rounds.length>0 && (rounds[0].p1!==null || rounds[0].p2!==null);
+    var lockChar='\u{1F512}', arrowChar='\u25BE';
 
     function buildOptions(excludeId, selId) {
         var html = '';
@@ -759,37 +764,49 @@ function updateNameSelects() {
         });
         return html;
     }
-    h1sel.innerHTML = buildOptions(id2, id1);
-    h2sel.innerHTML = buildOptions(id1, id2);
-    h1sel.value = id1; h2sel.value = id2;
+    var opts1 = buildOptions(id2, id1);
+    var opts2 = buildOptions(id1, id2);
 
-    // Lock once Round 1 has any score, to protect game/history integrity
-    var locked = rounds.length>0 && (rounds[0].p1!==null || rounds[0].p2!==null);
-    h1sel.disabled = locked; h2sel.disabled = locked;
-    var a1=document.getElementById('h1arrow'), a2=document.getElementById('h2arrow');
-    var lockChar='\u{1F512}', arrowChar='\u25BE';
-    if (a1) a1.textContent = locked ? lockChar : arrowChar;
-    if (a2) a2.textContent = locked ? lockChar : arrowChar;
+    [['h1sel','h1arrow'], ['dh1sel','dh1arrow']].forEach(function(pair){
+        var sel = document.getElementById(pair[0]);
+        if (!sel) return;
+        sel.innerHTML = opts1; sel.value = id1; sel.disabled = locked;
+        var arrow = document.getElementById(pair[1]);
+        if (arrow) arrow.textContent = locked ? lockChar : arrowChar;
+    });
+    [['h2sel','h2arrow'], ['dh2sel','dh2arrow']].forEach(function(pair){
+        var sel = document.getElementById(pair[0]);
+        if (!sel) return;
+        sel.innerHTML = opts2; sel.value = id2; sel.disabled = locked;
+        var arrow = document.getElementById(pair[1]);
+        if (arrow) arrow.textContent = locked ? lockChar : arrowChar;
+    });
 }
 
-function syncNames() {
-    var h1sel = document.getElementById('h1sel');
-    var h2sel = document.getElementById('h2sel');
-    if (!h1sel || !h2sel) return;
+function syncNames(sourceSel) {
     var all = getAllSelectable();
-    var p1 = all.find(function(p){ return p.id===h1sel.value; });
-    var p2 = all.find(function(p){ return p.id===h2sel.value; });
+    var id1, id2;
+    if (sourceSel && (sourceSel.id==='h1sel' || sourceSel.id==='dh1sel')) {
+        id1 = sourceSel.value; id2 = getIdForName(db.p2);
+    } else if (sourceSel && (sourceSel.id==='h2sel' || sourceSel.id==='dh2sel')) {
+        id2 = sourceSel.value; id1 = getIdForName(db.p1);
+    } else {
+        id1 = getIdForName(db.p1); id2 = getIdForName(db.p2);
+    }
+    var p1 = all.find(function(p){ return p.id===id1; });
+    var p2 = all.find(function(p){ return p.id===id2; });
     db.p1 = p1 ? getDisplayName(p1) : 'Blue Player';
     db.p2 = p2 ? getDisplayName(p2) : 'Red Player';
     saveDB();
     updateNameSelects();
     document.getElementById('wn1').textContent = db.p1;
     document.getElementById('wn2').textContent = db.p2;
-    if (diceMode) buildDiceBoard();
 }
 
-document.getElementById('h1sel').addEventListener('change', syncNames);
-document.getElementById('h2sel').addEventListener('change', syncNames);
+document.getElementById('h1sel').addEventListener('change', function(){ syncNames(this); });
+document.getElementById('h2sel').addEventListener('change', function(){ syncNames(this); });
+document.getElementById('dh1sel').addEventListener('change', function(){ syncNames(this); });
+document.getElementById('dh2sel').addEventListener('change', function(){ syncNames(this); });
 
 // == Rolldown detection =============================================
 function getRDIdx() {
@@ -1053,10 +1070,8 @@ function buildDiceBoard() {
     // Build center area (Share for regular, RD banner for Rolldown)
     buildCenterBottom(isRD);
 
-    // Header names
-    var dh1=document.getElementById('dh1'), dh2=document.getElementById('dh2');
-    if (dh1) dh1.textContent = db.p1;
-    if (dh2) dh2.textContent = db.p2;
+    // Header names — populated by updateNameSelects() as working dropdowns
+    updateNameSelects();
 
     renderDiceSheet();
     updateDiceTotals();
