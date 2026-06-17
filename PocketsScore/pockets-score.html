@@ -63,9 +63,10 @@ header p  { font-size: 0.68em; color: #c8b88a; letter-spacing: 0.08em; }
     border-bottom: 1px solid rgba(200,168,75,0.15);
 }
 #mode-btns {
-    display: flex; justify-content: center; align-items: center;
+    display: flex; align-items: center;
     gap: 10px; padding: 5px 10px 4px;
 }
+#mode-btns button { flex: 1; text-align: center; }
 #btn-mode {
     background: rgba(200,168,75,0.12); border: 1px solid rgba(200,168,75,0.3);
     color: #c8a84b; font-family: inherit; font-size: 0.75em;
@@ -240,8 +241,9 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
     position:sticky; top:0; z-index:2;
     border-bottom:1px solid rgba(200,168,75,0.25);
 }
-#dice-score-center thead th:nth-child(2) { background:#1e3060; color:#90c0ff; width:50%; }
-#dice-score-center thead th:nth-child(3) { background:#501818; color:#ff9090; width:50%; }
+#dice-score-center thead th:nth-child(1) { width:24px; }
+#dice-score-center thead th:nth-child(2) { background:#1e3060; color:#90c0ff; width:calc(50% - 12px); }
+#dice-score-center thead th:nth-child(3) { background:#501818; color:#ff9090; width:calc(50% - 12px); }
 #dice-score-center .live-row td { background:rgba(200,168,75,0.06); }
 
 /* TOTAL row */
