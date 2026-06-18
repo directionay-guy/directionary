@@ -859,7 +859,7 @@ function makeCell(idx, player, cls, isRD) {
     });
     inp.addEventListener('blur', function(){
         var v=this.value;
-        if(v!==''){var fl=isRD?15:2; if(parseInt(v)<fl){this.value=String(fl);rounds[idx][player]=fl;saveCur();updateTotals();}}
+        if(v!==''){var fl=isRD?11:2; if(parseInt(v)<fl){this.value=String(fl);rounds[idx][player]=fl;saveCur();updateTotals();}}
         if(idx===rounds.length-1&&!isRD&&rounds[idx].p1!==null&&rounds[idx].p2!==null){
             rounds.push({p1:null,p2:null}); renderSheet();
             setTimeout(function(){ var ins=document.querySelectorAll('.p1c input'); if(ins.length) ins[ins.length-1].focus(); },40);
