@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#1a7a6e">
 <title>GlucoseLog</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root {
     /* Teal palette — light to dark across tabs */
@@ -314,6 +315,9 @@
 
     <!-- LOG TAB -->
     <div class="panel active" id="panel-log">
+      <div class="supabase-notice" id="sync-indicator" style="margin-bottom:12px;">
+        ☁️ Connecting…
+      </div>
       <div class="card" style="margin-bottom:12px;">
         <div class="card-label">Key Numbers to Know</div>
         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
@@ -454,7 +458,7 @@
             </div>
             <div class="field">
               <label>A1C %</label>
-              <input type="number" id="a1c-val" placeholder="e.g. 6.5" step="0.1" min="4" max="15"
+              <input type="number" id="a1c-val" placeholder="e.g. 6.5" step="0.1" min="4" max="15" inputmode="decimal"
                 oninput="updateA1CIndicator()">
             </div>
           </div>
@@ -1136,25 +1140,178 @@ const A1C_DATA = [
 ];
 
 // ============================================================
-// SUPABASE STUB — swap these functions out when ready
+// SUPABASE — connected
 // ============================================================
-// const supabase = createClient('YOUR_URL', 'YOUR_ANON_KEY');
-// async function dbSave(reading) { await supabase.from('readings').insert(reading); }
-// async function dbLoad() { const {data} = await supabase.from('readings').select('*'); return data; }
+const SUPABASE_URL = 'https://yavrrhaayufyhjhqypbr.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_YNXlhg5m5RtxQxuPCRl2og_x5JHDiou';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function getNewReadings() {
+// Local in-memory cache — kept in sync with Supabase so the rest of the
+// app (which calls these functions synchronously in many places) keeps working.
+let _readingsCache = null;   // array of {id,date,time,val,notes}
+let _a1cCache = null;        // array of {id,date,val}
+let _cloudReady = false;
+
+async function initCloudSync() {
+  try {
+    const [{data: readings, error: rErr}, {data: a1c, error: aErr}] = await Promise.all([
+      supabase.from('readings').select('*').order('date').order('time'),
+      supabase.from('a1c_readings').select('*').order('date')
+    ]);
+    if (rErr) throw rErr;
+    if (aErr) throw aErr;
+
+    _readingsCache = (readings || []).map(r => ({id:r.id, date:r.date, time:r.time, val:r.value, notes:r.notes||''}));
+    _a1cCache = (a1c || []).map(r => ({id:r.id, date:r.date, val:parseFloat(r.value)}));
+
+    // One-time migration: if localStorage has data not yet in Supabase, push it up
+    await migrateLocalToCloud();
+
+    _cloudReady = true;
+    updateSyncIndicator('connected');
+    // Re-render whatever is currently visible now that cloud data is in
+    if (typeof renderRecent === 'function') renderRecent();
+    if (typeof histPage !== 'undefined') renderHistory();
+    if (document.getElementById('panel-graph')?.classList.contains('active')) initGraph();
+    if (document.getElementById('panel-charts')?.classList.contains('active')) initChartsTab();
+    if (document.getElementById('panel-a1c')?.classList.contains('active')) initA1C();
+  } catch (err) {
+    console.error('Supabase init failed, falling back to local storage:', err);
+    _cloudReady = false;
+    updateSyncIndicator('offline');
+  }
+}
+
+async function migrateLocalToCloud() {
+  // Migrate readings
+  const localReadings = getLocalReadings();
+  for (const r of localReadings) {
+    const exists = _readingsCache.some(c => c.date === r.date && c.time === r.time);
+    if (!exists) {
+      const {data, error} = await supabase.from('readings').insert({
+        date: r.date, time: r.time, value: r.val, notes: r.notes || ''
+      }).select().single();
+      if (!error && data) {
+        _readingsCache.push({id:data.id, date:data.date, time:data.time, val:data.value, notes:data.notes||''});
+      }
+    }
+  }
+  if (localReadings.length) localStorage.removeItem('glucose_new_migrated_pending');
+
+  // Migrate A1C (only entries beyond the baked-in A1C_DATA defaults)
+  const localA1C = getLocalA1C();
+  for (const r of localA1C) {
+    const exists = _a1cCache.some(c => c.date === r.date && Math.abs(c.val - r.val) < 0.001);
+    if (!exists) {
+      const {data, error} = await supabase.from('a1c_readings').insert({date:r.date, value:r.val}).select().single();
+      if (!error && data) {
+        _a1cCache.push({id:data.id, date:data.date, val:parseFloat(data.value)});
+      }
+    }
+  }
+  _readingsCache.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  _a1cCache.sort((a,b)=>a.date.localeCompare(b.date));
+}
+
+function getLocalReadings() {
   try { return JSON.parse(localStorage.getItem('glucose_new') || '[]'); } catch(e) { return []; }
 }
+function getLocalA1C() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('glucose_a1c') || 'null');
+    return stored || [];
+  } catch(e) { return []; }
+}
+
+function updateSyncIndicator(state) {
+  const el = document.getElementById('sync-indicator');
+  if (!el) return;
+  if (state === 'connected') {
+    el.innerHTML = '☁️ <span style="color:var(--teal-5);font-weight:700;">Synced</span> — your data is backed up and available on all your devices';
+    el.style.background = 'linear-gradient(135deg,#ddf4ef,#c8eee7)';
+  } else if (state === 'syncing') {
+    el.innerHTML = '☁️ Syncing…';
+  } else {
+    el.innerHTML = '⚠️ <span style="color:#9a6200;font-weight:700;">Offline</span> — using local data only, will sync when reconnected';
+    el.style.background = 'linear-gradient(135deg,#fdf0d0,#fae8c0)';
+  }
+}
+
+// ============================================================
+// STORAGE LAYER — same function names the rest of the app already
+// calls, now backed by the Supabase cache (with localStorage fallback)
+// ============================================================
+function getNewReadings() {
+  if (_cloudReady && _readingsCache) {
+    return _readingsCache.map(r => ({date:r.date, time:r.time, val:r.val, notes:r.notes}));
+  }
+  return getLocalReadings();
+}
+
 function saveNewReading(r) {
-  const arr = getNewReadings();
+  // Always write to localStorage immediately for instant UI + offline safety
+  const arr = getLocalReadings();
   arr.push(r);
   arr.sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
   localStorage.setItem('glucose_new', JSON.stringify(arr));
+
+  if (_cloudReady) {
+    // Optimistically update cache, then push to Supabase
+    _readingsCache.push({id:null, date:r.date, time:r.time, val:r.val, notes:r.notes||''});
+    _readingsCache.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+    supabase.from('readings').insert({date:r.date, time:r.time, value:r.val, notes:r.notes||''})
+      .select().single()
+      .then(({data, error}) => {
+        if (error) { console.error('Cloud save failed:', error); updateSyncIndicator('offline'); return; }
+        const cached = _readingsCache.find(c => c.id===null && c.date===r.date && c.time===r.time);
+        if (cached && data) cached.id = data.id;
+      });
+  }
 }
+
 function getA1CData() {
-  try { return JSON.parse(localStorage.getItem('glucose_a1c') || 'null') || A1C_DATA; } catch(e) { return A1C_DATA; }
+  if (_cloudReady && _a1cCache) {
+    return _a1cCache.map(r => ({date:r.date, val:r.val}));
+  }
+  const local = getLocalA1C();
+  return local.length ? local : A1C_DATA;
 }
-function saveA1CData(arr) { localStorage.setItem('glucose_a1c', JSON.stringify(arr)); }
+
+function saveA1CData(arr) {
+  // arr is the FULL desired array (existing pattern in this app pushes/edits then calls this with the whole array)
+  localStorage.setItem('glucose_a1c', JSON.stringify(arr));
+
+  if (_cloudReady) {
+    syncA1CToCloud(arr);
+  }
+}
+
+async function syncA1CToCloud(newArr) {
+  // Diff against cache: find additions, edits, deletions by best-effort matching on date
+  const oldArr = _a1cCache || [];
+
+  // Deletions: items in old cache not present in newArr (by date)
+  const newDates = new Set(newArr.map(r => r.date));
+  for (const old of [...oldArr]) {
+    if (!newDates.has(old.date) && old.id) {
+      await supabase.from('a1c_readings').delete().eq('id', old.id);
+      _a1cCache = _a1cCache.filter(c => c.id !== old.id);
+    }
+  }
+
+  // Additions/edits
+  for (const r of newArr) {
+    const existing = _a1cCache.find(c => c.date === r.date);
+    if (!existing) {
+      const {data, error} = await supabase.from('a1c_readings').insert({date:r.date, value:r.val}).select().single();
+      if (!error && data) _a1cCache.push({id:data.id, date:data.date, val:parseFloat(data.value)});
+    } else if (Math.abs(existing.val - r.val) > 0.001) {
+      const {error} = await supabase.from('a1c_readings').update({value:r.val}).eq('id', existing.id);
+      if (!error) existing.val = r.val;
+    }
+  }
+  _a1cCache.sort((a,b)=>a.date.localeCompare(b.date));
+}
 
 // ============================================================
 // COMBINED DATA
@@ -1222,6 +1379,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('a1c-date')?.addEventListener('change', e => e.target.dataset.userSet = '1');
 
   renderRecent();
+  initCloudSync();
 });
 
 // ============================================================
@@ -1640,7 +1798,7 @@ function startA1CEdit(idx) {
     <div style="display:flex;align-items:center;gap:8px;width:100%;flex-wrap:wrap;">
       <input type="date" id="a1c-edit-date-${idx}" value="${r.date}"
         style="padding:6px 8px;border-radius:6px;border:2px solid var(--accent);background:var(--surface2);font-size:13px;color:var(--text);">
-      <input type="number" id="a1c-edit-val-${idx}" value="${r.val}" step="0.1" min="4" max="15"
+      <input type="number" id="a1c-edit-val-${idx}" value="${r.val}" step="0.1" min="4" max="15" inputmode="decimal"
         style="width:70px;padding:6px 8px;border-radius:6px;border:2px solid var(--accent);background:var(--surface2);font-size:13px;color:var(--text);">
       <button class="edit-save-btn" onclick="saveA1CEdit(${idx})">✓ Save</button>
       <button class="edit-cancel-btn" onclick="cancelA1CEdit()">✕</button>
@@ -1759,9 +1917,22 @@ function saveEdit(date, time) {
   const newVal=parseInt(document.getElementById('edit-val').value);
   const newNotes=document.getElementById('edit-notes').value.trim();
   if(!newVal||newVal<40||newVal>600){alert('Enter a valid reading 40–600.');return;}
-  const arr=getNewReadings();
+
+  // Update localStorage copy
+  const arr=getLocalReadings();
   const idx=arr.findIndex(r=>r.date===date&&r.time===time);
   if(idx>=0){arr[idx].val=newVal;arr[idx].notes=newNotes;localStorage.setItem('glucose_new',JSON.stringify(arr));}
+
+  if (_cloudReady) {
+    const cached = _readingsCache.find(c => c.date===date && c.time===time);
+    if (cached) {
+      cached.val = newVal; cached.notes = newNotes;
+      if (cached.id) {
+        supabase.from('readings').update({value:newVal, notes:newNotes}).eq('id', cached.id)
+          .then(({error}) => { if (error) { console.error('Cloud update failed:', error); updateSyncIndicator('offline'); } });
+      }
+    }
+  }
   editingKey=null; renderHistory(); renderRecent();
 }
 
