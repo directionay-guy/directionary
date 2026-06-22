@@ -547,21 +547,19 @@
       </div>
       <div class="card">
         <div class="card-label">Cloud Sync</div>
-        <div class="settings-row">
+        <div class="settings-row" id="settings-sync-row">
           <div>
-            <div class="settings-label">Supabase sync</div>
-            <div class="settings-sub">Connect to sync across devices</div>
+            <div class="settings-label">Status</div>
+            <div class="settings-sub" id="settings-sync-status">Checking connection…</div>
           </div>
-          <label class="toggle"><input type="checkbox" id="set-supabase"><span class="toggle-slider"></span></label>
+          <span id="settings-sync-dot" style="width:10px;height:10px;border-radius:50%;background:#ccc;flex-shrink:0;"></span>
         </div>
-        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
-          <div class="settings-label">Supabase URL</div>
-          <input type="text" id="set-supa-url" placeholder="https://xxxxx.supabase.co" style="width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:2px solid var(--border-strong);background:#f4fdfb;font-size:13px;color:var(--text);">
-        </div>
-        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
-          <div class="settings-label">Supabase Anon Key</div>
-          <div class="settings-sub" style="color:var(--text3);font-size:12px;margin-bottom:2px;">Found in your Supabase project → Settings → API</div>
-          <input type="text" id="set-supa-key" placeholder="eyJhbGciOiJIUzI1NiIs…" style="width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:2px solid var(--border-strong);background:#f4fdfb;font-size:11px;color:var(--text);font-family:monospace;">
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
+          <div class="settings-label">Project</div>
+          <div style="width:100%;padding:10px 12px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border);font-size:12px;color:var(--text2);font-family:monospace;word-break:break-all;">
+            yavrrhaayufyhjhqypbr.supabase.co
+          </div>
+          <div class="settings-sub" style="margin-top:2px;">Your readings and A1C data sync automatically across all your devices — phone, iPad, and PC.</div>
         </div>
       </div>
       <div class="card">
@@ -1225,15 +1223,26 @@ function getLocalA1C() {
 
 function updateSyncIndicator(state) {
   const el = document.getElementById('sync-indicator');
-  if (!el) return;
+  const settingsStatus = document.getElementById('settings-sync-status');
+  const settingsDot = document.getElementById('settings-sync-dot');
   if (state === 'connected') {
-    el.innerHTML = '☁️ <span style="color:var(--teal-5);font-weight:700;">Synced</span> — your data is backed up and available on all your devices';
-    el.style.background = 'linear-gradient(135deg,#ddf4ef,#c8eee7)';
+    if (el) {
+      el.innerHTML = '☁️ <span style="color:var(--teal-5);font-weight:700;">Synced</span> — your data is backed up and available on all your devices';
+      el.style.background = 'linear-gradient(135deg,#ddf4ef,#c8eee7)';
+    }
+    if (settingsStatus) settingsStatus.textContent = 'Connected — syncing across all your devices';
+    if (settingsDot) settingsDot.style.background = '#0f8a6a';
   } else if (state === 'syncing') {
-    el.innerHTML = '☁️ Syncing…';
+    if (el) el.innerHTML = '☁️ Syncing…';
+    if (settingsStatus) settingsStatus.textContent = 'Syncing…';
+    if (settingsDot) settingsDot.style.background = '#9a6200';
   } else {
-    el.innerHTML = '⚠️ <span style="color:#9a6200;font-weight:700;">Offline</span> — using local data only, will sync when reconnected';
-    el.style.background = 'linear-gradient(135deg,#fdf0d0,#fae8c0)';
+    if (el) {
+      el.innerHTML = '⚠️ <span style="color:#9a6200;font-weight:700;">Offline</span> — using local data only, will sync when reconnected';
+      el.style.background = 'linear-gradient(135deg,#fdf0d0,#fae8c0)';
+    }
+    if (settingsStatus) settingsStatus.textContent = 'Offline — using local data, will sync when reconnected';
+    if (settingsDot) settingsDot.style.background = '#b03020';
   }
 }
 
