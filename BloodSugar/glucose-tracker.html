@@ -1142,7 +1142,16 @@ const A1C_DATA = [
 // ============================================================
 const SUPABASE_URL = 'https://yavrrhaayufyhjhqypbr.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_YNXlhg5m5RtxQxuPCRl2og_x5JHDiou';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let sb = null;
+try {
+  if (window.supabase && typeof window.supabase.createClient === 'function') {
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  } else {
+    console.error('Supabase library failed to load — running offline.');
+  }
+} catch (e) {
+  console.error('Supabase client init error:', e);
+}
 
 // Local in-memory cache — kept in sync with Supabase so the rest of the
 // app (which calls these functions synchronously in many places) keeps working.
@@ -1151,10 +1160,15 @@ let _a1cCache = null;        // array of {id,date,val}
 let _cloudReady = false;
 
 async function initCloudSync() {
+  if (!sb) {
+    console.warn('Supabase client not available — staying in offline/local mode.');
+    updateSyncIndicator('offline');
+    return;
+  }
   try {
     const [{data: readings, error: rErr}, {data: a1c, error: aErr}] = await Promise.all([
-      supabase.from('readings').select('*').order('date').order('time'),
-      supabase.from('a1c_readings').select('*').order('date')
+      sb.from('readings').select('*').order('date').order('time'),
+      sb.from('a1c_readings').select('*').order('date')
     ]);
     if (rErr) throw rErr;
     if (aErr) throw aErr;
@@ -1186,7 +1200,7 @@ async function migrateLocalToCloud() {
   for (const r of localReadings) {
     const exists = _readingsCache.some(c => c.date === r.date && c.time === r.time);
     if (!exists) {
-      const {data, error} = await supabase.from('readings').insert({
+      const {data, error} = await sb.from('readings').insert({
         date: r.date, time: r.time, value: r.val, notes: r.notes || ''
       }).select().single();
       if (!error && data) {
@@ -1201,7 +1215,7 @@ async function migrateLocalToCloud() {
   for (const r of localA1C) {
     const exists = _a1cCache.some(c => c.date === r.date && Math.abs(c.val - r.val) < 0.001);
     if (!exists) {
-      const {data, error} = await supabase.from('a1c_readings').insert({date:r.date, value:r.val}).select().single();
+      const {data, error} = await sb.from('a1c_readings').insert({date:r.date, value:r.val}).select().single();
       if (!error && data) {
         _a1cCache.push({id:data.id, date:data.date, val:parseFloat(data.value)});
       }
@@ -1268,7 +1282,7 @@ function saveNewReading(r) {
     // Optimistically update cache, then push to Supabase
     _readingsCache.push({id:null, date:r.date, time:r.time, val:r.val, notes:r.notes||''});
     _readingsCache.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
-    supabase.from('readings').insert({date:r.date, time:r.time, value:r.val, notes:r.notes||''})
+    sb.from('readings').insert({date:r.date, time:r.time, value:r.val, notes:r.notes||''})
       .select().single()
       .then(({data, error}) => {
         if (error) { console.error('Cloud save failed:', error); updateSyncIndicator('offline'); return; }
@@ -1303,7 +1317,7 @@ async function syncA1CToCloud(newArr) {
   const newDates = new Set(newArr.map(r => r.date));
   for (const old of [...oldArr]) {
     if (!newDates.has(old.date) && old.id) {
-      await supabase.from('a1c_readings').delete().eq('id', old.id);
+      await sb.from('a1c_readings').delete().eq('id', old.id);
       _a1cCache = _a1cCache.filter(c => c.id !== old.id);
     }
   }
@@ -1312,10 +1326,10 @@ async function syncA1CToCloud(newArr) {
   for (const r of newArr) {
     const existing = _a1cCache.find(c => c.date === r.date);
     if (!existing) {
-      const {data, error} = await supabase.from('a1c_readings').insert({date:r.date, value:r.val}).select().single();
+      const {data, error} = await sb.from('a1c_readings').insert({date:r.date, value:r.val}).select().single();
       if (!error && data) _a1cCache.push({id:data.id, date:data.date, val:parseFloat(data.value)});
     } else if (Math.abs(existing.val - r.val) > 0.001) {
-      const {error} = await supabase.from('a1c_readings').update({value:r.val}).eq('id', existing.id);
+      const {error} = await sb.from('a1c_readings').update({value:r.val}).eq('id', existing.id);
       if (!error) existing.val = r.val;
     }
   }
@@ -1937,7 +1951,7 @@ function saveEdit(date, time) {
     if (cached) {
       cached.val = newVal; cached.notes = newNotes;
       if (cached.id) {
-        supabase.from('readings').update({value:newVal, notes:newNotes}).eq('id', cached.id)
+        sb.from('readings').update({value:newVal, notes:newNotes}).eq('id', cached.id)
           .then(({error}) => { if (error) { console.error('Cloud update failed:', error); updateSyncIndicator('offline'); } });
       }
     }
