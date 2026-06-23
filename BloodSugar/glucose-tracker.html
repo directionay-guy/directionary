@@ -1645,11 +1645,21 @@ function renderWeekChart() {
               const m2=chart.getDatasetMeta(d);
               if(m2.data[i] && m2.data[i].y < top) top=m2.data[i].y;
             }
+            // purple top border to flag multi-reading days
             ctx2.save();
-            ctx2.fillStyle='rgba(10,60,50,0.85)';
-            ctx2.font='bold 10px system-ui';
+            ctx2.strokeStyle = '#9333ea';
+            ctx2.lineWidth = 3;
+            ctx2.beginPath();
+            ctx2.moveTo(bar.x - bar.width/2, top);
+            ctx2.lineTo(bar.x + bar.width/2, top);
+            ctx2.stroke();
+            ctx2.restore();
+            // purple count badge
+            ctx2.save();
+            ctx2.fillStyle='#9333ea';
+            ctx2.font='bold 11px system-ui';
             ctx2.textAlign='center';
-            ctx2.fillText('×'+countLabels[i], bar.x, top-5);
+            ctx2.fillText('×'+countLabels[i], bar.x, top-7);
             ctx2.restore();
           }
         });
@@ -1760,7 +1770,33 @@ function initGraph() {
         y:{ min:50, max:280, stacked:isBar, grid:{color:'rgba(0,80,60,0.06)'}, ticks:{color:'#5a9990',font:{size:10}} },
         x:{ stacked:isBar, grid:{display:false}, ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:10,maxRotation:0} }
       }
-    }
+    },
+    plugins: isBar ? [{
+      id:'multiReadingFlag',
+      afterDraw(chart) {
+        const ctx2 = chart.ctx;
+        disp.forEach((d,i) => {
+          if (d.count > 1) {
+            const meta = chart.getDatasetMeta(0);
+            const bar = meta.data[i];
+            if (!bar) return;
+            let top = bar.y;
+            for (let dsIdx=0; dsIdx<mainDatasets.length; dsIdx++) {
+              const m2 = chart.getDatasetMeta(dsIdx);
+              if (m2.data[i] && m2.data[i].y < top) top = m2.data[i].y;
+            }
+            ctx2.save();
+            ctx2.strokeStyle = '#9333ea';
+            ctx2.lineWidth = 2;
+            ctx2.beginPath();
+            ctx2.moveTo(bar.x - bar.width/2, top);
+            ctx2.lineTo(bar.x + bar.width/2, top);
+            ctx2.stroke();
+            ctx2.restore();
+          }
+        });
+      }
+    }] : []
   });
 }
 
@@ -1898,27 +1934,40 @@ function renderHistory() {
   const search = document.getElementById('hist-search').value.toLowerCase();
   const filter = document.getElementById('hist-filter').value;
   let filtered = all.filter(r => {
-    if(search && !r[0].includes(search) && !String(r[2]).includes(search) && !fmtDate(r[0]).toLowerCase().includes(search)) return false;
     if(filter==='high'&&r[2]<=180) return false;
     if(filter==='watch'&&(r[2]<141||r[2]>180)) return false;
     if(filter==='normal'&&(r[2]<70||r[2]>140)) return false;
     if(filter==='low'&&r[2]>=70) return false;
     return true;
   });
+  // search runs WITHIN whatever the dropdown already narrowed down to
+  if (search) {
+    filtered = filtered.filter(r =>
+      r[0].includes(search) ||
+      String(r[2]).includes(search) ||
+      fmtDate(r[0]).toLowerCase().includes(search) ||
+      (r[3]||'').toLowerCase().includes(search)
+    );
+  }
   const total=filtered.length, totalPages=Math.ceil(total/HIST_PAGE_SIZE);
   if(histPage>=totalPages) histPage=Math.max(0,totalPages-1);
   const page=filtered.slice(histPage*HIST_PAGE_SIZE,(histPage+1)*HIST_PAGE_SIZE);
-  document.getElementById('hist-count').textContent=`${total.toLocaleString()} readings`;
+
+  const grandTotal = all.length;
+  const pct = grandTotal ? Math.round(total/grandTotal*100) : 0;
+  document.getElementById('hist-count').textContent =
+    grandTotal ? `${total.toLocaleString()} of ${grandTotal.toLocaleString()} readings (${pct}%)` : '0 readings';
+
   document.getElementById('hist-body').innerHTML=page.map(r=>{
     const key=r[0]+'|'+r[1];
     const isNew = getNewReadings().some(n=>n.date===r[0]&&n.time===r[1]);
     if(editingKey===key) {
       return `<tr class="edit-row">
-        <td class="date-col">${fmtDate(r[0])}</td>
-        <td class="time-col">${fmtTime(r[1])}</td>
-        <td><input id="edit-val" type="number" value="${r[2]}" style="width:72px"></td>
-        <td><input id="edit-notes" type="text" value="${r[3]||''}" style="width:80px;padding:4px 6px;border:2px solid var(--border-strong);border-radius:6px;font-size:13px;"></td>
-        <td><button class="edit-save-btn" onclick="saveEdit('${r[0]}','${r[1]}')">✓</button><button class="edit-cancel-btn" onclick="cancelEdit()">✕</button></td>
+        <td><input id="edit-date" type="date" value="${r[0]}" style="width:120px;padding:4px 6px;border:2px solid var(--accent);border-radius:6px;font-size:13px;background:var(--surface2);color:var(--text);"></td>
+        <td><input id="edit-time" type="time" value="${r[1]}" style="width:100px;padding:4px 6px;border:2px solid var(--accent);border-radius:6px;font-size:13px;background:var(--surface2);color:var(--text);"></td>
+        <td><input id="edit-val" type="number" value="${r[2]}" style="width:64px;padding:4px 6px;border:2px solid var(--accent);border-radius:6px;font-size:13px;background:var(--surface2);color:var(--text);"></td>
+        <td><input id="edit-notes" type="text" value="${(r[3]||'').replace(/"/g,'&quot;')}" style="width:90px;padding:4px 6px;border:2px solid var(--border-strong);border-radius:6px;font-size:13px;background:var(--surface2);color:var(--text);"></td>
+        <td style="white-space:nowrap;"><button class="edit-save-btn" onclick="saveEdit('${r[0]}','${r[1]}')">✓</button><button class="edit-cancel-btn" onclick="cancelEdit()">✕</button></td>
       </tr>`;
     }
     return `<tr>
@@ -1926,7 +1975,7 @@ function renderHistory() {
       <td class="time-col">${fmtTime(r[1])}</td>
       <td class="val-col ${valClass(r[2])}">${r[2]}${r[0] && getNewReadings().filter(n=>n.date===r[0]).length>1?'<span style="font-size:9px;color:var(--text3);margin-left:3px;">+</span>':''}</td>
       <td style="color:var(--text3);font-size:12px;">${r[3]==='legacy'?'<span style="font-size:10px;color:var(--text3)">legacy</span>':r[3]||''}</td>
-      <td>${isNew?`<button class="edit-btn" onclick="startEdit('${r[0]}','${r[1]}')">✎</button>`:''}</td>
+      <td style="white-space:nowrap;">${isNew?`<button class="edit-btn" onclick="startEdit('${r[0]}','${r[1]}')">✎</button><button class="edit-btn" style="color:#b03020;border-color:#b03020;margin-left:4px;" onclick="deleteReading('${r[0]}','${r[1]}')">✕</button>`:''}</td>
     </tr>`;
   }).join('');
   document.getElementById('page-info').textContent=total?`${histPage+1} / ${totalPages}`:'—';
@@ -1934,24 +1983,56 @@ function renderHistory() {
   document.getElementById('next-btn').disabled=histPage>=totalPages-1;
 }
 
-function startEdit(date, time) { editingKey=date+'|'+time; renderHistory(); }
-function cancelEdit() { editingKey=null; renderHistory(); }
-function saveEdit(date, time) {
-  const newVal=parseInt(document.getElementById('edit-val').value);
-  const newNotes=document.getElementById('edit-notes').value.trim();
-  if(!newVal||newVal<40||newVal>600){alert('Enter a valid reading 40–600.');return;}
+function deleteReading(date, time) {
+  if (!confirm(`Delete reading from ${fmtDate(date)} at ${fmtTime(time)}?`)) return;
 
-  // Update localStorage copy
-  const arr=getLocalReadings();
-  const idx=arr.findIndex(r=>r.date===date&&r.time===time);
-  if(idx>=0){arr[idx].val=newVal;arr[idx].notes=newNotes;localStorage.setItem('glucose_new',JSON.stringify(arr));}
+  // Remove from localStorage
+  const arr = getLocalReadings().filter(r => !(r.date===date && r.time===time));
+  localStorage.setItem('glucose_new', JSON.stringify(arr));
 
   if (_cloudReady) {
-    const cached = _readingsCache.find(c => c.date===date && c.time===time);
+    const idx = _readingsCache.findIndex(c => c.date===date && c.time===time);
+    if (idx >= 0) {
+      const removed = _readingsCache[idx];
+      _readingsCache.splice(idx, 1);
+      if (removed.id) {
+        sb.from('readings').delete().eq('id', removed.id)
+          .then(({error}) => { if (error) { console.error('Cloud delete failed:', error); updateSyncIndicator('offline'); } });
+      }
+    }
+  }
+  renderHistory();
+  renderRecent();
+}
+
+function startEdit(date, time) { editingKey=date+'|'+time; renderHistory(); }
+function cancelEdit() { editingKey=null; renderHistory(); }
+function saveEdit(origDate, origTime) {
+  const newDate = document.getElementById('edit-date').value;
+  const newTime = document.getElementById('edit-time').value;
+  const newVal = parseInt(document.getElementById('edit-val').value);
+  const newNotes = document.getElementById('edit-notes').value.trim();
+  if (!newDate || !newTime) { alert('Date and time are required.'); return; }
+  if (!newVal || newVal < 40 || newVal > 999) { alert('Enter a valid reading 40–999.'); return; }
+
+  // Update localStorage copy — match on the ORIGINAL date/time, write the NEW values
+  const arr = getLocalReadings();
+  const idx = arr.findIndex(r => r.date===origDate && r.time===origTime);
+  if (idx >= 0) {
+    arr[idx].date = newDate; arr[idx].time = newTime;
+    arr[idx].val = newVal; arr[idx].notes = newNotes;
+    arr.sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+    localStorage.setItem('glucose_new', JSON.stringify(arr));
+  }
+
+  if (_cloudReady) {
+    const cached = _readingsCache.find(c => c.date===origDate && c.time===origTime);
     if (cached) {
+      cached.date = newDate; cached.time = newTime;
       cached.val = newVal; cached.notes = newNotes;
+      _readingsCache.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
       if (cached.id) {
-        sb.from('readings').update({value:newVal, notes:newNotes}).eq('id', cached.id)
+        sb.from('readings').update({date:newDate, time:newTime, value:newVal, notes:newNotes}).eq('id', cached.id)
           .then(({error}) => { if (error) { console.error('Cloud update failed:', error); updateSyncIndicator('offline'); } });
       }
     }
@@ -2031,7 +2112,7 @@ function renderYearly() {
   const daily=getDailyData();
   const byYear={};
   daily.forEach(d=>{const y=d.date.split('-')[0];if(!byYear[y])byYear[y]=[];byYear[y].push(d.avg);});
-  const years=Object.keys(byYear).sort();
+  const years=Object.keys(byYear).sort().reverse(); // most recent year first
   const avgs=years.map(y=>Math.round(byYear[y].reduce((a,b)=>a+b,0)/byYear[y].length));
   const trendDS=makeTrendDataset(avgs,'Trend');
   const avgDS=makeAvgDataset(Math.round(avgs.reduce((a,b)=>a+b,0)/avgs.length),avgs.length,'Average');
@@ -2061,7 +2142,7 @@ function renderYearly() {
     };
     html+=`<div class="card"><div class="card-label">${y} monthly</div><div style="position:relative;width:100%;height:140px;"><canvas id="ym-${y}"></canvas></div></div>`;
   });
-  container.innerHTML=html;
+  container.innerHTML=html; // years already newest-first, so cards render newest-first too
   years.forEach(y=>{
     const d=window['_ym_'+y];
     const avg2=Math.round(d.avgs.reduce((a,b)=>a+b,0)/d.avgs.length);
@@ -2137,7 +2218,33 @@ function renderMonthly(){
         y:{min:0,max:300,stacked:true,grid:{color:'rgba(0,80,60,0.06)'},ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:5}},
         x:{stacked:true,grid:{display:false},ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:16}}
       }
-    }
+    },
+    plugins:[{
+      id:'multiReadingFlagMonth',
+      afterDraw(chart) {
+        const ctx2 = chart.ctx;
+        mData.forEach((d,i) => {
+          if (d.count > 1) {
+            const meta = chart.getDatasetMeta(0);
+            const bar = meta.data[i];
+            if (!bar) return;
+            let top = bar.y;
+            for (let dsIdx=0; dsIdx<stackedDS.length; dsIdx++) {
+              const m2 = chart.getDatasetMeta(dsIdx);
+              if (m2.data[i] && m2.data[i].y < top) top = m2.data[i].y;
+            }
+            ctx2.save();
+            ctx2.strokeStyle = '#9333ea';
+            ctx2.lineWidth = 2;
+            ctx2.beginPath();
+            ctx2.moveTo(bar.x - bar.width/2, top);
+            ctx2.lineTo(bar.x + bar.width/2, top);
+            ctx2.stroke();
+            ctx2.restore();
+          }
+        });
+      }
+    }]
   });
 }
 </script>
