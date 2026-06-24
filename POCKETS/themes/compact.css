@@ -139,6 +139,7 @@ body.theme-compact {
 .theme-compact .compact-sel {
     display: inline-block !important;
     background-color: var(--navy-mid);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M0 0L5 6L10 0Z' fill='%23c8a84b'/%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
     background-position: right 4px center !important;
     background-size: 9px !important;
@@ -209,7 +210,11 @@ body.theme-compact {
     font-size: 0.68em !important;
     padding: 1px 5px !important;
     border-radius: 3px;
+    color: var(--ink) !important;
+    background: rgba(42,21,8,0.10);
+    border-color: rgba(42,21,8,0.35);
 }
+.theme-compact .round-info .help-btn:hover { background: rgba(42,21,8,0.18); }
 
 /* ==========================================================
    ACTION PANEL — reduced height
@@ -318,8 +323,6 @@ body.theme-compact {
     align-items: center;
     height: 38px;
     min-height: 38px;
-    max-height: 38px;
-    overflow: hidden;
     padding: 2px 0;
     margin-bottom: 3px;
 }
@@ -333,6 +336,11 @@ body.theme-compact {
 .theme-compact .player-area.red  svg.dice .dice-dot { fill: var(--cream); }
 /* Scale dice down slightly */
 .theme-compact .dice-area svg.dice { width: 33px !important; height: 33px !important; }
+.theme-compact .dice.saved-tint .dice-face { fill: #d4b568 !important; stroke: var(--gold) !important; }
+.theme-compact .dice.saved-tint .dice-dot  { fill: #2a1508 !important; }
+.theme-compact .dice.saved-tint {
+    filter: drop-shadow(0 0 4px rgba(212,181,104,0.6));
+}
 /* Round score summary shown in dice area after scoring */
 .theme-compact .round-score-display {
     color: var(--parchment-hi) !important;
@@ -670,4 +678,36 @@ body.has-css-fullscreen { overflow: hidden; }
 }
 .game-container.playing-as-red #redScoreArea {
     background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy) 100%) !important;
+}
+/* Title text swaps to match the new background tone */
+.game-container.playing-as-red .player-header.blue-player,
+.game-container.playing-as-red .blue-player {
+    color: #e07070 !important;
+}
+.game-container.playing-as-red .player-header.red-player,
+.game-container.playing-as-red .red-player {
+    color: #7090e0 !important;
+}
+/* Main dice fill colors swap to match */
+.game-container.playing-as-red .player-area.blue svg.dice .dice-face {
+    fill: var(--burgundy) !important;
+}
+.game-container.playing-as-red .player-area.red svg.dice .dice-face {
+    fill: var(--navy-mid) !important;
+}
+/* Pocket active-highlight swaps to match */
+.game-container.playing-as-red .player-area.blue .pocket.active {
+    background: rgba(180,60,60,0.25) !important;
+    border-color: #cc6666 !important;
+}
+.game-container.playing-as-red .player-area.red .pocket.active {
+    background: rgba(100,130,220,0.25) !important;
+    border-color: #6699dd !important;
+}
+/* Roll-for-first dice swap to match */
+.game-container.playing-as-red #blueRolloffDie svg.dice .dice-face {
+    fill: var(--burgundy) !important;
+}
+.game-container.playing-as-red #redRolloffDie svg.dice .dice-face {
+    fill: var(--navy-mid) !important;
 }
