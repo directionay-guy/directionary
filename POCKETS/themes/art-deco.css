@@ -391,9 +391,9 @@ body.theme-art-deco::before {
 .theme-art-deco .btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
 
 /* ==========================================================
-   SHARE DIFFERENCE
+   TAKE DIFFERENCE
    ========================================================== */
-.theme-art-deco .share-difference {
+.theme-art-deco .take-difference {
     background: var(--bg-panel);
     border: 1px solid var(--emerald-deep);
     color: var(--emerald);
@@ -804,15 +804,15 @@ body.theme-art-deco::before {
     position: absolute;
     top: 4px; right: 6px;
 }
-.theme-art-deco .share-pocket { grid-column: span 2; }
+.theme-art-deco .take-pocket { grid-column: span 2; }
 .theme-art-deco .save-pocket  { grid-column: span 2; }
 
-/* Share pocket score — Blue top-left, Red top-right */
-.theme-art-deco .share-pocket .pocket-score {
+/* Take pocket score — Blue top-left, Red top-right */
+.theme-art-deco .take-pocket .pocket-score {
     position: absolute; top: 4px; min-height: auto;
 }
-.theme-art-deco .player-area.blue .share-pocket .pocket-score { left: 5px;  right: auto; }
-.theme-art-deco .player-area.red  .share-pocket .pocket-score { right: 5px; left: auto;  }
+.theme-art-deco .player-area.blue .take-pocket .pocket-score { left: 5px;  right: auto; }
+.theme-art-deco .player-area.red  .take-pocket .pocket-score { right: 5px; left: auto;  }
 
 /* Winner panel fills — team color per winning player */
 .theme-art-deco #blueScoreArea.winner {
@@ -1424,3 +1424,9 @@ body.has-css-fullscreen { overflow: hidden; }
 .game-container.playing-as-red .player-area.red::before {
     background: rgba(80, 150, 220, 0.55) !important;
 }
+
+/* Rolloff die color swap when playing as Red */
+.game-container.playing-as-red #blueRolloffDie .dice { background: linear-gradient(145deg, #501a1a, #380e0e) !important; border-color: #cc4848 !important; }
+.game-container.playing-as-red #blueRolloffDie .dice-dot { fill: #f0a8a8 !important; }
+.game-container.playing-as-red #redRolloffDie  .dice { background: linear-gradient(145deg, #1a3050, #0e1c38) !important; border-color: #4a90e2 !important; }
+.game-container.playing-as-red #redRolloffDie  .dice-dot { fill: #87ceeb !important; }
