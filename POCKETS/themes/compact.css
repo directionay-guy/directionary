@@ -222,8 +222,9 @@ body.theme-compact {
 .theme-compact .action-panel {
     background: linear-gradient(180deg, #3a5040 0%, #2a3c30 100%);
     border-bottom: 1px solid var(--gold-dim);
-    height: 90px !important;
+    height: 62px !important;
     margin-bottom: 0;
+    font-size: 0.88em;
 }
 .theme-compact .action-content { background: transparent; }
 /* Force ALL text in action panel to parchment on dark green */
@@ -277,8 +278,8 @@ body.theme-compact {
     fill: var(--burgundy); stroke: var(--gold); stroke-width: 1.5;
 }
 .theme-compact #redRolloffDie svg.dice .dice-dot { fill: var(--cream); }
-.theme-compact .rolloff-die { width: 48px !important; height: 48px !important; }
-.theme-compact .rolloff-die svg.dice { width: 42px !important; height: 42px !important; }
+.theme-compact .rolloff-die { width: 38px !important; height: 38px !important; }
+.theme-compact .rolloff-die svg.dice { width: 34px !important; height: 34px !important; }
 .theme-compact .rolloff-result { color: var(--parchment); font-size: 0.85em; }
 .theme-compact .rolloff-vs { color: var(--gold-dim); }
 
@@ -378,9 +379,9 @@ body.theme-compact {
     border: 1px solid var(--gold-dim);
     border-radius: 3px;
     padding: 2px 3px;
-    min-height: 46px;
-    height: 46px;
-    max-height: 46px;
+    min-height: 56px;
+    height: 56px;
+    max-height: 56px;
     box-sizing: border-box;
     overflow: hidden;
     cursor: pointer;
@@ -428,16 +429,16 @@ body.theme-compact {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 26px;
-    min-height: 26px;
-    max-height: 26px;
+    height: 32px;
+    min-height: 32px;
+    max-height: 32px;
     overflow: hidden;
     gap: 2px;
     flex-shrink: 0;
 }
 .theme-compact .pocket-dice svg.dice {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     flex-shrink: 0;
 }
 .theme-compact .pocket-score {
@@ -703,11 +704,4 @@ body.has-css-fullscreen { overflow: hidden; }
 .game-container.playing-as-red .player-area.red .pocket.active {
     background: rgba(100,130,220,0.25) !important;
     border-color: #6699dd !important;
-}
-/* Roll-for-first dice swap to match */
-.game-container.playing-as-red #blueRolloffDie svg.dice .dice-face {
-    fill: var(--burgundy) !important;
-}
-.game-container.playing-as-red #redRolloffDie svg.dice .dice-face {
-    fill: var(--navy-mid) !important;
 }
