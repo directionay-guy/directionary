@@ -369,9 +369,9 @@ body.theme-compact {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 2px;
-    height: 142px;
-    min-height: 142px;
-    max-height: 142px;
+    height: 172px;
+    min-height: 172px;
+    max-height: 172px;
     overflow: hidden;
 }
 /* Take and Save span both columns */
