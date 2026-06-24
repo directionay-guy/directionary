@@ -222,10 +222,16 @@ body.theme-compact {
 .theme-compact .action-panel {
     background: linear-gradient(180deg, #3a5040 0%, #2a3c30 100%);
     border-bottom: 1px solid var(--gold-dim);
-    height: 62px !important;
+    height: 70px !important;
     margin-bottom: 0;
     font-size: 0.88em;
 }
+.theme-compact .rolloff-prompt {
+    font-size: 0.78em !important;
+    margin-bottom: 3px !important;
+}
+.theme-compact .coin-flip { gap: 2px !important; }
+.theme-compact .rolloff-center { min-width: 70px !important; gap: 0 !important; }
 .theme-compact .action-content { background: transparent; }
 /* Force ALL text in action panel to parchment on dark green */
 .theme-compact .action-panel,
@@ -429,16 +435,16 @@ body.theme-compact {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 32px;
-    min-height: 32px;
-    max-height: 32px;
+    height: 28px;
+    min-height: 28px;
+    max-height: 28px;
     overflow: hidden;
     gap: 2px;
     flex-shrink: 0;
 }
 .theme-compact .pocket-dice svg.dice {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     flex-shrink: 0;
 }
 .theme-compact .pocket-score {
