@@ -73,24 +73,24 @@ function calculateKeepScore(keep1Dice, keep2Dice) {
     return keep1Total + keep2Total;
 }
 
-function calculateShareBonus(blueShareDie, redShareDie, originalRoll, isBluePlayer) {
-    if (!blueShareDie || !redShareDie) return 0;
+function calculateTakeBonus(blueTakeDie, redTakeDie, originalRoll, isBluePlayer) {
+    if (!blueTakeDie || !redTakeDie) return 0;
     
     let bonus = 0;
     
-    if (isBluePlayer && blueShareDie > redShareDie) {
-        bonus = blueShareDie - redShareDie;
+    if (isBluePlayer && blueTakeDie > redTakeDie) {
+        bonus = blueTakeDie - redTakeDie;
         bonus += calculateBonusPoints(originalRoll);
-    } else if (!isBluePlayer && redShareDie > blueShareDie) {
-        bonus = redShareDie - blueShareDie;
+    } else if (!isBluePlayer && redTakeDie > blueTakeDie) {
+        bonus = redTakeDie - blueTakeDie;
         bonus += calculateBonusPoints(originalRoll);
     }
     
     return bonus;
 }
 
-function calculateRoundTotal(keepScore, shareBonus) {
-    return keepScore + shareBonus;
+function calculateRoundTotal(keepScore, takeBonus) {
+    return keepScore + takeBonus;
 }
 
 function calculateFinalRoundScore(allDice) {
@@ -103,20 +103,20 @@ function calculateFinalRoundScore(allDice) {
     };
 }
 
-function getScoreBreakdown(pockets, originalRoll, opponentShareDie) {
+function getScoreBreakdown(pockets, originalRoll, opponentTakeDie) {
     const keepScore = calculateKeepScore(pockets.keep1, pockets.keep2);
-    const shareBonus = calculateShareBonus(
-        pockets.share?.[0], 
-        opponentShareDie, 
+    const takeBonus = calculateTakeBonus(
+        pockets.take?.[0], 
+        opponentTakeDie, 
         originalRoll, 
         true
     );
     
     return {
         keep: keepScore,
-        shareBonus,
-        total: keepScore + shareBonus,
-        comboDescription: shareBonus > 0 ? getBonusDescription(originalRoll) : "No share bonus"
+        takeBonus,
+        total: keepScore + takeBonus,
+        comboDescription: takeBonus > 0 ? getBonusDescription(originalRoll) : "No take bonus"
     };
 }
 
@@ -176,7 +176,7 @@ function validateDiceRoll(dice) {
 }
 
 function validatePocketPlacement(pockets) {
-    const requiredPockets = ['keep1', 'keep2', 'share', 'save'];
+    const requiredPockets = ['keep1', 'keep2', 'take', 'save'];
     return requiredPockets.every(pocket => {
         if (!pockets[pocket]) return true; // Empty pocket is valid
         return validateDiceRoll(pockets[pocket]);
@@ -265,8 +265,8 @@ function calculateOptimalStrategy(diceRoll, gameState) {
     const bonus = calculateBonusPoints(dice);
     if (bonus > 0) {
         suggestions.push({
-            action: "Share for combo bonus",
-            reason: `${getBonusDescription(dice)} - use highest die in Share pocket`,
+            action: "Take for combo bonus",
+            reason: `${getBonusDescription(dice)} - use highest die in Take pocket`,
             priority: "medium"
         });
     }
@@ -296,8 +296,8 @@ function predictRoundOutcome(blueDice, redDice, blueStrategy, redStrategy) {
     
     blueOptions.forEach(bluePlace => {
         redOptions.forEach(redPlace => {
-            const blueScore = calculateScenarioScore(bluePlace, redPlace.share?.[0] || 0, blueDice);
-            const redScore = calculateScenarioScore(redPlace, bluePlace.share?.[0] || 0, redDice);
+            const blueScore = calculateScenarioScore(bluePlace, redPlace.take?.[0] || 0, blueDice);
+            const redScore = calculateScenarioScore(redPlace, bluePlace.take?.[0] || 0, redDice);
             
             scenarios.push({
                 blueScore,
@@ -333,7 +333,7 @@ function generatePlacementOptions(dice) {
                     options.push({
                         keep1: [dice[i]],
                         keep2: [dice[j]],
-                        share: [dice[k]],
+                        take: [dice[k]],
                         save: [dice[l]]
                     });
                 }
@@ -344,15 +344,15 @@ function generatePlacementOptions(dice) {
     return options;
 }
 
-function calculateScenarioScore(placement, opponentShare, originalDice) {
+function calculateScenarioScore(placement, opponentTake, originalDice) {
     const keepScore = calculateKeepScore(placement.keep1, placement.keep2);
-    const shareBonus = calculateShareBonus(
-        placement.share?.[0],
-        opponentShare,
+    const takeBonus = calculateTakeBonus(
+        placement.take?.[0],
+        opponentTake,
         originalDice,
         true
     );
-    return keepScore + shareBonus;
+    return keepScore + takeBonus;
 }
 
 // Export functions for use in other modules
@@ -360,7 +360,7 @@ window.PocketsScoring = {
     calculateBonusPoints,
     getBonusDescription,
     calculateKeepScore,
-    calculateShareBonus,
+    calculateTakeBonus,
     calculateRoundTotal,
     calculateFinalRoundScore,
     getScoreBreakdown,
