@@ -203,15 +203,15 @@ select.theme-subtitle {
             text-shadow: 0 0 18px rgba(220,220,220,0.9), 0 0 36px rgba(200,200,200,0.5);
         }
 
-        /* ── Share result bottom strip ── */
-        .action-share-result {
+        /* ── Take result bottom strip ── */
+        .action-take-result {
             position: absolute; bottom: 7px; left: 0; right: 0;
             text-align: center; font-size: 0.82em;
             opacity: 0; transform: translateY(-6px);
             transition: opacity 0.6s ease, transform 0.6s ease;
             pointer-events: none; z-index: 2;
         }
-        .action-share-result.visible { opacity: 1; transform: translateY(0); }
+        .action-take-result.visible { opacity: 1; transform: translateY(0); }
 
         /* ── Selected die ── */
         .dice.selected {
@@ -761,12 +761,12 @@ select.theme-subtitle {
                 <div class="winner-pulse" id="winnerPulseText"></div>
             </div>
 
-            <!-- Persistent bottom strip (share result, round 10 reminder, etc.) -->
-            <div class="action-share-result hidden" id="actionShareResult"></div>
+            <!-- Persistent bottom strip (take result, round 10 reminder, etc.) -->
+            <div class="action-take-result hidden" id="actionTakeResult"></div>
         </div>
 
         <!-- Hidden, kept for JS compatibility -->
-        <div class="share-difference hidden" id="shareDifference"></div>
+        <div class="take-difference hidden" id="takeDifference"></div>
 
         <!-- Pre-Final Screen (kept in DOM but no longer shown — replaced by in-panel flow) -->
         <div class="pre-final-screen hidden" id="preFinalScreen">
@@ -835,10 +835,10 @@ select.theme-subtitle {
                         <div class="pocket-label">Keep Two #2</div>
                         <div class="pocket-dice"></div>
                     </div>
-                    <div class="pocket share-pocket" id="blueShare" data-player="blue" data-pocket="share">
-                        <div class="pocket-label">Share One</div>
+                    <div class="pocket take-pocket" id="blueTake" data-player="blue" data-pocket="take">
+                        <div class="pocket-label">Take One</div>
                         <div class="pocket-dice"></div>
-                        <div class="pocket-score hidden" id="blueShareScore"></div>
+                        <div class="pocket-score hidden" id="blueTakeScore"></div>
                     </div>
                     <div class="finale-pocket hidden" id="blueFinale">
                         <div class="pocket-label">ROLLDOWN</div>
@@ -864,10 +864,10 @@ select.theme-subtitle {
                         <div class="pocket-label">Keep Two #2</div>
                         <div class="pocket-dice"></div>
                     </div>
-                    <div class="pocket share-pocket" id="redShare" data-player="red" data-pocket="share">
-                        <div class="pocket-label">Share One</div>
+                    <div class="pocket take-pocket" id="redTake" data-player="red" data-pocket="take">
+                        <div class="pocket-label">Take One</div>
                         <div class="pocket-dice"></div>
-                        <div class="pocket-score hidden" id="redShareScore"></div>
+                        <div class="pocket-score hidden" id="redTakeScore"></div>
                     </div>
                     <div class="finale-pocket hidden" id="redFinale">
                         <div class="pocket-label">ROLLDOWN</div>
@@ -883,7 +883,7 @@ select.theme-subtitle {
         </div>
 
         <div class="bonus-legend">
-            <h4>Bonus Points for Share One and Rolldown Winners:</h4>
+            <h4>Bonus Points for Take One and Rolldown Winners:</h4>
             1 pair = 1pt | 2 pair = 2pts | 3 of a kind = 3pts | full house = 4pts | straight = 5pts | 4 of a kind = 6pts | 5 of a kind = 10pts
         </div>
 
@@ -1005,8 +1005,8 @@ const themeSelector = document.getElementById('themeSelector');
 
 <div class="help-section" id="sg-short">
   <h3>The Short Version</h3>
-  <p>Roll, then decide. <strong>Keep</strong> is your guaranteed floor. <strong>Share</strong> is a leverage play that only pays when you win it. <strong>Save</strong> is investment — it scores nothing this round but becomes a known die for every round to come, and is your fifth die in the Rolldown.</p>
-  <p>The combo bonus is locked the moment you roll, but it only cashes in if you win Share. The bigger your combo, the more aggressive you should be in the Share battle.</p>
+  <p>Roll, then decide. <strong>Keep</strong> is your guaranteed floor. <strong>Take</strong> is a leverage play that only pays when you win it. <strong>Save</strong> is investment — it scores nothing this round but becomes a known die for every round to come, and is your fifth die in the Rolldown.</p>
+  <p>The combo bonus is locked the moment you roll, but it only cashes in if you win Take. The bigger your combo, the more aggressive you should be in the Take battle.</p>
   <p>The game ends when a player crosses 100 points — so every round, watch the scores. The Rolldown can come at any time.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
@@ -1015,9 +1015,9 @@ const themeSelector = document.getElementById('themeSelector');
   <h3>How Scoring Actually Works</h3>
   <ul>
     <li><strong>Keep #1 + Keep #2:</strong> Both dice score every round. No opposition. This is your reliable income.</li>
-    <li><strong>Share:</strong> Higher die wins the <em>difference</em> in pips, plus a combo bonus from the winner's original 4-die roll. The loser scores zero from Share.</li>
+    <li><strong>Take:</strong> Higher die wins the <em>difference</em> in pips, plus a combo bonus from the winner's original 4-die roll. The loser scores zero from Take.</li>
     <li><strong>Save:</strong> Scores nothing this round. The saved die becomes your fourth die next round (you roll only 3 new), and your fifth die in the Rolldown.</li>
-    <li><strong>Rolldown:</strong> Triggered when either player crosses 100 points at the end of a round. Both players roll 4 dice. Your saved die is the fifth. All 5 score directly — no pockets, no Share battle. Combo bonuses apply across all 5 dice.</li>
+    <li><strong>Rolldown:</strong> Triggered when either player crosses 100 points at the end of a round. Both players roll 4 dice. Your saved die is the fifth. All 5 score directly — no pockets, no Take battle. Combo bonuses apply across all 5 dice.</li>
   </ul>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
@@ -1025,7 +1025,7 @@ const themeSelector = document.getElementById('themeSelector');
 <div class="help-section" id="sg-combo">
   <h3>The Combo Bonus — the Leverage Multiplier</h3>
   <p>The most misunderstood part of the game: <strong>your combo bonus is calculated on your original 4-die roll, not on the dice you placed.</strong> You can't break a combo by saving one die or sending another to Keep. The bonus is locked at the moment you roll.</p>
-  <p>But there's a catch — <strong>the bonus only pays out if you win Share.</strong> Lose or tie the Share battle and your combo is worth nothing that round.</p>
+  <p>But there's a catch — <strong>the bonus only pays out if you win Take.</strong> Lose or tie the Take battle and your combo is worth nothing that round.</p>
   <table class="help-combo-table" style="margin:8px 0;">
     <tr><td>One Pair</td><td>+1 pt</td></tr>
     <tr><td>Two Pair</td><td>+2 pts</td></tr>
@@ -1035,7 +1035,7 @@ const themeSelector = document.getElementById('themeSelector');
     <tr><td>4 of a Kind</td><td>+6 pts</td></tr>
     <tr><td>5 of a Kind</td><td>+10 pts (Rolldown only)</td></tr>
   </table>
-  <p>Strategic implication: when you have a real combo (+3 or more) in your 4-die roll, winning Share matters more than usual — you've got a multiplier waiting to cash in. A 4-of-a-kind backing a Share win is the strongest payout possible in a regular round.</p>
+  <p>Strategic implication: when you have a real combo (+3 or more) in your 4-die roll, winning Take matters more than usual — you've got a multiplier waiting to cash in. A 4-of-a-kind backing a Take win is the strongest payout possible in a regular round.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
@@ -1043,15 +1043,15 @@ const themeSelector = document.getElementById('themeSelector');
   <h3>Pocket Strategy — the Honest Version</h3>
   <p>The most common bad advice in dice games is "always put your highest in Keep." That's a fine <em>default</em> — not a rule. Here's the real picture.</p>
   <p><strong>Keep — the safe floor.</strong> Both dice score, no fight. Use Keep for any die that doesn't have a stronger case to be elsewhere. A 5 and a 6 in Keep is 11 guaranteed points per round, and that adds up.</p>
-  <p><strong>Share — the leverage play.</strong> The strongest cases for sending your top die to Share:</p>
+  <p><strong>Take — the leverage play.</strong> The strongest cases for sending your top die to Take:</p>
   <ul>
     <li>You have a combo of +3 or better. The multiplier is waiting.</li>
-    <li>You're going second and opponent placed a low-to-mid die in Share. You can win comfortably.</li>
-    <li>You rolled a 6 with another 6 elsewhere — pair of 6s wins Share decisively.</li>
+    <li>You're going second and opponent placed a low-to-mid die in Take. You can win comfortably.</li>
+    <li>You rolled a 6 with another 6 elsewhere — pair of 6s wins Take decisively.</li>
   </ul>
-  <p>And when <em>not</em> to fight Share:</p>
+  <p>And when <em>not</em> to fight Take:</p>
   <ul>
-    <li>You're going second and opponent placed a 5 or 6. Don't burn your best die against theirs — keep it in Keep and concede Share with a low die.</li>
+    <li>You're going second and opponent placed a 5 or 6. Don't burn your best die against theirs — keep it in Keep and concede Take with a low die.</li>
     <li>You're going first with no combo. Your top die is exposed; Keep is safer.</li>
   </ul>
   <p><strong>Save — the investment.</strong> Save scores nothing this round. The trade is current points for a known die in every future round and the Rolldown.</p>
@@ -1068,7 +1068,7 @@ const themeSelector = document.getElementById('themeSelector');
   <p>Because the Rolldown is score-triggered rather than round-triggered, think about Save in terms of where scores are — not how many rounds have passed.</p>
   <ul>
     <li><strong>Scores below 50:</strong> Save high (5 or 6) whenever you have one. A saved 6 compounds across many rounds.</li>
-    <li><strong>Scores 50–80:</strong> Keep saving high. If you're trailing, sometimes trade — save a 4 and send the 6 to Share to claw back points with a combo win.</li>
+    <li><strong>Scores 50–80:</strong> Keep saving high. If you're trailing, sometimes trade — save a 4 and send the 6 to Take to claw back points with a combo win.</li>
     <li><strong>Scores 80–99 (late game):</strong> Save discipline matters most here. Whatever is in your Save pocket when the Rolldown triggers becomes your fifth die. Never save below a 4 unless you have no choice.</li>
     <li><strong>Near 100:</strong> Think ahead. The Rolldown may come next round. Is your current saved die good enough? If not, replace it now.</li>
   </ul>
@@ -1079,13 +1079,13 @@ const themeSelector = document.getElementById('themeSelector');
   <h3>Reading Your Opponent</h3>
   <p><strong>Their Save pocket is an open book.</strong> Watch it every round:</p>
   <ul>
-    <li><strong>They save 5 or 6 consistently:</strong> Playing the long game. Strong in the Rolldown. Match their discipline or beat them in Share now.</li>
+    <li><strong>They save 5 or 6 consistently:</strong> Playing the long game. Strong in the Rolldown. Match their discipline or beat them in Take now.</li>
     <li><strong>They save 3 or 4 often:</strong> They're chasing current-round points. You can usually beat them late if your saves are stronger.</li>
-    <li><strong>They save inconsistently:</strong> They're reacting to dice, not strategy. Force them into hard Share decisions.</li>
+    <li><strong>They save inconsistently:</strong> They're reacting to dice, not strategy. Force them into hard Take decisions.</li>
   </ul>
-  <p><strong>Their Share die</strong> (when they place first) is the immediate target. Either beat it or concede gracefully.</p>
+  <p><strong>Their Take die</strong> (when they place first) is the immediate target. Either beat it or concede gracefully.</p>
   <p><strong>Watch the scores.</strong> When either player approaches 80 points, the Rolldown is coming. Adjust your Save aggressively — your current saved die may be your last before the Rolldown triggers.</p>
-  <p><strong>The score gap</strong> tells you the risk profile. Behind? Take Share risks. Ahead? Keep-heavy play and let them chase.</p>
+  <p><strong>The score gap</strong> tells you the risk profile. Behind? Take Take risks. Ahead? Keep-heavy play and let them chase.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
@@ -1094,7 +1094,7 @@ const themeSelector = document.getElementById('themeSelector');
   <p>Before each round both players tap their own colored die — higher number goes first in placement, ties roll again.</p>
   <ul>
     <li><strong>Going first:</strong> You place blind. Your opponent reacts to you. Best when you have a combo or a dominant high die — you force them to commit.</li>
-    <li><strong>Going second:</strong> You react. You see their Share die before committing yours, so you can decide whether to fight or concede. Usually the better position.</li>
+    <li><strong>Going second:</strong> You react. You see their Take die before committing yours, so you can decide whether to fight or concede. Usually the better position.</li>
   </ul>
   <p>The roll-off matters more than it looks. If you have a strong combo, fight for the roll-off and place aggressively. If your roll is mediocre, going second gives you more information.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
@@ -1106,7 +1106,7 @@ const themeSelector = document.getElementById('themeSelector');
   <ul>
     <li>Your saved die from the previous round sits in its pocket — already chosen, untouched.</li>
     <li>Both players roll 4 new dice in the roll bar, alternating one die at a time.</li>
-    <li>All 5 dice (4 rolled + saved) score directly — no pockets, no Share battle.</li>
+    <li>All 5 dice (4 rolled + saved) score directly — no pockets, no Take battle.</li>
     <li>Combo bonuses apply across all 5 dice. Full house and 5-of-a-kind are now available.</li>
     <li>If you're behind: a lucky combo can close surprising gaps. Don't concede early.</li>
     <li>If you're ahead: stay calm and add up the actual numbers before reacting.</li>
@@ -1117,18 +1117,18 @@ const themeSelector = document.getElementById('themeSelector');
 <div class="help-section" id="sg-errors">
   <h3>Common Errors</h3>
   <ul>
-    <li><strong>"Always Keep the highest."</strong> A reasonable default — not a rule. With a real combo or a 6 facing weak Share opposition, the highest belongs in Share.</li>
+    <li><strong>"Always Keep the highest."</strong> A reasonable default — not a rule. With a real combo or a 6 facing weak Take opposition, the highest belongs in Take.</li>
     <li><strong>Saving low dice.</strong> A saved 2 sits as your guaranteed fourth die for many rounds. Almost always wasteful.</li>
-    <li><strong>Fighting every Share.</strong> Some battles you should concede with a 1 or 2 and keep your strong dice elsewhere.</li>
+    <li><strong>Fighting every Take.</strong> Some battles you should concede with a 1 or 2 and keep your strong dice elsewhere.</li>
     <li><strong>Ignoring your saved die when scores are high.</strong> Near 80+ points, whatever is in Save could be your Rolldown die. Make sure it's something you're happy with.</li>
-    <li><strong>Conceding too early.</strong> A 15–20 point gap with scores below 80 can close with Share wins and a strong Rolldown. The game isn't over until it's over.</li>
+    <li><strong>Conceding too early.</strong> A 15–20 point gap with scores below 80 can close with Take wins and a strong Rolldown. The game isn't over until it's over.</li>
   </ul>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
 <div class="help-section" id="sg-ref">
   <h3>Quick Reference</h3>
-  <p><strong>Combo bonuses</strong> (Share wins in regular rounds; all 5 dice in the Rolldown):</p>
+  <p><strong>Combo bonuses</strong> (Take wins in regular rounds; all 5 dice in the Rolldown):</p>
   <table class="help-combo-table">
     <tr><td>One Pair</td><td>+1 pt</td></tr>
     <tr><td>Two Pair</td><td>+2 pts</td></tr>
@@ -1138,11 +1138,11 @@ const themeSelector = document.getElementById('themeSelector');
     <tr><td>4 of a Kind</td><td>+6 pts</td></tr>
     <tr><td>5 of a Kind</td><td>+10 pts (Rolldown only)</td></tr>
   </table>
-  <p style="margin-top:12px"><strong>Default placement (no combo, no read on opponent):</strong> Highest two → Keep. Mid die → Share. Lowest → Save.</p>
+  <p style="margin-top:12px"><strong>Default placement (no combo, no read on opponent):</strong> Highest two → Keep. Mid die → Take. Lowest → Save.</p>
   <p><strong>Adjust when:</strong></p>
   <ul>
-    <li>You have a combo (+3 or better) → highest die to Share to cash in the multiplier</li>
-    <li>You're going second and opponent placed strong Share → concede Share with a low die, lock high dice in Keep</li>
+    <li>You have a combo (+3 or better) → highest die to Take to cash in the multiplier</li>
+    <li>You're going second and opponent placed strong Take → concede Take with a low die, lock high dice in Keep</li>
     <li>Either score approaching 80 → save the highest die you have, every round</li>
     <li>Near 100 → check your saved die. Is it Rolldown-worthy? Replace it if not.</li>
   </ul>
@@ -1154,8 +1154,8 @@ const themeSelector = document.getElementById('themeSelector');
   <p>The AI plays at three levels:</p>
   <ul>
     <li><strong>Easy:</strong> Plays casually with a lot of noise in its decisions. A player applying the strategy in this guide should beat Easy reliably.</li>
-    <li><strong>Medium:</strong> Plays solid. Values combos, fights Share with backing, saves high. You should win the majority of games but losses happen.</li>
-    <li><strong>Hard:</strong> Plays sharp. Adjusts to the score, exploits combos, plays Share aggressively. Expect to lose sometimes even with good play — that's the point.</li>
+    <li><strong>Medium:</strong> Plays solid. Values combos, fights Take with backing, saves high. You should win the majority of games but losses happen.</li>
+    <li><strong>Hard:</strong> Plays sharp. Adjusts to the score, exploits combos, plays Take aggressively. Expect to lose sometimes even with good play — that's the point.</li>
   </ul>
   <p>The AI adjusts its Save strategy by score — it saves aggressively when either player is above 80. Its blind spot: it doesn't plan the full round before placing the first die, and scores each die-pocket pair independently. A patient human who reads the board and plans ahead has a real edge.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
@@ -1203,7 +1203,7 @@ const themeSelector = document.getElementById('themeSelector');
     <li><strong>Round 1:</strong> Both players roll 4 dice and place them into pockets.</li>
     <li><strong>Rounds 2 onward:</strong> Roll 3 fresh dice — your saved die from last round is the fourth.</li>
     <li><strong>Rolldown:</strong> Triggered when either player crosses 100 points at the end of a round. Both players roll 4 new dice — your saved die is the fifth. All 5 score directly.</li>
-    <li><strong>Four Pockets:</strong> Keep Two #1, Keep Two #2, Share One, Save One.</li>
+    <li><strong>Four Pockets:</strong> Keep Two #1, Keep Two #2, Take One, Save One.</li>
   </ul>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
 </div>
@@ -1223,7 +1223,7 @@ const themeSelector = document.getElementById('themeSelector');
   <h3>📦 The Four Pockets</h3>
   <ul>
     <li><strong>🎯 Keep Two #1 &amp; #2:</strong> Each holds 1 die. Both dice add to your score each round.</li>
-    <li><strong>⚔️ Share One:</strong> Higher die wins the difference in pips, plus a combo bonus based on the winner's original 4-die roll. Loser gets nothing from Share.</li>
+    <li><strong>⚔️ Take One:</strong> Higher die wins the difference in pips, plus a combo bonus based on the winner's original 4-die roll. Loser gets nothing from Take.</li>
     <li><strong>💎 Save One:</strong> Scores nothing this round — becomes your 4th die next round, and your 5th die in the Rolldown.</li>
   </ul>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
@@ -1233,7 +1233,7 @@ const themeSelector = document.getElementById('themeSelector');
   <h3>🏆 Scoring</h3>
   <ul>
     <li><strong>Keep Points:</strong> Sum of both Keep pocket dice.</li>
-    <li><strong>Share Battle:</strong> Winner scores (their die − opponent's die) points, plus a combo bonus on their original 4-die roll.</li>
+    <li><strong>Take Battle:</strong> Winner scores (their die − opponent's die) points, plus a combo bonus on their original 4-die roll.</li>
   </ul>
   <table class="help-combo-table">
     <tr><td>1 Pair</td><td>+1 pt</td></tr>
@@ -1244,7 +1244,7 @@ const themeSelector = document.getElementById('themeSelector');
     <tr><td>4 of a Kind</td><td>+6 pts</td></tr>
     <tr><td>5 of a Kind</td><td>+10 pts (Rolldown only)</td></tr>
   </table>
-  <p style="margin-top:8px"><em>The combo bonus is calculated on your original 4-die roll — placement doesn't change it. But the bonus only pays out if you win Share that round.</em></p>
+  <p style="margin-top:8px"><em>The combo bonus is calculated on your original 4-die roll — placement doesn't change it. But the bonus only pays out if you win Take that round.</em></p>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
 </div>
 
@@ -1254,7 +1254,7 @@ const themeSelector = document.getElementById('themeSelector');
   <ul>
     <li>Your saved die stays in its pocket — already chosen.</li>
     <li>Both players roll 4 new dice, alternating one at a time.</li>
-    <li>All 5 dice score directly — no pockets, no Share battle.</li>
+    <li>All 5 dice score directly — no pockets, no Take battle.</li>
     <li>Full house (+4) and 5-of-a-kind (+10) combo bonuses now available.</li>
   </ul>
   <p><em>💡 The die in your Save pocket when the Rolldown triggers is your fifth Rolldown die. Choose it wisely throughout the game.</em></p>
@@ -1265,7 +1265,7 @@ const themeSelector = document.getElementById('themeSelector');
   <h3>🧠 Strategy Tips (Short Version)</h3>
   <ul>
     <li><strong>Keep:</strong> Your safe floor. Both dice score, no opposition. A reasonable destination for any die that doesn't have a stronger case elsewhere.</li>
-    <li><strong>Share:</strong> The leverage play. Win for the difference plus your combo bonus; lose and the die scores nothing. Push hard with a real combo or a dominant high die.</li>
+    <li><strong>Take:</strong> The leverage play. Win for the difference plus your combo bonus; lose and the die scores nothing. Push hard with a real combo or a dominant high die.</li>
     <li><strong>Save:</strong> Investment. Scores 0 this round but carries forward as your fourth die each round, then becomes your fifth die in the Rolldown. Save 5s and 6s when you can.</li>
     <li><strong>Watch your opponent's Save pocket and the score</strong> — when either player nears 100, the Rolldown is imminent.</li>
   </ul>
@@ -1277,7 +1277,7 @@ const themeSelector = document.getElementById('themeSelector');
   <h3>🤖 AI Opponents</h3>
   <ul>
     <li><strong>Easy:</strong> Casual strategy with extra randomness — good for learning the ropes.</li>
-    <li><strong>Medium:</strong> Solid strategy — values Share battles, saves high dice, plans for combos.</li>
+    <li><strong>Medium:</strong> Solid strategy — values Take battles, saves high dice, plans for combos.</li>
     <li><strong>Hard:</strong> Advanced strategy — reads your Save pocket, adjusts to the score, exploits matching dice for combo wins.</li>
   </ul>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
