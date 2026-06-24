@@ -348,7 +348,7 @@ body.theme-compact {
 }
 
 /* ==========================================================
-   POCKETS — Keep pockets side by side, Share/Save full width
+   POCKETS — Keep pockets side by side, Take/Save full width
    ========================================================== */
 .theme-compact .pockets {
     display: grid;
@@ -359,8 +359,8 @@ body.theme-compact {
     max-height: 142px;
     overflow: hidden;
 }
-/* Share and Save span both columns */
-.theme-compact .share-pocket,
+/* Take and Save span both columns */
+.theme-compact .take-pocket,
 .theme-compact .save-pocket,
 .theme-compact .finale-pocket {
     grid-column: span 2;
@@ -436,8 +436,8 @@ body.theme-compact {
     font-size: 0.65em;
     color: var(--gold);
 }
-.theme-compact .player-area.blue .share-pocket .pocket-score { left: 2px; right: auto; }
-.theme-compact .player-area.red  .share-pocket .pocket-score { right: 2px; left: auto; }
+.theme-compact .player-area.blue .take-pocket .pocket-score { left: 2px; right: auto; }
+.theme-compact .player-area.red  .take-pocket .pocket-score { right: 2px; left: auto; }
 
 /* ==========================================================
    ROLLDOWN POCKET (compact)
