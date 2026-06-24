@@ -308,6 +308,10 @@ body.theme-compact {
 .theme-compact .player-area.red {
     background: linear-gradient(180deg, var(--burgundy-deep) 0%, #3a1818 100%);
 }
+.theme-compact .copyright {
+    color: rgba(200,168,75,0.55);
+    font-size: 0.7em;
+}
 .theme-compact .player-header,
 .theme-compact .player-name {
     text-align: center;
@@ -422,6 +426,7 @@ body.theme-compact {
 }
 .theme-compact .pocket-label {
     font-size: 0.62em;
+    line-height: 9px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--gold);
@@ -435,16 +440,16 @@ body.theme-compact {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 28px;
-    min-height: 28px;
-    max-height: 28px;
+    height: 30px;
+    min-height: 30px;
+    max-height: 30px;
     overflow: hidden;
     gap: 2px;
     flex-shrink: 0;
 }
 .theme-compact .pocket-dice svg.dice {
-    width: 24px !important;
-    height: 24px !important;
+    width: 28px !important;
+    height: 28px !important;
     flex-shrink: 0;
 }
 .theme-compact .pocket-score {
