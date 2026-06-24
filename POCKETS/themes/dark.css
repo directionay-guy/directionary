@@ -306,9 +306,9 @@ body.theme-dark {
 .theme-dark #redRolloffDie  .dice-dot  { fill: var(--red);  }
 
 /* ==========================================================
-   SHARE DIFFERENCE
+   TAKE DIFFERENCE
    ========================================================== */
-.theme-dark .share-difference {
+.theme-dark .take-difference {
     background: var(--black);
     border: var(--line-mid);
     color: var(--white);
@@ -480,15 +480,15 @@ body.theme-dark {
     min-height: 14px;
 }
 
-.theme-dark .share-pocket { grid-column: span 2; }
+.theme-dark .take-pocket { grid-column: span 2; }
 .theme-dark .save-pocket  { grid-column: span 2; }
 
-/* Share pocket score — Blue top-left, Red top-right */
-.theme-dark .share-pocket .pocket-score {
+/* Take pocket score — Blue top-left, Red top-right */
+.theme-dark .take-pocket .pocket-score {
     position: absolute; top: 4px; min-height: auto;
 }
-.theme-dark .player-area.blue .share-pocket .pocket-score { left: 5px;  right: auto; }
-.theme-dark .player-area.red  .share-pocket .pocket-score { right: 5px; left: auto;  }
+.theme-dark .player-area.blue .take-pocket .pocket-score { left: 5px;  right: auto; }
+.theme-dark .player-area.red  .take-pocket .pocket-score { right: 5px; left: auto;  }
 
 /* ==========================================================
    BONUS LEGEND
@@ -912,3 +912,9 @@ body.has-css-fullscreen { overflow: hidden; }
     background: rgba(59, 130, 246, 0.28) !important;
     border-color: rgba(59, 130, 246, 0.50) !important;
 }
+
+/* Rolloff die color swap when playing as Red */
+.game-container.playing-as-red #blueRolloffDie .dice-face { fill: #380a0a !important; stroke: var(--red) !important; }
+.game-container.playing-as-red #blueRolloffDie .dice-dot  { fill: var(--red) !important; }
+.game-container.playing-as-red #redRolloffDie  .dice-face { fill: #0a1a38 !important; stroke: var(--blue) !important; }
+.game-container.playing-as-red #redRolloffDie  .dice-dot  { fill: var(--blue) !important; }
