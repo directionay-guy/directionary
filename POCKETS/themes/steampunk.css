@@ -481,15 +481,15 @@
 }
 
 /* Victorian-identical spanning */
-.theme-steampunk .share-pocket { grid-column: span 2; }
+.theme-steampunk .take-pocket { grid-column: span 2; }
 .theme-steampunk .save-pocket  { grid-column: span 2; }
 
-/* Share pocket score — Blue top-left, Red top-right */
-.theme-steampunk .share-pocket .pocket-score {
+/* Take pocket score — Blue top-left, Red top-right */
+.theme-steampunk .take-pocket .pocket-score {
     position: absolute; top: 4px; min-height: auto;
 }
-.theme-steampunk .player-area.blue .share-pocket .pocket-score { left: 5px;  right: auto; }
-.theme-steampunk .player-area.red  .share-pocket .pocket-score { right: 5px; left: auto;  }
+.theme-steampunk .player-area.blue .take-pocket .pocket-score { left: 5px;  right: auto; }
+.theme-steampunk .player-area.red  .take-pocket .pocket-score { right: 5px; left: auto;  }
 
 /* ================================================================
    BONUS INFO — compact strip inside player area
@@ -511,7 +511,7 @@
     background: rgba(0,0,0,0.40); border-radius: 6px;
     border: 1px solid var(--sp-brass-lo);
 }
-.theme-steampunk .share-difference {
+.theme-steampunk .take-difference {
     text-align: center; padding: 8px;
     background: rgba(0,0,0,0.30); border-radius: 8px; margin: 6px 0;
     font-weight: bold; color: var(--sp-gold);
@@ -657,14 +657,14 @@
 .theme-steampunk .first-player-die .dice-face { fill: var(--sp-brass); stroke: var(--sp-brass-lo); stroke-width: 3; }
 .theme-steampunk .first-player-die .dice-dot  { fill: #1a0c08; }
 
-.theme-steampunk .share-bridge {
+.theme-steampunk .take-bridge {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
     width: 90%; height: 4px; pointer-events: none; z-index: 5;
     background: linear-gradient(90deg, transparent 5%, var(--sp-brass-lo) 15%, var(--sp-brass) 35%, var(--sp-brass-hi) 50%, var(--sp-brass) 65%, var(--sp-brass-lo) 85%, transparent 95%);
     box-shadow: 0 0 8px rgba(205,127,50,0.40);
 }
-.theme-steampunk .share-bridge::before { content:'⬥'; position:absolute; left:10%; top:50%; transform:translateY(-50%); color:var(--sp-brass); font-size:1.1em; }
-.theme-steampunk .share-bridge::after  { content:'⬥'; position:absolute; right:10%; top:50%; transform:translateY(-50%); color:var(--sp-brass); font-size:1.1em; }
+.theme-steampunk .take-bridge::before { content:'⬥'; position:absolute; left:10%; top:50%; transform:translateY(-50%); color:var(--sp-brass); font-size:1.1em; }
+.theme-steampunk .take-bridge::after  { content:'⬥'; position:absolute; right:10%; top:50%; transform:translateY(-50%); color:var(--sp-brass); font-size:1.1em; }
 
 /* ================================================================
    NEW GAME SECTION, COPYRIGHT
@@ -1038,3 +1038,9 @@ body.has-css-fullscreen { overflow: hidden; }
     border-bottom-color: var(--sp-blue-lo) !important; border-right-color: var(--sp-blue-lo) !important;
     box-shadow: 0 4px 8px rgba(0,0,0,0.40), inset 0 2px 4px rgba(100,180,255,0.07), 0 0 18px var(--sp-blue-glow) !important;
 }
+
+/* Rolloff die color swap when playing as Red */
+.game-container.playing-as-red #blueRolloffDie .dice-face { fill: #501a1a !important; stroke: #cc4848 !important; }
+.game-container.playing-as-red #blueRolloffDie .dice-dot  { fill: #f0a8a8 !important; }
+.game-container.playing-as-red #redRolloffDie  .dice-face { fill: #1a3050 !important; stroke: #6a9ad8 !important; }
+.game-container.playing-as-red #redRolloffDie  .dice-dot  { fill: #a8d0f0 !important; }
