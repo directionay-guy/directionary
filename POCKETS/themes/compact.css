@@ -440,16 +440,16 @@ body.theme-compact {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 30px;
-    min-height: 30px;
-    max-height: 30px;
+    height: 31px;
+    min-height: 31px;
+    max-height: 31px;
     overflow: hidden;
     gap: 2px;
     flex-shrink: 0;
 }
 .theme-compact .pocket-dice svg.dice {
-    width: 28px !important;
-    height: 28px !important;
+    width: 29px !important;
+    height: 29px !important;
     flex-shrink: 0;
 }
 .theme-compact .pocket-score {
