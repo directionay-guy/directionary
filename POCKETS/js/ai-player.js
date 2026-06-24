@@ -101,8 +101,8 @@ class PocketsAI {
                 if (dieValue >= 5) { score += 4; }
                 if (scoreDiff < -15) { score -= 2; } // behind — Keep less attractive
                 break;
-            case 'Share':
-                score = this.scoreShare(dieValue, humanPockets, aiCombo, scoreDiff);
+            case 'Take':
+                score = this.scoreTake(dieValue, humanPockets, aiCombo, scoreDiff);
                 break;
             case 'Save':
                 score = this.scoreSave(dieValue, highScore);
@@ -111,26 +111,26 @@ class PocketsAI {
         return score;
     }
 
-    // ── Share scoring ─────────────────────────────────────────────────────────
+    // ── Take scoring ─────────────────────────────────────────────────────────
 
-    scoreShare(dieValue, humanPockets, aiCombo, scoreDiff) {
-        const humanShareDie = (humanPockets.share && humanPockets.share.length > 0)
-            ? humanPockets.share[0] : null;
+    scoreTake(dieValue, humanPockets, aiCombo, scoreDiff) {
+        const humanTakeDie = (humanPockets.take && humanPockets.take.length > 0)
+            ? humanPockets.take[0] : null;
 
-        if (humanShareDie !== null) {
+        if (humanTakeDie !== null) {
             // Human already placed — we know the result
-            if (dieValue > humanShareDie) {
-                const diff = dieValue - humanShareDie;
+            if (dieValue > humanTakeDie) {
+                const diff = dieValue - humanTakeDie;
                 let score  = diff * 5 + aiCombo * 3.5;
                 score *= (1 + this.personality.aggression * 0.5);
                 return score;
-            } else if (dieValue === humanShareDie) {
+            } else if (dieValue === humanTakeDie) {
                 return 0;
             } else {
-                return -4 - (humanShareDie - dieValue) * 2;
+                return -4 - (humanTakeDie - dieValue) * 2;
             }
         } else {
-            // Going first in Share
+            // Going first in Take
             if (dieValue >= 5 && aiCombo >= 3) { return dieValue * 4 + aiCombo * 2; }
             if (dieValue >= 5)                  { return dieValue * 3; }
             if (dieValue >= 4)                  { return dieValue * 2; }
@@ -160,7 +160,7 @@ class PocketsAI {
     // ── Find empty red pockets ────────────────────────────────────────────────
 
     getEmptyPockets() {
-        return ['Keep1', 'Keep2', 'Share', 'Save'].filter(pocket => {
+        return ['Keep1', 'Keep2', 'Take', 'Save'].filter(pocket => {
             const el = document.getElementById('red' + pocket);
             return el && el.querySelectorAll('.dice').length === 0;
         });
