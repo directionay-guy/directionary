@@ -347,11 +347,17 @@ body.theme-compact {
 .theme-compact .player-area.red  svg.dice .dice-dot { fill: var(--cream); }
 /* Scale dice down slightly */
 .theme-compact .dice-area svg.dice { width: 33px !important; height: 33px !important; }
-.theme-compact .dice.saved-tint .dice-face { fill: #d4b568 !important; stroke: var(--gold) !important; }
-.theme-compact .dice.saved-tint .dice-dot  { fill: #2a1508 !important; }
 .theme-compact .dice.saved-tint {
-    filter: drop-shadow(0 0 4px rgba(212,181,104,0.6));
+    filter: drop-shadow(0 0 4px rgba(255,255,255,0.25));
 }
+/* Saved die: tiny bit lighter than the other 3, white pips always - normal (non-swapped) state */
+.theme-compact .player-area.blue .dice.saved-tint .dice-face { fill: #3d4b71 !important; }
+.theme-compact .player-area.red  .dice.saved-tint .dice-face { fill: #874949 !important; }
+/* Saved die - playing-as-red swapped state: lighter tone matches whichever color is now showing */
+.game-container.playing-as-red .player-area.blue .dice.saved-tint .dice-face { fill: #874949 !important; }
+.game-container.playing-as-red .player-area.red  .dice.saved-tint .dice-face { fill: #3d4b71 !important; }
+/* Pips always white/cream, regardless of swap state */
+.theme-compact .dice.saved-tint .dice-dot { fill: var(--cream) !important; }
 /* Round score summary shown in dice area after scoring */
 .theme-compact .round-score-display {
     color: var(--parchment-hi) !important;
