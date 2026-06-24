@@ -355,10 +355,10 @@ body.theme-victorian::before {
 }
 
 /* ==========================================================
-   SHARE DIFFERENCE — kept in DOM but always hidden
+   TAKE DIFFERENCE — kept in DOM but always hidden
    Result is now shown in the action status bar above.
    ========================================================== */
-.theme-victorian .share-difference { display: none !important; }
+.theme-victorian .take-difference { display: none !important; }
 
 /* ==========================================================
    PRE-FINAL SCREEN — dark modal overlay, Victorian styled
@@ -472,17 +472,17 @@ body.theme-victorian::before {
     font-family: 'Playfair Display', serif; font-weight: 700; color: var(--cream);
     font-size: 0.95em; margin-top: 2px; min-height: 14px; letter-spacing: 0.02em;
 }
-.theme-victorian .share-pocket .pocket-score {
+.theme-victorian .take-pocket .pocket-score {
     position: absolute; top: 4px; min-width: 22px; min-height: auto; padding: 2px 7px; margin: 0;
     background: linear-gradient(180deg, #d4b568 0%, #a08540 100%); color: var(--ink);
     border: 1px solid var(--gold-deep); border-radius: 3px;
     font-family: 'Playfair Display', serif; font-weight: 900; font-size: 0.8em;
     line-height: 1.15; box-shadow: 0 1px 2px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
 }
-.theme-victorian .share-pocket .pocket-score:empty { display: none; }
-.theme-victorian .player-area.blue .share-pocket .pocket-score { left: 4px; }
-.theme-victorian .player-area.red  .share-pocket .pocket-score { right: 4px; }
-.theme-victorian .share-pocket { grid-column: span 2; }
+.theme-victorian .take-pocket .pocket-score:empty { display: none; }
+.theme-victorian .player-area.blue .take-pocket .pocket-score { left: 4px; }
+.theme-victorian .player-area.red  .take-pocket .pocket-score { right: 4px; }
+.theme-victorian .take-pocket { grid-column: span 2; }
 .theme-victorian .save-pocket  { grid-column: span 2; }
 
 /* ==========================================================
@@ -910,4 +910,12 @@ body.has-css-fullscreen {
 }
 .game-container.playing-as-red #redScoreArea {
     background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%) !important;
+}
+
+/* Rolloff die color swap when playing as Red */
+.game-container.playing-as-red #blueRolloffDie svg.dice .dice-face {
+    fill: var(--burgundy) !important; stroke: var(--gold) !important;
+}
+.game-container.playing-as-red #redRolloffDie svg.dice .dice-face {
+    fill: var(--navy) !important; stroke: var(--gold) !important;
 }
