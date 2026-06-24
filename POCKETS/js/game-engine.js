@@ -262,7 +262,7 @@ function setAIDifficulty(difficulty) {
 // =============================================================================
 
 function showPanelBottom(message) {
-    var el = document.getElementById('actionShareResult');
+    var el = document.getElementById('actionTakeResult');
     if (!el) { return; }
     el.textContent = message;
     el.classList.remove('hidden');
@@ -270,7 +270,7 @@ function showPanelBottom(message) {
 }
 
 function hidePanelBottom(instant) {
-    var el = document.getElementById('actionShareResult');
+    var el = document.getElementById('actionTakeResult');
     if (!el) { return; }
     el.classList.remove('visible');
     if (instant) {
@@ -358,13 +358,13 @@ function showConfirm(title, message, onConfirm) {
 function startRound() {
     if (gameState.phase !== 'rolling') { return; }
 
-    // Clear share pocket badges at start of new round
-    document.getElementById('blueShareScore').classList.add('hidden');
-    document.getElementById('redShareScore').classList.add('hidden');
+    // Clear take pocket badges at start of new round
+    document.getElementById('blueTakeScore').classList.add('hidden');
+    document.getElementById('redTakeScore').classList.add('hidden');
 
-    // Clear pockets (Keep Two and Share One only — Save One carries forward)
+    // Clear pockets (Keep Two and Take One only — Save One carries forward)
     var players = ['blue', 'red'];
-    var pockets = ['Keep1', 'Keep2', 'Share'];
+    var pockets = ['Keep1', 'Keep2', 'Take'];
     for (var p = 0; p < players.length; p++) {
         for (var k = 0; k < pockets.length; k++) {
             var el = document.getElementById(players[p] + pockets[k]);
@@ -411,8 +411,8 @@ function showPlaceholderDice() {
 }
 
 function resetRoundUI() {
-    document.getElementById('shareDifference').classList.add('hidden');
-    // Share pocket badges persist until startRound() — not cleared here
+    document.getElementById('takeDifference').classList.add('hidden');
+    // Take pocket badges persist until startRound() — not cleared here
 }
 
 // =============================================================================
@@ -890,7 +890,7 @@ function placeDieInPocket(pocketElement) {
         calculateRoundScore();
     }
 
-    updateShareDifference();
+    updateTakeDifference();
 }
 
 function renderDice() {
@@ -926,48 +926,48 @@ function renderDice() {
 
 function updatePocketScore(pocketElement, player) {
     var pocketType = pocketElement.dataset.pocket;
-    if (pocketType === 'share') {
+    if (pocketType === 'take') {
         var dicEls = pocketElement.querySelectorAll('.dice');
         if (dicEls.length > 0) {
-            var scoreEl = document.getElementById(player + 'ShareScore');
+            var scoreEl = document.getElementById(player + 'TakeScore');
             scoreEl.textContent = dicEls[0].getAttribute('data-value');
             scoreEl.classList.remove('hidden');
         }
     }
 }
 
-function updateShareDifference() {
+function updateTakeDifference() {
     var bluePockets = getDiceFromPockets('blue');
     var redPockets  = getDiceFromPockets('red');
-    var blueShare   = bluePockets.share || [];
-    var redShare    = redPockets.share  || [];
+    var blueTake   = bluePockets.take || [];
+    var redTake    = redPockets.take  || [];
 
-    document.getElementById('shareDifference').classList.add('hidden');
+    document.getElementById('takeDifference').classList.add('hidden');
 
-    if (blueShare.length > 0 && redShare.length > 0) {
-        var bd   = blueShare[0];
-        var rd   = redShare[0];
+    if (blueTake.length > 0 && redTake.length > 0) {
+        var bd   = blueTake[0];
+        var rd   = redTake[0];
         var diff = Math.abs(bd - rd);
 
         if (diff > 0 && bd > rd) {
-            document.getElementById('blueShareScore').textContent = '+' + diff;
+            document.getElementById('blueTakeScore').textContent = '+' + diff;
         } else {
-            document.getElementById('blueShareScore').textContent = '0';
+            document.getElementById('blueTakeScore').textContent = '0';
         }
 
         if (diff > 0 && rd > bd) {
-            document.getElementById('redShareScore').textContent = '+' + diff;
+            document.getElementById('redTakeScore').textContent = '+' + diff;
         } else {
-            document.getElementById('redShareScore').textContent = '0';
+            document.getElementById('redTakeScore').textContent = '0';
         }
 
-        // Share win/loss message removed — redundant, players see pocket numbers
+        // Take win/loss message removed — redundant, players see pocket numbers
     }
 }
 
 function getDiceFromPockets(player) {
     var pockets   = {};
-    var pocketTypes = ['keep1', 'keep2', 'share', 'save'];
+    var pocketTypes = ['keep1', 'keep2', 'take', 'save'];
 
     for (var i = 0; i < pocketTypes.length; i++) {
         var pt  = pocketTypes[i];
@@ -1005,27 +1005,27 @@ function calculateRoundScore() {
     var redKeep2 = redPockets.keep2 || [];
     var redKeepScore = redKeep1.concat(redKeep2).reduce(function(a, b) { return a + b; }, 0);
 
-    var blueShareDie = 0;
-    var redShareDie  = 0;
-    if (bluePockets.share && bluePockets.share.length > 0) { blueShareDie = bluePockets.share[0]; }
-    if (redPockets.share  && redPockets.share.length  > 0) { redShareDie  = redPockets.share[0];  }
+    var blueTakeDie = 0;
+    var redTakeDie  = 0;
+    if (bluePockets.take && bluePockets.take.length > 0) { blueTakeDie = bluePockets.take[0]; }
+    if (redPockets.take  && redPockets.take.length  > 0) { redTakeDie  = redPockets.take[0];  }
 
     var blueBonus      = 0;
     var redBonus       = 0;
     var blueComboBonus = 0;
     var redComboBonus  = 0;
 
-    if (blueShareDie > redShareDie) {
-        blueBonus      = blueShareDie - redShareDie;
+    if (blueTakeDie > redTakeDie) {
+        blueBonus      = blueTakeDie - redTakeDie;
         blueComboBonus = calculateBonusPoints(gameState.blueOriginalRoll);
         blueBonus      = blueBonus + blueComboBonus;
-    } else if (redShareDie > blueShareDie) {
-        redBonus      = redShareDie - blueShareDie;
+    } else if (redTakeDie > blueTakeDie) {
+        redBonus      = redTakeDie - blueTakeDie;
         redComboBonus = calculateBonusPoints(gameState.redOriginalRoll);
         redBonus      = redBonus + redComboBonus;
     }
 
-    // Share result element cleared — message removed
+    // Take result element cleared — message removed
 
     displayRoundScores(blueKeepScore, blueBonus, blueComboBonus,
                        redKeepScore,  redBonus,  redComboBonus);
@@ -1060,7 +1060,7 @@ function displayRoundScores(blueKeep, blueBonus, blueCombo,
     blueDiv.className = 'round-score-display';
     var blueText = 'Round Score: ' + (blueKeep + blueBonus) + ' pts';
     if (blueBonus > 0) {
-        blueText += '<br>Keep: ' + blueKeep + ', Share: ' + (blueBonus - blueCombo);
+        blueText += '<br>Keep: ' + blueKeep + ', Take: ' + (blueBonus - blueCombo);
         if (blueCombo > 0) { blueText += ', Bonus: ' + blueCombo; }
     } else {
         blueText += '<br>Keep: ' + blueKeep;
@@ -1072,7 +1072,7 @@ function displayRoundScores(blueKeep, blueBonus, blueCombo,
     redDiv.className = 'round-score-display';
     var redText = 'Round Score: ' + (redKeep + redBonus) + ' pts';
     if (redBonus > 0) {
-        redText += '<br>Keep: ' + redKeep + ', Share: ' + (redBonus - redCombo);
+        redText += '<br>Keep: ' + redKeep + ', Take: ' + (redBonus - redCombo);
         if (redCombo > 0) { redText += ', Bonus: ' + redCombo; }
     } else {
         redText += '<br>Keep: ' + redKeep;
@@ -1131,11 +1131,11 @@ function startFinale() {
 
     hidePanelBottom(false);
 
-    // Hide regular pockets — Keep Two and Share One only
-    var keepShare = document.querySelectorAll(
-        '.pocket[data-pocket="keep1"], .pocket[data-pocket="keep2"], .pocket[data-pocket="share"]'
+    // Hide regular pockets — Keep Two and Take One only
+    var keepTake = document.querySelectorAll(
+        '.pocket[data-pocket="keep1"], .pocket[data-pocket="keep2"], .pocket[data-pocket="take"]'
     );
-    keepShare.forEach(function(p) { p.classList.add('finale-hidden'); });
+    keepTake.forEach(function(p) { p.classList.add('finale-hidden'); });
 
     // Show Finale pocket areas
     document.getElementById('blueFinale').classList.remove('hidden');
@@ -1482,7 +1482,7 @@ function endGame() {
         addWinnerText(redArea);
     }
 
-    // Show share button in footer
+    // Show take button in footer
     var shareFooter = document.getElementById('shareResultFooter');
     if (shareFooter) { shareFooter.classList.remove('hidden'); }
 
@@ -1567,8 +1567,8 @@ function newGame() {
     }
 
     hidePanelBottom(true);
-    document.getElementById('blueShareScore').classList.add('hidden');
-    document.getElementById('redShareScore').classList.add('hidden');
+    document.getElementById('blueTakeScore').classList.add('hidden');
+    document.getElementById('redTakeScore').classList.add('hidden');
 
     setActionPanelView('start');
     document.getElementById('preFinalScreen').classList.add('hidden');
@@ -1584,8 +1584,8 @@ function newGame() {
     finalScores.forEach(function(el) { el.remove(); });
 
     // Restore regular pockets hidden during Finale
-    var keepShare = document.querySelectorAll('.pocket.finale-hidden');
-    keepShare.forEach(function(p) { p.classList.remove('finale-hidden'); });
+    var keepTake = document.querySelectorAll('.pocket.finale-hidden');
+    keepTake.forEach(function(p) { p.classList.remove('finale-hidden'); });
 
     // Hide Finale pocket areas
     var blueFinale = document.getElementById('blueFinale');
@@ -1624,7 +1624,7 @@ function newGame() {
 
     document.getElementById('blueDiceArea').innerHTML = '';
     document.getElementById('redDiceArea').innerHTML  = '';
-    document.getElementById('shareDifference').classList.add('hidden');
+    document.getElementById('takeDifference').classList.add('hidden');
 
     resetRoundUI();
     updateScoreDisplay();
