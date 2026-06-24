@@ -1368,6 +1368,15 @@ function fmtTime(t) {
   const h12 = h % 12 || 12;
   return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
 }
+// Local-timezone date string (YYYY-MM-DD) — NEVER use toISOString() for this,
+// since toISOString() converts to UTC and can shift the date by a day
+// depending on time of day and the user's timezone.
+function localDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
 
 // ============================================================
 // INIT
@@ -1389,9 +1398,9 @@ window.addEventListener('DOMContentLoaded', () => {
     const entryDate = document.getElementById('entry-date');
     const entryTime = document.getElementById('entry-time');
     const a1cDate = document.getElementById('a1c-date');
-    if (entryDate && !entryDate.dataset.userSet) entryDate.value = now.toISOString().split('T')[0];
+    if (entryDate && !entryDate.dataset.userSet) entryDate.value = localDateStr(now);
     if (entryTime && !entryTime.dataset.userSet) entryTime.value = `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
-    if (a1cDate && !a1cDate.dataset.userSet) a1cDate.value = now.toISOString().split('T')[0];
+    if (a1cDate && !a1cDate.dataset.userSet) a1cDate.value = localDateStr(now);
   }
   updateClock();
   setInterval(updateClock, 1000);
@@ -1566,46 +1575,33 @@ function renderWeekChart() {
   monday.setDate(today.getDate() - ((dow + 6) % 7));
   const dayLabels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
-  // Build per-reading datasets (up to 3 readings per day stacked)
-  // For stacked bars: each dataset is reading #N across all days
-  const maxReadings = 3;
-  const dayData = []; // array of 7 entries, each {readings:[], date}
+  const dayData = []; // 7 entries, each the daily {avg,max,count,readings} or null
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday); d.setDate(monday.getDate() + i);
-    const ds = d.toISOString().split('T')[0];
+    const ds = localDateStr(d);
     const entry = daily.find(e=>e.date===ds);
-    dayData.push(entry ? entry.readings.slice(0,3) : []);
+    dayData.push(entry || null);
   }
 
-  // Teal shades for reading 1,2,3
-  const readingColors = ['rgba(30,140,120,0.85)','rgba(80,190,160,0.75)','rgba(160,230,210,0.70)'];
-  const datasets = [];
-  for (let ri = 0; ri < maxReadings; ri++) {
-    datasets.push({
-      label: ri===0 ? '1st reading' : ri===1 ? '2nd reading' : '3rd reading',
-      data: dayData.map(d => d[ri]?.val ?? null),
-      backgroundColor: dayData.map((d,di) => {
-        const v = d[ri]?.val;
-        if (!v) return 'transparent';
-        // tint by zone but use reading-layer opacity
-        const base = v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'30,150,120';
-        const alpha = [0.85,0.72,0.58][ri];
-        return `rgba(${base},${alpha})`;
-      }),
-      borderRadius: ri===maxReadings-1?4:0,
-      borderSkipped: false,
-      stack: 'day'
-    });
-  }
-  // Count badge — null datasets for labeling
-  const countLabels = dayData.map(d => d.length > 1 ? d.length : null);
-
-  // No reference lines on weekly chart — bars only
+  const values = dayData.map(d => d ? d.avg : null);
+  const colors = dayData.map(d => {
+    if (!d) return 'transparent';
+    const v = d.avg;
+    const base = v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'30,150,120';
+    return `rgba(${base},0.82)`;
+  });
+  const countLabels = dayData.map(d => d && d.count > 1 ? d.count : null);
 
   if (weekChartInst) weekChartInst.destroy();
   weekChartInst = new Chart(document.getElementById('weekChart'), {
     type: 'bar',
-    data: { labels: dayLabels, datasets },
+    data: { labels: dayLabels, datasets: [{
+      data: values,
+      backgroundColor: colors,
+      borderRadius: 4,
+      borderSkipped: false,
+      barPercentage: 0.6
+    }] },
     options: {
       responsive:true, maintainAspectRatio:false,
       plugins: {
@@ -1614,20 +1610,21 @@ function renderWeekChart() {
           callbacks: {
             title: ctx => {
               const di = ctx[0].dataIndex;
-              return dayLabels[di] + (dayData[di].length>1 ? ` (${dayData[di].length} readings)` : '');
+              return dayLabels[di] + (dayData[di]?.count>1 ? ` (${dayData[di].count} readings, avg shown)` : '');
             },
             label: ctx => {
-              if (ctx.dataset.label==='150 line') return null;
-              const di = ctx.dataIndex; const ri = ctx.datasetIndex;
-              const r = dayData[di][ri];
-              return r ? ` ${r.val} mg/dL @ ${fmtTime(r.time)}` : null;
+              const d = dayData[ctx.dataIndex];
+              if (!d) return ' no data';
+              if (d.count === 1) return ` ${d.avg} mg/dL @ ${fmtTime(d.readings[0].time)}`;
+              const lines = d.readings.map(r => `${r.val} mg/dL @ ${fmtTime(r.time)}`);
+              return [` Avg: ${d.avg} mg/dL`, ...lines.map(l=>' • '+l)];
             }
           }
         }
       },
       scales: {
-        y: { min:0, max:250, stacked:true, ticks:{color:'#5a9990',font:{size:10},stepSize:50}, grid:{color:'rgba(0,100,80,0.08)'} },
-        x: { stacked:true, ticks:{color:'#0d5a50',font:{size:12,weight:'700'}}, grid:{display:false} }
+        y: { min:0, max:250, ticks:{color:'#5a9990',font:{size:10},stepSize:50}, grid:{color:'rgba(0,100,80,0.08)'} },
+        x: { ticks:{color:'#0d5a50',font:{size:12,weight:'700'}}, grid:{display:false} }
       }
     },
     plugins: [{
@@ -1639,12 +1636,7 @@ function renderWeekChart() {
             const meta = chart.getDatasetMeta(0);
             const bar = meta.data[i];
             if (!bar) return;
-            // find top of stacked bar
-            let top = bar.y;
-            for(let d=0;d<maxReadings;d++){
-              const m2=chart.getDatasetMeta(d);
-              if(m2.data[i] && m2.data[i].y < top) top=m2.data[i].y;
-            }
+            const top = bar.y;
             // purple top border to flag multi-reading days
             ctx2.save();
             ctx2.strokeStyle = '#9333ea';
@@ -1686,7 +1678,7 @@ function initGraph() {
   let subset = daily;
   if (currentRange > 0) {
     const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - currentRange);
-    const cutStr = cutoff.toISOString().split('T')[0];
+    const cutStr = localDateStr(cutoff);
     subset = daily.filter(d => d.date >= cutStr);
   }
   const s = getSettings();
@@ -1715,25 +1707,19 @@ function initGraph() {
   const ptColors = data.map(v=>v>180?'#c0392b':v<70?'#1a5f8a':'#1a7a6e');
   const isBar = disp.length > 60;
 
-  // Build stacked datasets for multi-reading days on bar mode
+  // Single bar per day at the daily AVERAGE — never stack raw reading values
   let mainDatasets;
   if (isBar) {
-    // Option C stacked bars
-    const max3 = 3;
-    const readingColors2 = ['rgba(26,122,110,0.85)','rgba(78,196,178,0.75)','rgba(160,230,215,0.68)'];
-    mainDatasets = [];
-    for (let ri=0; ri<max3; ri++) {
-      mainDatasets.push({
-        label: ri===0?'1st':'ri===1?\'2nd\':\'3rd\'',
-        data: disp.map(d=>d.readings[ri]?.val??null),
-        backgroundColor: disp.map(d=>{
-          const v=d.readings[ri]?.val; if(!v) return 'transparent';
-          const base=v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'26,122,110';
-          return `rgba(${base},${[0.85,0.72,0.58][ri]})`;
-        }),
-        borderRadius:ri===max3-1?3:0, borderSkipped:false, stack:'day', barPercentage:0.7
-      });
-    }
+    mainDatasets = [{
+      label: 'Blood sugar',
+      data,
+      backgroundColor: disp.map(d => {
+        const v = d.avg;
+        const base = v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'26,122,110';
+        return `rgba(${base},0.82)`;
+      }),
+      borderRadius: 3, borderSkipped: false, barPercentage: 0.7
+    }];
   } else {
     mainDatasets = [{
       label:'Blood sugar', data,
@@ -1767,8 +1753,8 @@ function initGraph() {
         }}}
       },
       scales: {
-        y:{ min:50, max:280, stacked:isBar, grid:{color:'rgba(0,80,60,0.06)'}, ticks:{color:'#5a9990',font:{size:10}} },
-        x:{ stacked:isBar, grid:{display:false}, ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:10,maxRotation:0} }
+        y:{ min:50, max:280, grid:{color:'rgba(0,80,60,0.06)'}, ticks:{color:'#5a9990',font:{size:10}} },
+        x:{ grid:{display:false}, ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:10,maxRotation:0} }
       }
     },
     plugins: isBar ? [{
@@ -1780,11 +1766,7 @@ function initGraph() {
             const meta = chart.getDatasetMeta(0);
             const bar = meta.data[i];
             if (!bar) return;
-            let top = bar.y;
-            for (let dsIdx=0; dsIdx<mainDatasets.length; dsIdx++) {
-              const m2 = chart.getDatasetMeta(dsIdx);
-              if (m2.data[i] && m2.data[i].y < top) top = m2.data[i].y;
-            }
+            const top = bar.y;
             ctx2.save();
             ctx2.strokeStyle = '#9333ea';
             ctx2.lineWidth = 2;
@@ -1907,7 +1889,7 @@ function updateA1CIndicator() {
 }
 function clearA1C() {
   document.getElementById('a1c-val').value = '';
-  document.getElementById('a1c-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('a1c-date').value = localDateStr(new Date());
   updateA1CIndicator();
 }
 function saveA1C() {
@@ -2186,37 +2168,35 @@ function renderMonthly(){
   const avgDS=makeAvgDataset(avg,avgs.length,'Average');
   const safeDS=makeSafeZoneDataset(mData.length);
 
-  // Option C stacked bars per day
-  const max3=3;
-  const stackedDS=[];
-  for(let ri=0;ri<max3;ri++){
-    stackedDS.push({
-      label:ri===0?'1st':'2nd',
-      data:mData.map(d=>d.readings[ri]?.val??null),
-      backgroundColor:mData.map(d=>{
-        const v=d.readings[ri]?.val; if(!v)return'transparent';
-        const base=v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'26,122,110';
-        return `rgba(${base},${[0.85,0.72,0.58][ri]})`;
-      }),
-      borderRadius:ri===max3-1?3:0, borderSkipped:false, stack:'day', barPercentage:0.75
-    });
-  }
+  // Single bar per day at the daily AVERAGE — never stack raw reading values
+  const mainDS = [{
+    label: 'Avg',
+    data: avgs,
+    backgroundColor: mData.map(d => {
+      const v = d.avg;
+      const base = v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'26,122,110';
+      return `rgba(${base},0.82)`;
+    }),
+    borderRadius: 3, borderSkipped: false, barPercentage: 0.75
+  }];
 
   monthlyChartInst=new Chart(document.getElementById('monthlyChart'),{
     type:'bar',
-    data:{labels,datasets:[...stackedDS,...safeDS,trendDS,avgDS]},
+    data:{labels,datasets:[...mainDS,...safeDS,trendDS,avgDS]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{
         if(ctx.dataset.label==='Average')return` Avg: ${ctx.raw}`;
         if(ctx.dataset.label==='Trend')return` Trend: ${ctx.raw}`;
         if(ctx.dataset.label?.includes('Safe'))return null;
-        const di=ctx.dataIndex; const ri=ctx.datasetIndex;
-        const r=mData[di]?.readings[ri];
-        return r?` ${r.val} mg/dL @ ${fmtTime(r.time)}`:null;
+        const d = mData[ctx.dataIndex];
+        if (!d) return null;
+        if (d.count === 1) return ` ${d.avg} mg/dL @ ${fmtTime(d.readings[0].time)}`;
+        const lines = d.readings.map(r => `${r.val} mg/dL @ ${fmtTime(r.time)}`);
+        return [` Avg: ${d.avg} mg/dL (${d.count} readings)`, ...lines.map(l=>' • '+l)];
       }}}},
       scales:{
-        y:{min:0,max:300,stacked:true,grid:{color:'rgba(0,80,60,0.06)'},ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:5}},
-        x:{stacked:true,grid:{display:false},ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:16}}
+        y:{min:0,max:300,grid:{color:'rgba(0,80,60,0.06)'},ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:5}},
+        x:{grid:{display:false},ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:16}}
       }
     },
     plugins:[{
@@ -2228,11 +2208,7 @@ function renderMonthly(){
             const meta = chart.getDatasetMeta(0);
             const bar = meta.data[i];
             if (!bar) return;
-            let top = bar.y;
-            for (let dsIdx=0; dsIdx<stackedDS.length; dsIdx++) {
-              const m2 = chart.getDatasetMeta(dsIdx);
-              if (m2.data[i] && m2.data[i].y < top) top = m2.data[i].y;
-            }
+            const top = bar.y;
             ctx2.save();
             ctx2.strokeStyle = '#9333ea';
             ctx2.lineWidth = 2;
