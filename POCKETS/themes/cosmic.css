@@ -614,9 +614,9 @@ body.theme-cosmic::after {
 }
 
 /* ==========================================================
-   SHARE DIFFERENCE
+   TAKE DIFFERENCE
    ========================================================== */
-.theme-cosmic .share-difference {
+.theme-cosmic .take-difference {
     background: var(--bg-panel);
     border: 1px solid var(--teal);
     border-radius: 10px;
@@ -1043,15 +1043,15 @@ body.theme-cosmic::after {
     letter-spacing: 0.04em;
     text-shadow: 0 0 6px var(--mustard-glow);
 }
-.theme-cosmic .share-pocket { grid-column: span 2; }
+.theme-cosmic .take-pocket { grid-column: span 2; }
 .theme-cosmic .save-pocket  { grid-column: span 2; }
 
-/* Share pocket score — Blue top-left, Red top-right */
-.theme-cosmic .share-pocket .pocket-score {
+/* Take pocket score — Blue top-left, Red top-right */
+.theme-cosmic .take-pocket .pocket-score {
     position: absolute; top: 4px; min-height: auto;
 }
-.theme-cosmic .player-area.blue .share-pocket .pocket-score { left: 5px;  right: auto; }
-.theme-cosmic .player-area.red  .share-pocket .pocket-score { right: 5px; left: auto;  }
+.theme-cosmic .player-area.blue .take-pocket .pocket-score { left: 5px;  right: auto; }
+.theme-cosmic .player-area.red  .take-pocket .pocket-score { right: 5px; left: auto;  }
 
 /* ==========================================================
    BONUS LEGEND
