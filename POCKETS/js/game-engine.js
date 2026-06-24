@@ -470,8 +470,7 @@ function setRolloffDieFaded(buttonEl) {
     buttonEl.innerHTML = '';
     buttonEl.classList.add('faded');
     var isBlueButton = (buttonEl.id === 'blueRolloffDie');
-    var showAsBlue   = (gameState.humanColor === 'red') ? !isBlueButton : isBlueButton;
-    var svg = createDieSVG(1, 'rolloff-' + buttonEl.id, showAsBlue);
+    var svg = createDieSVG(1, 'rolloff-' + buttonEl.id, false);
     buttonEl.appendChild(svg);
 
     // Force face+dot colors when swapped — reads theme CSS vars so each theme looks right
@@ -536,8 +535,7 @@ function rolloffRollDie(player) {
 
     var value = Math.floor(Math.random() * 6) + 1;
     var startVal = Math.floor(Math.random() * 6) + 1;
-    var showAsBlue = (gameState.humanColor === 'red') ? (player !== 'blue') : (player === 'blue');
-    var rollSvg  = createDieSVG(startVal, 'rolloff-' + player + '-' + Date.now(), showAsBlue);
+    var rollSvg  = createDieSVG(startVal, 'rolloff-' + player + '-' + Date.now(), false);
     dieEl.innerHTML = '';
     dieEl.appendChild(rollSvg);
 
