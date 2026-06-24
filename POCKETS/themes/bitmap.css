@@ -235,7 +235,7 @@ body.theme-bitmap {
 .theme-bitmap .rolloff-vs     { color: var(--mac-grey-dk) !important; font-size: 1.3em; }
 .theme-bitmap .turn-info      { color: var(--mac-black) !important; font-size: 1.2em; }
 .theme-bitmap .score-summary  { color: var(--mac-black) !important; font-size: 1.2em; }
-.theme-bitmap .share-result   { color: var(--mac-black) !important; font-size: 1.2em; }
+.theme-bitmap .take-result   { color: var(--mac-black) !important; font-size: 1.2em; }
 
 /* ==========================================================
    BUTTONS
@@ -364,7 +364,7 @@ body.theme-bitmap {
     flex-direction: column;
     justify-content: flex-start;
 }
-.theme-bitmap .share-pocket { height: 82px; min-height: 82px; max-height: 82px; }
+.theme-bitmap .take-pocket { height: 82px; min-height: 82px; max-height: 82px; }
 .theme-bitmap .save-pocket  { height: 82px; min-height: 82px; max-height: 82px; }
 .theme-bitmap .pocket:hover { background: var(--mac-grey-hi); }
 .theme-bitmap .player-area.blue .pocket.active {
@@ -399,8 +399,8 @@ body.theme-bitmap {
 }
 .theme-bitmap .pocket-dice svg.dice { flex-shrink: 0; }
 .theme-bitmap .pocket-score { color: var(--mac-black) !important; }
-.theme-bitmap .player-area.blue .share-pocket .pocket-score { left:  4px; right: auto; }
-.theme-bitmap .player-area.red  .share-pocket .pocket-score { right: 4px; left:  auto; }
+.theme-bitmap .player-area.blue .take-pocket .pocket-score { left:  4px; right: auto; }
+.theme-bitmap .player-area.red  .take-pocket .pocket-score { right: 4px; left:  auto; }
 
 /* ==========================================================
    BONUS LEGEND
