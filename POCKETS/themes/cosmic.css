@@ -383,7 +383,7 @@ body.theme-cosmic::after {
     letter-spacing: 0.1em;
     text-shadow: 0 0 8px var(--mustard-glow);
 }
-.theme-cosmic .round-info #turnInfo {
+.theme-cosmic #actionStatus #turnInfo {
     color: var(--teal);
     flex: 1;
     text-align: center;
