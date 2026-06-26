@@ -262,12 +262,13 @@ body.theme-art-deco::before {
     font-weight: normal;
     letter-spacing: 0.15em;
 }
-.theme-art-deco .round-info #turnInfo {
+.theme-art-deco #actionStatus #turnInfo {
     color: var(--emerald);
     flex: 1;
     text-align: center;
     text-transform: none;
     letter-spacing: 0.05em;
+    font-size: 1.25em;
 }
 
 /* Placement hint — shown on first placement turn only */
@@ -312,7 +313,7 @@ body.theme-art-deco::before {
     font-family: 'Poiret One', sans-serif;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    font-size: 0.9em;
+    font-size: 1.05em;
 }
 .theme-art-deco .rolloff-side-label { font-family: 'Poiret One', sans-serif; letter-spacing: 0.2em; }
 .theme-art-deco .rolloff-side-label.blue-text { color: #5fa8e8; }
@@ -324,14 +325,15 @@ body.theme-art-deco::before {
     border: none !important;
     box-shadow: none !important;
     padding: 0;
-    width: 64px;
-    height: 64px;
+    width: 72px;
+    height: 72px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: filter 0.2s ease;
 }
+.theme-art-deco .rolloff-die svg.dice { width: 64px !important; height: 64px !important; }
 /* Blue rolloff die — dark steel face, blue pips */
 .theme-art-deco #blueRolloffDie .dice { background: linear-gradient(145deg, #1a3050, #0e1c38); border-color: #4a90e2; }
 .theme-art-deco #blueRolloffDie .dice-dot { fill: #87ceeb; }
