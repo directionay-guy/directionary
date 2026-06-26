@@ -218,8 +218,23 @@ function handleModeButtonClick(newMode) {
 }
 
 // =============================================================================
-// FULL SCREEN — native API (CSS fallback can be added per-platform later)
+// FULL SCREEN — native API on most platforms. On iOS, the real Fullscreen API
+// is either unsupported (pre-Safari 17.2) or actively disruptive once it does
+// work (iPadOS shows an unskippable "keystrokes may be monitored" security
+// warning specifically triggered by rapid tapping, which a tap-heavy dice game
+// hits constantly). The actual chrome-free experience on iOS comes from
+// installing as a Home Screen web app instead, so guide toward that there
+// rather than fighting the platform.
 // =============================================================================
+
+function isIOSDevice() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
+function isStandaloneApp() {
+    return window.navigator.standalone === true ||
+           (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+}
 
 function toggleFullscreen() {
     if (!document.fullscreenElement) {
@@ -231,22 +246,37 @@ function toggleFullscreen() {
     }
 }
 
+function showAddToHomeScreenGuidance() {
+    alert('For the best full-screen experience on iPhone/iPad:\n\n' +
+          '1. Tap the Share button\n' +
+          '2. Tap "Add to Home Screen"\n' +
+          '3. Launch POCKETS from its new icon — no browser bar!');
+}
+
 function injectFullscreenButton() {
     if (document.getElementById('fullscreenBtn')) { return; }
+    if (isStandaloneApp()) { return; } // already chrome-free, nothing to offer
+
     var gameModeEl = document.querySelector('.game-mode');
     if (!gameModeEl) { return; }
 
     var btn = document.createElement('button');
-    btn.id          = 'fullscreenBtn';
-    btn.className   = 'fullscreen-btn';
-    btn.textContent = 'Full Screen';
-    btn.addEventListener('click', toggleFullscreen);
-    gameModeEl.appendChild(btn);
+    btn.id        = 'fullscreenBtn';
+    btn.className = 'fullscreen-btn';
 
-    document.addEventListener('fullscreenchange', function() {
-        var b = document.getElementById('fullscreenBtn');
-        if (b) { b.textContent = document.fullscreenElement ? 'Exit Full' : 'Full Screen'; }
-    });
+    if (isIOSDevice()) {
+        btn.textContent = 'Add to Home Screen';
+        btn.addEventListener('click', showAddToHomeScreenGuidance);
+    } else {
+        btn.textContent = 'Full Screen';
+        btn.addEventListener('click', toggleFullscreen);
+        document.addEventListener('fullscreenchange', function() {
+            var b = document.getElementById('fullscreenBtn');
+            if (b) { b.textContent = document.fullscreenElement ? 'Exit Full' : 'Full Screen'; }
+        });
+    }
+
+    gameModeEl.appendChild(btn);
 }
 
 function setAIDifficulty(difficulty) {
@@ -440,8 +470,17 @@ function startFirstPlayerRolloff() {
     redDie.classList.remove('spinning-right');
     redDie.classList.remove('spinning-in-place');
 
-    setRolloffDieFaded(blueDie);
-    setRolloffDieFaded(redDie);
+    // Only the AI's die should appear faded/non-interactive. The human's die is
+    // tappable right away and must not look dimmed at the same time. In 2-player
+    // mode neither die is faded - both belong to a physical player who can tap
+    // whenever they're ready.
+    var isAIMode         = (gameMode === 'ai');
+    var humanIsBlueButton = !isAIMode || gameState.humanColor !== 'red';
+    var fadeBlueDie = isAIMode && !humanIsBlueButton;
+    var fadeRedDie  = isAIMode && humanIsBlueButton;
+
+    setRolloffDieFaded(blueDie, fadeBlueDie);
+    setRolloffDieFaded(redDie, fadeRedDie);
     blueDie.disabled = false;
     redDie.disabled  = (gameMode === 'ai');
 
@@ -466,9 +505,11 @@ function startFirstPlayerRolloff() {
     }
 }
 
-function setRolloffDieFaded(buttonEl) {
+function setRolloffDieFaded(buttonEl, shouldFade) {
+    if (shouldFade === undefined) { shouldFade = true; }
     buttonEl.innerHTML = '';
-    buttonEl.classList.add('faded');
+    if (shouldFade) { buttonEl.classList.add('faded'); }
+    else { buttonEl.classList.remove('faded'); }
     var isBlueButton = (buttonEl.id === 'blueRolloffDie');
     var svg = createDieSVG(1, 'rolloff-' + buttonEl.id, false);
     buttonEl.appendChild(svg);
@@ -622,10 +663,18 @@ function resolveRolloff() {
             var rd = document.getElementById('redRolloffDie');
             bd.disabled = false;
             rd.disabled = (gameMode === 'ai');
-            // Keep dice showing their actual tied values — just re-fade them.
-            // Resetting to placeholder 1s caused the "Tied at X but I see 1s" confusion.
-            bd.classList.add('faded');
-            rd.classList.add('faded');
+            // Keep dice showing their actual tied values — just re-fade the AI's
+            // die (the human's stays clickable AND visually active, same fix as
+            // the initial rolloff setup). Resetting to placeholder 1s caused the
+            // "Tied at X but I see 1s" confusion, so the values stay as-is here.
+            var isAIModeNow          = (gameMode === 'ai');
+            var humanIsBlueButtonNow = !isAIModeNow || gameState.humanColor !== 'red';
+            if (isAIModeNow && !humanIsBlueButtonNow) { bd.classList.add('faded'); }
+            else { bd.classList.remove('faded'); }
+            if (isAIModeNow && humanIsBlueButtonNow) { rd.classList.add('faded'); }
+            else { rd.classList.remove('faded'); }
+            var vsElAgain = document.querySelector('.rolloff-vs');
+            if (vsElAgain) { vsElAgain.classList.remove('hidden'); }
         }, 1200);
         return;
     }
@@ -667,15 +716,18 @@ function resolveRolloff() {
         // Dim non-first player's button — winner of rolloff goes first
         var secondColor = (winner === 'blue') ? 'red' : 'blue';
         document.getElementById(secondColor + 'Roll').disabled = true;
+        if (!(gameMode === 'ai' && winner === 'red')) {
+            document.getElementById(winner + 'Roll').classList.add('roll-prompt-pulse');
+        }
 
         if (gameMode === 'ai') {
             document.getElementById('redRoll').textContent = '🤖 AI Will Roll';
             if (winner === 'red') {
-                setTimeout(function() { rollPlayerDice('red'); }, 900);
+                setTimeout(function() { rollPlayerDice('red'); }, 500);
             }
         }
         updateGameStatus();
-    }, 2000);
+    }, 1100);
 }
 
 // =============================================================================
@@ -688,6 +740,7 @@ function rollPlayerDice(player) {
 
     var btn = document.getElementById(player + 'Roll');
     btn.disabled = true;
+    btn.classList.remove('roll-prompt-pulse');
 
     var dice = [];
     if (gameState.round === 1) {
@@ -727,6 +780,9 @@ function rollPlayerDice(player) {
     var otherBtn   = document.getElementById(otherColor + 'Roll');
     if (otherBtn && !gameState[otherColor + 'Rolled']) {
         otherBtn.disabled = false;
+        if (!(gameMode === 'ai' && otherColor === 'red')) {
+            otherBtn.classList.add('roll-prompt-pulse');
+        }
     }
 
     if (gameMode === 'ai' && player === 'blue' && !gameState.redRolled) {
