@@ -222,7 +222,7 @@ body.theme-compact {
 .theme-compact .action-panel {
     background: linear-gradient(180deg, #3a5040 0%, #2a3c30 100%);
     border-bottom: 1px solid var(--gold-dim);
-    height: 70px !important;
+    height: 76px !important;
     margin-bottom: 0;
     font-size: 0.88em;
 }
@@ -347,6 +347,15 @@ body.theme-compact {
 .theme-compact .player-area.red  svg.dice .dice-dot { fill: var(--cream); }
 /* Scale dice down slightly */
 .theme-compact .dice-area svg.dice { width: 33px !important; height: 33px !important; }
+.theme-compact .dice.selected {
+    transform: translateY(-2px) !important;
+    filter: none !important;
+    box-shadow:
+        0 0 6px rgba(200,168,75,0.85),
+        0 2px 4px rgba(0,0,0,0.5) !important;
+    border-radius: 3px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
 .theme-compact .dice.saved-tint {
     filter: drop-shadow(0 0 4px rgba(255,255,255,0.25));
 }
@@ -418,12 +427,13 @@ body.theme-compact {
     border-color: #cc6666;
 }
 .theme-compact .pocket-score {
+    position: relative;
     color: var(--gold) !important;
-    font-size: 0.6em;
-    height: 10px;
-    min-height: 10px;
-    max-height: 10px;
-    line-height: 10px;
+    font-size: 0.65em;
+    height: 11px;
+    min-height: 11px;
+    max-height: 11px;
+    line-height: 11px;
     overflow: hidden;
     white-space: nowrap;
     margin: 0;
@@ -446,21 +456,17 @@ body.theme-compact {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 31px;
-    min-height: 31px;
-    max-height: 31px;
+    height: 30px;
+    min-height: 30px;
+    max-height: 30px;
     overflow: hidden;
     gap: 2px;
     flex-shrink: 0;
 }
 .theme-compact .pocket-dice svg.dice {
-    width: 29px !important;
-    height: 29px !important;
+    width: 28px !important;
+    height: 28px !important;
     flex-shrink: 0;
-}
-.theme-compact .pocket-score {
-    font-size: 0.65em;
-    color: var(--gold);
 }
 .theme-compact .player-area.blue .take-pocket .pocket-score { left: 2px; right: auto; }
 .theme-compact .player-area.red  .take-pocket .pocket-score { right: 2px; left: auto; }
