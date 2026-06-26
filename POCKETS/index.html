@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="POCKETS">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -241,6 +242,24 @@ select.theme-subtitle {
         }
         .dice.rolling { animation: diceRoll   0.8s ease-in-out; }
         .dice.jitter  { animation: diceJitter 0.4s ease-in-out; }
+
+        /* Shared pulse - used by .finale-btn (5 themes already reference this name
+           but never defined it - this single definition fixes all of them at once)
+           and by .roll-prompt-pulse on the active player's Roll Dice button. */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1);    opacity: 1;    }
+            50%      { transform: scale(1.05); opacity: 0.85; }
+        }
+        .roll-prompt-pulse { animation: pulse 1.4s ease-in-out infinite; }
+
+        /* Brief outline on whichever pocket the AI just filled - fast and just
+           noticeable, not a multi-second highlight. Theme-agnostic gold ring so
+           it reads clearly regardless of which theme is active. */
+        .pocket.just-placed {
+            outline: 3px solid #ffd700;
+            outline-offset: 1px;
+            transition: outline-color 0.2s ease;
+        }
 
         /* ── Rolloff die buttons ── */
         .rolloff-die {
