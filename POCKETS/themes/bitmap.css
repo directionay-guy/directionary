@@ -335,6 +335,7 @@ body.theme-bitmap {
     border: var(--bm-line);
     margin-bottom: 6px;
 }
+.theme-bitmap .dice-area svg.dice { width: 34px !important; height: 34px !important; }
 .theme-bitmap .player-area.blue svg.dice .dice-face {
     fill: var(--bm-blue-panel); stroke: var(--bm-blue); stroke-width: 1.5;
 }
@@ -347,12 +348,20 @@ body.theme-bitmap {
 /* ==========================================================
    POCKETS
    ========================================================== */
+.theme-bitmap .pockets {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+}
+.theme-bitmap .take-pocket,
+.theme-bitmap .save-pocket {
+    grid-column: span 2;
+}
 .theme-bitmap .pocket {
     background: var(--mac-white);
     border: var(--bm-line);
     border-radius: 0;
     padding: 4px 8px;
-    margin-bottom: 4px;
     height: 82px;
     min-height: 82px;
     max-height: 82px;
@@ -367,14 +376,6 @@ body.theme-bitmap {
 .theme-bitmap .take-pocket { height: 82px; min-height: 82px; max-height: 82px; }
 .theme-bitmap .save-pocket  { height: 82px; min-height: 82px; max-height: 82px; }
 .theme-bitmap .pocket:hover { background: var(--mac-grey-hi); }
-.theme-bitmap .player-area.blue .pocket.active {
-    background: var(--bm-active);
-    border-color: var(--bm-blue);
-}
-.theme-bitmap .player-area.red  .pocket.active {
-    background: var(--bm-active);
-    border-color: var(--bm-red);
-}
 .theme-bitmap .pocket-label {
     font-size: 0.85em;
     font-weight: bold;
@@ -657,8 +658,6 @@ body.has-css-fullscreen { overflow: hidden; }
 .game-container.playing-as-red .player-area.blue .player-name { color: var(--bm-red) !important; }
 .game-container.playing-as-red .player-area.red  .player-header,
 .game-container.playing-as-red .player-area.red  .player-name { color: var(--bm-blue) !important; }
-.game-container.playing-as-red .player-area.blue .pocket.active { border-color: var(--bm-red) !important; }
-.game-container.playing-as-red .player-area.red  .pocket.active { border-color: var(--bm-blue) !important; }
 /* Small dice color swap */
 .game-container.playing-as-red .player-area.blue svg.dice .dice-face { fill: var(--bm-red-panel) !important; stroke: var(--bm-red) !important; }
 .game-container.playing-as-red .player-area.blue svg.dice .dice-dot  { fill: var(--bm-red) !important; }
