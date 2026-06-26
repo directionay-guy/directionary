@@ -115,6 +115,100 @@ function refreshDiePips(svgEl, value) {
     }
 }
 
+// =============================================================================
+// SETTINGS PERSISTENCE — first-time visitors default to AI/Medium/Blue (an
+// approachable but real opponent, for someone with no partner physically
+// present). Returning players always resume whatever they last used.
+// =============================================================================
+
+var POCKETS_SETTINGS_KEY = 'pocketsSettings';
+
+function savePocketsSettings() {
+    try {
+        localStorage.setItem(POCKETS_SETTINGS_KEY, JSON.stringify({
+            mode:       gameMode,
+            difficulty: (typeof aiDifficulty !== 'undefined') ? aiDifficulty : 'medium',
+            color:      gameState.humanColor || 'blue'
+        }));
+    } catch (e) { /* localStorage unavailable - settings just won't persist, not fatal */ }
+}
+
+function loadPocketsSettings() {
+    try {
+        var raw = localStorage.getItem(POCKETS_SETTINGS_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+}
+
+function applyDefaultOrSavedSettings() {
+    var saved = loadPocketsSettings();
+    if (saved && saved.mode) {
+        setGameMode(saved.mode);
+        if (saved.mode === 'ai') {
+            if (saved.difficulty) { setAIDifficulty(saved.difficulty); }
+            if (saved.color)      { setPlayerColor(saved.color); }
+        }
+    } else {
+        // First-time visitor - no saved settings on record at all.
+        setGameMode('ai');
+        setAIDifficulty('medium');
+        setPlayerColor('blue');
+    }
+}
+
+function isGameInProgress() {
+    return gameState.phase !== 'setup' && gameState.round > 0;
+}
+
+// Used for both desktop buttons and the Compact dropdown, so mode-switching
+// behaves identically everywhere: confirm + reset when there's real progress
+// to lose, apply immediately when there's nothing at stake yet. selectEl is
+// optional - pass it for <select> elements so a cancelled change reverts the
+// dropdown's displayed value (native selects update visually before any JS
+// confirm can intervene).
+function changeModeWithConfirm(newMode, displayLabel, selectEl) {
+    if (gameMode === newMode) { return; }
+    var previousMode = gameMode;
+    if (isGameInProgress()) {
+        showConfirm(
+            'Switch to ' + displayLabel + '?',
+            'Switching modes will start a new game. Current progress will be lost.',
+            function() { setGameMode(newMode); newGame(); },
+            function() { if (selectEl) { selectEl.value = previousMode; } }
+        );
+    } else {
+        setGameMode(newMode);
+    }
+}
+
+function changeColorWithConfirm(newColor, selectEl) {
+    if (gameState.humanColor === newColor) { return; }
+    var previousColor = gameState.humanColor;
+    var label = (newColor === 'blue') ? 'Blue' : 'Red';
+    if (isGameInProgress()) {
+        showConfirm(
+            'Switch to ' + label + '?',
+            'Switching colors will start a new game. Current progress will be lost.',
+            function() { setPlayerColor(newColor); newGame(); },
+            function() { if (selectEl) { selectEl.value = previousColor; } }
+        );
+    } else {
+        setPlayerColor(newColor);
+    }
+}
+
+function syncCompactAIControlsVisibility() {
+    var cDiff = document.getElementById('cDiff');
+    var cPlay = document.getElementById('cPlay');
+    var cDiffLabel = document.getElementById('cDiffLabel');
+    var cPlayLabel = document.getElementById('cPlayLabel');
+    var isAI = (gameMode === 'ai');
+    if (cDiff)      { cDiff.style.display      = isAI ? '' : 'none'; }
+    if (cPlay)      { cPlay.style.display      = isAI ? '' : 'none'; }
+    if (cDiffLabel) { cDiffLabel.style.display = isAI ? '' : 'none'; }
+    if (cPlayLabel) { cPlayLabel.style.display = isAI ? '' : 'none'; }
+}
+
 function setGameMode(mode) {
     gameMode = mode;
     document.querySelectorAll('.mode-btn').forEach(function(btn) {
@@ -132,6 +226,8 @@ function setGameMode(mode) {
         if (playAsToggle) { playAsToggle.classList.remove('hidden'); }
         setPlayerColor(gameState.humanColor || 'blue');
     }
+    syncCompactAIControlsVisibility();
+    savePocketsSettings();
 }
 
 function setPlayerColor(color) {
@@ -185,6 +281,7 @@ function setPlayerColor(color) {
     var redDie  = document.getElementById('redRolloffDie');
     if (blueDie) { setRolloffDieFaded(blueDie); }
     if (redDie)  { setRolloffDieFaded(redDie);  }
+    savePocketsSettings();
 }
 
 
@@ -279,13 +376,10 @@ function injectFullscreenButton() {
     gameModeEl.appendChild(btn);
 }
 
-function setAIDifficulty(difficulty) {
-    aiDifficulty = difficulty;
-    document.querySelectorAll('.difficulty-btn').forEach(function(btn) {
-        btn.classList.remove('active');
-    });
-    document.getElementById(difficulty + 'AI').classList.add('active');
-}
+// setAIDifficulty() lives in ai-player.js — it needs to recreate the pocketsAI
+// instance, not just update the button state, so it must not be duplicated here.
+// (A duplicate definition here previously won due to script load order and
+// silently broke difficulty switching entirely - removed.)
 
 // =============================================================================
 // PANEL BOTTOM STRIP
@@ -352,7 +446,7 @@ function setActionPanelView(view) {
 // CONFIRM MODAL
 // =============================================================================
 
-function showConfirm(title, message, onConfirm) {
+function showConfirm(title, message, onConfirm, onCancel) {
     var modal = document.getElementById('confirmModal');
     if (!modal) {
         if (onConfirm) { onConfirm(); }
@@ -369,15 +463,15 @@ function showConfirm(title, message, onConfirm) {
     function close() {
         modal.classList.add('hidden');
         okBtn.removeEventListener('click', onOk);
-        cancelBtn.removeEventListener('click', onCancel);
+        cancelBtn.removeEventListener('click', onCancelClick);
         modal.removeEventListener('click', onBackdrop);
     }
-    function onOk()        { close(); if (onConfirm) { onConfirm(); } }
-    function onCancel()    { close(); }
-    function onBackdrop(e) { if (e.target === modal) { close(); } }
+    function onOk()         { close(); if (onConfirm) { onConfirm(); } }
+    function onCancelClick(){ close(); if (onCancel)  { onCancel();  } }
+    function onBackdrop(e)  { if (e.target === modal) { close(); if (onCancel) { onCancel(); } } }
 
     okBtn.addEventListener('click', onOk);
-    cancelBtn.addEventListener('click', onCancel);
+    cancelBtn.addEventListener('click', onCancelClick);
     modal.addEventListener('click', onBackdrop);
 }
 
@@ -1756,47 +1850,34 @@ function initializeGame() {
     var playAsBlue = document.getElementById('playAsBlue');
     var playAsRed  = document.getElementById('playAsRed');
     if (playAsBlue) {
-        playAsBlue.addEventListener('click', function() {
-            if (gameState.humanColor === 'blue') { return; } // already blue, no-op
-            showConfirm(
-                'Switch to Blue?',
-                'Switching colors will start a new game. Current progress will be lost.',
-                function() { setPlayerColor('blue'); newGame(); }
-            );
-        });
+        playAsBlue.addEventListener('click', function() { changeColorWithConfirm('blue'); });
     }
     if (playAsRed) {
-        playAsRed.addEventListener('click', function() {
-            if (gameState.humanColor === 'red') { return; } // already red, no-op
-            showConfirm(
-                'Switch to Red?',
-                'Switching colors will start a new game. Current progress will be lost.',
-                function() { setPlayerColor('red'); newGame(); }
-            );
-        });
+        playAsRed.addEventListener('click', function() { changeColorWithConfirm('red'); });
     }
 
-    document.getElementById('twoPlayerMode').addEventListener('click', function() { setGameMode('2player'); });
-    document.getElementById('aiMode').addEventListener('click',        function() { setGameMode('ai');      });
+    document.getElementById('twoPlayerMode').addEventListener('click', function() {
+        changeModeWithConfirm('2player', '2 Players');
+    });
+    document.getElementById('aiMode').addEventListener('click', function() {
+        changeModeWithConfirm('ai', 'vs AI');
+    });
 
     document.getElementById('easyAI').addEventListener('click',   function() { setAIDifficulty('easy');   });
     document.getElementById('mediumAI').addEventListener('click', function() { setAIDifficulty('medium'); });
     document.getElementById('hardAI').addEventListener('click',   function() { setAIDifficulty('hard');   });
 
-    // Compact theme dropdown equivalents
+    // Compact theme dropdown equivalents - same shared helpers, same rules,
+    // so mode/color switching behaves identically regardless of which UI
+    // the player is using.
     var cMode = document.getElementById('cMode');
     var cDiff = document.getElementById('cDiff');
     var cPlay = document.getElementById('cPlay');
     if (cMode) {
         cMode.addEventListener('change', function() {
-            setGameMode(this.value);
-            var isAI = (this.value === 'ai');
-            cDiff.style.display = isAI ? '' : 'none';
-            cPlay.style.display = isAI ? '' : 'none';
-            var cDiffLabel = document.getElementById('cDiffLabel');
-            var cPlayLabel = document.getElementById('cPlayLabel');
-            if (cDiffLabel) { cDiffLabel.style.display = isAI ? '' : 'none'; }
-            if (cPlayLabel) { cPlayLabel.style.display = isAI ? '' : 'none'; }
+            var chosen = this.value;
+            var label  = (chosen === 'ai') ? 'vs AI' : '2 Players';
+            changeModeWithConfirm(chosen, label, cMode);
         });
     }
     if (cDiff) {
@@ -1806,15 +1887,10 @@ function initializeGame() {
     }
     if (cPlay) {
         cPlay.addEventListener('change', function() {
-            var chosen = this.value;
-            if (gameState.phase !== 'setup' && gameState.round > 0) {
-                showConfirm('Change player color?', 'Current game will be lost.',
-                    function() { setPlayerColor(chosen); newGame(); });
-            } else {
-                setPlayerColor(chosen);
-            }
+            changeColorWithConfirm(this.value, cPlay);
         });
     }
+
 
     document.getElementById('viewStats').addEventListener('click', function() {
         if (typeof toggleStatsPanel === 'function') {
@@ -1823,6 +1899,8 @@ function initializeGame() {
             window.PocketsStats.toggleStatsPanel();
         }
     });
+
+    applyDefaultOrSavedSettings();
 
     updateScoreDisplay();
     updateGameStatus();
