@@ -249,6 +249,7 @@ body.theme-victorian::before {
     color: var(--cream);
     font-weight: 600;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    font-size: 1.25em;
 }
 
 /* ==========================================================
