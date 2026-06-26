@@ -224,7 +224,7 @@ body.theme-dark {
     font-weight: 700;
     letter-spacing: 0.08em;
 }
-.theme-dark .round-info #turnInfo { color: var(--dim); }
+.theme-dark #actionStatus #turnInfo { color: var(--dim); }
 
 .theme-dark .placement-hint {
     display: block;
