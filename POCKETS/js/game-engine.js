@@ -209,6 +209,143 @@ function syncCompactAIControlsVisibility() {
     if (cPlayLabel) { cPlayLabel.style.display = isAI ? '' : 'none'; }
 }
 
+// =============================================================================
+// IN-PROGRESS GAME PERSISTENCE — never lose progress on a reload or coming
+// back after time away. The ONLY way to discard a saved game is the explicit
+// New Game button (handled in newGame() itself). No "resume?" prompt - the
+// game silently picks up exactly where it was, since asking still carries a
+// real risk of an accidental decline losing real progress.
+// =============================================================================
+
+var POCKETS_SAVED_GAME_KEY = 'pocketsSavedGame';
+
+// Snapshot of what's actually placed in each pocket right now, for both
+// players. gameState itself has no clean record of board placement - it only
+// lives in the live DOM - so this reads the real source of truth at save time
+// rather than trying to track it as a parallel structure that could drift.
+function captureBoardPlacements() {
+    return { blue: getDiceFromPockets('blue'), red: getDiceFromPockets('red') };
+}
+
+function autosaveGame() {
+    try {
+        localStorage.setItem(POCKETS_SAVED_GAME_KEY, JSON.stringify({
+            gameState:  gameState,
+            gameMode:   gameMode,
+            difficulty: (typeof aiDifficulty !== 'undefined') ? aiDifficulty : 'medium',
+            rolloffState: (typeof rolloffState !== 'undefined') ? rolloffState : null,
+            board: captureBoardPlacements()
+        }));
+    } catch (e) { /* localStorage unavailable - not fatal, just won't persist */ }
+}
+
+function loadSavedGame() {
+    try {
+        var raw = localStorage.getItem(POCKETS_SAVED_GAME_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+}
+
+function clearSavedGame() {
+    try { localStorage.removeItem(POCKETS_SAVED_GAME_KEY); } catch (e) { /* not fatal */ }
+}
+
+// Places a die into a pocket purely visually, for reconstructing a saved
+// board. Deliberately does NOT go through placeDieInPocket()'s game-logic
+// side effects (decrementing diceToPlace, advancing placementTurn, checking
+// round-completion, cloning pockets to strip listeners) - gameState is being
+// restored directly from the save already, so re-deriving any of that here
+// would double-count it.
+function restorePocketDie(pocketEl, value, isSaved) {
+    if (!pocketEl) { return; }
+    var pocketDice = pocketEl.querySelector('.pocket-dice');
+    if (!pocketDice) { return; }
+    var die = createDieSVG(value, pocketEl.id + '-restored-' + Date.now(), !!isSaved);
+    pocketDice.appendChild(die);
+}
+
+function restoreBoardPlacements(board) {
+    if (!board) { return; }
+    ['blue', 'red'].forEach(function(color) {
+        var placed = board[color];
+        if (!placed) { return; }
+        var savedDie = (color === 'blue') ? gameState.blueSavedDie : gameState.redSavedDie;
+        ['keep1', 'keep2', 'take', 'save'].forEach(function(pocketKey) {
+            if (!placed[pocketKey] || placed[pocketKey].length === 0) { return; }
+            var value = placed[pocketKey][0];
+            var pocketIdSuffix = pocketKey.charAt(0).toUpperCase() + pocketKey.slice(1);
+            var pocketEl = document.getElementById(color + pocketIdSuffix);
+            var isSaved  = (pocketKey === 'save' && savedDie === value);
+            restorePocketDie(pocketEl, value, isSaved);
+        });
+    });
+}
+
+// Restores everything: data (gameState itself, mode, difficulty, rolloff
+// state) AND the visual board (placed dice, unplaced dice still waiting to be
+// placed, and whichever action-panel view matches where the game actually
+// was). Mid-Finale visual state is intentionally not frame-perfectly
+// reconstructed here (see session notes) - the underlying scores/data are
+// still fully preserved either way, nothing is lost.
+function restoreGameFromSave(saved) {
+    gameState = saved.gameState;
+    gameMode  = saved.gameMode;
+    if (typeof rolloffState !== 'undefined' && saved.rolloffState) {
+        rolloffState = saved.rolloffState;
+    }
+
+    setGameMode(gameMode);
+    if (gameMode === 'ai' && saved.difficulty) { setAIDifficulty(saved.difficulty); }
+    setPlayerColor(gameState.humanColor || 'blue');
+
+    restoreBoardPlacements(saved.board);
+
+    if (gameState.blueDice && gameState.blueDice.length > 0) {
+        renderDiceWithAnimation('blue', gameState.blueDice);
+    }
+    if (gameState.redDice && gameState.redDice.length > 0) {
+        renderDiceWithAnimation('red', gameState.redDice);
+    }
+
+    document.getElementById('currentRound').textContent = gameState.round;
+
+    if (gameState.phase === 'placing' || gameState.phase === 'scoring') {
+        // Matches startPlacement()'s own setActionPanelView('status') call.
+        setActionPanelView('status');
+    } else if (gameState.phase === 'rolling' && gameState.firstPlayer) {
+        // Rolloff already resolved this round - show the roll-dice buttons,
+        // correctly reflecting who's already rolled.
+        setActionPanelView('rolls');
+        var blueRollBtn = document.getElementById('blueRoll');
+        var redRollBtn  = document.getElementById('redRoll');
+        if (blueRollBtn) {
+            blueRollBtn.disabled = !!gameState.blueRolled;
+            blueRollBtn.classList.remove('roll-prompt-pulse');
+            blueRollBtn.classList.remove('hidden');
+        }
+        if (redRollBtn) {
+            redRollBtn.disabled = !!gameState.redRolled;
+            redRollBtn.classList.remove('roll-prompt-pulse');
+            redRollBtn.classList.remove('hidden');
+        }
+        var pulseColor = (gameState.currentPlayer === 'blue' && !gameState.blueRolled) ? 'blue'
+                        : (gameState.currentPlayer === 'red'  && !gameState.redRolled)  ? 'red' : null;
+        if (pulseColor && !(gameMode === 'ai' && pulseColor === 'red')) {
+            var pulseBtn = document.getElementById(pulseColor + 'Roll');
+            if (pulseBtn) { pulseBtn.classList.add('roll-prompt-pulse'); }
+        }
+    } else {
+        // Either between rounds (Start Round button) or caught mid-rolloff-tap
+        // (a 1-2 second window) - both fall back to the Start Round screen,
+        // a deliberate simplification since precisely replaying an in-progress
+        // rolloff tap isn't worth the complexity for something that brief.
+        setActionPanelView('start');
+    }
+
+    updateScoreDisplay();
+    updateGameStatus();
+}
+
 function setGameMode(mode) {
     gameMode = mode;
     document.querySelectorAll('.mode-btn').forEach(function(btn) {
@@ -821,6 +958,7 @@ function resolveRolloff() {
             }
         }
         updateGameStatus();
+        autosaveGame();
     }, 1100);
 }
 
@@ -886,6 +1024,7 @@ function rollPlayerDice(player) {
     if (gameState.blueRolled && gameState.redRolled) {
         setTimeout(function() { startPlacement(); }, 1000);
     }
+    autosaveGame();
 }
 
 function renderDiceWithAnimation(player, dice) {
@@ -950,6 +1089,7 @@ function startPlacement() {
     if (gameMode === 'ai' && gameState.currentPlayer === 'red') {
         setTimeout(function() { makeAIMove(); }, 1000);
     }
+    autosaveGame();
 }
 
 function selectDie(player, index) {
@@ -1039,6 +1179,7 @@ function placeDieInPocket(pocketElement) {
     }
 
     updateTakeDifference();
+    autosaveGame();
 }
 
 function renderDice() {
@@ -1565,6 +1706,7 @@ function nextRound() {
     setActionPanelView('start');
     resetRollButtons();
     updateGameStatus();
+    autosaveGame();
 }
 
 function resetRollButtons() {
@@ -1659,6 +1801,7 @@ function addWinnerText(scoreArea) {
 // =============================================================================
 
 function newGame() {
+    clearSavedGame();
     gameState = {
         round: 1, currentPlayer: 'blue', phase: 'rolling', firstPlayer: null,
         blueDice: [], redDice: [], blueOriginalRoll: [], redOriginalRoll: [],
@@ -1777,6 +1920,7 @@ function newGame() {
     resetRoundUI();
     updateScoreDisplay();
     updateGameStatus();
+    autosaveGame();
 }
 
 // =============================================================================
@@ -1900,7 +2044,12 @@ function initializeGame() {
         }
     });
 
-    applyDefaultOrSavedSettings();
+    var savedGame = loadSavedGame();
+    if (savedGame && savedGame.gameState) {
+        restoreGameFromSave(savedGame);
+    } else {
+        applyDefaultOrSavedSettings();
+    }
 
     updateScoreDisplay();
     updateGameStatus();
