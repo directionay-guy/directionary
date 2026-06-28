@@ -272,6 +272,8 @@ function restorePocketDie(pocketEl, value, isSaved) {
     var pocketDice = pocketEl.querySelector('.pocket-dice');
     if (!pocketDice) { return; }
     var die = createDieSVG(value, pocketEl.id + '-restored-' + Date.now(), !!isSaved);
+    die.style.width  = '40px';
+    die.style.height = '40px';
     pocketDice.appendChild(die);
 }
 
@@ -320,6 +322,8 @@ function restoreGameFromSave(saved) {
     renderDiceWithAnimation('red',  gameState.redDice  || [], true);
 
     document.getElementById('currentRound').textContent = gameState.round;
+    var startRoundBtn = document.getElementById('startRound');
+    if (startRoundBtn) { startRoundBtn.textContent = 'Start Round ' + gameState.round; }
 
     if (gameState.phase === 'gameOver') {
         // Re-display the winner screen exactly as it was. endGame() is safe
