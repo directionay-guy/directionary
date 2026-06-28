@@ -1589,7 +1589,10 @@ function renderWeekChart() {
   };
 
   // Layer datasets: layer 0 = tallest reading per day, layer 1 = next tallest, etc.
-  // Each day's readings sorted highest-to-lowest; each layer drawn back-to-front.
+  // All layers share the SAME barPercentage so they sit at the exact same x position
+  // (no stack group — stacking would add heights together, which we don't want).
+  // 'order' controls draw sequence: lower order draws on top, so later/shorter
+  // layers get a LOWER order number to render in front of the taller ones behind them.
   const maxLayers = Math.max(1, ...dayData.map(d => d ? d.readings.length : 0));
   const layerDatasets = [];
   for (let li = 0; li < maxLayers; li++) {
@@ -1603,12 +1606,13 @@ function renderWeekChart() {
         if (!d) return 'transparent';
         const sorted = [...d.readings].sort((a,b)=>b.val-a.val);
         const r = sorted[li];
-        return r ? zoneColor(r.val, 0.85) : 'transparent';
+        return r ? zoneColor(r.val, 0.95) : 'transparent';
       }),
       borderRadius: 4,
       borderSkipped: false,
-      barPercentage: 0.6 - li*0.08, // each successive layer slightly narrower so edges of the bar behind peek out
-      categoryPercentage: 1.0
+      barPercentage: 0.55,
+      categoryPercentage: 1.0,
+      order: maxLayers - li // taller layers (li=0) get highest order = drawn first/behind
     });
   }
 
@@ -1723,9 +1727,9 @@ function initGraph() {
   const labels = disp.map(d=>{ const [y,m,dy]=d.date.split('-'); return `${m}/${dy}`; });
   const data = disp.map(d=>d.avg);
   const ptColors = data.map(v=>v>180?'#c0392b':v<70?'#1a5f8a':'#1a7a6e');
-  const isBar = disp.length > 60;
+  const isBar = currentRange === 7 || disp.length > 60;
 
-  // Layered bars per day at the daily AVERAGE for line mode, or height-sorted layers in bar mode
+  // Layered bars per day at the daily AVERAGE for line mode, or height-sorted overlapping layers in bar mode
   let mainDatasets;
   if (isBar) {
     const zoneColor = (v, alpha) => {
@@ -1744,10 +1748,11 @@ function initGraph() {
         backgroundColor: disp.map(d => {
           const sorted = [...d.readings].sort((a,b)=>b.val-a.val);
           const r = sorted[li];
-          return r ? zoneColor(r.val, 0.85) : 'transparent';
+          return r ? zoneColor(r.val, 0.95) : 'transparent';
         }),
         borderRadius: 3, borderSkipped: false,
-        barPercentage: 0.7 - li*0.08, categoryPercentage: 1.0
+        barPercentage: 0.65, categoryPercentage: 1.0,
+        order: maxLayers - li // taller layers (li=0) drawn first/behind; shorter ones in front
       });
     }
   } else {
@@ -2229,10 +2234,11 @@ function renderMonthly(){
       backgroundColor: mData.map(d => {
         const sorted = [...d.readings].sort((a,b)=>b.val-a.val);
         const r = sorted[li];
-        return r ? zoneColor(r.val, 0.85) : 'transparent';
+        return r ? zoneColor(r.val, 0.95) : 'transparent';
       }),
       borderRadius: 3, borderSkipped: false,
-      barPercentage: 0.75 - li*0.08, categoryPercentage: 1.0
+      barPercentage: 0.7, categoryPercentage: 1.0,
+      order: maxLayers - li // taller layers (li=0) drawn first/behind; shorter ones in front
     });
   }
 
