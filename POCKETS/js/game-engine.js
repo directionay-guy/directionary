@@ -173,11 +173,16 @@ function changeModeWithConfirm(newMode, displayLabel, selectEl) {
         showConfirm(
             'Switch to ' + displayLabel + '?',
             'Switching modes will start a new game. Current progress will be lost.',
-            function() { setGameMode(newMode); newGame(); },
+            function() {
+                setGameMode(newMode);
+                newGame();
+                if (typeof showToast === 'function') { showToast('Mode: ' + displayLabel, 2200); }
+            },
             function() { if (selectEl) { selectEl.value = previousMode; } }
         );
     } else {
         setGameMode(newMode);
+        if (typeof showToast === 'function') { showToast('Mode: ' + displayLabel, 2200); }
     }
 }
 
@@ -189,11 +194,16 @@ function changeColorWithConfirm(newColor, selectEl) {
         showConfirm(
             'Switch to ' + label + '?',
             'Switching colors will start a new game. Current progress will be lost.',
-            function() { setPlayerColor(newColor); newGame(); },
+            function() {
+                setPlayerColor(newColor);
+                newGame();
+                if (typeof showToast === 'function') { showToast('Playing as: ' + label, 2200); }
+            },
             function() { if (selectEl) { selectEl.value = previousColor; } }
         );
     } else {
         setPlayerColor(newColor);
+        if (typeof showToast === 'function') { showToast('Playing as: ' + label, 2200); }
     }
 }
 
@@ -218,6 +228,7 @@ function syncCompactAIControlsVisibility() {
 // =============================================================================
 
 var POCKETS_SAVED_GAME_KEY = 'pocketsSavedGame';
+var gameWasRestoredOnLoad  = false;
 
 // Snapshot of what's actually placed in each pocket right now, for both
 // players. gameState itself has no clean record of board placement - it only
@@ -288,6 +299,7 @@ function restoreBoardPlacements(board) {
 // reconstructed here (see session notes) - the underlying scores/data are
 // still fully preserved either way, nothing is lost.
 function restoreGameFromSave(saved) {
+    gameWasRestoredOnLoad = true;
     gameState = saved.gameState;
     gameMode  = saved.gameMode;
     if (typeof rolloffState !== 'undefined' && saved.rolloffState) {
@@ -300,16 +312,28 @@ function restoreGameFromSave(saved) {
 
     restoreBoardPlacements(saved.board);
 
-    if (gameState.blueDice && gameState.blueDice.length > 0) {
-        renderDiceWithAnimation('blue', gameState.blueDice);
-    }
-    if (gameState.redDice && gameState.redDice.length > 0) {
-        renderDiceWithAnimation('red', gameState.redDice);
-    }
+    // renderDiceWithAnimation() clears the tray itself even with zero dice -
+    // always call it, regardless of how many are left to place. Skipping it
+    // when the array was empty used to leave whatever was already in the DOM
+    // untouched, which is exactly how stale/duplicate dice could linger.
+    renderDiceWithAnimation('blue', gameState.blueDice || []);
+    renderDiceWithAnimation('red',  gameState.redDice  || []);
 
     document.getElementById('currentRound').textContent = gameState.round;
 
-    if (gameState.phase === 'placing' || gameState.phase === 'scoring') {
+    if (gameState.phase === 'gameOver') {
+        // Re-display the winner screen exactly as it was. endGame() is safe
+        // to call again here - it's guarded against re-recording stats for
+        // a game that already finished.
+        endGame();
+    } else if (gameState.phase === 'scoring') {
+        // A reload during the brief "Round complete - calculating scores..."
+        // window kills the pending 2-second timer that would have normally
+        // advanced things automatically - it never fires again on its own.
+        // Finish that transition right now instead of leaving the message
+        // (and the old round's pockets) stuck forever.
+        check100Trigger();
+    } else if (gameState.phase === 'placing') {
         // Matches startPlacement()'s own setActionPanelView('status') call.
         setActionPanelView('status');
     } else if (gameState.phase === 'rolling' && gameState.firstPlayer) {
@@ -644,6 +668,7 @@ function startRound() {
     hidePanelBottom(false);
     showPlaceholderDice();
     startFirstPlayerRolloff();
+    autosaveGame();
 }
 
 function showPlaceholderDice() {
@@ -867,6 +892,7 @@ function rolloffRollDie(player) {
 }
 
 function afterRolloffDieSettled(player) {
+    autosaveGame();
     if (gameMode === 'ai' && player === 'blue' && rolloffState.red === null) {
         setTimeout(function() { rolloffRollDie('red'); }, 400);
     }
@@ -1105,6 +1131,7 @@ function selectDie(player, index) {
         var capturedValue = parseInt(dieEl.getAttribute('data-value'));
         gameState.selectedDie = { player: player, index: index, value: capturedValue };
         highlightAvailablePockets();
+        autosaveGame();
     }
 }
 
@@ -1734,6 +1761,8 @@ function resetRollButtons() {
 // =============================================================================
 
 function endGame() {
+    gameState.phase = 'gameOver';
+
     var winner;
     if (gameState.blueScore > gameState.redScore) {
         winner = 'Blue';
@@ -1776,7 +1805,11 @@ function endGame() {
     var shareFooter = document.getElementById('shareResultFooter');
     if (shareFooter) { shareFooter.classList.remove('hidden'); }
 
-    if (typeof saveGameStats === 'function') {
+    // Guard against double-recording: endGame() also runs when a finished
+    // game's winner screen gets re-displayed on restore, but that's a replay
+    // of an already-recorded result, not a second game.
+    if (typeof saveGameStats === 'function' && !gameState.statsAlreadySaved) {
+        gameState.statsAlreadySaved = true;
         saveGameStats({
             winner:       winner,
             blueScore:    gameState.blueScore,
@@ -1787,6 +1820,8 @@ function endGame() {
             date:         new Date().toISOString()
         });
     }
+
+    autosaveGame();
 }
 
 function addWinnerText(scoreArea) {
@@ -1950,6 +1985,18 @@ function makeAIMove() {
 // =============================================================================
 
 function initializeGame() {
+    // Save state the instant the page loses focus or is about to go away -
+    // a phone call, text alert, doorbell, switching apps, locking the phone,
+    // closing the tab. This is the real safety net: it doesn't matter which
+    // specific action the player was mid-way through, because it isn't tied
+    // to any one button or tap. Anything this misses is also covered by the
+    // explicit autosaveGame() calls throughout the rest of the file, but this
+    // is what actually makes interruption-at-any-moment safe.
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden') { autosaveGame(); }
+    });
+    window.addEventListener('pagehide', function() { autosaveGame(); });
+
     document.getElementById('startRound').addEventListener('click', startRound);
 
     document.getElementById('blueRoll').addEventListener('click', function() {
