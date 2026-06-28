@@ -316,8 +316,8 @@ function restoreGameFromSave(saved) {
     // always call it, regardless of how many are left to place. Skipping it
     // when the array was empty used to leave whatever was already in the DOM
     // untouched, which is exactly how stale/duplicate dice could linger.
-    renderDiceWithAnimation('blue', gameState.blueDice || []);
-    renderDiceWithAnimation('red',  gameState.redDice  || []);
+    renderDiceWithAnimation('blue', gameState.blueDice || [], true);
+    renderDiceWithAnimation('red',  gameState.redDice  || [], true);
 
     document.getElementById('currentRound').textContent = gameState.round;
 
@@ -1066,7 +1066,7 @@ function rollPlayerDice(player) {
     autosaveGame();
 }
 
-function renderDiceWithAnimation(player, dice) {
+function renderDiceWithAnimation(player, dice, skipAnimation) {
     var diceArea = document.getElementById(player + 'DiceArea');
     diceArea.innerHTML = '';
 
@@ -1080,17 +1080,21 @@ function renderDiceWithAnimation(player, dice) {
         }
 
         // Saved dice show their correct value immediately — no animation.
-        // Non-saved dice start random and cycle to the final value.
-        var startVal = isSaved ? value : Math.floor(Math.random() * 6) + 1;
+        // Non-saved dice normally start random and cycle to the final value,
+        // but skipAnimation (used when restoring a saved game) shows the
+        // correct value directly - a restore must never look like a fresh
+        // roll just happened, even though the underlying data was correct
+        // the whole time.
+        var startVal = (isSaved || skipAnimation) ? value : Math.floor(Math.random() * 6) + 1;
         var die      = createDieSVG(startVal, player + '-' + i, isSaved);
         die.setAttribute('data-value', value);   // override startVal with correct final value
-        if (!isSaved) { die.classList.add('rolling'); }  // saved dice don't animate
+        if (!isSaved && !skipAnimation) { die.classList.add('rolling'); }  // saved/restored dice don't animate
 
         // Closure captures die element, final value, saved flag, and index
         (function(dieEl, finalValue, isSavedDie, dieIdx) {
             dieEl.addEventListener('click', function() { selectDie(player, dieIdx); });
 
-            if (!isSavedDie) {
+            if (!isSavedDie && !skipAnimation) {
                 // Cycle random pips every 80ms while the die spins
                 var pipInterval = setInterval(function() {
                     refreshDiePips(dieEl, Math.floor(Math.random() * 6) + 1);
@@ -1739,6 +1743,12 @@ function nextRound() {
     gameState.placementTurn = 0;
     gameState.blueRolled    = false;
     gameState.redRolled     = false;
+    // Reset the moment THIS round ends, not just when Start Round is next
+    // clicked - a save captured in the gap between "round ended" and
+    // "Start Round clicked" (e.g. closing the app right after a round)
+    // would otherwise still carry the previous round's stale value,
+    // making restore incorrectly think rolloff already happened.
+    gameState.firstPlayer   = null;
 
     resetRoundUI();
     document.getElementById('currentRound').textContent = gameState.round;
