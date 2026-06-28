@@ -276,6 +276,22 @@ body.theme-bitmap {
 }
 .theme-bitmap #redRolloffDie  svg.dice .dice-dot { fill: var(--bm-red); }
 .theme-bitmap .rolloff-die { filter: none; }
+/* Reduced parking distance for the spin animations themselves, not just the
+   resting position - the shared base keyframes hardcode +-70px independent
+   of .parked-left/.parked-right, so the dice travel that full distance
+   mid-spin regardless of any override on the resting classes. Bitmap needs
+   its own keyframes with a shorter, safer travel distance (same root cause
+   as the dice-area and pocket-grid narrow-screen gaps found elsewhere). */
+@keyframes bitmapSpinLeft         { 0%{transform:translateX(0) rotate(0deg);}    100%{transform:translateX(-45px) rotate(-720deg);} }
+@keyframes bitmapSpinRight        { 0%{transform:translateX(0) rotate(0deg);}    100%{transform:translateX( 45px) rotate( 720deg);} }
+@keyframes bitmapSpinInPlaceLeft  { 0%{transform:translateX(-45px) rotate(0deg);} 100%{transform:translateX(-45px) rotate(-720deg);} }
+@keyframes bitmapSpinInPlaceRight { 0%{transform:translateX( 45px) rotate(0deg);} 100%{transform:translateX( 45px) rotate( 720deg);} }
+.theme-bitmap .rolloff-die.spinning-left                    { animation: bitmapSpinLeft         0.65s ease-out forwards; }
+.theme-bitmap .rolloff-die.spinning-right                   { animation: bitmapSpinRight        0.65s ease-out forwards; }
+.theme-bitmap .rolloff-die.parked-left.spinning-in-place    { animation: bitmapSpinInPlaceLeft   0.65s ease-out forwards; }
+.theme-bitmap .rolloff-die.parked-right.spinning-in-place   { animation: bitmapSpinInPlaceRight  0.65s ease-out forwards; }
+.theme-bitmap .rolloff-die.parked-left  { transform: translateX(-45px); }
+.theme-bitmap .rolloff-die.parked-right { transform: translateX( 45px); }
 .theme-bitmap .rolloff-die:disabled { opacity: 1 !important; }
 
 /* ==========================================================
@@ -375,6 +391,25 @@ body.theme-bitmap {
 }
 .theme-bitmap .take-pocket { height: 82px; min-height: 82px; max-height: 82px; }
 .theme-bitmap .save-pocket  { height: 82px; min-height: 82px; max-height: 82px; }
+
+/* Pockets stay plain white always, regardless of state - hardcoded rather
+   than chasing every possible source of tint, per explicit request. Covers
+   all four pocket types and any class state that might otherwise tint them. */
+.theme-bitmap .pocket,
+.theme-bitmap .pocket.active,
+.theme-bitmap .take-pocket,
+.theme-bitmap .save-pocket,
+.theme-bitmap .keep-pocket {
+    background: var(--mac-white) !important;
+}
+/* Bitmap never had its own saved-die styling (every other theme does).
+   Matches the existing per-player dice fill (blue/red panel tint) rather
+   than introducing a different color that would look inconsistent with
+   every other die on the board - distinguished only by a bolder stroke. */
+.theme-bitmap .player-area.blue .dice.saved-tint .dice-face { fill: var(--bm-blue-panel); stroke: var(--bm-blue); stroke-width: 2.5; }
+.theme-bitmap .player-area.red  .dice.saved-tint .dice-face { fill: var(--bm-red-panel);  stroke: var(--bm-red);  stroke-width: 2.5; }
+.theme-bitmap .player-area.blue .dice.saved-tint .dice-dot  { fill: var(--bm-blue); }
+.theme-bitmap .player-area.red  .dice.saved-tint .dice-dot  { fill: var(--bm-red);  }
 .theme-bitmap .pocket:hover { background: var(--mac-grey-hi); }
 .theme-bitmap .pocket-label {
     font-size: 0.85em;
