@@ -294,6 +294,29 @@ body.theme-bitmap {
 .theme-bitmap .rolloff-die.parked-right { transform: translateX( 45px); }
 .theme-bitmap .rolloff-die:disabled { opacity: 1 !important; }
 
+/* Same parked-position-aware wobble fix as the base styles, matching
+   Bitmap's own reduced +-45px offset instead of the shared 70px. */
+@keyframes bitmapRolloffInviteParkedLeft {
+    0%, 80%, 100% { transform: translateX(-45px) scale(1) rotate(0deg); }
+    5%            { transform: translateX(-45px) scale(1.08) rotate(-4deg); }
+    10%           { transform: translateX(-45px) scale(1.08) rotate(4deg); }
+    15%           { transform: translateX(-45px) scale(1) rotate(-2deg); }
+    20%           { transform: translateX(-45px) scale(1) rotate(0deg); }
+}
+@keyframes bitmapRolloffInviteParkedRight {
+    0%, 80%, 100% { transform: translateX(45px) scale(1) rotate(0deg); }
+    5%            { transform: translateX(45px) scale(1.08) rotate(-4deg); }
+    10%           { transform: translateX(45px) scale(1.08) rotate(4deg); }
+    15%           { transform: translateX(45px) scale(1) rotate(-2deg); }
+    20%           { transform: translateX(45px) scale(1) rotate(0deg); }
+}
+.theme-bitmap .rolloff-die.parked-left:not(.faded):not(:disabled) {
+    animation: bitmapRolloffInviteParkedLeft 3s ease-in-out infinite;
+}
+.theme-bitmap .rolloff-die.parked-right:not(.faded):not(:disabled) {
+    animation: bitmapRolloffInviteParkedRight 3s ease-in-out infinite;
+}
+
 /* ==========================================================
    PLAYER AREAS — side by side always
    ========================================================== */
