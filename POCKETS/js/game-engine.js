@@ -351,11 +351,21 @@ function restoreGameFromSave(saved) {
             blueRollBtn.disabled = !!gameState.blueRolled;
             blueRollBtn.classList.remove('roll-prompt-pulse');
             blueRollBtn.classList.remove('hidden');
+            blueRollBtn.textContent = gameState.blueRolled
+                ? (colorEmoji('blue') + ' ' + colorLabel('blue') + ' Rolled')
+                : (colorEmoji('blue') + ' ' + colorLabel('blue') + ' Roll Dice');
         }
         if (redRollBtn) {
             redRollBtn.disabled = !!gameState.redRolled;
             redRollBtn.classList.remove('roll-prompt-pulse');
             redRollBtn.classList.remove('hidden');
+            if (gameMode === 'ai') {
+                redRollBtn.textContent = gameState.redRolled ? '🤖 AI Rolled' : '🤖 AI Will Roll';
+            } else {
+                redRollBtn.textContent = gameState.redRolled
+                    ? (colorEmoji('red') + ' ' + colorLabel('red') + ' Rolled')
+                    : (colorEmoji('red') + ' ' + colorLabel('red') + ' Roll Dice');
+            }
         }
         var pulseColor = (gameState.currentPlayer === 'blue' && !gameState.blueRolled) ? 'blue'
                         : (gameState.currentPlayer === 'red'  && !gameState.redRolled)  ? 'red' : null;
