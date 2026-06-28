@@ -1313,7 +1313,6 @@ const themeSelector = document.getElementById('themeSelector');
         }
 
         // ── Initialisation ───────────────────────────────
-        let _gameStarted = false;
 
         function showToast(message, durationMs) {
             const toast = document.getElementById('difficultyToast');
@@ -1329,66 +1328,6 @@ const themeSelector = document.getElementById('themeSelector');
             showToast('🤖 AI difficulty: ' + pretty, 2200);
         }
 
-        // When the player tries to switch mode or difficulty mid-game, show
-        // them a real choice: continue the current game, or start over.
-        // Reuses the existing #confirmModal element with temporary labels.
-        function showSwitchBlockedModal(targetBtnId) {
-            const modal     = document.getElementById('confirmModal');
-            const titleEl   = document.getElementById('confirmTitle');
-            const msgEl     = document.getElementById('confirmMessage');
-            const okBtn     = document.getElementById('confirmOk');
-            const cancelBtn = document.getElementById('confirmCancel');
-            if (!modal || !titleEl || !msgEl || !okBtn || !cancelBtn) return;
-
-            // Build a human-readable label for what they're switching to
-            const modeLabels = {
-                twoPlayerMode: '2 Players',
-                aiMode:        'VS AI',
-                easyAI:        'Easy AI',
-                mediumAI:      'Medium AI',
-                hardAI:        'Hard AI'
-            };
-            const label = modeLabels[targetBtnId] || 'new settings';
-
-            const origTitle  = titleEl.textContent;
-            const origMsg    = msgEl.textContent;
-            const origOk     = okBtn.textContent;
-            const origCancel = cancelBtn.textContent;
-
-            titleEl.textContent   = 'Switch to ' + label + '?';
-            msgEl.textContent     = 'Switching to ' + label + ' will start a new game. Current progress will be lost.';
-            okBtn.textContent     = 'Switch + New Game';
-            cancelBtn.textContent = 'Keep playing';
-            modal.classList.remove('hidden');
-
-            function cleanup() {
-                modal.classList.add('hidden');
-                titleEl.textContent   = origTitle;
-                msgEl.textContent     = origMsg;
-                okBtn.textContent     = origOk;
-                cancelBtn.textContent = origCancel;
-                okBtn.removeEventListener('click', onOk);
-                cancelBtn.removeEventListener('click', onCancel);
-                modal.removeEventListener('click', onBackdrop);
-            }
-            function onOk() {
-                cleanup();
-                // Apply the mode or difficulty the user actually wanted
-                if (targetBtnId === 'twoPlayerMode' && typeof setGameMode      === 'function') setGameMode('2player');
-                if (targetBtnId === 'aiMode'         && typeof setGameMode      === 'function') setGameMode('ai');
-                if (targetBtnId === 'easyAI'         && typeof setAIDifficulty  === 'function') setAIDifficulty('easy');
-                if (targetBtnId === 'mediumAI'        && typeof setAIDifficulty  === 'function') setAIDifficulty('medium');
-                if (targetBtnId === 'hardAI'          && typeof setAIDifficulty  === 'function') setAIDifficulty('hard');
-                if (typeof newGame === 'function') newGame();
-            }
-            function onCancel()    { cleanup(); }
-            function onBackdrop(e) { if (e.target === modal) cleanup(); }
-
-            okBtn.addEventListener('click', onOk);
-            cancelBtn.addEventListener('click', onCancel);
-            modal.addEventListener('click', onBackdrop);
-        }
-
         function brightenPlaceholderDice() {
             // Game-engine.js's showPlaceholderDice sets style.opacity = '0.35'.
             // Override to full brightness once rolloff is starting.
@@ -1401,14 +1340,13 @@ const themeSelector = document.getElementById('themeSelector');
                 loadSavedTheme();
                 if (typeof initializeGame === 'function') initializeGame();
                 else console.warn('game-engine.js not loaded');
-                if (typeof pocketsStats !== 'undefined' && typeof pocketsStats.getPreference === 'function') {
-                    const saved = pocketsStats.getPreference('aiDifficulty');
-                    if (saved && typeof updateAIDifficulty === 'function') updateAIDifficulty(saved);
-                }
 
                 // Render idle 1-pip placeholder dice on page load so the board
-                // looks like a dice game immediately, before "Start Round 1".
-                if (typeof showPlaceholderDice === 'function') {
+                // looks like a dice game immediately, before "Start Round 1" -
+                // but only for a genuinely fresh page. A real in-progress game
+                // that was just restored must never have this overwrite it.
+                if (typeof showPlaceholderDice === 'function' &&
+                    !(typeof gameWasRestoredOnLoad !== 'undefined' && gameWasRestoredOnLoad)) {
                     showPlaceholderDice();
                 }
 
@@ -1422,8 +1360,6 @@ const themeSelector = document.getElementById('themeSelector');
                         // inside initializeGame), so the new placeholder dice
                         // already exist in the DOM at this point.
                         brightenPlaceholderDice();
-                        // Lock mode/difficulty switching until New Game.
-                        _gameStarted = true;
                     });
                 }
 
@@ -1448,30 +1384,17 @@ const themeSelector = document.getElementById('themeSelector');
                                 redArea.children.length === 0 &&
                                 typeof showPlaceholderDice === 'function') {
                                 showPlaceholderDice();
-                                // Game was reset — unlock mode/difficulty.
-                                _gameStarted = false;
                             }
                         }, 0);
                     });
                 }
 
-                // ── Mode/difficulty lockout while a round is in progress ──
-                // Capture-phase listener on document.body intercepts clicks
-                // BEFORE the buttons' own bubble-phase handlers, so we can
-                // block game-engine's setGameMode / setAIDifficulty.
-                document.body.addEventListener('click', (e) => {
-                    if (!_gameStarted) return;
-                    const btn = e.target.closest('button');
-                    if (!btn) return;
-                    const lockedIds = new Set([
-                        'twoPlayerMode', 'aiMode',
-                        'easyAI', 'mediumAI', 'hardAI'
-                    ]);
-                    if (!lockedIds.has(btn.id)) return;
-                    e.stopImmediatePropagation();
-                    e.preventDefault();
-                    showSwitchBlockedModal(btn.id);
-                }, true);
+                // Mode/difficulty/color switching mid-game is handled entirely
+                // by game-engine.js's isGameInProgress()-based confirm+reset
+                // system (changeModeWithConfirm / changeColorWithConfirm),
+                // which is driven by real, persisted gameState rather than a
+                // transient flag - it correctly reflects a restored in-progress
+                // game too, which a session-only flag here never could.
 
                 // ── Persistent rolloff tie message ──
                 // The "Tied at X — tap again!" message can be cleared
@@ -1537,24 +1460,10 @@ const themeSelector = document.getElementById('themeSelector');
                     });
                 });
 
-                // Wire AI difficulty buttons: actually swap the AI personality
-                // (game-engine's setAIDifficulty only updates the UI state)
-                // and show a brief toast so the change is visible.
-                ['easy', 'medium', 'hard'].forEach(level => {
-                    const btn = document.getElementById(level + 'AI');
-                    if (!btn) return;
-                    btn.addEventListener('click', () => {
-                        if (typeof updateAIDifficulty === 'function') {
-                            updateAIDifficulty(level);
-                        }
-                        if (typeof pocketsStats !== 'undefined' &&
-                            typeof pocketsStats.setPreference === 'function') {
-                            try { pocketsStats.setPreference('aiDifficulty', level); }
-                            catch (e) { /* ignore */ }
-                        }
-                        showDifficultyToast(level);
-                    });
-                });
+                // Difficulty change feedback (the toast) now fires from inside
+                // ai-player.js's setAIDifficulty() itself, sequenced right
+                // after the real change - not as an independent listener here
+                // that could fire even if the real change somehow didn't.
 
                 document.getElementById('loadingScreen').style.display = 'none';
             } catch (err) {
