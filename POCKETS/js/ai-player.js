@@ -350,6 +350,7 @@ function setAIDifficulty(difficulty) {
     const btn = document.getElementById(difficulty + 'AI');
     if (btn) { btn.classList.add('active'); }
     if (typeof savePocketsSettings === 'function') { savePocketsSettings(); }
+    if (typeof showDifficultyToast === 'function') { showDifficultyToast(difficulty); }
 }
 
 // ── AI move execution ─────────────────────────────────────────────────────────
