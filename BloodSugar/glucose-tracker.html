@@ -1583,25 +1583,41 @@ function renderWeekChart() {
     dayData.push(entry || null);
   }
 
-  const values = dayData.map(d => d ? d.avg : null);
-  const colors = dayData.map(d => {
-    if (!d) return 'transparent';
-    const v = d.avg;
+  const zoneColor = (v, alpha) => {
     const base = v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'30,150,120';
-    return `rgba(${base},0.82)`;
-  });
+    return `rgba(${base},${alpha})`;
+  };
+
+  // Layer datasets: layer 0 = tallest reading per day, layer 1 = next tallest, etc.
+  // Each day's readings sorted highest-to-lowest; each layer drawn back-to-front.
+  const maxLayers = Math.max(1, ...dayData.map(d => d ? d.readings.length : 0));
+  const layerDatasets = [];
+  for (let li = 0; li < maxLayers; li++) {
+    layerDatasets.push({
+      data: dayData.map(d => {
+        if (!d) return null;
+        const sorted = [...d.readings].sort((a,b)=>b.val-a.val);
+        return sorted[li] ? sorted[li].val : null;
+      }),
+      backgroundColor: dayData.map(d => {
+        if (!d) return 'transparent';
+        const sorted = [...d.readings].sort((a,b)=>b.val-a.val);
+        const r = sorted[li];
+        return r ? zoneColor(r.val, 0.85) : 'transparent';
+      }),
+      borderRadius: 4,
+      borderSkipped: false,
+      barPercentage: 0.6 - li*0.08, // each successive layer slightly narrower so edges of the bar behind peek out
+      categoryPercentage: 1.0
+    });
+  }
+
   const countLabels = dayData.map(d => d && d.count > 1 ? d.count : null);
 
   if (weekChartInst) weekChartInst.destroy();
   weekChartInst = new Chart(document.getElementById('weekChart'), {
     type: 'bar',
-    data: { labels: dayLabels, datasets: [{
-      data: values,
-      backgroundColor: colors,
-      borderRadius: 4,
-      borderSkipped: false,
-      barPercentage: 0.6
-    }] },
+    data: { labels: dayLabels, datasets: layerDatasets },
     options: {
       responsive:true, maintainAspectRatio:false,
       plugins: {
@@ -1610,7 +1626,7 @@ function renderWeekChart() {
           callbacks: {
             title: ctx => {
               const di = ctx[0].dataIndex;
-              return dayLabels[di] + (dayData[di]?.count>1 ? ` (${dayData[di].count} readings, avg shown)` : '');
+              return dayLabels[di] + (dayData[di]?.count>1 ? ` (${dayData[di].count} readings)` : '');
             },
             label: ctx => {
               const d = dayData[ctx.dataIndex];
@@ -1619,7 +1635,9 @@ function renderWeekChart() {
               const lines = d.readings.map(r => `${r.val} mg/dL @ ${fmtTime(r.time)}`);
               return [` Avg: ${d.avg} mg/dL`, ...lines.map(l=>' • '+l)];
             }
-          }
+          },
+          // Avoid duplicate tooltip rows from multiple layer datasets at the same x
+          filter: (item, idx, items) => idx === 0
         }
       },
       scales: {
@@ -1633,11 +1651,11 @@ function renderWeekChart() {
         const ctx2 = chart.ctx;
         chart.data.labels.forEach((_,i) => {
           if (countLabels[i]) {
-            const meta = chart.getDatasetMeta(0);
+            const meta = chart.getDatasetMeta(0); // layer 0 = tallest bar = back layer
             const bar = meta.data[i];
             if (!bar) return;
             const top = bar.y;
-            // purple top border to flag multi-reading days
+            // purple top border on the tallest (back) bar to flag multi-reading days
             ctx2.save();
             ctx2.strokeStyle = '#9333ea';
             ctx2.lineWidth = 3;
@@ -1707,19 +1725,31 @@ function initGraph() {
   const ptColors = data.map(v=>v>180?'#c0392b':v<70?'#1a5f8a':'#1a7a6e');
   const isBar = disp.length > 60;
 
-  // Single bar per day at the daily AVERAGE — never stack raw reading values
+  // Layered bars per day at the daily AVERAGE for line mode, or height-sorted layers in bar mode
   let mainDatasets;
   if (isBar) {
-    mainDatasets = [{
-      label: 'Blood sugar',
-      data,
-      backgroundColor: disp.map(d => {
-        const v = d.avg;
-        const base = v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'26,122,110';
-        return `rgba(${base},0.82)`;
-      }),
-      borderRadius: 3, borderSkipped: false, barPercentage: 0.7
-    }];
+    const zoneColor = (v, alpha) => {
+      const base = v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'26,122,110';
+      return `rgba(${base},${alpha})`;
+    };
+    const maxLayers = Math.max(1, ...disp.map(d => d.readings.length));
+    mainDatasets = [];
+    for (let li = 0; li < maxLayers; li++) {
+      mainDatasets.push({
+        label: li===0 ? 'Blood sugar' : `layer${li}`,
+        data: disp.map(d => {
+          const sorted = [...d.readings].sort((a,b)=>b.val-a.val);
+          return sorted[li] ? sorted[li].val : null;
+        }),
+        backgroundColor: disp.map(d => {
+          const sorted = [...d.readings].sort((a,b)=>b.val-a.val);
+          const r = sorted[li];
+          return r ? zoneColor(r.val, 0.85) : 'transparent';
+        }),
+        borderRadius: 3, borderSkipped: false,
+        barPercentage: 0.7 - li*0.08, categoryPercentage: 1.0
+      });
+    }
   } else {
     mainDatasets = [{
       label:'Blood sugar', data,
@@ -1745,10 +1775,24 @@ function initGraph() {
       responsive:true, maintainAspectRatio:false,
       plugins: {
         legend:{display:false},
-        tooltip:{ callbacks:{ label: ctx => {
+        tooltip:{ callbacks:{
+          title: ctx => {
+            if (!isBar) return undefined;
+            const d = disp[ctx[0].dataIndex];
+            return d.count > 1 ? `${labels[ctx[0].dataIndex]} (${d.count} readings)` : labels[ctx[0].dataIndex];
+          },
+          label: ctx => {
           if(ctx.dataset.label==='Average') return ` Avg: ${ctx.raw}`;
           if(ctx.dataset.label==='Trend') return ` Trend: ${ctx.raw}`;
           if(ctx.dataset.label?.includes('Safe')) return null;
+          if (isBar) {
+            // only emit once, from the first (tallest/back) layer dataset
+            if (ctx.datasetIndex !== 0) return null;
+            const d = disp[ctx.dataIndex];
+            if (d.count === 1) return ` ${d.avg} mg/dL @ ${fmtTime(d.readings[0].time)}`;
+            const lines = d.readings.map(r => `${r.val} mg/dL @ ${fmtTime(r.time)}`);
+            return [` Avg: ${d.avg} mg/dL`, ...lines.map(l=>' • '+l)];
+          }
           return ` ${ctx.raw} mg/dL`;
         }}}
       },
@@ -2168,17 +2212,29 @@ function renderMonthly(){
   const avgDS=makeAvgDataset(avg,avgs.length,'Average');
   const safeDS=makeSafeZoneDataset(mData.length);
 
-  // Single bar per day at the daily AVERAGE — never stack raw reading values
-  const mainDS = [{
-    label: 'Avg',
-    data: avgs,
-    backgroundColor: mData.map(d => {
-      const v = d.avg;
-      const base = v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'26,122,110';
-      return `rgba(${base},0.82)`;
-    }),
-    borderRadius: 3, borderSkipped: false, barPercentage: 0.75
-  }];
+  // Layered bars per day, height-sorted highest-to-lowest, each its own zone color
+  const zoneColor = (v, alpha) => {
+    const base = v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'26,122,110';
+    return `rgba(${base},${alpha})`;
+  };
+  const maxLayers = Math.max(1, ...mData.map(d => d.readings.length));
+  const mainDS = [];
+  for (let li = 0; li < maxLayers; li++) {
+    mainDS.push({
+      label: li===0 ? 'Avg' : `layer${li}`,
+      data: mData.map(d => {
+        const sorted = [...d.readings].sort((a,b)=>b.val-a.val);
+        return sorted[li] ? sorted[li].val : null;
+      }),
+      backgroundColor: mData.map(d => {
+        const sorted = [...d.readings].sort((a,b)=>b.val-a.val);
+        const r = sorted[li];
+        return r ? zoneColor(r.val, 0.85) : 'transparent';
+      }),
+      borderRadius: 3, borderSkipped: false,
+      barPercentage: 0.75 - li*0.08, categoryPercentage: 1.0
+    });
+  }
 
   monthlyChartInst=new Chart(document.getElementById('monthlyChart'),{
     type:'bar',
@@ -2188,6 +2244,7 @@ function renderMonthly(){
         if(ctx.dataset.label==='Average')return` Avg: ${ctx.raw}`;
         if(ctx.dataset.label==='Trend')return` Trend: ${ctx.raw}`;
         if(ctx.dataset.label?.includes('Safe'))return null;
+        if (ctx.datasetIndex !== 0) return null; // only emit once, from the tallest/back layer
         const d = mData[ctx.dataIndex];
         if (!d) return null;
         if (d.count === 1) return ` ${d.avg} mg/dL @ ${fmtTime(d.readings[0].time)}`;
