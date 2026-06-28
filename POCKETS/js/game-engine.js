@@ -340,6 +340,7 @@ function restoreGameFromSave(saved) {
         // Rolloff already resolved this round - show the roll-dice buttons,
         // correctly reflecting who's already rolled.
         setActionPanelView('rolls');
+        if (typeof brightenPlaceholderDice === 'function') { brightenPlaceholderDice(); }
         var blueRollBtn = document.getElementById('blueRoll');
         var redRollBtn  = document.getElementById('redRoll');
         if (blueRollBtn) {
@@ -387,6 +388,8 @@ function setGameMode(mode) {
         if (playAsToggle) { playAsToggle.classList.remove('hidden'); }
         setPlayerColor(gameState.humanColor || 'blue');
     }
+    var cModeEl = document.getElementById('cMode');
+    if (cModeEl) { cModeEl.value = mode; }
     syncCompactAIControlsVisibility();
     savePocketsSettings();
 }
@@ -419,6 +422,8 @@ function setPlayerColor(color) {
     var redBtn  = document.getElementById('playAsRed');
     if (blueBtn) { blueBtn.classList.toggle('active', color === 'blue'); }
     if (redBtn)  { redBtn.classList.toggle('active', color === 'red');   }
+    var cPlayEl = document.getElementById('cPlay');
+    if (cPlayEl) { cPlayEl.value = color; }
     // Update headers — human is on the BLUE side regardless of chosen color
     var is2p = (gameMode === '2player');
     document.getElementById('bluePlayerHeader').textContent =
@@ -643,6 +648,14 @@ function showConfirm(title, message, onConfirm, onCancel) {
 function startRound() {
     if (gameState.phase !== 'rolling') { return; }
 
+    // firstPlayer must mean "has THIS round's rolloff resolved" - reset it
+    // here, at the moment a new round actually begins. It was previously
+    // only ever set once per game and never cleared, which made it
+    // impossible to reliably tell "between rounds" apart from "rolloff just
+    // resolved" - the real cause of restore sometimes skipping straight to
+    // Roll Dice and bypassing this function's own pocket-clearing below.
+    gameState.firstPlayer = null;
+
     // Clear take pocket badges at start of new round
     document.getElementById('blueTakeScore').classList.add('hidden');
     document.getElementById('redTakeScore').classList.add('hidden');
@@ -726,17 +739,16 @@ function startFirstPlayerRolloff() {
     redDie.classList.remove('spinning-right');
     redDie.classList.remove('spinning-in-place');
 
-    // Only the AI's die should appear faded/non-interactive. The human's die is
-    // tappable right away and must not look dimmed at the same time. In 2-player
-    // mode neither die is faded - both belong to a physical player who can tap
-    // whenever they're ready.
-    var isAIMode         = (gameMode === 'ai');
-    var humanIsBlueButton = !isAIMode || gameState.humanColor !== 'red';
-    var fadeBlueDie = isAIMode && !humanIsBlueButton;
-    var fadeRedDie  = isAIMode && humanIsBlueButton;
-
-    setRolloffDieFaded(blueDie, fadeBlueDie);
-    setRolloffDieFaded(redDie, fadeRedDie);
+    // Only the AI's die should appear faded/non-interactive. #blueRolloffDie
+    // is always the human's button and #redRolloffDie is always the AI's,
+    // structurally - this matches the same "AI is always internally red"
+    // convention used everywhere else in the codebase. The humanColor swap
+    // only changes which COLORS are painted onto these two buttons; it never
+    // changes which one is actually the human's. No color-conditional logic
+    // is needed here at all - that was the bug.
+    var isAIMode = (gameMode === 'ai');
+    setRolloffDieFaded(blueDie, false);
+    setRolloffDieFaded(redDie, isAIMode);
     blueDie.disabled = false;
     redDie.disabled  = (gameMode === 'ai');
 
@@ -921,15 +933,13 @@ function resolveRolloff() {
             bd.disabled = false;
             rd.disabled = (gameMode === 'ai');
             // Keep dice showing their actual tied values — just re-fade the AI's
-            // die (the human's stays clickable AND visually active, same fix as
-            // the initial rolloff setup). Resetting to placeholder 1s caused the
-            // "Tied at X but I see 1s" confusion, so the values stay as-is here.
-            var isAIModeNow          = (gameMode === 'ai');
-            var humanIsBlueButtonNow = !isAIModeNow || gameState.humanColor !== 'red';
-            if (isAIModeNow && !humanIsBlueButtonNow) { bd.classList.add('faded'); }
-            else { bd.classList.remove('faded'); }
-            if (isAIModeNow && humanIsBlueButtonNow) { rd.classList.add('faded'); }
-            else { rd.classList.remove('faded'); }
+            // die (the human's stays clickable AND visually active). Resetting
+            // to placeholder 1s caused the "Tied at X but I see 1s" confusion,
+            // so the values stay as-is here. #blueRolloffDie is always the
+            // human's button structurally, regardless of the color swap.
+            var isAIModeNow = (gameMode === 'ai');
+            bd.classList.remove('faded');
+            if (isAIModeNow) { rd.classList.add('faded'); } else { rd.classList.remove('faded'); }
             var vsElAgain = document.querySelector('.rolloff-vs');
             if (vsElAgain) { vsElAgain.classList.remove('hidden'); }
         }, 1200);
@@ -961,10 +971,13 @@ function resolveRolloff() {
     }
 
     result.classList.add('winner');
-    result.innerHTML = '🏆 <span style="color:' + winnerColor + '">' + winnerName + '</span> goes first!';
+    result.innerHTML = '<span style="color:' + winnerColor + '">' + winnerName + '</span> goes first!';
 
     setTimeout(function() {
         setActionPanelView('rolls');
+        // The 4 placeholder dice stay dull through the whole rolloff battle -
+        // only brighten them now, the moment Roll Dice buttons actually appear.
+        if (typeof brightenPlaceholderDice === 'function') { brightenPlaceholderDice(); }
         var blueBtn = document.getElementById('blueRoll');
         var redBtn  = document.getElementById('redRoll');
         blueBtn.classList.remove('hidden');
