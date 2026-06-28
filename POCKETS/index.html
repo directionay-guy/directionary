@@ -252,13 +252,18 @@ select.theme-subtitle {
         }
         .roll-prompt-pulse { animation: pulse 1.4s ease-in-out infinite; }
 
-        /* Brief outline on whichever pocket the AI just filled - fast and just
-           noticeable, not a multi-second highlight. Theme-agnostic gold ring so
-           it reads clearly regardless of which theme is active. */
-        .pocket.just-placed {
-            outline: 3px solid #ffd700;
-            outline-offset: 1px;
-            transition: outline-color 0.2s ease;
+        /* Rolloff die invite-to-tap wobble - a brief burst then a pause,
+           repeating every few seconds. Only applies to the active, tappable
+           die; stops the instant it's tapped (disabled) or already faded. */
+        @keyframes rolloffInvite {
+            0%, 80%, 100% { transform: scale(1) rotate(0deg); }
+            5%            { transform: scale(1.08) rotate(-4deg); }
+            10%           { transform: scale(1.08) rotate(4deg); }
+            15%           { transform: scale(1) rotate(-2deg); }
+            20%           { transform: scale(1) rotate(0deg); }
+        }
+        .rolloff-die:not(.faded):not(:disabled) {
+            animation: rolloffInvite 3s ease-in-out infinite;
         }
 
         /* ── Rolloff die buttons ── */
@@ -289,13 +294,13 @@ select.theme-subtitle {
         .rolloff-arena { display: inline-flex; align-items: center; justify-content: center; gap: 0; position: relative; }
         .rolloff-center { min-width: 130px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; }
         .rolloff-vs     { font-weight: bold; font-size: 1em; opacity: 0.6; letter-spacing: 3px; }
-        .rolloff-result { font-size: 1em; min-height: 20px; font-weight: bold; }
-        .rolloff-result.winner { font-size: 1em; }
+        .rolloff-result { font-size: 1.15em; min-height: 20px; font-weight: bold; }
+        .rolloff-result.winner { font-size: 1.5em; }
         .player-rolls { display: flex; gap: 16px; justify-content: center; padding: 8px; }
         .player-rolls.hidden { display: none !important; }
         .first-player-rolloff { text-align: center; width: 100%; }
         .first-player-rolloff.hidden { display: none !important; }
-        .rolloff-prompt { font-size: 1.05em; margin-bottom: 8px; }
+        .rolloff-prompt { font-size: 1.3em; margin-bottom: 8px; }
 
         /* ── Header ornaments ── */
         .game-header { position: relative; }
@@ -329,6 +334,49 @@ select.theme-subtitle {
         .compact-controls { display: none !important; }
         .compact-sel-label { display: none !important; }
         .compact-sel { display: none !important; }
+
+        /* Responsive controls - below this width, ANY theme switches to the
+           same compact dropdown controls Compact theme already has, instead
+           of the wider button-groups. Compact theme keeps its own distinct
+           styling (higher selector specificity wins for it specifically);
+           this is the fallback for the other six themes on a narrow screen. */
+        @media (max-width: 480px) {
+            .mode-btn, .difficulty-btn { display: none !important; }
+            .compact-controls {
+                display: flex !important;
+                align-items: center;
+                gap: 4px;
+                flex: 1;
+                flex-wrap: wrap;
+                min-width: 0;
+                overflow: visible;
+            }
+            .compact-sel {
+                display: inline-block !important;
+                background-color: rgba(0,0,0,0.35);
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M0 0L5 6L10 0Z' fill='%23ffffff'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 4px center;
+                background-size: 9px;
+                color: #f0f0f0;
+                border: 1px solid rgba(255,255,255,0.4);
+                padding: 2px 18px 2px 5px;
+                font-family: inherit;
+                font-size: 0.72em;
+                cursor: pointer;
+                border-radius: 3px;
+                appearance: none;
+                -webkit-appearance: none;
+                min-width: 0;
+            }
+            .compact-sel-label {
+                display: inline !important;
+                color: #f0f0f0;
+                font-size: 0.68em;
+                white-space: nowrap;
+                letter-spacing: 0.04em;
+            }
+        }
 
         /* ── New game section ── */
         .new-game-section { display:flex;justify-content:center;align-items:stretch;gap:12px;flex-wrap:wrap; }
@@ -747,7 +795,7 @@ select.theme-subtitle {
 
             <!-- State A: Start Round / Start Rolldown -->
             <div class="controls" id="gameControls">
-                <button class="btn start-btn" id="startRound">Start Round 1</button>
+                <button class="btn start-btn roll-prompt-pulse" id="startRound">Start Round 1</button>
                 <button class="btn start-btn finale-btn hidden" id="startFinale">▶ Start Rolldown</button>
             </div>
 
@@ -1170,13 +1218,13 @@ const themeSelector = document.getElementById('themeSelector');
 
 <div class="help-section" id="sg-ai">
   <h3>vs. the AI</h3>
-  <p>The AI plays at three levels:</p>
+  <p>All three difficulty levels share the same underlying reasoning — what changes between them is how much each one is allowed to see, not a different personality bolted on top.</p>
   <ul>
-    <li><strong>Easy:</strong> Plays casually with a lot of noise in its decisions. A player applying the strategy in this guide should beat Easy reliably.</li>
-    <li><strong>Medium:</strong> Plays solid. Values combos, fights Take with backing, saves high. You should win the majority of games but losses happen.</li>
-    <li><strong>Hard:</strong> Plays sharp. Adjusts to the score, exploits combos, plays Take aggressively. Expect to lose sometimes even with good play — that's the point.</li>
+    <li><strong>Easy:</strong> Sees only whether the score is getting close to 100 — nothing about hand strength, nothing about your pockets. On top of that limited view, it has a real chance each turn of making a recognizable beginner mistake: wasting a strong die in Save, or risking Take with its weakest die while a stronger one sits unused. A player applying the strategy in this guide should beat Easy reliably.</li>
+    <li><strong>Medium:</strong> Reads its own hand quality each round and has a rough sense of how far behind it is, but never looks at what you've placed in your own pockets. Its read on "am I behind" moves in coarse steps rather than scaling smoothly, so its banking decisions can feel a little blunt late in a close game.</li>
+    <li><strong>Hard:</strong> Full picture — its own hand quality this round, a read on how your round is going so far from what you've already placed, and a precise, constantly-recalculated sense of how far behind it actually is. Take is never a default move for Hard — it weighs a Take fight against its own hand and what your placements suggest about yours, and will deliberately walk away from a fight the math doesn't favor. Expect to lose sometimes even with good play — that's the point.</li>
   </ul>
-  <p>The AI adjusts its Save strategy by score — it saves aggressively when either player is above 80. Its blind spot: it doesn't plan the full round before placing the first die, and scores each die-pocket pair independently. A patient human who reads the board and plans ahead has a real edge.</p>
+  <p>All three tiers search every possible arrangement of their remaining dice across the open pockets before committing to a move — Easy is the only one that reasons greedily, one die at a time. Hard's real edge isn't seeing further ahead than you; it's correctly weighing Keep against Take against Save in the moment, using the same information you'd have if you watched its pockets closely. A patient human who reads the board the same way has a real shot.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 </div>`;
@@ -1295,9 +1343,9 @@ const themeSelector = document.getElementById('themeSelector');
 <div class="help-section" id="rules-ai">
   <h3>🤖 AI Opponents</h3>
   <ul>
-    <li><strong>Easy:</strong> Casual strategy with extra randomness — good for learning the ropes.</li>
-    <li><strong>Medium:</strong> Solid strategy — values Take battles, saves high dice, plans for combos.</li>
-    <li><strong>Hard:</strong> Advanced strategy — reads your Save pocket, adjusts to the score, exploits matching dice for combo wins.</li>
+    <li><strong>Easy:</strong> Sees only the score, not your pockets or its own hand strength — good for learning the ropes, with the occasional beginner-style mistake built in.</li>
+    <li><strong>Medium:</strong> Reads its own hand and roughly how far behind it is, but never looks at your placements.</li>
+    <li><strong>Hard:</strong> Full picture — reads your placements too, and weighs every Take fight rather than chasing it by default.</li>
   </ul>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
 </div>
@@ -1350,18 +1398,10 @@ const themeSelector = document.getElementById('themeSelector');
                     showPlaceholderDice();
                 }
 
-                // After game-engine's startRound runs (which re-renders the
-                // placeholders), bump them to full opacity so they "light up"
-                // when the rolloff begins.
-                const startBtn = document.getElementById('startRound');
-                if (startBtn) {
-                    startBtn.addEventListener('click', () => {
-                        // Runs after game-engine's listener (registered earlier
-                        // inside initializeGame), so the new placeholder dice
-                        // already exist in the DOM at this point.
-                        brightenPlaceholderDice();
-                    });
-                }
+                // The 4 placeholder dice should stay dull through the entire
+                // rolloff battle, only brightening once "Roll Dice" actually
+                // appears - that happens in game-engine.js's resolveRolloff(),
+                // not here. No listener needed on this button for that anymore.
 
                 // After New Game resets the board, re-render the faded
                 // placeholder dice so the board doesn't look empty between games.
