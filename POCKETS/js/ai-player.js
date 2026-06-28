@@ -349,6 +349,8 @@ function setAIDifficulty(difficulty) {
     });
     const btn = document.getElementById(difficulty + 'AI');
     if (btn) { btn.classList.add('active'); }
+    const cDiffEl = document.getElementById('cDiff');
+    if (cDiffEl) { cDiffEl.value = difficulty; }
     if (typeof savePocketsSettings === 'function') { savePocketsSettings(); }
     if (typeof showDifficultyToast === 'function') { showDifficultyToast(difficulty); }
 }
@@ -368,28 +370,19 @@ function makeAIMoveExternal() {
             const capturedValue = gameState.redDice[move.dieIndex];
             gameState.selectedDie = { player: 'red', index: move.dieIndex, value: capturedValue };
 
-            // Glow the chosen die first (same visual a human's own click gives),
-            // so the AI's choice is visible before it lands - brief, just enough
-            // to be noticed, not a multi-second pause.
+            // Exactly the same sequence a human's own click gives: glow the
+            // chosen die, then highlight the available pockets for that side
+            // (the same per-theme "active" outline, not a separate invented
+            // visual). placeDieInPocket() naturally clears all of it via its
+            // own pocket-reset-via-cloning, same as it does for a human turn.
             var dieEl = document.querySelector('[data-id="red-' + move.dieIndex + '"]');
             if (dieEl) { dieEl.classList.add('selected'); }
+            if (typeof highlightAvailablePockets === 'function') { highlightAvailablePockets(); }
 
             setTimeout(function() {
-                var pocketName = move.pocket;
                 if (dieEl) { dieEl.classList.remove('selected'); }
-                var pocketEl = document.getElementById('red' + pocketName);
+                var pocketEl = document.getElementById('red' + move.pocket);
                 if (pocketEl) { placeDieInPocket(pocketEl); }
-
-                // placeDieInPocket() clones/replaces every .pocket element on the
-                // board internally, so the reference above is stale now - re-query
-                // fresh to outline the one that actually just got filled.
-                var freshPocketEl = document.getElementById('red' + pocketName);
-                if (freshPocketEl) {
-                    freshPocketEl.classList.add('just-placed');
-                    setTimeout(function() {
-                        freshPocketEl.classList.remove('just-placed');
-                    }, 700);
-                }
                 aiThinking = false;
             }, 500);
         } catch (err) {
