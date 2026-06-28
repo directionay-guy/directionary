@@ -300,6 +300,8 @@ body.theme-dark {
 .theme-dark .player-rolls { background: transparent; border: none; }
 
 /* Rolloff dice — blue/red faces */
+.theme-dark .rolloff-die { width: 72px; height: 72px; }
+.theme-dark .rolloff-die svg.dice { width: 64px !important; height: 64px !important; }
 .theme-dark #blueRolloffDie .dice-face { fill: #0a1a38; stroke: var(--blue); stroke-width: 1; }
 .theme-dark #blueRolloffDie .dice-dot  { fill: var(--blue); }
 .theme-dark #redRolloffDie  .dice-face { fill: #380a0a; stroke: var(--red);  stroke-width: 1; }
