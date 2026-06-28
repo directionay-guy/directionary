@@ -1589,10 +1589,10 @@ function renderWeekChart() {
   };
 
   // Layer datasets: layer 0 = tallest reading per day, layer 1 = next tallest, etc.
-  // All layers share the SAME barPercentage so they sit at the exact same x position
-  // (no stack group — stacking would add heights together, which we don't want).
-  // 'order' controls draw sequence: lower order draws on top, so later/shorter
-  // layers get a LOWER order number to render in front of the taller ones behind them.
+  // KEY FIX: give each layer its OWN x-axis id (all sharing identical config/labels).
+  // Chart.js only auto-offsets bars that share the same axis; separate axes let
+  // each bar use the full category width independently, landing at the same
+  // pixel position instead of being pushed side-by-side.
   const maxLayers = Math.max(1, ...dayData.map(d => d ? d.readings.length : 0));
   const layerDatasets = [];
   for (let li = 0; li < maxLayers; li++) {
@@ -1610,13 +1610,30 @@ function renderWeekChart() {
       }),
       borderRadius: 4,
       borderSkipped: false,
-      barPercentage: 0.55,
+      barPercentage: li===0 ? 0.55 : 0.55 - li*0.13, // shorter layers slightly narrower so the back edge is visible
       categoryPercentage: 1.0,
+      xAxisID: 'x'+li,
       order: maxLayers - li // taller layers (li=0) get highest order = drawn first/behind
     });
   }
 
   const countLabels = dayData.map(d => d && d.count > 1 ? d.count : null);
+
+  // Build one hidden x-axis per layer, all mapped to the same labels so
+  // they perfectly align — only the first ('x') is actually visible.
+  const weekScales = {
+    y: { min:0, max:250, ticks:{color:'#5a9990',font:{size:10},stepSize:50}, grid:{color:'rgba(0,100,80,0.08)'} }
+  };
+  for (let li = 0; li < maxLayers; li++) {
+    weekScales['x'+li] = {
+      type: 'category',
+      labels: dayLabels,
+      offset: true,
+      display: li === 0,
+      ticks: { color:'#0d5a50', font:{size:12,weight:'700'} },
+      grid: { display: li===0 ? false : false, drawOnChartArea: false }
+    };
+  }
 
   if (weekChartInst) weekChartInst.destroy();
   weekChartInst = new Chart(document.getElementById('weekChart'), {
@@ -1644,10 +1661,7 @@ function renderWeekChart() {
           filter: (item, idx, items) => idx === 0
         }
       },
-      scales: {
-        y: { min:0, max:250, ticks:{color:'#5a9990',font:{size:10},stepSize:50}, grid:{color:'rgba(0,100,80,0.08)'} },
-        x: { ticks:{color:'#0d5a50',font:{size:12,weight:'700'}}, grid:{display:false} }
-      }
+      scales: weekScales
     },
     plugins: [{
       id:'countBadge',
@@ -1731,14 +1745,15 @@ function initGraph() {
 
   // Layered bars per day at the daily AVERAGE for line mode, or height-sorted overlapping layers in bar mode
   let mainDatasets;
+  let graphMaxLayers = 1;
   if (isBar) {
     const zoneColor = (v, alpha) => {
       const base = v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'26,122,110';
       return `rgba(${base},${alpha})`;
     };
-    const maxLayers = Math.max(1, ...disp.map(d => d.readings.length));
+    graphMaxLayers = Math.max(1, ...disp.map(d => d.readings.length));
     mainDatasets = [];
-    for (let li = 0; li < maxLayers; li++) {
+    for (let li = 0; li < graphMaxLayers; li++) {
       mainDatasets.push({
         label: li===0 ? 'Blood sugar' : `layer${li}`,
         data: disp.map(d => {
@@ -1751,8 +1766,9 @@ function initGraph() {
           return r ? zoneColor(r.val, 0.95) : 'transparent';
         }),
         borderRadius: 3, borderSkipped: false,
-        barPercentage: 0.65, categoryPercentage: 1.0,
-        order: maxLayers - li // taller layers (li=0) drawn first/behind; shorter ones in front
+        barPercentage: li===0 ? 0.65 : 0.65 - li*0.15, categoryPercentage: 1.0,
+        xAxisID: 'bx'+li,
+        order: graphMaxLayers - li // taller layers (li=0) drawn first/behind; shorter ones in front
       });
     }
   } else {
@@ -1771,6 +1787,30 @@ function initGraph() {
   // legend
   const legendEl = document.getElementById('graph-legend');
   if (legendEl) legendEl.innerHTML = chartLegendHTML();
+
+  // Build scales: bar mode gets one hidden axis per layer (all mapped to the
+  // same labels so bars align), plus the normal visible 'x' for the line
+  // overlays (safe zone, avg, trend). Line mode just uses the normal 'x'.
+  const graphScales = {
+    y:{ min:50, max:280, grid:{color:'rgba(0,80,60,0.06)'}, ticks:{color:'#5a9990',font:{size:10}} },
+    x:{ display: !isBar, grid:{display:false}, ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:10,maxRotation:0} }
+  };
+  if (isBar) {
+    for (let li = 0; li < graphMaxLayers; li++) {
+      graphScales['bx'+li] = {
+        type: 'category',
+        labels: labels,
+        offset: true,
+        display: li === 0,
+        ticks: { color:'#5a9990', font:{size:10}, maxTicksLimit:10, maxRotation:0 },
+        grid: { display:false, drawOnChartArea: false }
+      };
+    }
+    // line overlays (safe zone, avg, trend) anchor to the first bar axis so they align
+    safeDS.forEach(ds => ds.xAxisID = 'bx0');
+    avgDS.xAxisID = 'bx0';
+    trendDS.xAxisID = 'bx0';
+  }
 
   if (glucoseChart) glucoseChart.destroy();
   glucoseChart = new Chart(document.getElementById('glucoseChart'), {
@@ -1801,10 +1841,7 @@ function initGraph() {
           return ` ${ctx.raw} mg/dL`;
         }}}
       },
-      scales: {
-        y:{ min:50, max:280, grid:{color:'rgba(0,80,60,0.06)'}, ticks:{color:'#5a9990',font:{size:10}} },
-        x:{ grid:{display:false}, ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:10,maxRotation:0} }
-      }
+      scales: graphScales
     },
     plugins: isBar ? [{
       id:'multiReadingFlag',
@@ -2237,10 +2274,31 @@ function renderMonthly(){
         return r ? zoneColor(r.val, 0.95) : 'transparent';
       }),
       borderRadius: 3, borderSkipped: false,
-      barPercentage: 0.7, categoryPercentage: 1.0,
+      barPercentage: li===0 ? 0.7 : 0.7 - li*0.15, categoryPercentage: 1.0,
+      xAxisID: 'mx'+li,
       order: maxLayers - li // taller layers (li=0) drawn first/behind; shorter ones in front
     });
   }
+
+  // Hidden per-layer x-axes so bars overlap at the same position; line
+  // overlays (safe zone, avg, trend) anchor to the first one.
+  const monthScales = {
+    y:{min:0,max:300,grid:{color:'rgba(0,80,60,0.06)'},ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:5}},
+    x:{ display:false, grid:{display:false} }
+  };
+  for (let li = 0; li < maxLayers; li++) {
+    monthScales['mx'+li] = {
+      type: 'category',
+      labels: labels,
+      offset: true,
+      display: li === 0,
+      ticks: { color:'#5a9990', font:{size:10}, maxTicksLimit:16 },
+      grid: { display:false, drawOnChartArea: false }
+    };
+  }
+  safeDS.forEach(ds => ds.xAxisID = 'mx0');
+  avgDS.xAxisID = 'mx0';
+  trendDS.xAxisID = 'mx0';
 
   monthlyChartInst=new Chart(document.getElementById('monthlyChart'),{
     type:'bar',
@@ -2257,10 +2315,7 @@ function renderMonthly(){
         const lines = d.readings.map(r => `${r.val} mg/dL @ ${fmtTime(r.time)}`);
         return [` Avg: ${d.avg} mg/dL (${d.count} readings)`, ...lines.map(l=>' • '+l)];
       }}}},
-      scales:{
-        y:{min:0,max:300,grid:{color:'rgba(0,80,60,0.06)'},ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:5}},
-        x:{grid:{display:false},ticks:{color:'#5a9990',font:{size:10},maxTicksLimit:16}}
-      }
+      scales: monthScales
     },
     plugins:[{
       id:'multiReadingFlagMonth',
