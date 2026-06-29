@@ -187,8 +187,9 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
     width:var(--ps); height:var(--ps); flex-shrink:0;
     border:2px solid rgba(200,168,75,0.2); border-radius:6px;
     display:flex; flex-direction:column;
-    align-items:center; justify-content:space-between;
-    padding:7px 4px 5px; transition:border-color 0.2s;
+    align-items:center; justify-content:center;
+    gap:4px;
+    padding:5px 4px; transition:border-color 0.2s;
     background:transparent;
 }
 .dice-pocket.blue-pocket { border-color:rgba(80,130,240,0.4); background:rgba(20,40,100,0.35); }
@@ -201,24 +202,27 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
     color:rgba(200,168,75,0.65); text-align:center; line-height:1.1; font-weight:bold;
 }
 .pocket-val {
-    flex:1; display:flex; align-items:center; justify-content:center;
+    flex:0 0 auto;
+    height: calc(var(--ps) - 40px);
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
 }
 .pocket-val.blue-val { filter:drop-shadow(0 0 8px rgba(144,192,255,0.6)); }
 .pocket-val.red-val  { filter:drop-shadow(0 0 8px rgba(255,85,85,0.6)); }
 .pocket-val.empty    { filter:none; }
 
-.num-row { display:flex; gap:2px; width:100%; }
+.num-row { display:flex; gap:2px; width:100%; flex-shrink:0; }
 .num-btn {
     flex:1; min-width:0; height:22px;
-    background:rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.1); border-radius:2px;
-    color:rgba(255,255,255,0.3); font-family:inherit;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.2); border-radius:2px;
+    color:rgba(255,255,255,0.55); font-family:inherit;
     font-size:0.74em; font-weight:bold; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
     transition:all 0.12s; padding:0;
 }
-.num-btn.blue-btn { color:rgba(144,192,255,0.45); }
-.num-btn.red-btn  { color:rgba(255,85,85,0.5); }
+.num-btn.blue-btn { color:rgba(144,192,255,0.75); border-color:rgba(144,192,255,0.2); }
+.num-btn.red-btn  { color:rgba(255,85,85,0.75);   border-color:rgba(255,85,85,0.2); }
 .num-btn.selected.blue-btn { background:rgba(50,90,200,0.5); border-color:#90c0ff; color:#fff; }
 .num-btn.selected.red-btn  { background:rgba(170,35,35,0.55); border-color:#ff5555; color:#fff; }
 .num-btn.faded { opacity:0.15; }
