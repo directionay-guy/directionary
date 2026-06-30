@@ -94,13 +94,18 @@ thead th {
 thead th:nth-child(2) { background: #1e3060; color: #90c0ff; width:calc(50% - 24px); }
 thead th:nth-child(3) { background: #501818; color: #ff5555; width:calc(50% - 24px); }
 tbody tr { border-bottom: 1px solid rgba(255,255,255,0.05); }
+tbody tr:nth-child(odd)  .p1c { background: rgba(30,48,96,0.35); }
+tbody tr:nth-child(odd)  .p2c { background: rgba(80,24,24,0.35); }
+tbody tr:nth-child(even) .p1c { background: rgba(50,85,170,0.65); }
+tbody tr:nth-child(even) .p2c { background: rgba(140,35,35,0.65); }
 tbody tr.rd-row { background: #c8a84b; }
 tbody tr.rd-row td { border-bottom: none; }
+tbody tr.ellipsis-row td { padding: 3px 2px; border-bottom: none; font-size: 1em; letter-spacing: 0.2em; opacity: 0.35; }
 td { padding: 2px 3px; text-align: center; vertical-align: middle; }
 .rn { width: 48px; font-size: 1em; font-weight: bold; color: #c8b88a; background: rgba(0,0,0,0.12); }
 .rn.rd { color: #2a1508; background: #c8a84b; font-style: italic; font-size: 0.9em; font-weight: bold; }
-.p1c { background: rgba(30,48,96,0.55); }
-.p2c { background: rgba(80,24,24,0.55); }
+.p1c { } /* background handled by alternating nth-child rules */
+.p2c { } /* background handled by alternating nth-child rules */
 tbody tr.rd-row .p1c, tbody tr.rd-row .p2c { background: rgba(180,140,30,0.35); }
 .score-input {
     width: 100%; background: transparent; border: none;
@@ -445,7 +450,11 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 #m-no  { background: rgba(200,168,75,0.1); color: #c8b88a; }
 
 /* Toast */
-#toast { position: fixed; top: 35%; left: 50%; transform: translateX(-50%) translateY(-20px); background: #1a2744; border: 2px solid #c8a84b; color: #c8a84b; padding: 14px 32px; border-radius: 10px; font-size: 1.1em; letter-spacing: 0.08em; font-weight: bold; opacity: 0; transition: all 0.35s; z-index: 9500; pointer-events: none; white-space: nowrap; box-shadow: 0 4px 24px rgba(0,0,0,0.5); }
+tbody tr.placeholder-row { opacity: 0.22; pointer-events: none; }
+tbody tr.placeholder-row .rn { color: #c8b88a; }
+tbody tr.placeholder-row td { border-bottom: 1px solid rgba(255,255,255,0.03); }
+
+#toast { position: fixed; top: 35%; left: 50%; transform: translateX(-50%) translateY(-20px); background: #1a2744; border: 2px solid #c8a84b; color: #c8a84b; padding: 14px 22px; border-radius: 10px; font-size: 1.05em; letter-spacing: 0.06em; font-weight: bold; opacity: 0; transition: all 0.35s; z-index: 9500; pointer-events: none; white-space: normal; text-align: center; max-width: min(80vw, 320px); box-shadow: 0 4px 24px rgba(0,0,0,0.5); }
 #toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
@@ -848,6 +857,32 @@ function renderSheet() {
         tr.appendChild(makeCell(i,'p1','p1c',isRD));
         tr.appendChild(makeCell(i,'p2','p2c',isRD));
         tbody.appendChild(tr);
+    }
+    // Show placeholder rows and ellipsis only in regular (pre-Rolldown) mode
+    if (rdIdx < 0) {
+        var MIN_VISIBLE = 3;
+        for (var p = 0; p < MIN_VISIBLE; p++) {
+            var nextNum = rounds.length + p + 1;
+            var ptr = document.createElement('tr');
+            ptr.className = 'placeholder-row';
+            var ptn = document.createElement('td');
+            ptn.className = 'rn'; ptn.textContent = nextNum;
+            var ptd1 = document.createElement('td'); ptd1.className = 'p1c';
+            var ptd2 = document.createElement('td'); ptd2.className = 'p2c';
+            var pInp1 = document.createElement('div'); pInp1.className = 'score-input'; pInp1.style.minHeight='42px';
+            var pInp2 = document.createElement('div'); pInp2.className = 'score-input'; pInp2.style.minHeight='42px';
+            ptd1.appendChild(pInp1); ptd2.appendChild(pInp2);
+            ptr.appendChild(ptn); ptr.appendChild(ptd1); ptr.appendChild(ptd2);
+            tbody.appendChild(ptr);
+        }
+        // Thin ellipsis row bridging placeholders to TOTAL
+        var etr = document.createElement('tr');
+        etr.className = 'ellipsis-row';
+        var etd0 = document.createElement('td'); etd0.className = 'rn';
+        var etd1 = document.createElement('td'); etd1.className = 'p1c'; etd1.textContent = '···';
+        var etd2 = document.createElement('td'); etd2.className = 'p2c'; etd2.textContent = '···';
+        etr.appendChild(etd0); etr.appendChild(etd1); etr.appendChild(etd2);
+        tbody.appendChild(etr);
     }
     updateTotals();
 }
@@ -1294,6 +1329,28 @@ function renderDiceSheet() {
     lr.appendChild(liveRVal);
     ltr.appendChild(lb); ltr.appendChild(lr);
     tbody.appendChild(ltr);
+
+    // Placeholder rows in regular mode only — not during Rolldown
+    if (rdIdx < 0) {
+        for (var dp = 0; dp < 2; dp++) {
+            var dptr = document.createElement('tr');
+            dptr.className = 'placeholder-row';
+            var dptd1 = document.createElement('td'); dptd1.className = 'p1c';
+            dptd1.style.cssText = 'padding:3px 2px;min-height:28px;';
+            var dptd2 = document.createElement('td'); dptd2.className = 'p2c';
+            dptd2.style.cssText = 'padding:3px 2px;min-height:28px;';
+            dptr.appendChild(dptd1); dptr.appendChild(dptd2);
+            tbody.appendChild(dptr);
+        }
+        var detr = document.createElement('tr');
+        detr.className = 'ellipsis-row';
+        var detd1 = document.createElement('td'); detd1.className = 'p1c'; detd1.textContent = '···';
+        detd1.style.textAlign = 'center';
+        var detd2 = document.createElement('td'); detd2.className = 'p2c'; detd2.textContent = '···';
+        detd2.style.textAlign = 'center';
+        detr.appendChild(detd1); detr.appendChild(detd2);
+        tbody.appendChild(detr);
+    }
 
     // Running totals
     var t1=0,t2=0;
