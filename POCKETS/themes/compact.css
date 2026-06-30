@@ -348,7 +348,7 @@ body.theme-compact {
 /* Scale dice down slightly */
 .theme-compact .dice-area svg.dice { width: 33px !important; height: 33px !important; }
 .theme-compact .dice.selected {
-    transform: translateY(-5px) !important;
+    transform: translateY(-8px) !important;
     filter: none !important;
     box-shadow:
         0 0 4px rgba(255,235,150,0.95),
