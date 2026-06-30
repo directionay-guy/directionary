@@ -1012,7 +1012,7 @@ function resolveRolloff() {
         }
         updateGameStatus();
         autosaveGame();
-    }, 1100);
+    }, 2800);
 }
 
 // =============================================================================
@@ -2091,9 +2091,16 @@ function initializeGame() {
         changeModeWithConfirm('ai', 'vs AI');
     });
 
-    document.getElementById('easyAI').addEventListener('click',   function() { setAIDifficulty('easy');   });
-    document.getElementById('mediumAI').addEventListener('click', function() { setAIDifficulty('medium'); });
-    document.getElementById('hardAI').addEventListener('click',   function() { setAIDifficulty('hard');   });
+    function changeDifficultyGuarded(difficulty) {
+        if (isGameInProgress()) {
+            if (typeof showToast === 'function') { showToast('Change difficulty between games', 2200); }
+            return;
+        }
+        setAIDifficulty(difficulty);
+    }
+    document.getElementById('easyAI').addEventListener('click',   function() { changeDifficultyGuarded('easy');   });
+    document.getElementById('mediumAI').addEventListener('click', function() { changeDifficultyGuarded('medium'); });
+    document.getElementById('hardAI').addEventListener('click',   function() { changeDifficultyGuarded('hard');   });
 
     // Compact theme dropdown equivalents - same shared helpers, same rules,
     // so mode/color switching behaves identically regardless of which UI
@@ -2110,6 +2117,11 @@ function initializeGame() {
     }
     if (cDiff) {
         cDiff.addEventListener('change', function() {
+            if (isGameInProgress()) {
+                if (typeof showToast === 'function') { showToast('Change difficulty between games', 2200); }
+                cDiff.value = (typeof aiDifficulty !== 'undefined') ? aiDifficulty : 'medium';
+                return;
+            }
             setAIDifficulty(this.value);
         });
     }
