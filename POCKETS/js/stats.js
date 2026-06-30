@@ -49,9 +49,9 @@ class PocketsStats {
         return {
             totalGames: 0,
             byDifficulty: {
-                easy:   { wins: 0, losses: 0 },
-                medium: { wins: 0, losses: 0 },
-                hard:   { wins: 0, losses: 0 }
+                easy:   { wins: 0, losses: 0, ties: 0 },
+                medium: { wins: 0, losses: 0, ties: 0 },
+                hard:   { wins: 0, losses: 0, ties: 0 }
             }
         };
     }
@@ -77,8 +77,9 @@ class PocketsStats {
         if (gameResult.gameMode === 'ai') {
             const diff = gameResult.aiDifficulty || 'easy';
             this.data.ai.totalGames++;
-            if (hWon)       { this.data.ai.byDifficulty[diff].wins++;   }
-            else if (!tied) { this.data.ai.byDifficulty[diff].losses++; }
+            if (hWon)        { this.data.ai.byDifficulty[diff].wins++; }
+            else if (tied)   { this.data.ai.byDifficulty[diff].ties = (this.data.ai.byDifficulty[diff].ties || 0) + 1; }
+            else             { this.data.ai.byDifficulty[diff].losses++; }
         }
 
         this.saveData();
@@ -193,17 +194,29 @@ function generatePlayerTabHTML(color) {
     const profile = pocketsStats.data[color];
     const s       = profile.stats;
     const label   = color === 'blue' ? '🔵 Blue Player' : '🔴 Red Player';
-    const winRate = s.totalGames > 0 ? Math.round((s.gamesWon / s.totalGames) * 100) : 0;
+    const winRate = s.totalGames > 0
+        ? Math.round((s.gamesWon / s.totalGames) * 100)
+        : 0;
+    const decidedGames = s.totalGames - (s.gamesTied || 0);
+    const winRateExTies = decidedGames > 0
+        ? Math.round((s.gamesWon / decidedGames) * 100)
+        : 0;
+    const showTieRate = (s.gamesTied || 0) > 0;
 
     // VS AI stats
     const vsAI = s.vsAIWon && s.vsAILost ? `
         <div class="stat-card">
             <h4>🤖 vs AI Record</h4>
-            ${['easy','medium','hard'].map(d => `
+            ${['easy','medium','hard'].map(d => {
+                const byD = pocketsStats.data.ai.byDifficulty[d];
+                const t = byD ? (byD.ties || 0) : 0;
+                const tieStr = t > 0 ? `-${t}T` : '';
+                return `
             <div class="stat-row">
                 <span>${d.charAt(0).toUpperCase()+d.slice(1)}:</span>
-                <span class="stat-value">${s.vsAIWon[d]||0}W-${s.vsAILost[d]||0}L</span>
-            </div>`).join('')}
+                <span class="stat-value">${s.vsAIWon[d]||0}W-${s.vsAILost[d]||0}L${tieStr}</span>
+            </div>`;
+            }).join('')}
         </div>` : '';
 
     const achievements = profile.achievements.slice(-4);
@@ -223,7 +236,8 @@ function generatePlayerTabHTML(color) {
                 <h4>🏆 ${label}</h4>
                 <div class="stat-row"><span>Games Played:</span><span class="stat-value">${s.totalGames}</span></div>
                 <div class="stat-row"><span>Games Won:</span><span class="stat-value">${s.gamesWon}</span></div>
-                <div class="stat-row"><span>Win Rate:</span><span class="stat-value">${winRate}%</span></div>
+                ${showTieRate ? `<div class="stat-row"><span>Games Tied:</span><span class="stat-value">${s.gamesTied}</span></div>` : ''}
+                <div class="stat-row"><span>Win Rate${showTieRate ? ' (excl. ties)' : ''}:</span><span class="stat-value">${showTieRate ? winRateExTies : winRate}%</span></div>
                 <div class="stat-row"><span>Average Score:</span><span class="stat-value">${s.averageScore}</span></div>
                 <div class="stat-row"><span>Best Score:</span><span class="stat-value">${s.bestScore}</span></div>
                 <div class="stat-row"><span>Current Streak:</span><span class="stat-value">${s.currentWinStreak}</span></div>
