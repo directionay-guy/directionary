@@ -2091,8 +2091,15 @@ function initializeGame() {
         changeModeWithConfirm('ai', 'vs AI');
     });
 
+    function isDifficultyChangeSafe() {
+        // Safe to change difficulty when sitting at "Start Round" (no dice placed yet
+        // this round, nobody has rolled) - block only when genuinely mid-action.
+        return gameState.phase === 'placing' ||
+               gameState.phase === 'scoring' ||
+               gameState.blueRolled || gameState.redRolled;
+    }
     function changeDifficultyGuarded(difficulty) {
-        if (isGameInProgress()) {
+        if (isDifficultyChangeSafe()) {
             if (typeof showToast === 'function') { showToast('Change difficulty between games', 2200); }
             return;
         }
@@ -2117,7 +2124,7 @@ function initializeGame() {
     }
     if (cDiff) {
         cDiff.addEventListener('change', function() {
-            if (isGameInProgress()) {
+            if (isDifficultyChangeSafe()) {
                 if (typeof showToast === 'function') { showToast('Change difficulty between games', 2200); }
                 cDiff.value = (typeof aiDifficulty !== 'undefined') ? aiDifficulty : 'medium';
                 return;
