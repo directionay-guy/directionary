@@ -327,10 +327,4 @@ window.PocketsStats = {
     switchStatsTab
 };
 
-// Wire up View Stats button - scripts load at page bottom so DOM is already ready
-(function() {
-    var viewStatsBtn = document.getElementById('viewStats');
-    if (viewStatsBtn) {
-        viewStatsBtn.addEventListener('click', function() { toggleStatsPanel(); });
-    }
-})();
+// View Stats button is wired in game-engine.js which loads after this file
