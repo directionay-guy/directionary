@@ -327,8 +327,11 @@ window.PocketsStats = {
     switchStatsTab
 };
 
-// Wire up View Stats button directly for iOS Safari reliability
+// Wire up View Stats button
 document.addEventListener('DOMContentLoaded', function() {
     const viewStatsBtn = document.getElementById('viewStats');
-    if (viewStatsBtn) { viewStatsBtn.addEventListener('click', toggleStatsPanel); }
+    if (viewStatsBtn) {
+        viewStatsBtn.onclick = null;
+        viewStatsBtn.addEventListener('click', function() { toggleStatsPanel(); });
+    }
 });
