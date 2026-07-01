@@ -367,46 +367,6 @@ select.theme-subtitle {
            of the wider button-groups. Compact theme keeps its own distinct
            styling (higher selector specificity wins for it specifically);
            this is the fallback for the other six themes on a narrow screen. */
-        @media (max-width: 480px) {
-            .mode-btn, .difficulty-btn { display: none !important; }
-            .compact-controls {
-                display: flex !important;
-                align-items: center;
-                gap: 4px;
-                flex: 1;
-                flex-wrap: wrap;
-                min-width: 0;
-                overflow: visible;
-            }
-            .compact-sel {
-                display: inline-block !important;
-                background-color: rgba(0,0,0,0.35);
-                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M0 0L5 6L10 0Z' fill='%23ffffff'/%3E%3C/svg%3E");
-                background-repeat: no-repeat;
-                background-position: right 4px center;
-                background-size: 9px;
-                color: #f0f0f0;
-                border: 1px solid rgba(255,255,255,0.4);
-                padding: 2px 18px 2px 5px;
-                font-family: inherit;
-                font-size: 0.72em;
-                cursor: pointer;
-                border-radius: 3px;
-                appearance: none;
-                -webkit-appearance: none;
-                min-width: 0;
-            }
-            .compact-sel-label {
-                display: inline !important;
-                color: #f0f0f0;
-                font-size: 0.68em;
-                white-space: nowrap;
-                letter-spacing: 0.04em;
-            }
-            .compact-sel.compact-sel-hidden,
-            .compact-sel-label.compact-sel-hidden { display: none !important; }
-        }
-
         /* ── New game section ── */
         .new-game-section { display:flex;justify-content:center;align-items:stretch;gap:12px;flex-wrap:wrap; }
         .new-game-section .btn { min-height:40px;padding:8px 22px;display:inline-flex;align-items:center;justify-content:center;line-height:1.2; }
