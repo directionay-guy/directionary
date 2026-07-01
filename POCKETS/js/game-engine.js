@@ -2155,6 +2155,7 @@ function initializeGame() {
         applyDefaultOrSavedSettings();
     }
 
+    syncCompactAIControlsVisibility();
     updateScoreDisplay();
     updateGameStatus();
     injectFullscreenButton();
