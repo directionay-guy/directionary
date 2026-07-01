@@ -1,331 +1,2160 @@
-// POCKETS STATS MODULE — v2.0
-// Three separate profiles: Blue player, Red player, AI record
-// Blue and Red each have own stats, achievements, clear button
-// AI tab is permanent — no clear button
+// POCKETS GAME ENGINE
+// Variable rounds — Finale triggers when a player crosses 100pts
+//
+// DEV NOTE — to future Claude:
+// Do NOT compress or minify this file. Do NOT chain ternaries.
+// Do NOT use forEach for multi-step logic. Do NOT combine declarations.
+// Write one statement per line. This file has repeatedly broken when
+// "optimized" for brevity. Readability = reliability here.
 
-class PocketsStats {
-    constructor() {
-        this.storageKey = 'pockets-stats-v2';
-        this.data = this.loadData();
-    }
+let gameMode = '2player';
+let aiDifficulty = 'easy';
+let aiThinking = false;
 
-    loadData() {
-        try {
-            const stored = localStorage.getItem(this.storageKey);
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                return {
-                    blue: parsed.blue || this.newProfile(),
-                    red:  parsed.red  || this.newProfile(),
-                    ai:   parsed.ai   || this.newAIRecord(),
-                    version: '2.0.0'
-                };
-            }
-        } catch (e) { console.warn('Stats load failed:', e); }
-        return { blue: this.newProfile(), red: this.newProfile(), ai: this.newAIRecord(), version: '2.0.0' };
-    }
-
-    saveData() {
-        try { localStorage.setItem(this.storageKey, JSON.stringify(this.data)); return true; }
-        catch (e) { console.error('Stats save failed:', e); return false; }
-    }
-
-    newProfile() {
-        return {
-            gameHistory: [],
-            achievements: [],
-            stats: {
-                totalGames: 0, gamesWon: 0, gamesLost: 0, gamesTied: 0,
-                totalScore: 0, bestScore: 0, averageScore: 0,
-                bestWinStreak: 0, currentWinStreak: 0,
-                perfectGames: 0, comebackWins: 0,
-                vsAIWon: { easy:0, medium:0, hard:0 },
-                vsAILost: { easy:0, medium:0, hard:0 }
-            }
-        };
-    }
-
-    newAIRecord() {
-        return {
-            totalGames: 0,
-            byDifficulty: {
-                easy:   { wins: 0, losses: 0, ties: 0 },
-                medium: { wins: 0, losses: 0, ties: 0 },
-                hard:   { wins: 0, losses: 0, ties: 0 }
-            }
-        };
-    }
-
-    saveGameResult(gameResult) {
-        const hc     = gameResult.humanColor || 'blue';    // human's color
-        const oc     = (hc === 'blue') ? 'red' : 'blue';  // opponent's color
-        const hScore = (hc === 'blue') ? gameResult.blueScore : gameResult.redScore;
-        const oScore = (hc === 'blue') ? gameResult.redScore  : gameResult.blueScore;
-        const hWon   = gameResult.winner === 'Blue'; // human is ALWAYS Blue internally
-        const oWon   = gameResult.winner === 'Red';  // opponent always Red internally
-        const tied   = gameResult.winner === 'Tie' || gameResult.winner === 'tie';
-
-        // Save to human's profile
-        this.recordGame(this.data[hc], gameResult, hScore, oScore, hWon, tied, gameResult.gameMode, gameResult.aiDifficulty);
-
-        // In 2-player, save to opponent's profile too (their perspective)
-        if (gameResult.gameMode === '2player') {
-            this.recordGame(this.data[oc], gameResult, oScore, hScore, oWon, tied, '2player', null);
-        }
-
-        // AI record tab
-        if (gameResult.gameMode === 'ai') {
-            const diff = gameResult.aiDifficulty || 'easy';
-            this.data.ai.totalGames++;
-            if (hWon)        { this.data.ai.byDifficulty[diff].wins++; }
-            else if (tied)   { this.data.ai.byDifficulty[diff].ties = (this.data.ai.byDifficulty[diff].ties || 0) + 1; }
-            else             { this.data.ai.byDifficulty[diff].losses++; }
-        }
-
-        this.saveData();
-    }
-
-    recordGame(profile, gameResult, myScore, theirScore, won, tied, mode, diff) {
-        profile.gameHistory.push({
-            winner:    gameResult.winner,
-            myScore, theirScore, mode, diff,
-            timestamp: Date.now()
-        });
-        if (profile.gameHistory.length > 100) {
-            profile.gameHistory = profile.gameHistory.slice(-100);
-        }
-
-        const s = profile.stats;
-        s.totalGames++;
-        s.totalScore += myScore;
-        if (myScore > s.bestScore)  { s.bestScore = myScore; }
-        s.averageScore = Math.round(s.totalScore / s.totalGames);
-
-        if (won) {
-            s.gamesWon++;
-            s.currentWinStreak++;
-            if (s.currentWinStreak > s.bestWinStreak) { s.bestWinStreak = s.currentWinStreak; }
-            if (myScore - theirScore >= 30) { s.perfectGames++; }
-            if (mode === 'ai' && diff) { s.vsAIWon[diff] = (s.vsAIWon[diff] || 0) + 1; }
-        } else if (tied) {
-            s.gamesTied++;
-            s.currentWinStreak = 0;
-        } else {
-            s.gamesLost++;
-            s.currentWinStreak = 0;
-            if (mode === 'ai' && diff) { s.vsAILost[diff] = (s.vsAILost[diff] || 0) + 1; }
-        }
-
-        this.checkAchievements(profile, { won, myScore, theirScore, mode, diff });
-    }
-
-    checkAchievements(profile, ctx) {
-        const s    = profile.stats;
-        const add  = (id, title, desc) => {
-            if (!profile.achievements.find(a => a.id === id)) {
-                profile.achievements.push({ id, title, description: desc, timestamp: Date.now() });
-            }
-        };
-        if (s.totalGames === 1)              add('first-game',   '🎲 First Roll',    'Played your first game!');
-        if (s.currentWinStreak === 3)        add('streak-3',     '🔥 Hot Streak',    'Won 3 games in a row!');
-        if (s.currentWinStreak === 5)        add('streak-5',     '🌟 Unstoppable',   'Won 5 games in a row!');
-        if (ctx.myScore >= 150)              add('score-150',    '💎 High Roller',   'Scored 150+ in a game!');
-        if (ctx.myScore >= 200)              add('score-200',    '👑 Dice Master',   'Scored 200+ in a game!');
-        if (s.perfectGames >= 1)             add('perfect',      '✨ Perfect Game',  'Won by 30+ points!');
-        if (s.gamesWon >= 10)                add('wins-10',      '🏆 Veteran',       'Won 10 games!');
-        if (ctx.mode === 'ai' && ctx.won &&
-            ctx.diff === 'hard')             add('beat-hard-ai', '🤖 AI Slayer',     'Beat the Hard AI!');
-    }
-
-    clearProfile(color) {
-        this.data[color] = this.newProfile();
-        this.saveData();
-    }
-}
-
-const pocketsStats = new PocketsStats();
-
-// =============================================================================
-// STATS PANEL UI
-// =============================================================================
-
-let currentStatsTab = 'blue';
-
-function toggleStatsPanel() {
-    const panel = document.getElementById('statsPanel');
-    if (panel.classList.contains('hidden')) { showStatsPanel(); } else { hideStatsPanel(); }
-}
-
-function showStatsPanel() {
-    const panel   = document.getElementById('statsPanel');
-    const content = document.getElementById('statsContent');
-    panel.classList.remove('hidden');
-    content.innerHTML = generateStatsHTML(currentStatsTab);
-    var btn = document.getElementById('viewStats');
-    if (btn) { btn.textContent = 'Hide Stats'; }
-}
-
-function hideStatsPanel() {
-    document.getElementById('statsPanel').classList.add('hidden');
-    var btn = document.getElementById('viewStats');
-    if (btn) { btn.textContent = 'View Stats'; }
-}
-
-function switchStatsTab(tab) {
-    currentStatsTab = tab;
-    const content = document.getElementById('statsContent');
-    if (content) { content.innerHTML = generateStatsHTML(tab); }
-}
-
-function generateStatsHTML(tab) {
-    tab = tab || 'blue';
-    const tabs = `
-        <div class="stats-tabs">
-            <button class="stats-tab-btn ${tab==='blue'?'active':''}" onclick="switchStatsTab('blue')">🔵 Blue</button>
-            <button class="stats-tab-btn ${tab==='red'?'active':''}"  onclick="switchStatsTab('red')">🔴 Red</button>
-            <button class="stats-tab-btn ${tab==='ai'?'active':''}"   onclick="switchStatsTab('ai')">🤖 AI</button>
-        </div>`;
-
-    if (tab === 'ai') { return tabs + generateAITabHTML(); }
-    return tabs + generatePlayerTabHTML(tab);
-}
-
-function generatePlayerTabHTML(color) {
-    const profile = pocketsStats.data[color];
-    const s       = profile.stats;
-    const label   = color === 'blue' ? '🔵 Blue Player' : '🔴 Red Player';
-    const winRate = s.totalGames > 0
-        ? Math.round((s.gamesWon / s.totalGames) * 100)
-        : 0;
-    const decidedGames = s.totalGames - (s.gamesTied || 0);
-    const winRateExTies = decidedGames > 0
-        ? Math.round((s.gamesWon / decidedGames) * 100)
-        : 0;
-    const showTieRate = (s.gamesTied || 0) > 0;
-
-    // VS AI stats
-    const vsAI = s.vsAIWon && s.vsAILost ? `
-        <div class="stat-card">
-            <h4>🤖 vs AI Record</h4>
-            ${['easy','medium','hard'].map(d => {
-                const byD = pocketsStats.data.ai.byDifficulty[d];
-                const t = byD ? (byD.ties || 0) : 0;
-                const tieStr = t > 0 ? `-${t}T` : '';
-                return `
-            <div class="stat-row">
-                <span>${d.charAt(0).toUpperCase()+d.slice(1)}:</span>
-                <span class="stat-value">${s.vsAIWon[d]||0}W-${s.vsAILost[d]||0}L${tieStr}</span>
-            </div>`;
-            }).join('')}
-        </div>` : '';
-
-    const achievements = profile.achievements.slice(-4);
-    const achHTML = achievements.length === 0
-        ? '<div class="no-achievements">No achievements yet — keep playing!</div>'
-        : achievements.map(a => `<div class="achievement-item"><strong>${a.title}</strong><div class="achievement-description">${a.description}</div></div>`).join('');
-
-    const allAchHTML = profile.achievements.length === 0
-        ? '<div class="no-achievements">No achievements yet</div>'
-        : profile.achievements.slice().reverse().map(a =>
-            `<div class="achievement-item"><strong>${a.title}</strong><div class="achievement-description">${a.description}</div></div>`
-          ).join('');
-
-    return `
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h4>🏆 ${label}</h4>
-                <div class="stat-row"><span>Games Played:</span><span class="stat-value">${s.totalGames}</span></div>
-                <div class="stat-row"><span>Games Won:</span><span class="stat-value">${s.gamesWon}</span></div>
-                ${showTieRate ? `<div class="stat-row"><span>Games Tied:</span><span class="stat-value">${s.gamesTied}</span></div>` : ''}
-                <div class="stat-row"><span>Win Rate${showTieRate ? ' (excl. ties)' : ''}:</span><span class="stat-value">${showTieRate ? winRateExTies : winRate}%</span></div>
-                <div class="stat-row"><span>Average Score:</span><span class="stat-value">${s.averageScore}</span></div>
-                <div class="stat-row"><span>Best Score:</span><span class="stat-value">${s.bestScore}</span></div>
-                <div class="stat-row"><span>Current Streak:</span><span class="stat-value">${s.currentWinStreak}</span></div>
-                <div class="stat-row"><span>Best Streak:</span><span class="stat-value">${s.bestWinStreak}</span></div>
-            </div>
-            ${vsAI}
-            <div class="stat-card">
-                <h4>🏅 Special Stats</h4>
-                <div class="stat-row"><span>Achievements:</span><span class="stat-value">${profile.achievements.length}</span></div>
-                <div class="stat-row"><span>Perfect Games:</span><span class="stat-value">${s.perfectGames}</span></div>
-                <div class="stat-row"><span>Comeback Wins:</span><span class="stat-value">${s.comebackWins||0}</span></div>
-            </div>
-        </div>
-        <div class="achievements-section">
-            <h4>🏆 Achievements</h4>
-            <div class="achievements-list">${allAchHTML}</div>
-        </div>
-        <div class="stats-footer">
-            <button class="btn stats-clear-btn" onclick="clearPlayerStats('${color}')">
-                Clear ${color.charAt(0).toUpperCase()+color.slice(1)} Stats
-            </button>
-        </div>`;
-}
-
-function generateAITabHTML() {
-    const ai   = pocketsStats.data.ai;
-    const byD  = ai.byDifficulty;
-    const total = ai.totalGames;
-    const aiWinRate = d => {
-        const g = (byD[d].wins + byD[d].losses);
-        return g > 0 ? Math.round((byD[d].losses / g) * 100) : 0; // AI wins = human losses
-    };
-
-    return `
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h4>🤖 AI Record</h4>
-                <div class="stat-row"><span>Total Games:</span><span class="stat-value">${total}</span></div>
-                <div class="stat-row"><span>Easy — AI wins:</span><span class="stat-value">${byD.easy.losses}W / Human ${byD.easy.wins}W</span></div>
-                <div class="stat-row"><span>Medium — AI wins:</span><span class="stat-value">${byD.medium.losses}W / Human ${byD.medium.wins}W</span></div>
-                <div class="stat-row"><span>Hard — AI wins:</span><span class="stat-value">${byD.hard.losses}W / Human ${byD.hard.wins}W</span></div>
-            </div>
-            <div class="stat-card">
-                <h4>📊 Human Win Rate vs AI</h4>
-                <div class="stat-row"><span>vs Easy:</span><span class="stat-value">${100-aiWinRate('easy')}%</span></div>
-                <div class="stat-row"><span>vs Medium:</span><span class="stat-value">${100-aiWinRate('medium')}%</span></div>
-                <div class="stat-row"><span>vs Hard:</span><span class="stat-value">${100-aiWinRate('hard')}%</span></div>
-            </div>
-        </div>
-        <div class="stats-footer" style="opacity:0.5;font-size:0.85em;text-align:center;padding:8px;">
-            AI record is permanent — no clear button
-        </div>`;
-}
-
-function clearPlayerStats(color) {
-    if (typeof showConfirm === 'function') {
-        const label = color.charAt(0).toUpperCase() + color.slice(1);
-        showConfirm(
-            'Clear ' + label + ' Stats?',
-            'This will permanently erase all ' + label + ' player statistics. Cannot be undone.',
-            function() {
-                pocketsStats.clearProfile(color);
-                switchStatsTab(color);
-            }
-        );
-    } else {
-        if (confirm('Clear ' + color + ' stats? Cannot be undone.')) {
-            pocketsStats.clearProfile(color);
-            switchStatsTab(color);
-        }
-    }
-}
-
-// Called from game-engine.js endGame()
-function saveGameStats(gameResult) {
-    pocketsStats.saveGameResult(gameResult);
-}
-
-// Export for compatibility
-window.PocketsStats = {
-    pocketsStats,
-    toggleStatsPanel,
-    showStatsPanel,
-    hideStatsPanel,
-    saveGameStats,
-    clearPlayerStats,
-    switchStatsTab
+let gameState = {
+    round: 1,
+    currentPlayer: 'blue',
+    phase: 'rolling',
+    firstPlayer: null,
+    blueDice: [],
+    redDice: [],
+    blueOriginalRoll: [],
+    redOriginalRoll: [],
+    blueSavedDie: null,
+    redSavedDie: null,
+    blueScore: 0,
+    redScore: 0,
+    selectedDie: null,
+    diceToPlace: 8,
+    placementTurn: 0,
+    roundScores: { blue: {}, red: {} },
+    blueRolled: false,
+    redRolled: false,
+    blueFinalRolled: false,
+    redFinalRolled: false,
+    finaleMode: false,
+    finaleRolls: { blue: [], red: [] },
+    finaleCurrentPlayer: 'blue',
+    humanColor: 'blue'
 };
 
-// Wire up View Stats button - handled via inline onclick in index.html
-// for iOS Safari reliability (avoids double-binding with addEventListener)
+// =============================================================================
+// SVG DIE FACTORY
+// =============================================================================
+
+function createDieSVG(value, id, isSaved) {
+    if (isSaved === undefined) { isSaved = false; }
+
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("width", "44");
+    svg.setAttribute("height", "44");
+    svg.setAttribute("viewBox", "0 0 60 60");
+    svg.classList.add("dice");
+    if (isSaved) { svg.classList.add("saved-tint"); }
+    svg.setAttribute("data-value", value);
+    svg.setAttribute("data-id", id);
+
+    var rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("class", "dice-face");
+    rect.setAttribute("x", "5");
+    rect.setAttribute("y", "5");
+    rect.setAttribute("width", "50");
+    rect.setAttribute("height", "50");
+    svg.appendChild(rect);
+
+    var dotPositions = {
+        1: [[30, 30]],
+        2: [[20, 20], [40, 40]],
+        3: [[20, 20], [30, 30], [40, 40]],
+        4: [[20, 20], [40, 20], [20, 40], [40, 40]],
+        5: [[20, 20], [40, 20], [30, 30], [20, 40], [40, 40]],
+        6: [[20, 17], [40, 17], [20, 30], [40, 30], [20, 43], [40, 43]]
+    };
+
+    var positions = dotPositions[value];
+    for (var i = 0; i < positions.length; i++) {
+        var cx = positions[i][0];
+        var cy = positions[i][1];
+        var dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        dot.setAttribute("class", "dice-dot");
+        dot.setAttribute("cx", cx);
+        dot.setAttribute("cy", cy);
+        dot.setAttribute("r", "4");
+        svg.appendChild(dot);
+    }
+
+    return svg;
+}
+
+// =============================================================================
+// PIP REFRESHER — updates pip layout on an existing die SVG in place.
+// Used by the roll animation to cycle random pip counts while the die spins.
+// =============================================================================
+
+function refreshDiePips(svgEl, value) {
+    var dotPositions = {
+        1: [[30, 30]],
+        2: [[20, 20], [40, 40]],
+        3: [[20, 20], [30, 30], [40, 40]],
+        4: [[20, 20], [40, 20], [20, 40], [40, 40]],
+        5: [[20, 20], [40, 20], [30, 30], [20, 40], [40, 40]],
+        6: [[20, 17], [40, 17], [20, 30], [40, 30], [20, 43], [40, 43]]
+    };
+    var existing = svgEl.querySelectorAll('.dice-dot');
+    for (var i = existing.length - 1; i >= 0; i--) {
+        existing[i].parentNode.removeChild(existing[i]);
+    }
+    var positions = dotPositions[value] || dotPositions[1];
+    for (var j = 0; j < positions.length; j++) {
+        var dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        dot.setAttribute('class', 'dice-dot');
+        dot.setAttribute('cx', positions[j][0]);
+        dot.setAttribute('cy', positions[j][1]);
+        dot.setAttribute('r', '4');
+        svgEl.appendChild(dot);
+    }
+}
+
+// =============================================================================
+// SETTINGS PERSISTENCE — first-time visitors default to AI/Medium/Blue (an
+// approachable but real opponent, for someone with no partner physically
+// present). Returning players always resume whatever they last used.
+// =============================================================================
+
+var POCKETS_SETTINGS_KEY = 'pocketsSettings';
+
+function savePocketsSettings() {
+    try {
+        localStorage.setItem(POCKETS_SETTINGS_KEY, JSON.stringify({
+            mode:       gameMode,
+            difficulty: (typeof aiDifficulty !== 'undefined') ? aiDifficulty : 'medium',
+            color:      gameState.humanColor || 'blue'
+        }));
+    } catch (e) { /* localStorage unavailable - settings just won't persist, not fatal */ }
+}
+
+function loadPocketsSettings() {
+    try {
+        var raw = localStorage.getItem(POCKETS_SETTINGS_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+}
+
+function applyDefaultOrSavedSettings() {
+    var saved = loadPocketsSettings();
+    if (saved && saved.mode) {
+        setGameMode(saved.mode);
+        if (saved.mode === 'ai') {
+            if (saved.difficulty) { setAIDifficulty(saved.difficulty); }
+            if (saved.color)      { setPlayerColor(saved.color); }
+        }
+    } else {
+        // First-time visitor - no saved settings on record at all.
+        setGameMode('ai');
+        setAIDifficulty('medium');
+        setPlayerColor('blue');
+    }
+}
+
+function isGameInProgress() {
+    return gameState.phase !== 'setup' && gameState.round > 0;
+}
+
+// Used for both desktop buttons and the Compact dropdown, so mode-switching
+// behaves identically everywhere: confirm + reset when there's real progress
+// to lose, apply immediately when there's nothing at stake yet. selectEl is
+// optional - pass it for <select> elements so a cancelled change reverts the
+// dropdown's displayed value (native selects update visually before any JS
+// confirm can intervene).
+function changeModeWithConfirm(newMode, displayLabel, selectEl) {
+    if (gameMode === newMode) { return; }
+    var previousMode = gameMode;
+    if (isGameInProgress()) {
+        showConfirm(
+            'Switch to ' + displayLabel + '?',
+            'Switching modes will start a new game. Current progress will be lost.',
+            function() {
+                setGameMode(newMode);
+                newGame();
+                if (typeof showToast === 'function') { showToast('Mode: ' + displayLabel, 2200); }
+            },
+            function() { if (selectEl) { selectEl.value = previousMode; } }
+        );
+    } else {
+        setGameMode(newMode);
+        if (typeof showToast === 'function') { showToast('Mode: ' + displayLabel, 2200); }
+    }
+}
+
+function changeColorWithConfirm(newColor, selectEl) {
+    if (gameState.humanColor === newColor) { return; }
+    var previousColor = gameState.humanColor;
+    var label = (newColor === 'blue') ? 'Blue' : 'Red';
+    if (isGameInProgress()) {
+        showConfirm(
+            'Switch to ' + label + '?',
+            'Switching colors will start a new game. Current progress will be lost.',
+            function() {
+                setPlayerColor(newColor);
+                newGame();
+                if (typeof showToast === 'function') { showToast('Playing as: ' + label, 2200); }
+            },
+            function() { if (selectEl) { selectEl.value = previousColor; } }
+        );
+    } else {
+        setPlayerColor(newColor);
+        if (typeof showToast === 'function') { showToast('Playing as: ' + label, 2200); }
+    }
+}
+
+function syncCompactAIControlsVisibility() {
+    var cDiff = document.getElementById('cDiff');
+    var cPlay = document.getElementById('cPlay');
+    var cDiffLabel = document.getElementById('cDiffLabel');
+    var cPlayLabel = document.getElementById('cPlayLabel');
+    var isAI = (gameMode === 'ai');
+    if (cDiff)      { cDiff.style.display      = isAI ? '' : 'none'; }
+    if (cPlay)      { cPlay.style.display      = isAI ? '' : 'none'; }
+    if (cDiffLabel) { cDiffLabel.style.display = isAI ? '' : 'none'; }
+    if (cPlayLabel) { cPlayLabel.style.display = isAI ? '' : 'none'; }
+}
+
+// =============================================================================
+// IN-PROGRESS GAME PERSISTENCE — never lose progress on a reload or coming
+// back after time away. The ONLY way to discard a saved game is the explicit
+// New Game button (handled in newGame() itself). No "resume?" prompt - the
+// game silently picks up exactly where it was, since asking still carries a
+// real risk of an accidental decline losing real progress.
+// =============================================================================
+
+var POCKETS_SAVED_GAME_KEY = 'pocketsSavedGame';
+var gameWasRestoredOnLoad  = false;
+
+// Snapshot of what's actually placed in each pocket right now, for both
+// players. gameState itself has no clean record of board placement - it only
+// lives in the live DOM - so this reads the real source of truth at save time
+// rather than trying to track it as a parallel structure that could drift.
+function captureBoardPlacements() {
+    return { blue: getDiceFromPockets('blue'), red: getDiceFromPockets('red') };
+}
+
+function autosaveGame() {
+    try {
+        localStorage.setItem(POCKETS_SAVED_GAME_KEY, JSON.stringify({
+            gameState:  gameState,
+            gameMode:   gameMode,
+            difficulty: (typeof aiDifficulty !== 'undefined') ? aiDifficulty : 'medium',
+            rolloffState: (typeof rolloffState !== 'undefined') ? rolloffState : null,
+            board: captureBoardPlacements()
+        }));
+    } catch (e) { /* localStorage unavailable - not fatal, just won't persist */ }
+}
+
+function loadSavedGame() {
+    try {
+        var raw = localStorage.getItem(POCKETS_SAVED_GAME_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+}
+
+function clearSavedGame() {
+    try { localStorage.removeItem(POCKETS_SAVED_GAME_KEY); } catch (e) { /* not fatal */ }
+}
+
+// Places a die into a pocket purely visually, for reconstructing a saved
+// board. Deliberately does NOT go through placeDieInPocket()'s game-logic
+// side effects (decrementing diceToPlace, advancing placementTurn, checking
+// round-completion, cloning pockets to strip listeners) - gameState is being
+// restored directly from the save already, so re-deriving any of that here
+// would double-count it.
+function restorePocketDie(pocketEl, value, isSaved) {
+    if (!pocketEl) { return; }
+    var pocketDice = pocketEl.querySelector('.pocket-dice');
+    if (!pocketDice) { return; }
+    var die = createDieSVG(value, pocketEl.id + '-restored-' + Date.now(), !!isSaved);
+    die.style.width  = '40px';
+    die.style.height = '40px';
+    pocketDice.appendChild(die);
+}
+
+function restoreBoardPlacements(board) {
+    if (!board) { return; }
+    ['blue', 'red'].forEach(function(color) {
+        var placed = board[color];
+        if (!placed) { return; }
+        var savedDie = (color === 'blue') ? gameState.blueSavedDie : gameState.redSavedDie;
+        ['keep1', 'keep2', 'take', 'save'].forEach(function(pocketKey) {
+            if (!placed[pocketKey] || placed[pocketKey].length === 0) { return; }
+            var value = placed[pocketKey][0];
+            var pocketIdSuffix = pocketKey.charAt(0).toUpperCase() + pocketKey.slice(1);
+            var pocketEl = document.getElementById(color + pocketIdSuffix);
+            var isSaved  = (pocketKey === 'save' && savedDie === value);
+            restorePocketDie(pocketEl, value, isSaved);
+        });
+    });
+}
+
+// Restores everything: data (gameState itself, mode, difficulty, rolloff
+// state) AND the visual board (placed dice, unplaced dice still waiting to be
+// placed, and whichever action-panel view matches where the game actually
+// was). Mid-Finale visual state is intentionally not frame-perfectly
+// reconstructed here (see session notes) - the underlying scores/data are
+// still fully preserved either way, nothing is lost.
+function restoreGameFromSave(saved) {
+    gameWasRestoredOnLoad = true;
+    gameState = saved.gameState;
+    gameMode  = saved.gameMode;
+    if (typeof rolloffState !== 'undefined' && saved.rolloffState) {
+        rolloffState = saved.rolloffState;
+    }
+
+    setGameMode(gameMode);
+    if (gameMode === 'ai' && saved.difficulty) { setAIDifficulty(saved.difficulty); }
+    setPlayerColor(gameState.humanColor || 'blue');
+
+    restoreBoardPlacements(saved.board);
+
+    // renderDiceWithAnimation() clears the tray itself even with zero dice -
+    // always call it, regardless of how many are left to place. Skipping it
+    // when the array was empty used to leave whatever was already in the DOM
+    // untouched, which is exactly how stale/duplicate dice could linger.
+    renderDiceWithAnimation('blue', gameState.blueDice || [], true);
+    renderDiceWithAnimation('red',  gameState.redDice  || [], true);
+
+    document.getElementById('currentRound').textContent = gameState.round;
+    var startRoundBtn = document.getElementById('startRound');
+    if (startRoundBtn) { startRoundBtn.textContent = 'Start Round ' + gameState.round; }
+
+    if (gameState.phase === 'gameOver') {
+        // Re-display the winner screen exactly as it was. endGame() is safe
+        // to call again here - it's guarded against re-recording stats for
+        // a game that already finished.
+        endGame();
+    } else if (gameState.phase === 'scoring') {
+        // A reload during the brief "Round complete - calculating scores..."
+        // window kills the pending 2-second timer that would have normally
+        // advanced things automatically - it never fires again on its own.
+        // Finish that transition right now instead of leaving the message
+        // (and the old round's pockets) stuck forever.
+        check100Trigger();
+    } else if (gameState.phase === 'placing') {
+        // Matches startPlacement()'s own setActionPanelView('status') call.
+        setActionPanelView('status');
+    } else if (gameState.phase === 'rolling' && gameState.firstPlayer) {
+        // Rolloff already resolved this round - show the roll-dice buttons,
+        // correctly reflecting who's already rolled.
+        setActionPanelView('rolls');
+        if (typeof brightenPlaceholderDice === 'function') { brightenPlaceholderDice(); }
+        var blueRollBtn = document.getElementById('blueRoll');
+        var redRollBtn  = document.getElementById('redRoll');
+        if (blueRollBtn) {
+            blueRollBtn.disabled = !!gameState.blueRolled;
+            blueRollBtn.classList.remove('roll-prompt-pulse');
+            blueRollBtn.classList.remove('hidden');
+            blueRollBtn.textContent = gameState.blueRolled
+                ? (colorEmoji('blue') + ' ' + colorLabel('blue') + ' Rolled')
+                : (colorEmoji('blue') + ' ' + colorLabel('blue') + ' Roll Dice');
+        }
+        if (redRollBtn) {
+            redRollBtn.disabled = !!gameState.redRolled;
+            redRollBtn.classList.remove('roll-prompt-pulse');
+            redRollBtn.classList.remove('hidden');
+            if (gameMode === 'ai') {
+                redRollBtn.textContent = gameState.redRolled ? '🤖 AI Rolled' : '🤖 AI Will Roll';
+            } else {
+                redRollBtn.textContent = gameState.redRolled
+                    ? (colorEmoji('red') + ' ' + colorLabel('red') + ' Rolled')
+                    : (colorEmoji('red') + ' ' + colorLabel('red') + ' Roll Dice');
+            }
+        }
+        var pulseColor = (gameState.currentPlayer === 'blue' && !gameState.blueRolled) ? 'blue'
+                        : (gameState.currentPlayer === 'red'  && !gameState.redRolled)  ? 'red' : null;
+        if (pulseColor && !(gameMode === 'ai' && pulseColor === 'red')) {
+            var pulseBtn = document.getElementById(pulseColor + 'Roll');
+            if (pulseBtn) { pulseBtn.classList.add('roll-prompt-pulse'); }
+        }
+    } else {
+        // Either between rounds (Start Round button) or caught mid-rolloff-tap
+        // (a 1-2 second window) - both fall back to the Start Round screen,
+        // a deliberate simplification since precisely replaying an in-progress
+        // rolloff tap isn't worth the complexity for something that brief.
+        setActionPanelView('start');
+    }
+
+    updateScoreDisplay();
+    updateGameStatus();
+}
+
+function setGameMode(mode) {
+    gameMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+    var playAsToggle = document.getElementById('playAsToggle');
+    if (mode === '2player') {
+        document.getElementById('twoPlayerMode').classList.add('active');
+        document.getElementById('aiDifficulty').classList.add('hidden');
+        if (playAsToggle) { playAsToggle.classList.add('hidden'); }
+        setPlayerColor('blue');
+    } else {
+        document.getElementById('aiMode').classList.add('active');
+        document.getElementById('aiDifficulty').classList.remove('hidden');
+        if (playAsToggle) { playAsToggle.classList.remove('hidden'); }
+        setPlayerColor(gameState.humanColor || 'blue');
+    }
+    var cModeEl = document.getElementById('cMode');
+    if (cModeEl) { cModeEl.value = mode; }
+    syncCompactAIControlsVisibility();
+    savePocketsSettings();
+}
+
+function setPlayerColor(color) {
+    // AI is ALWAYS red internally — this is a visual/stats swap only
+    gameState.humanColor = color;
+    var container = document.querySelector('.game-container');
+    if (container) {
+        container.classList.toggle('playing-as-red', color === 'red');
+    }
+
+    // Swap roll dice button colors
+    var blueRollBtn = document.getElementById('blueRoll');
+    var redRollBtn  = document.getElementById('redRoll');
+    if (blueRollBtn && redRollBtn) {
+        blueRollBtn.classList.toggle('blue-btn', color === 'blue');
+        blueRollBtn.classList.toggle('red-btn',  color === 'red');
+        redRollBtn.classList.toggle('red-btn',   color === 'blue');
+        redRollBtn.classList.toggle('blue-btn',  color === 'red');
+    }
+
+    // Update rolloff die aria-labels for accessibility
+    var blueDieBtn = document.getElementById('blueRolloffDie');
+    var redDieBtn  = document.getElementById('redRolloffDie');
+    if (blueDieBtn) { blueDieBtn.setAttribute('aria-label', colorLabel(color === 'red' ? 'blue' : 'blue') + ': roll for first player'); }
+    if (redDieBtn)  { redDieBtn.setAttribute('aria-label',  'AI: roll for first player'); }
+
+    var blueBtn = document.getElementById('playAsBlue');
+    var redBtn  = document.getElementById('playAsRed');
+    if (blueBtn) { blueBtn.classList.toggle('active', color === 'blue'); }
+    if (redBtn)  { redBtn.classList.toggle('active', color === 'red');   }
+    var cPlayEl = document.getElementById('cPlay');
+    if (cPlayEl) { cPlayEl.value = color; }
+    // Update headers — human is on the BLUE side regardless of chosen color
+    var is2p = (gameMode === '2player');
+    document.getElementById('bluePlayerHeader').textContent =
+        is2p ? 'BLUE PLAYER' : (color === 'red' ? '🔴 RED PLAYER (You)' : 'BLUE PLAYER');
+    document.getElementById('redPlayerHeader').textContent  =
+        is2p ? 'RED PLAYER'  : (color === 'red' ? '🔵 AI (Blue)'        : 'AI PLAYER');
+    // Update score area labels
+    var blueScoreLabel = document.getElementById('blueScoreLabel');
+    var redScoreLabel  = document.getElementById('redScoreLabel');
+    if (blueScoreLabel) {
+        blueScoreLabel.textContent = is2p ? 'Blue Player Score' :
+            (color === 'red' ? 'Red Player Score (You)' : 'Blue Player Score');
+    }
+    if (redScoreLabel) {
+        redScoreLabel.textContent  = is2p ? 'Red Player Score'  :
+            (color === 'red' ? 'AI Score (Blue)'        : 'Red Player Score');
+    }
+
+    // Force-refresh rolloff dice with correct visual colors immediately
+    var blueDie = document.getElementById('blueRolloffDie');
+    var redDie  = document.getElementById('redRolloffDie');
+    if (blueDie) { setRolloffDieFaded(blueDie); }
+    if (redDie)  { setRolloffDieFaded(redDie);  }
+    savePocketsSettings();
+}
+
+
+// Returns the DISPLAY name for an internal color, respecting visual swap
+function colorLabel(internalColor) {
+    if (gameState.humanColor === 'red') {
+        return internalColor === 'blue' ? 'Red' : 'Blue';
+    }
+    return internalColor === 'blue' ? 'Blue' : 'Red';
+}
+function colorLabelUpper(internalColor) { return colorLabel(internalColor).toUpperCase(); }
+function colorEmoji(internalColor) {
+    var isRed = (gameState.humanColor === 'red')
+        ? (internalColor === 'blue')   // swapped
+        : (internalColor === 'red');
+    return isRed ? '🔴' : '🔵';
+}
+// Mode button click — shows confirm modal so the new mode is always visible
+// and clearly applied before the new game starts.
+function handleModeButtonClick(newMode) {
+    if (newMode === gameMode) { return; }   // no change, nothing to do
+    var modeName = (newMode === 'ai') ? 'VS AI' : '2 Players';
+    showConfirm(
+        'Switch to ' + modeName + '?',
+        'Switching to ' + modeName + ' will start a new game. Current progress will be lost.',
+        function() {
+            setGameMode(newMode);
+            newGame();
+        }
+    );
+}
+
+// =============================================================================
+// FULL SCREEN — native API on most platforms. On iOS, the real Fullscreen API
+// is either unsupported (pre-Safari 17.2) or actively disruptive once it does
+// work (iPadOS shows an unskippable "keystrokes may be monitored" security
+// warning specifically triggered by rapid tapping, which a tap-heavy dice game
+// hits constantly). The actual chrome-free experience on iOS comes from
+// installing as a Home Screen web app instead, so guide toward that there
+// rather than fighting the platform.
+// =============================================================================
+
+function isIOSDevice() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
+function isStandaloneApp() {
+    return window.navigator.standalone === true ||
+           (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+}
+
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(function(err) {
+            console.log('Fullscreen unavailable:', err);
+        });
+    } else {
+        if (document.exitFullscreen) { document.exitFullscreen(); }
+    }
+}
+
+function showAddToHomeScreenGuidance() {
+    alert('For the best full-screen experience on iPhone/iPad:\n\n' +
+          '1. Tap the Share button\n' +
+          '2. Tap "Add to Home Screen"\n' +
+          '3. Launch POCKETS from its new icon — no browser bar!');
+}
+
+function injectFullscreenButton() {
+    if (document.getElementById('fullscreenBtn')) { return; }
+    if (isStandaloneApp()) { return; } // already chrome-free, nothing to offer
+
+    var gameModeEl = document.querySelector('.game-mode');
+    if (!gameModeEl) { return; }
+
+    var btn = document.createElement('button');
+    btn.id        = 'fullscreenBtn';
+    btn.className = 'fullscreen-btn';
+
+    if (isIOSDevice()) {
+        btn.textContent = 'Add to Home Screen';
+        btn.addEventListener('click', showAddToHomeScreenGuidance);
+    } else {
+        btn.textContent = 'Full Screen';
+        btn.addEventListener('click', toggleFullscreen);
+        document.addEventListener('fullscreenchange', function() {
+            var b = document.getElementById('fullscreenBtn');
+            if (b) { b.textContent = document.fullscreenElement ? 'Exit Full' : 'Full Screen'; }
+        });
+    }
+
+    gameModeEl.appendChild(btn);
+}
+
+// setAIDifficulty() lives in ai-player.js — it needs to recreate the pocketsAI
+// instance, not just update the button state, so it must not be duplicated here.
+// (A duplicate definition here previously won due to script load order and
+// silently broke difficulty switching entirely - removed.)
+
+// =============================================================================
+// PANEL BOTTOM STRIP
+// =============================================================================
+
+function showPanelBottom(message) {
+    var el = document.getElementById('actionTakeResult');
+    if (!el) { return; }
+    el.textContent = message;
+    el.classList.remove('hidden');
+    setTimeout(function() { el.classList.add('visible'); }, 10);
+}
+
+function hidePanelBottom(instant) {
+    var el = document.getElementById('actionTakeResult');
+    if (!el) { return; }
+    el.classList.remove('visible');
+    if (instant) {
+        el.classList.add('hidden');
+    } else {
+        setTimeout(function() { el.classList.add('hidden'); }, 500);
+    }
+}
+
+// =============================================================================
+// ACTION PANEL VIEW MANAGER
+// =============================================================================
+
+function setActionPanelView(view) {
+    var gameControls  = document.getElementById('gameControls');
+    var coinFlip      = document.getElementById('coinFlip');
+    var actionStatus  = document.getElementById('actionStatus');
+    var winnerDisplay = document.getElementById('winnerDisplay');
+    var fpRolloff     = document.getElementById('firstPlayerRolloff');
+    var playerRolls   = document.getElementById('playerRolls');
+
+    if (gameControls)  { gameControls.classList.add('hidden'); }
+    if (coinFlip)      { coinFlip.classList.add('hidden'); }
+    if (actionStatus)  { actionStatus.classList.add('hidden'); }
+    if (winnerDisplay) { winnerDisplay.classList.add('hidden'); }
+
+    if (view === 'start') {
+        gameControls.classList.remove('hidden');
+
+    } else if (view === 'rolloff') {
+        coinFlip.classList.remove('hidden');
+        fpRolloff.classList.remove('hidden');
+        playerRolls.classList.add('hidden');
+
+    } else if (view === 'rolls') {
+        coinFlip.classList.remove('hidden');
+        fpRolloff.classList.add('hidden');
+        playerRolls.classList.remove('hidden');
+
+    } else if (view === 'status') {
+        actionStatus.classList.remove('hidden');
+
+    } else if (view === 'winner') {
+        if (winnerDisplay) { winnerDisplay.classList.remove('hidden'); }
+    }
+}
+
+// =============================================================================
+// CONFIRM MODAL
+// =============================================================================
+
+function showConfirm(title, message, onConfirm, onCancel) {
+    var modal = document.getElementById('confirmModal');
+    if (!modal) {
+        if (onConfirm) { onConfirm(); }
+        return;
+    }
+
+    document.getElementById('confirmTitle').textContent   = title;
+    document.getElementById('confirmMessage').textContent = message;
+    modal.classList.remove('hidden');
+
+    var okBtn     = document.getElementById('confirmOk');
+    var cancelBtn = document.getElementById('confirmCancel');
+
+    function close() {
+        modal.classList.add('hidden');
+        okBtn.removeEventListener('click', onOk);
+        cancelBtn.removeEventListener('click', onCancelClick);
+        modal.removeEventListener('click', onBackdrop);
+    }
+    function onOk()         { close(); if (onConfirm) { onConfirm(); } }
+    function onCancelClick(){ close(); if (onCancel)  { onCancel();  } }
+    function onBackdrop(e)  { if (e.target === modal) { close(); if (onCancel) { onCancel(); } } }
+
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancelClick);
+    modal.addEventListener('click', onBackdrop);
+}
+
+// =============================================================================
+// START ROUND
+// =============================================================================
+
+function startRound() {
+    if (gameState.phase !== 'rolling') { return; }
+
+    // firstPlayer must mean "has THIS round's rolloff resolved" - reset it
+    // here, at the moment a new round actually begins. It was previously
+    // only ever set once per game and never cleared, which made it
+    // impossible to reliably tell "between rounds" apart from "rolloff just
+    // resolved" - the real cause of restore sometimes skipping straight to
+    // Roll Dice and bypassing this function's own pocket-clearing below.
+    gameState.firstPlayer = null;
+
+    // Clear take pocket badges at start of new round
+    document.getElementById('blueTakeScore').classList.add('hidden');
+    document.getElementById('redTakeScore').classList.add('hidden');
+
+    // Clear pockets (Keep Two and Take One only — Save One carries forward)
+    var players = ['blue', 'red'];
+    var pockets = ['Keep1', 'Keep2', 'Take'];
+    for (var p = 0; p < players.length; p++) {
+        for (var k = 0; k < pockets.length; k++) {
+            var el = document.getElementById(players[p] + pockets[k]);
+            el.querySelector('.pocket-dice').innerHTML = '';
+        }
+        if (gameState.round > 1) {
+            var saveEl = document.getElementById(players[p] + 'Save');
+            saveEl.querySelector('.pocket-dice').innerHTML = '';
+        }
+    }
+
+    resetRoundUI();
+    gameState.blueRolled = false;
+    gameState.redRolled  = false;
+
+    hidePanelBottom(false);
+    showPlaceholderDice();
+    startFirstPlayerRolloff();
+    autosaveGame();
+}
+
+function showPlaceholderDice() {
+    var players = ['blue', 'red'];
+    for (var p = 0; p < players.length; p++) {
+        var player  = players[p];
+        var area    = document.getElementById(player + 'DiceArea');
+        area.innerHTML = '';
+
+        var numNew  = (gameState.round === 1) ? 4 : 3;
+        var savedDie = (player === 'blue') ? gameState.blueSavedDie : gameState.redSavedDie;
+
+        for (var i = 0; i < numNew; i++) {
+            var die = createDieSVG(1, player + '-ph-' + i, false);
+            die.style.opacity       = '0.35';
+            die.style.pointerEvents = 'none';
+            area.appendChild(die);
+        }
+
+        if (gameState.round > 1 && savedDie) {
+            var saved = createDieSVG(savedDie, player + '-ph-saved', true);
+            saved.style.pointerEvents = 'none';
+            area.appendChild(saved);
+        }
+    }
+}
+
+function resetRoundUI() {
+    document.getElementById('takeDifference').classList.add('hidden');
+    // Take pocket badges persist until startRound() — not cleared here
+}
+
+// =============================================================================
+// FIRST-PLAYER ROLLOFF
+// =============================================================================
+
+var rolloffState = { blue: null, red: null, locked: false };
+
+function startFirstPlayerRolloff() {
+    rolloffState = { blue: null, red: null, locked: false };
+    setActionPanelView('rolloff');
+
+    var blueDie = document.getElementById('blueRolloffDie');
+    var redDie  = document.getElementById('redRolloffDie');
+
+    blueDie.classList.remove('parked-left');
+    blueDie.classList.remove('parked-right');
+    blueDie.classList.remove('spinning-left');
+    blueDie.classList.remove('spinning-right');
+    blueDie.classList.remove('spinning-in-place');
+
+    redDie.classList.remove('parked-left');
+    redDie.classList.remove('parked-right');
+    redDie.classList.remove('spinning-left');
+    redDie.classList.remove('spinning-right');
+    redDie.classList.remove('spinning-in-place');
+
+    // Only the AI's die should appear faded/non-interactive. #blueRolloffDie
+    // is always the human's button and #redRolloffDie is always the AI's,
+    // structurally - this matches the same "AI is always internally red"
+    // convention used everywhere else in the codebase. The humanColor swap
+    // only changes which COLORS are painted onto these two buttons; it never
+    // changes which one is actually the human's. No color-conditional logic
+    // is needed here at all - that was the bug.
+    var isAIMode = (gameMode === 'ai');
+    setRolloffDieFaded(blueDie, false);
+    setRolloffDieFaded(redDie, isAIMode);
+    blueDie.disabled = false;
+    redDie.disabled  = (gameMode === 'ai');
+
+    var vsEl = document.querySelector('.rolloff-vs');
+    if (vsEl) { vsEl.classList.remove('hidden'); }
+
+    var result = document.getElementById('rolloffResult');
+    result.textContent = '';
+    result.classList.remove('winner');
+
+    document.getElementById('firstPlayerRolloff').classList.remove('hidden');
+    document.getElementById('playerRolls').classList.add('hidden');
+
+    // Always set from current gameMode — fixes the AI->2player bug
+    if (gameMode === 'ai') {
+        var humanLabel = (gameState.humanColor === 'red') ? 'red' : 'blue';
+        document.getElementById('rolloffPrompt').textContent =
+            'Tap your ' + humanLabel + ' die — AI will roll right after.';
+    } else {
+        document.getElementById('rolloffPrompt').textContent =
+            'Tap your die — higher number goes first!';
+    }
+}
+
+function setRolloffDieFaded(buttonEl, shouldFade) {
+    if (shouldFade === undefined) { shouldFade = true; }
+    buttonEl.innerHTML = '';
+    if (shouldFade) { buttonEl.classList.add('faded'); }
+    else { buttonEl.classList.remove('faded'); }
+    var isBlueButton = (buttonEl.id === 'blueRolloffDie');
+    var svg = createDieSVG(1, 'rolloff-' + buttonEl.id, false);
+    buttonEl.appendChild(svg);
+
+    // Force face+dot colors when swapped — reads theme CSS vars so each theme looks right
+    if (gameState.humanColor === 'red') {
+        var cs        = getComputedStyle(document.body);
+        var isBitmap  = document.body.classList.contains('theme-bitmap');
+        var humanFace, aiFace, humanDot, aiDot;
+        if (isBitmap) {
+            humanFace = '#f4dddd';
+            aiFace    = '#dde4f4';
+            humanDot  = '#800000';
+            aiDot     = '#000080';
+        } else {
+            humanFace = cs.getPropertyValue('--burgundy').trim() || '#6e3030';
+            aiFace    = cs.getPropertyValue('--navy').trim()     || '#2a3559';
+            humanDot  = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
+            aiDot     = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
+        }
+        var faceFill   = isBlueButton ? humanFace : aiFace;
+        var faceStroke = isBlueButton ? humanDot  : aiDot;  // stroke matches dot color
+        var dotFill    = isBlueButton ? humanDot  : aiDot;
+        var face = svg.querySelector('.dice-face');
+        if (face) {
+            face.setAttribute('style', 'fill: ' + faceFill + ' !important; stroke: ' + faceStroke + ' !important;');
+        }
+        svg.querySelectorAll('.dice-dot').forEach(function(d) {
+            d.setAttribute('style', 'fill: ' + dotFill + ' !important;');
+        });
+    }
+}
+
+function setRolloffDieFadedInPlace(buttonEl) {
+    buttonEl.innerHTML = '';
+    buttonEl.classList.add('faded');
+    buttonEl.appendChild(createDieSVG(1, 'rolloff-' + buttonEl.id, false));
+    // Intentionally keeps parked-left / parked-right — dice stay at sides
+}
+
+function rolloffRollDie(player) {
+    if (rolloffState.locked) { return; }
+    if (rolloffState[player] !== null) { return; }
+
+    var dieEl = document.getElementById(player + 'RolloffDie');
+    var parkClass, spinClass;
+
+    if (player === 'blue') {
+        parkClass = 'parked-left';
+        spinClass = 'spinning-left';
+    } else {
+        parkClass = 'parked-right';
+        spinClass = 'spinning-right';
+    }
+
+    var alreadyParked = dieEl.classList.contains(parkClass);
+
+    // Clear the tie text as soon as a die is tapped
+    var resultEl = document.getElementById('rolloffResult');
+    if (resultEl) { resultEl.textContent = ''; }
+
+    dieEl.disabled = true;
+    dieEl.classList.remove('faded');
+
+    var value = Math.floor(Math.random() * 6) + 1;
+    var startVal = Math.floor(Math.random() * 6) + 1;
+    var rollSvg  = createDieSVG(startVal, 'rolloff-' + player + '-' + Date.now(), false);
+    dieEl.innerHTML = '';
+    dieEl.appendChild(rollSvg);
+
+    // Force face+dot colors to match visual swap, using theme-aware CSS vars
+    if (gameState.humanColor === 'red') {
+        var cs       = getComputedStyle(document.body);
+        var isBitmap = document.body.classList.contains('theme-bitmap');
+        var humanFace, aiFace, humanDot, aiDot;
+        if (isBitmap) {
+            humanFace = '#f4dddd'; aiFace = '#dde4f4';
+            humanDot  = '#800000'; aiDot  = '#000080';
+        } else {
+            humanFace = cs.getPropertyValue('--burgundy').trim() || '#6e3030';
+            aiFace    = cs.getPropertyValue('--navy').trim()     || '#2a3559';
+            humanDot  = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
+            aiDot     = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
+        }
+        var isHuman    = (player === 'blue');
+        var faceFill   = isHuman ? humanFace : aiFace;
+        var faceStroke = isHuman ? humanDot  : aiDot;
+        var dotFill    = isHuman ? humanDot  : aiDot;
+        var face = rollSvg.querySelector('.dice-face');
+        if (face) {
+            face.setAttribute('style', 'fill: ' + faceFill + ' !important; stroke: ' + faceStroke + ' !important;');
+        }
+        rollSvg.querySelectorAll('.dice-dot').forEach(function(d) {
+            d.setAttribute('style', 'fill: ' + dotFill + ' !important;');
+        });
+    }
+
+    if (!alreadyParked) {
+        dieEl.classList.add(spinClass);
+        var pipIntervalA = setInterval(function() {
+            refreshDiePips(rollSvg, Math.floor(Math.random() * 6) + 1);
+        }, 80);
+        setTimeout(function() {
+            clearInterval(pipIntervalA);
+            refreshDiePips(rollSvg, value);
+            dieEl.classList.remove(spinClass);
+            dieEl.classList.add(parkClass);
+            rolloffState[player] = value;
+            afterRolloffDieSettled(player);
+        }, 650);
+    } else {
+        dieEl.classList.add('spinning-in-place');
+        var pipIntervalB = setInterval(function() {
+            refreshDiePips(rollSvg, Math.floor(Math.random() * 6) + 1);
+        }, 80);
+        setTimeout(function() {
+            clearInterval(pipIntervalB);
+            refreshDiePips(rollSvg, value);
+            dieEl.classList.remove('spinning-in-place');
+            rolloffState[player] = value;
+            afterRolloffDieSettled(player);
+        }, 650);
+    }
+}
+
+function afterRolloffDieSettled(player) {
+    autosaveGame();
+    if (gameMode === 'ai' && player === 'blue' && rolloffState.red === null) {
+        setTimeout(function() { rolloffRollDie('red'); }, 400);
+    }
+    if (rolloffState.blue !== null && rolloffState.red !== null) {
+        setTimeout(resolveRolloff, 400);
+    }
+}
+
+function resolveRolloff() {
+    var blueVal = rolloffState.blue;
+    var redVal  = rolloffState.red;
+    var result  = document.getElementById('rolloffResult');
+    var vsEl    = document.querySelector('.rolloff-vs');
+
+    if (vsEl) { vsEl.classList.add('hidden'); }
+
+    if (blueVal === redVal) {
+        rolloffState.locked = true;
+        result.textContent = 'Tied at ' + blueVal + ' — tap again!';
+        result.classList.remove('winner');
+
+        setTimeout(function() {
+            rolloffState = { blue: null, red: null, locked: false };
+            var bd = document.getElementById('blueRolloffDie');
+            var rd = document.getElementById('redRolloffDie');
+            bd.disabled = false;
+            rd.disabled = (gameMode === 'ai');
+            // Keep dice showing their actual tied values — just re-fade the AI's
+            // die (the human's stays clickable AND visually active). Resetting
+            // to placeholder 1s caused the "Tied at X but I see 1s" confusion,
+            // so the values stay as-is here. #blueRolloffDie is always the
+            // human's button structurally, regardless of the color swap.
+            var isAIModeNow = (gameMode === 'ai');
+            bd.classList.remove('faded');
+            if (isAIModeNow) { rd.classList.add('faded'); } else { rd.classList.remove('faded'); }
+            var vsElAgain = document.querySelector('.rolloff-vs');
+            if (vsElAgain) { vsElAgain.classList.remove('hidden'); }
+        }, 1200);
+        return;
+    }
+
+    rolloffState.locked = true;
+
+    var winner;
+    if (blueVal > redVal) {
+        winner = 'blue';
+    } else {
+        winner = 'red';
+    }
+
+    gameState.firstPlayer   = winner;
+    gameState.currentPlayer = winner;
+
+    var winnerName, winnerColor;
+    if (winner === 'blue') {
+        winnerName  = colorLabelUpper('blue');
+        winnerColor = (gameState.humanColor === 'red') ? '#e24a4a' : '#4a90e2';
+    } else if (gameMode === 'ai') {
+        winnerName  = 'AI';
+        winnerColor = (gameState.humanColor === 'red') ? '#4a90e2' : '#e24a4a';
+    } else {
+        winnerName  = colorLabelUpper('red');
+        winnerColor = (gameState.humanColor === 'red') ? '#4a90e2' : '#e24a4a';
+    }
+
+    result.classList.add('winner');
+    result.innerHTML = '<span style="color:' + winnerColor + '">' + winnerName + '</span> goes first!';
+
+    setTimeout(function() {
+        setActionPanelView('rolls');
+        // The 4 placeholder dice stay dull through the whole rolloff battle -
+        // only brighten them now, the moment Roll Dice buttons actually appear.
+        if (typeof brightenPlaceholderDice === 'function') { brightenPlaceholderDice(); }
+        var blueBtn = document.getElementById('blueRoll');
+        var redBtn  = document.getElementById('redRoll');
+        blueBtn.classList.remove('hidden');
+        redBtn.classList.remove('hidden');
+
+        // Dim non-first player's button — winner of rolloff goes first
+        var secondColor = (winner === 'blue') ? 'red' : 'blue';
+        document.getElementById(secondColor + 'Roll').disabled = true;
+        if (!(gameMode === 'ai' && winner === 'red')) {
+            document.getElementById(winner + 'Roll').classList.add('roll-prompt-pulse');
+        }
+
+        if (gameMode === 'ai') {
+            document.getElementById('redRoll').textContent = '🤖 AI Will Roll';
+            if (winner === 'red') {
+                setTimeout(function() { rollPlayerDice('red'); }, 500);
+            }
+        }
+        updateGameStatus();
+        autosaveGame();
+    }, 2800);
+}
+
+// =============================================================================
+// PLAYER DICE ROLLING
+// =============================================================================
+
+function rollPlayerDice(player) {
+    if (player === 'blue' && gameState.blueRolled) { return; }
+    if (player === 'red'  && gameState.redRolled)  { return; }
+
+    var btn = document.getElementById(player + 'Roll');
+    btn.disabled = true;
+    btn.classList.remove('roll-prompt-pulse');
+
+    var dice = [];
+    if (gameState.round === 1) {
+        for (var i = 0; i < 4; i++) {
+            dice.push(Math.floor(Math.random() * 6) + 1);
+        }
+    } else {
+        for (var j = 0; j < 3; j++) {
+            dice.push(Math.floor(Math.random() * 6) + 1);
+        }
+        var savedDie = (player === 'blue') ? gameState.blueSavedDie : gameState.redSavedDie;
+        if (savedDie) { dice.push(savedDie); }
+    }
+
+    if (player === 'blue') {
+        gameState.blueDice        = dice;
+        gameState.blueOriginalRoll = dice.slice();
+        gameState.blueRolled      = true;
+    } else {
+        gameState.redDice        = dice;
+        gameState.redOriginalRoll = dice.slice();
+        gameState.redRolled      = true;
+    }
+
+    renderDiceWithAnimation(player, dice);
+
+    if (player === 'blue') {
+        btn.textContent = colorEmoji('blue') + ' ' + colorLabel('blue') + ' Rolled';
+    } else if (gameMode === 'ai') {
+        btn.textContent = '🤖 AI Rolled';
+    } else {
+        btn.textContent = colorEmoji('red') + ' ' + colorLabel('red') + ' Rolled';
+    }
+
+    // Enable the other player's button now it's their turn to roll
+    var otherColor = (player === 'blue') ? 'red' : 'blue';
+    var otherBtn   = document.getElementById(otherColor + 'Roll');
+    if (otherBtn && !gameState[otherColor + 'Rolled']) {
+        otherBtn.disabled = false;
+        if (!(gameMode === 'ai' && otherColor === 'red')) {
+            otherBtn.classList.add('roll-prompt-pulse');
+        }
+    }
+
+    if (gameMode === 'ai' && player === 'blue' && !gameState.redRolled) {
+        setTimeout(function() { rollPlayerDice('red'); }, 1500);
+    }
+
+    if (gameState.blueRolled && gameState.redRolled) {
+        setTimeout(function() { startPlacement(); }, 1000);
+    }
+    autosaveGame();
+}
+
+function renderDiceWithAnimation(player, dice, skipAnimation) {
+    var diceArea = document.getElementById(player + 'DiceArea');
+    diceArea.innerHTML = '';
+
+    for (var i = 0; i < dice.length; i++) {
+        var value   = dice[i];
+        var isSaved = false;
+
+        if (gameState.round > 1 && i === dice.length - 1) {
+            if (player === 'blue' && gameState.blueSavedDie) { isSaved = true; }
+            if (player === 'red'  && gameState.redSavedDie)  { isSaved = true; }
+        }
+
+        // Saved dice show their correct value immediately — no animation.
+        // Non-saved dice normally start random and cycle to the final value,
+        // but skipAnimation (used when restoring a saved game) shows the
+        // correct value directly - a restore must never look like a fresh
+        // roll just happened, even though the underlying data was correct
+        // the whole time.
+        var startVal = (isSaved || skipAnimation) ? value : Math.floor(Math.random() * 6) + 1;
+        var die      = createDieSVG(startVal, player + '-' + i, isSaved);
+        die.setAttribute('data-value', value);   // override startVal with correct final value
+        if (!isSaved && !skipAnimation) { die.classList.add('rolling'); }  // saved/restored dice don't animate
+
+        // Closure captures die element, final value, saved flag, and index
+        (function(dieEl, finalValue, isSavedDie, dieIdx) {
+            dieEl.addEventListener('click', function() { selectDie(player, dieIdx); });
+
+            if (!isSavedDie && !skipAnimation) {
+                // Cycle random pips every 80ms while the die spins
+                var pipInterval = setInterval(function() {
+                    refreshDiePips(dieEl, Math.floor(Math.random() * 6) + 1);
+                }, 80);
+                // Snap to final value just before spin ends, so it's visible landing
+                setTimeout(function() {
+                    clearInterval(pipInterval);
+                    refreshDiePips(dieEl, finalValue);
+                }, 680);
+            }
+        })(die, value, isSaved, i);
+
+        diceArea.appendChild(die);
+    }
+
+    setTimeout(function() {
+        var allDice = document.querySelectorAll('.dice');
+        allDice.forEach(function(d) {
+            d.classList.remove('rolling');
+            d.classList.remove('jitter');
+        });
+    }, 800);
+}
+
+// =============================================================================
+// PLACEMENT
+// =============================================================================
+
+function startPlacement() {
+    gameState.phase         = 'placing';
+    gameState.diceToPlace   = 8;
+    gameState.placementTurn = 0;
+    setActionPanelView('status');
+    updateGameStatus();
+    if (gameMode === 'ai' && gameState.currentPlayer === 'red') {
+        setTimeout(function() { makeAIMove(); }, 1000);
+    }
+    autosaveGame();
+}
+
+function selectDie(player, index) {
+    if (gameState.phase !== 'placing') { return; }
+    if (player !== gameState.currentPlayer) { return; }
+
+    var allSelected = document.querySelectorAll('.dice.selected');
+    allSelected.forEach(function(d) { d.classList.remove('selected'); });
+
+    var dieEl = document.querySelector('[data-id="' + player + '-' + index + '"]');
+    if (dieEl && !dieEl.classList.contains('selected')) {
+        dieEl.classList.add('selected');
+        var capturedValue = parseInt(dieEl.getAttribute('data-value'));
+        gameState.selectedDie = { player: player, index: index, value: capturedValue };
+        highlightAvailablePockets();
+        autosaveGame();
+    }
+}
+
+function highlightAvailablePockets() {
+    var allPockets = document.querySelectorAll('.pocket');
+    allPockets.forEach(function(pocket) {
+        pocket.classList.remove('active');
+        pocket.replaceWith(pocket.cloneNode(true));
+    });
+
+    if (!gameState.selectedDie) { return; }
+
+    var player  = gameState.selectedDie.player;
+    var pockets = document.querySelectorAll('[data-player="' + player + '"]');
+
+    pockets.forEach(function(pocket) {
+        if (pocket.querySelectorAll('.dice').length < 1) {
+            pocket.classList.add('active');
+            pocket.addEventListener('click', function() { placeDieInPocket(pocket); });
+        }
+    });
+}
+
+function placeDieInPocket(pocketElement) {
+    if (!gameState.selectedDie) { return; }
+
+    var player   = gameState.selectedDie.player;
+    var index    = gameState.selectedDie.index;
+    var dieValue = gameState.selectedDie.value;
+
+    var pocketDie = createDieSVG(dieValue, 'pocket-' + Date.now(), false);
+    pocketDie.style.width  = '40px';
+    pocketDie.style.height = '40px';
+    pocketDie.classList.remove('saved-tint');
+    pocketElement.querySelector('.pocket-dice').appendChild(pocketDie);
+
+    updatePocketScore(pocketElement, player);
+
+    var dieEl = document.querySelector('[data-id="' + player + '-' + index + '"]');
+    if (dieEl) { dieEl.remove(); }
+
+    if (player === 'blue') {
+        gameState.blueDice.splice(index, 1);
+    } else {
+        gameState.redDice.splice(index, 1);
+    }
+
+    gameState.selectedDie = null;
+
+    var allPockets = document.querySelectorAll('.pocket');
+    allPockets.forEach(function(p) {
+        p.classList.remove('active');
+        p.replaceWith(p.cloneNode(true));
+    });
+
+    gameState.diceToPlace--;
+    gameState.placementTurn++;
+
+    if (gameState.diceToPlace > 0) {
+        if (gameState.currentPlayer === 'blue') {
+            gameState.currentPlayer = 'red';
+        } else {
+            gameState.currentPlayer = 'blue';
+        }
+        renderDice();
+        updateGameStatus();
+        if (gameMode === 'ai' && gameState.currentPlayer === 'red') {
+            setTimeout(function() { makeAIMove(); }, 500);
+        }
+    } else {
+        calculateRoundScore();
+    }
+
+    updateTakeDifference();
+    autosaveGame();
+}
+
+function renderDice() {
+    var blueDiceArea = document.getElementById('blueDiceArea');
+    var redDiceArea  = document.getElementById('redDiceArea');
+    blueDiceArea.innerHTML = '';
+    redDiceArea.innerHTML  = '';
+
+    for (var i = 0; i < gameState.blueDice.length; i++) {
+        var blueVal   = gameState.blueDice[i];
+        var blueIsSaved = (gameState.round > 1 &&
+                           i === gameState.blueDice.length - 1 &&
+                           gameState.blueSavedDie === blueVal);
+        var blueDie = createDieSVG(blueVal, 'blue-' + i, blueIsSaved);
+        (function(idx) {
+            blueDie.addEventListener('click', function() { selectDie('blue', idx); });
+        })(i);
+        blueDiceArea.appendChild(blueDie);
+    }
+
+    for (var j = 0; j < gameState.redDice.length; j++) {
+        var redVal    = gameState.redDice[j];
+        var redIsSaved = (gameState.round > 1 &&
+                          j === gameState.redDice.length - 1 &&
+                          gameState.redSavedDie === redVal);
+        var redDie = createDieSVG(redVal, 'red-' + j, redIsSaved);
+        (function(idx) {
+            redDie.addEventListener('click', function() { selectDie('red', idx); });
+        })(j);
+        redDiceArea.appendChild(redDie);
+    }
+}
+
+function updatePocketScore(pocketElement, player) {
+    var pocketType = pocketElement.dataset.pocket;
+    if (pocketType === 'take') {
+        var dicEls = pocketElement.querySelectorAll('.dice');
+        if (dicEls.length > 0) {
+            var scoreEl = document.getElementById(player + 'TakeScore');
+            scoreEl.textContent = dicEls[0].getAttribute('data-value');
+            scoreEl.classList.remove('hidden');
+        }
+    }
+}
+
+function updateTakeDifference() {
+    var bluePockets = getDiceFromPockets('blue');
+    var redPockets  = getDiceFromPockets('red');
+    var blueTake   = bluePockets.take || [];
+    var redTake    = redPockets.take  || [];
+
+    document.getElementById('takeDifference').classList.add('hidden');
+
+    if (blueTake.length > 0 && redTake.length > 0) {
+        var bd   = blueTake[0];
+        var rd   = redTake[0];
+        var diff = Math.abs(bd - rd);
+
+        if (diff > 0 && bd > rd) {
+            document.getElementById('blueTakeScore').textContent = '+' + diff;
+        } else {
+            document.getElementById('blueTakeScore').textContent = '0';
+        }
+
+        if (diff > 0 && rd > bd) {
+            document.getElementById('redTakeScore').textContent = '+' + diff;
+        } else {
+            document.getElementById('redTakeScore').textContent = '0';
+        }
+
+        // Take win/loss message removed — redundant, players see pocket numbers
+    }
+}
+
+function getDiceFromPockets(player) {
+    var pockets   = {};
+    var pocketTypes = ['keep1', 'keep2', 'take', 'save'];
+
+    for (var i = 0; i < pocketTypes.length; i++) {
+        var pt  = pocketTypes[i];
+        var cap = pt.charAt(0).toUpperCase() + pt.slice(1);
+        var el  = document.getElementById(player + cap);
+        var diceEls = el.querySelectorAll('.dice');
+        var values  = [];
+        diceEls.forEach(function(d) { values.push(parseInt(d.getAttribute('data-value'))); });
+        if (values.length > 0) { pockets[pt] = values; }
+    }
+
+    return pockets;
+}
+
+// =============================================================================
+// SCORING
+// =============================================================================
+
+function calculateRoundScore() {
+    gameState.phase = 'scoring';
+
+    // Belt-and-suspenders: ensure no pockets remain highlighted
+    document.querySelectorAll('.pocket.active').forEach(function(p) {
+        p.classList.remove('active');
+    });
+
+    var bluePockets = getDiceFromPockets('blue');
+    var redPockets  = getDiceFromPockets('red');
+
+    var blueKeep1 = bluePockets.keep1 || [];
+    var blueKeep2 = bluePockets.keep2 || [];
+    var blueKeepScore = blueKeep1.concat(blueKeep2).reduce(function(a, b) { return a + b; }, 0);
+
+    var redKeep1 = redPockets.keep1 || [];
+    var redKeep2 = redPockets.keep2 || [];
+    var redKeepScore = redKeep1.concat(redKeep2).reduce(function(a, b) { return a + b; }, 0);
+
+    var blueTakeDie = 0;
+    var redTakeDie  = 0;
+    if (bluePockets.take && bluePockets.take.length > 0) { blueTakeDie = bluePockets.take[0]; }
+    if (redPockets.take  && redPockets.take.length  > 0) { redTakeDie  = redPockets.take[0];  }
+
+    var blueBonus      = 0;
+    var redBonus       = 0;
+    var blueComboBonus = 0;
+    var redComboBonus  = 0;
+
+    if (blueTakeDie > redTakeDie) {
+        blueBonus      = blueTakeDie - redTakeDie;
+        blueComboBonus = calculateBonusPoints(gameState.blueOriginalRoll);
+        blueBonus      = blueBonus + blueComboBonus;
+    } else if (redTakeDie > blueTakeDie) {
+        redBonus      = redTakeDie - blueTakeDie;
+        redComboBonus = calculateBonusPoints(gameState.redOriginalRoll);
+        redBonus      = redBonus + redComboBonus;
+    }
+
+    // Take result element cleared — message removed
+
+    displayRoundScores(blueKeepScore, blueBonus, blueComboBonus,
+                       redKeepScore,  redBonus,  redComboBonus);
+
+    gameState.blueScore += blueKeepScore + blueBonus;
+    gameState.redScore  += redKeepScore  + redBonus;
+
+    if (bluePockets.save && bluePockets.save.length > 0) {
+        gameState.blueSavedDie = bluePockets.save[0];
+    } else {
+        gameState.blueSavedDie = null;
+    }
+    if (redPockets.save && redPockets.save.length > 0) {
+        gameState.redSavedDie = redPockets.save[0];
+    } else {
+        gameState.redSavedDie = null;
+    }
+
+    updateScoreDisplay();
+
+    setTimeout(function() {
+        check100Trigger();
+    }, 2000);
+}
+
+function displayRoundScores(blueKeep, blueBonus, blueCombo,
+                             redKeep,  redBonus,  redCombo) {
+    var blueDiceArea = document.getElementById('blueDiceArea');
+    var redDiceArea  = document.getElementById('redDiceArea');
+
+    var blueDiv = document.createElement('div');
+    blueDiv.className = 'round-score-display';
+    var blueText = 'Round Score: ' + (blueKeep + blueBonus) + ' pts';
+    if (blueBonus > 0) {
+        blueText += '<br>Keep: ' + blueKeep + ', Take: ' + (blueBonus - blueCombo);
+        if (blueCombo > 0) { blueText += ', Bonus: ' + blueCombo; }
+    } else {
+        blueText += '<br>Keep: ' + blueKeep;
+    }
+    blueDiv.innerHTML = blueText;
+    blueDiceArea.appendChild(blueDiv);
+
+    var redDiv = document.createElement('div');
+    redDiv.className = 'round-score-display';
+    var redText = 'Round Score: ' + (redKeep + redBonus) + ' pts';
+    if (redBonus > 0) {
+        redText += '<br>Keep: ' + redKeep + ', Take: ' + (redBonus - redCombo);
+        if (redCombo > 0) { redText += ', Bonus: ' + redCombo; }
+    } else {
+        redText += '<br>Keep: ' + redKeep;
+    }
+    redDiv.innerHTML = redText;
+    redDiceArea.appendChild(redDiv);
+}
+
+// =============================================================================
+// 100-POINT TRIGGER
+// =============================================================================
+
+function check100Trigger() {
+    var blueOver = gameState.blueScore >= 100;
+    var redOver  = gameState.redScore  >= 100;
+
+    if (!blueOver && !redOver) {
+        nextRound();
+        return;
+    }
+
+    var msg;
+    if (blueOver && redOver) {
+        if (gameState.blueScore > gameState.redScore) {
+            msg = 'Both players crossed 100 — ' + colorLabel('blue') + ' leads! Click Start Rolldown to begin.';
+        } else if (gameState.redScore > gameState.blueScore) {
+            msg = 'Both players crossed 100 — ' + colorLabel('red') + ' leads! Click Start Rolldown to begin.';
+        } else {
+            msg = 'Both players crossed 100 and are tied! Click Start Rolldown.';
+        }
+    } else if (blueOver) {
+        msg = colorLabel('blue') + ' crossed 100 points! Click Start Rolldown to begin.';
+    } else {
+        msg = colorLabel('red') + ' crossed 100 points! Click Start Rolldown to begin.';
+    }
+
+    showPanelBottom(msg);
+    document.getElementById('startRound').classList.add('hidden');
+    document.getElementById('startFinale').classList.remove('hidden');
+    setActionPanelView('start');
+}
+
+// =============================================================================
+// FINALE — BOARD-BASED FLOW
+// =============================================================================
+
+function startFinale() {
+    gameState.phase              = 'finale';
+    gameState.finaleMode         = true;
+    gameState.finaleRolls        = { blue: [], red: [] };
+    gameState.finaleCurrentPlayer = gameState.firstPlayer || 'blue';
+
+    document.getElementById('startFinale').classList.add('hidden');
+    document.getElementById('startRound').classList.add('hidden');
+    document.getElementById('currentRound').textContent = 'Rolldown';
+
+    hidePanelBottom(false);
+
+    // Hide regular pockets — Keep Two and Take One only
+    var keepTake = document.querySelectorAll(
+        '.pocket[data-pocket="keep1"], .pocket[data-pocket="keep2"], .pocket[data-pocket="take"]'
+    );
+    keepTake.forEach(function(p) { p.classList.add('finale-hidden'); });
+
+    // Show Finale pocket areas
+    document.getElementById('blueFinale').classList.remove('hidden');
+    document.getElementById('redFinale').classList.remove('hidden');
+
+    // Reset Finale totals to saved die value
+    var blueSaved = gameState.blueSavedDie || 0;
+    var redSaved  = gameState.redSavedDie  || 0;
+    document.getElementById('blueFinaleTotal').textContent = blueSaved;
+    document.getElementById('redFinaleTotal').textContent  = redSaved;
+    document.getElementById('blueFinaleBonus').textContent = '';
+    document.getElementById('redFinaleBonus').textContent  = '';
+
+    // Clear dice areas and show 4 dimmed dice per player
+    document.getElementById('blueDiceArea').innerHTML = '';
+    document.getElementById('redDiceArea').innerHTML  = '';
+    showDimmedDice('blue');
+    showDimmedDice('red');
+
+    setActionPanelView('rolls');   // shows coinFlip + playerRolls, hides firstPlayerRolloff
+
+    // Hide "of 10" suffix — round count irrelevant in Finale
+    var suffix = document.getElementById('roundSuffix');
+    if (suffix) { suffix.classList.add('hidden'); }
+
+    updateFinaleUI();
+
+    document.getElementById('turnInfo').textContent =
+        gameState.finaleCurrentPlayer === 'blue' ? "Blue's Finale roll" : "Red's Finale roll";
+
+    if (gameMode === 'ai' && gameState.finaleCurrentPlayer === 'red') {
+        setTimeout(function() { rollFinale('red'); }, 1200);
+    }
+}
+
+function showDimmedDice(player) {
+    var area = document.getElementById(player + 'DiceArea');
+    for (var i = 0; i < 4; i++) {
+        var die = createDieSVG(1, player + '-finale-dim-' + i, false);
+        die.classList.add('dimmed-die');
+        area.appendChild(die);
+    }
+}
+
+function rollFinale(player) {
+    if (!gameState.finaleMode) { return; }
+    if (gameState.finaleCurrentPlayer !== player) { return; }
+    var rolls = gameState.finaleRolls[player];
+    if (rolls.length >= 4) { return; }
+
+    var value = Math.floor(Math.random() * 6) + 1;
+    rolls.push(value);
+
+    // Animate the correct dimmed die in roll bar
+    var area     = document.getElementById(player + 'DiceArea');
+    var dimDice  = area.querySelectorAll('.dimmed-die');
+    // Always target the first remaining dimmed die in this player's roll bar
+    var targetDie = dimDice[0];
+
+    if (targetDie) {
+        targetDie.classList.remove('dimmed-die');
+        targetDie.classList.add('rolling');
+        targetDie.setAttribute('data-value', value);
+        var captured    = value;
+        var capturedDie = targetDie;
+        // Cycle pips randomly while rolling, then snap to final value
+        var pipInterval = setInterval(function() {
+            refreshDiePips(capturedDie, Math.floor(Math.random() * 6) + 1);
+        }, 80);
+        setTimeout(function() {
+            clearInterval(pipInterval);
+            capturedDie.classList.remove('rolling');
+            refreshDiePips(capturedDie, captured);
+        }, 680);
+    }
+
+    // Update running total in Finale pocket
+    var savedDie = (player === 'blue') ? (gameState.blueSavedDie || 0) : (gameState.redSavedDie || 0);
+    var rollSum  = rolls.reduce(function(a, b) { return a + b; }, 0);
+    var running  = savedDie + rollSum;
+    var totalEl  = document.getElementById(player + 'FinaleTotal');
+    totalEl.textContent = running;
+    totalEl.classList.add('bumped');
+    setTimeout(function() { totalEl.classList.remove('bumped'); }, 260);
+
+    // Context message
+    var flavor = '';
+    if (value === 6) { flavor = ' Big one!'; }
+    if (value === 1) { flavor = ' Ouch.'; }
+    var label = (player === 'blue') ? 'Blue' : 'Red';
+    document.getElementById('turnInfo').textContent =
+        label + ' rolled a ' + value + '.' + flavor;
+
+    var blueDone = (gameState.finaleRolls.blue.length >= 4);
+    var redDone  = (gameState.finaleRolls.red.length  >= 4);
+
+    if (blueDone && redDone) {
+        setTimeout(function() { finalizeFinale(); }, 900);
+        return;
+    }
+
+    // Alternate players
+    var next;
+    if (!blueDone && !redDone) {
+        next = (player === 'blue') ? 'red' : 'blue';
+    } else if (!blueDone) {
+        next = 'blue';
+    } else {
+        next = 'red';
+    }
+
+    gameState.finaleCurrentPlayer = next;
+    updateFinaleUI();
+
+    if (gameMode === 'ai' && next === 'red') {
+        setTimeout(function() { rollFinale('red'); }, 1100);
+    }
+}
+
+function updateFinaleUI() {
+    var player   = gameState.finaleCurrentPlayer;
+    var blueBtn  = document.getElementById('blueRoll');
+    var redBtn   = document.getElementById('redRoll');
+    var blueDone = (gameState.finaleRolls.blue.length >= 4);
+    var redDone  = (gameState.finaleRolls.red.length  >= 4);
+
+    blueBtn.classList.remove('hidden');
+    redBtn.classList.remove('hidden');
+
+    var blueNum = gameState.finaleRolls.blue.length + 1;
+    var redNum  = gameState.finaleRolls.red.length  + 1;
+
+    blueBtn.textContent = blueDone ? colorLabel('blue') + ' Done' : colorLabel('blue') + ' Roll ' + blueNum + ' of 4';
+    blueBtn.disabled    = (player !== 'blue') || blueDone;
+
+    if (gameMode === 'ai') {
+        document.getElementById('redRoll').textContent = (gameState.finaleRolls.red.length >= 4) ? 'AI Done' : 'AI Rolling...';
+        redBtn.disabled    = true;
+    } else {
+        redBtn.textContent = redDone ? colorLabel('red') + ' Done' : colorLabel('red') + ' Roll ' + redNum + ' of 4';
+        redBtn.disabled    = (player !== 'red') || redDone;
+    }
+
+    document.getElementById('turnInfo').textContent =
+        blueDone && redDone ? 'Calculating final scores...' :
+        player === 'blue'   ? "Blue's Rolldown roll" : "Red's Rolldown roll";
+}
+
+function finalizeFinale() {
+    var blueHand = gameState.finaleRolls.blue.slice();
+    if (gameState.blueSavedDie !== null && gameState.blueSavedDie !== undefined) {
+        blueHand.push(gameState.blueSavedDie);
+    }
+    var redHand = gameState.finaleRolls.red.slice();
+    if (gameState.redSavedDie !== null && gameState.redSavedDie !== undefined) {
+        redHand.push(gameState.redSavedDie);
+    }
+
+    var blueTotal = blueHand.reduce(function(a, b) { return a + b; }, 0);
+    var redTotal  = redHand.reduce(function(a, b) { return a + b; }, 0);
+    var blueCombo = calculateBonusPoints(blueHand);
+    var redCombo  = calculateBonusPoints(redHand);
+    var blueFinal = blueTotal + blueCombo;
+    var redFinal  = redTotal  + redCombo;
+
+    document.getElementById('blueFinaleTotal').textContent = blueFinal;
+    document.getElementById('redFinaleTotal').textContent  = redFinal;
+
+    if (blueCombo > 0) {
+        document.getElementById('blueFinaleBonus').textContent = 'With +' + blueCombo + ' bonus';
+    }
+    if (redCombo > 0) {
+        document.getElementById('redFinaleBonus').textContent = 'With +' + redCombo + ' bonus';
+    }
+
+    gameState.blueScore += blueFinal;
+    gameState.redScore  += redFinal;
+    updateScoreDisplay();
+
+    // Hide roll buttons
+    document.getElementById('blueRoll').classList.add('hidden');
+    document.getElementById('redRoll').classList.add('hidden');
+
+    endGame();
+}
+
+// Kept for any legacy HTML references
+function proceedToFinalRound()      {}
+function startFinalRollDrama()      {}
+function rollFinalDie()             {}
+function finalizeFinalRoll()        {}
+function closeFinalRollModal()      {}
+function shareFinalResult()         { shareFinalResultNew(); }
+
+function shareFinalResultNew() {
+    var blueTotal = gameState.blueScore;
+    var redTotal  = gameState.redScore;
+    var resultLine;
+    if (blueTotal > redTotal) {
+        resultLine = colorLabel('blue') + ' wins ' + blueTotal + ' to ' + redTotal;
+    } else if (redTotal > blueTotal) {
+        resultLine = colorLabel('red') + ' wins ' + redTotal + ' to ' + blueTotal;
+    } else {
+        resultLine = 'Tie at ' + blueTotal;
+    }
+    var text = 'POCKETS — ' + resultLine + '\nA strategic dice game.';
+    if (navigator.share) {
+        navigator.share({ title: 'POCKETS', text: text }).catch(function() {});
+    } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+            var btn = document.getElementById('shareResultFooter');
+            if (btn) {
+                var orig = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(function() { btn.textContent = orig; }, 1800);
+            }
+        });
+    }
+}
+
+// =============================================================================
+// GAME STATUS TEXT
+// =============================================================================
+
+function updateGameStatus() {
+    var turnInfo = document.getElementById('turnInfo');
+
+    if (gameState.phase === 'rolling') {
+        turnInfo.textContent = '';
+    } else if (gameState.phase === 'placing') {
+        var playerName;
+        if (gameMode === 'ai' && gameState.currentPlayer === 'red') {
+            if (aiThinking) {
+                turnInfo.textContent = 'AI is thinking...';
+                return;
+            }
+            playerName = 'AI';
+        } else {
+            playerName = colorLabel(gameState.currentPlayer);
+        }
+        turnInfo.textContent = playerName + ' places a die';
+        var isHumanTurn = (gameMode !== 'ai') || (gameState.currentPlayer === 'blue');
+        var showHint    = (gameState.round === 1) && isHumanTurn &&
+                          (gameState.placementTurn === 0 ||
+                           gameState.placementTurn === 1);
+        if (showHint) {
+            var hintHtml = playerName + ' places a die';
+            hintHtml += '<br><span class="placement-hint">Tap a die · then tap a pocket</span>';
+            turnInfo.innerHTML = hintHtml;
+        }
+    } else if (gameState.phase === 'scoring') {
+        turnInfo.textContent = 'Round complete — calculating scores...';
+    } else if (gameState.phase === 'finale') {
+        // handled by updateFinaleUI
+    }
+}
+
+function updateScoreDisplay() {
+    document.getElementById('blueScore').textContent = gameState.blueScore;
+    document.getElementById('redScore').textContent  = gameState.redScore;
+}
+
+// =============================================================================
+// NEXT ROUND
+// =============================================================================
+
+function nextRound() {
+    gameState.round++;
+    gameState.phase         = 'rolling';
+    gameState.selectedDie   = null;
+    gameState.diceToPlace   = 8;
+    gameState.placementTurn = 0;
+    gameState.blueRolled    = false;
+    gameState.redRolled     = false;
+    // Reset the moment THIS round ends, not just when Start Round is next
+    // clicked - a save captured in the gap between "round ended" and
+    // "Start Round clicked" (e.g. closing the app right after a round)
+    // would otherwise still carry the previous round's stale value,
+    // making restore incorrectly think rolloff already happened.
+    gameState.firstPlayer   = null;
+
+    resetRoundUI();
+    document.getElementById('currentRound').textContent = gameState.round;
+    document.getElementById('startRound').textContent   = 'Start Round ' + gameState.round;
+    setActionPanelView('start');
+    resetRollButtons();
+    updateGameStatus();
+    autosaveGame();
+}
+
+function resetRollButtons() {
+    var blueBtn    = document.getElementById('blueRoll');
+    var redBtn     = document.getElementById('redRoll');
+    var humanIsRed = (gameState.humanColor === 'red');
+
+    // Enforce correct color classes every round
+    blueBtn.classList.toggle('blue-btn', !humanIsRed);
+    blueBtn.classList.toggle('red-btn',   humanIsRed);
+    redBtn.classList.toggle('red-btn',   !humanIsRed);
+    redBtn.classList.toggle('blue-btn',   humanIsRed);
+
+    blueBtn.disabled    = false;
+    blueBtn.textContent = colorLabel('blue') + ' Roll Dice';
+    blueBtn.classList.add('hidden');
+
+    redBtn.disabled    = false;
+    redBtn.textContent = colorLabel('red') + ' Roll Dice';
+    redBtn.classList.add('hidden');
+}
+
+// =============================================================================
+// END GAME
+// =============================================================================
+
+function endGame() {
+    gameState.phase = 'gameOver';
+
+    var winner;
+    if (gameState.blueScore > gameState.redScore) {
+        winner = 'Blue';
+    } else if (gameState.redScore > gameState.blueScore) {
+        winner = 'Red';
+    } else {
+        winner = 'Tie';
+    }
+
+    // Big pulsing winner text in the green panel
+    var pulseEl = document.getElementById('winnerPulseText');
+    if (pulseEl) {
+        if (winner === 'Tie') {
+            pulseEl.textContent = "IT'S A TIE!";
+            pulseEl.className   = 'winner-pulse silver-pulse';
+        } else {
+            pulseEl.textContent = colorLabel(winner.toLowerCase()).toUpperCase() + ' WINS!';
+            pulseEl.className   = 'winner-pulse silver-pulse';
+        }
+    }
+    setActionPanelView('winner');
+
+    // Keep brass number styling — add class on top, don't replace
+    document.getElementById('blueScore').classList.add('final-total');
+    document.getElementById('redScore').classList.add('final-total');
+
+    var blueArea = document.querySelector('.scores .score-area:first-child');
+    var redArea  = document.querySelector('.scores .score-area:last-child');
+
+    if (winner === 'Blue' || winner === 'Tie') {
+        blueArea.classList.add('winner');
+        addWinnerText(blueArea);
+    }
+    if (winner === 'Red' || winner === 'Tie') {
+        redArea.classList.add('winner');
+        addWinnerText(redArea);
+    }
+
+    // Show take button in footer
+    var shareFooter = document.getElementById('shareResultFooter');
+    if (shareFooter) { shareFooter.classList.remove('hidden'); }
+
+    // Guard against double-recording: endGame() also runs when a finished
+    // game's winner screen gets re-displayed on restore, but that's a replay
+    // of an already-recorded result, not a second game.
+    if (typeof saveGameStats === 'function' && !gameState.statsAlreadySaved) {
+        gameState.statsAlreadySaved = true;
+        saveGameStats({
+            winner:       winner,
+            blueScore:    gameState.blueScore,
+            redScore:     gameState.redScore,
+            gameMode:     gameMode,
+            aiDifficulty: (gameMode === 'ai') ? aiDifficulty : null,
+            humanColor:   gameState.humanColor || 'blue',
+            date:         new Date().toISOString()
+        });
+    }
+
+    autosaveGame();
+}
+
+function addWinnerText(scoreArea) {
+    var el = document.createElement('div');
+    el.className   = 'winner-text';
+    el.textContent = 'WINNER!';
+    scoreArea.appendChild(el);
+}
+
+// =============================================================================
+// NEW GAME
+// =============================================================================
+
+function newGame() {
+    clearSavedGame();
+    gameState = {
+        round: 1, currentPlayer: 'blue', phase: 'rolling', firstPlayer: null,
+        blueDice: [], redDice: [], blueOriginalRoll: [], redOriginalRoll: [],
+        blueSavedDie: null, redSavedDie: null, blueScore: 0, redScore: 0,
+        selectedDie: null, diceToPlace: 8, placementTurn: 0,
+        roundScores: { blue: {}, red: {} },
+        blueRolled: false, redRolled: false, blueFinalRolled: false, redFinalRolled: false,
+        finaleMode: false,
+        finaleRolls: { blue: [], red: [] },
+        finaleCurrentPlayer: 'blue',
+        humanColor: gameState.humanColor || 'blue'
+    };
+
+    document.getElementById('startRound').textContent   = 'Start Round 1';
+    document.getElementById('currentRound').textContent = '1';
+    var suffix = document.getElementById('roundSuffix');
+    if (suffix) { suffix.classList.remove('hidden'); }
+
+    resetRollButtons();
+    rolloffState = { blue: null, red: null, locked: false };
+
+    var blueDie = document.getElementById('blueRolloffDie');
+    var redDie  = document.getElementById('redRolloffDie');
+    blueDie.classList.remove('parked-left');
+    blueDie.classList.remove('parked-right');
+    blueDie.classList.remove('spinning-left');
+    blueDie.classList.remove('spinning-right');
+    blueDie.classList.remove('spinning-in-place');
+    redDie.classList.remove('parked-left');
+    redDie.classList.remove('parked-right');
+    redDie.classList.remove('spinning-left');
+    redDie.classList.remove('spinning-right');
+    redDie.classList.remove('spinning-in-place');
+
+    var vsEl = document.querySelector('.rolloff-vs');
+    if (vsEl) { vsEl.classList.remove('hidden'); }
+
+    document.getElementById('firstPlayerRolloff').classList.remove('hidden');
+    document.getElementById('playerRolls').classList.add('hidden');
+    document.getElementById('rolloffResult').textContent = '';
+    document.getElementById('rolloffResult').classList.remove('winner');
+
+    setRolloffDieFaded(blueDie);
+    setRolloffDieFaded(redDie);
+
+    // Fix AI->2player prompt bug — always reset from current gameMode
+    if (gameMode === 'ai') {
+        var humanLabel = (gameState.humanColor === 'red') ? 'red' : 'blue';
+        document.getElementById('rolloffPrompt').textContent =
+            'Tap your ' + humanLabel + ' die — AI will roll right after.';
+    } else {
+        document.getElementById('rolloffPrompt').textContent =
+            'Tap your die — higher number goes first!';
+    }
+
+    hidePanelBottom(true);
+    document.getElementById('blueTakeScore').classList.add('hidden');
+    document.getElementById('redTakeScore').classList.add('hidden');
+
+    setActionPanelView('start');
+    document.getElementById('preFinalScreen').classList.add('hidden');
+    document.getElementById('finalRollModal').classList.add('hidden');
+    document.getElementById('finalCelebration').classList.add('hidden');
+
+    document.getElementById('blueRollFinalDie').classList.remove('hidden');
+    document.getElementById('redRollFinalDie').classList.remove('hidden');
+    document.getElementById('blueRollFinalDie').disabled = false;
+    document.getElementById('redRollFinalDie').disabled  = false;
+
+    var finalScores = document.querySelectorAll('.final-score-display');
+    finalScores.forEach(function(el) { el.remove(); });
+
+    // Restore regular pockets hidden during Finale
+    var keepTake = document.querySelectorAll('.pocket.finale-hidden');
+    keepTake.forEach(function(p) { p.classList.remove('finale-hidden'); });
+
+    // Hide Finale pocket areas
+    var blueFinale = document.getElementById('blueFinale');
+    var redFinale  = document.getElementById('redFinale');
+    if (blueFinale) { blueFinale.classList.add('hidden'); }
+    if (redFinale)  { redFinale.classList.add('hidden');  }
+
+    // Reset Start Finale button
+    var startFinaleBtn = document.getElementById('startFinale');
+    if (startFinaleBtn) { startFinaleBtn.classList.add('hidden'); }
+    document.getElementById('startRound').classList.remove('hidden');
+
+    var scoreAreas = document.querySelectorAll('.score-area');
+    scoreAreas.forEach(function(area) {
+        area.classList.remove('winner');
+        var wt = area.querySelector('.winner-text');
+        if (wt) { wt.remove(); }
+    });
+
+    document.getElementById('blueScore').classList.remove('final-total');
+    document.getElementById('redScore').classList.remove('final-total');
+
+    var shareFooter = document.getElementById('shareResultFooter');
+    if (shareFooter) { shareFooter.classList.add('hidden'); }
+
+    var pocketContainers = document.querySelectorAll('.pockets');
+    pocketContainers.forEach(function(p) { p.style.display = 'grid'; });
+
+    var pocketDice = document.querySelectorAll('.pocket-dice');
+    pocketDice.forEach(function(c) { c.innerHTML = ''; });
+
+    // Clear any lingering active/highlighted state from previous game
+    document.querySelectorAll('.pocket.active').forEach(function(p) {
+        p.classList.remove('active');
+    });
+
+    document.getElementById('blueDiceArea').innerHTML = '';
+    document.getElementById('redDiceArea').innerHTML  = '';
+    document.getElementById('takeDifference').classList.add('hidden');
+
+    resetRoundUI();
+    updateScoreDisplay();
+    updateGameStatus();
+    autosaveGame();
+}
+
+// =============================================================================
+// AI MOVE (basic fallback — full AI in ai-player.js)
+// =============================================================================
+
+function makeAIMove() {
+    if (typeof makeAIMoveExternal === 'function') {
+        makeAIMoveExternal();
+        return;
+    }
+    if (gameState.redDice.length > 0) {
+        var idx = Math.floor(Math.random() * gameState.redDice.length);
+        selectDie('red', idx);
+        setTimeout(function() {
+            var emptyPockets = document.querySelectorAll('[data-player="red"].active');
+            if (emptyPockets.length > 0) {
+                var pick = Math.floor(Math.random() * emptyPockets.length);
+                placeDieInPocket(emptyPockets[pick]);
+            }
+        }, 500);
+    }
+}
+
+// =============================================================================
+// INITIALISE
+// =============================================================================
+
+function initializeGame() {
+    // Save state the instant the page loses focus or is about to go away -
+    // a phone call, text alert, doorbell, switching apps, locking the phone,
+    // closing the tab. This is the real safety net: it doesn't matter which
+    // specific action the player was mid-way through, because it isn't tied
+    // to any one button or tap. Anything this misses is also covered by the
+    // explicit autosaveGame() calls throughout the rest of the file, but this
+    // is what actually makes interruption-at-any-moment safe.
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden') { autosaveGame(); }
+    });
+    window.addEventListener('pagehide', function() { autosaveGame(); });
+
+    document.getElementById('startRound').addEventListener('click', startRound);
+
+    document.getElementById('blueRoll').addEventListener('click', function() {
+        if (gameState.finaleMode) { rollFinale('blue'); } else { rollPlayerDice('blue'); }
+    });
+    document.getElementById('redRoll').addEventListener('click', function() {
+        if (gameState.finaleMode) { rollFinale('red'); } else { rollPlayerDice('red'); }
+    });
+
+    var startFinaleBtn = document.getElementById('startFinale');
+    if (startFinaleBtn) { startFinaleBtn.addEventListener('click', startFinale); }
+
+    document.getElementById('newGame').addEventListener('click', function() {
+        showConfirm(
+            'Start a new game?',
+            'This will end the current game and reset the board. Are you sure?',
+            newGame
+        );
+    });
+
+    document.getElementById('blueRolloffDie').addEventListener('click', function() { rolloffRollDie('blue'); });
+    document.getElementById('redRolloffDie').addEventListener('click',  function() { rolloffRollDie('red');  });
+
+    var proceedBtn = document.getElementById('proceedFinalBtn');
+    if (proceedBtn) { proceedBtn.addEventListener('click', proceedToFinalRound); }
+
+    // Legacy modal buttons — stubs, kept for safety
+    var blueModalBtn = document.getElementById('blueRollFinalDie');
+    var redModalBtn  = document.getElementById('redRollFinalDie');
+    if (blueModalBtn) { blueModalBtn.addEventListener('click', function() {}); }
+    if (redModalBtn)  { redModalBtn.addEventListener('click',  function() {}); }
+
+    var closeModal = document.getElementById('closeFinalModal');
+    if (closeModal) { closeModal.addEventListener('click', closeFinalRollModal); }
+
+    var shareBtn = document.getElementById('shareResult');
+    if (shareBtn) { shareBtn.addEventListener('click', shareFinalResult); }
+
+    var shareFooter = document.getElementById('shareResultFooter');
+    if (shareFooter) { shareFooter.addEventListener('click', shareFinalResult); }
+
+    var playAsBlue = document.getElementById('playAsBlue');
+    var playAsRed  = document.getElementById('playAsRed');
+    if (playAsBlue) {
+        playAsBlue.addEventListener('click', function() { changeColorWithConfirm('blue'); });
+    }
+    if (playAsRed) {
+        playAsRed.addEventListener('click', function() { changeColorWithConfirm('red'); });
+    }
+
+    document.getElementById('twoPlayerMode').addEventListener('click', function() {
+        changeModeWithConfirm('2player', '2 Players');
+    });
+    document.getElementById('aiMode').addEventListener('click', function() {
+        changeModeWithConfirm('ai', 'vs AI');
+    });
+
+    function isDifficultyChangeSafe() {
+        // Safe to change difficulty when sitting at "Start Round" (no dice placed yet
+        // this round, nobody has rolled) - block only when genuinely mid-action.
+        return gameState.phase === 'placing' ||
+               gameState.phase === 'scoring' ||
+               gameState.blueRolled || gameState.redRolled;
+    }
+    function changeDifficultyGuarded(difficulty) {
+        if (isDifficultyChangeSafe()) {
+            if (typeof showToast === 'function') { showToast('Change difficulty between games', 2200); }
+            return;
+        }
+        setAIDifficulty(difficulty);
+    }
+    document.getElementById('easyAI').addEventListener('click',   function() { changeDifficultyGuarded('easy');   });
+    document.getElementById('mediumAI').addEventListener('click', function() { changeDifficultyGuarded('medium'); });
+    document.getElementById('hardAI').addEventListener('click',   function() { changeDifficultyGuarded('hard');   });
+
+    // Compact theme dropdown equivalents - same shared helpers, same rules,
+    // so mode/color switching behaves identically regardless of which UI
+    // the player is using.
+    var cMode = document.getElementById('cMode');
+    var cDiff = document.getElementById('cDiff');
+    var cPlay = document.getElementById('cPlay');
+    if (cMode) {
+        cMode.addEventListener('change', function() {
+            var chosen = this.value;
+            var label  = (chosen === 'ai') ? 'vs AI' : '2 Players';
+            changeModeWithConfirm(chosen, label, cMode);
+        });
+    }
+    if (cDiff) {
+        cDiff.addEventListener('change', function() {
+            if (isDifficultyChangeSafe()) {
+                if (typeof showToast === 'function') { showToast('Change difficulty between games', 2200); }
+                cDiff.value = (typeof aiDifficulty !== 'undefined') ? aiDifficulty : 'medium';
+                return;
+            }
+            setAIDifficulty(this.value);
+        });
+    }
+    if (cPlay) {
+        cPlay.addEventListener('change', function() {
+            changeColorWithConfirm(this.value, cPlay);
+        });
+    }
+
+
+    document.getElementById('viewStats').addEventListener('click', function() {
+        if (typeof toggleStatsPanel === 'function') {
+            toggleStatsPanel();
+        } else if (window.PocketsStats && typeof window.PocketsStats.toggleStatsPanel === 'function') {
+            window.PocketsStats.toggleStatsPanel();
+        }
+    });
+
+    var savedGame = loadSavedGame();
+    if (savedGame && savedGame.gameState) {
+        restoreGameFromSave(savedGame);
+    } else {
+        applyDefaultOrSavedSettings();
+    }
+
+    updateScoreDisplay();
+    updateGameStatus();
+    injectFullscreenButton();
+}
