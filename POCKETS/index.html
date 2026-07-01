@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="POCKETS">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POCKETS — An Original Dice Game for Two</title>
+    <title>POCKETS — Keep. Take. Save. Win.</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -360,6 +360,7 @@ select.theme-subtitle {
         .compact-controls { display: none !important; }
         .compact-sel-label { display: none !important; }
         .compact-sel { display: none !important; }
+        .compact-sel-hidden { display: none !important; }
 
         /* Responsive controls - below this width, ANY theme switches to the
            same compact dropdown controls Compact theme already has, instead
@@ -746,16 +747,16 @@ select.theme-subtitle {
             <div class="header-ornament bottom-left"></div>
             <div class="header-ornament bottom-right"></div>
             <h1 class="game-title"><svg class="title-die" viewBox="-25 -25 50 50" width="44" height="44" aria-hidden="true"><polygon class="td-face td-top" points="0,-20 17.3,-10 0,0 -17.3,-10"/><polygon class="td-face td-right" points="17.3,-10 17.3,10 0,20 0,0"/><polygon class="td-face td-left" points="-17.3,-10 -17.3,10 0,20 0,0"/><line class="td-edge" x1="0" y1="-20" x2="0" y2="0"/><line class="td-edge" x1="0" y1="0" x2="0" y2="20"/><line class="td-edge" x1="-17.3" y1="-10" x2="0" y2="0"/><line class="td-edge" x1="17.3" y1="-10" x2="0" y2="0"/><circle class="td-pip" cx="0" cy="-15" r="1.4"/><circle class="td-pip" cx="-8.65" cy="-10" r="1.4"/><circle class="td-pip" cx="0" cy="-10" r="1.4"/><circle class="td-pip" cx="8.65" cy="-10" r="1.4"/><circle class="td-pip" cx="0" cy="-5" r="1.4"/><circle class="td-pip" cx="5.2" cy="1" r="1.4"/><circle class="td-pip" cx="12.1" cy="-3" r="1.4"/><circle class="td-pip" cx="5.2" cy="7" r="1.4"/><circle class="td-pip" cx="12.1" cy="3" r="1.4"/><circle class="td-pip" cx="5.2" cy="13" r="1.4"/><circle class="td-pip" cx="12.1" cy="9" r="1.4"/><circle class="td-pip" cx="-12.97" cy="-2.5" r="1.4"/><circle class="td-pip" cx="-4.33" cy="2.5" r="1.4"/><circle class="td-pip" cx="-12.97" cy="7.5" r="1.4"/><circle class="td-pip" cx="-4.33" cy="12.5" r="1.4"/></svg> POCKETS <svg class="title-die" viewBox="-25 -25 50 50" width="44" height="44" aria-hidden="true"><polygon class="td-face td-top" points="0,-20 17.3,-10 0,0 -17.3,-10"/><polygon class="td-face td-right" points="17.3,-10 17.3,10 0,20 0,0"/><polygon class="td-face td-left" points="-17.3,-10 -17.3,10 0,20 0,0"/><line class="td-edge" x1="0" y1="-20" x2="0" y2="0"/><line class="td-edge" x1="0" y1="0" x2="0" y2="20"/><line class="td-edge" x1="-17.3" y1="-10" x2="0" y2="0"/><line class="td-edge" x1="17.3" y1="-10" x2="0" y2="0"/><circle class="td-pip" cx="0" cy="-15" r="1.4"/><circle class="td-pip" cx="-8.65" cy="-10" r="1.4"/><circle class="td-pip" cx="0" cy="-10" r="1.4"/><circle class="td-pip" cx="8.65" cy="-10" r="1.4"/><circle class="td-pip" cx="0" cy="-5" r="1.4"/><circle class="td-pip" cx="5.2" cy="1" r="1.4"/><circle class="td-pip" cx="12.1" cy="-3" r="1.4"/><circle class="td-pip" cx="5.2" cy="7" r="1.4"/><circle class="td-pip" cx="12.1" cy="3" r="1.4"/><circle class="td-pip" cx="5.2" cy="13" r="1.4"/><circle class="td-pip" cx="12.1" cy="9" r="1.4"/><circle class="td-pip" cx="-12.97" cy="-2.5" r="1.4"/><circle class="td-pip" cx="-4.33" cy="2.5" r="1.4"/><circle class="td-pip" cx="-12.97" cy="7.5" r="1.4"/><circle class="td-pip" cx="-4.33" cy="12.5" r="1.4"/></svg></h1>
-            <p class="subtitle">An Original Dice Game for Two Players</p>
+            <p class="subtitle">Keep. Take. Save. Win.</p>
             <span class="theme-selector-wrap">
                 <span id="themeIcon" class="theme-icon-glow">🎩</span><select class="theme-subtitle" id="themeSelector" aria-label="Choose theme">
                 <option value="victorian">Victorian Edition</option>
+                <option value="compact">Compact (Mobile)</option>
                 <option value="steampunk">Steampunk Edition</option>
                 <option value="art-deco">Art Deco Edition</option>
                 <option value="cosmic">Cosmic Edition</option>
                 <option value="dark">Dark Mode</option>
                 <option value="bitmap">Bitmap</option>
-                <option value="compact">Compact</option>
             </select></span>
         </div>
 
@@ -787,14 +788,14 @@ select.theme-subtitle {
                     <option value="2player">2P</option>
                     <option value="ai">AI</option>
                 </select>
-                <span class="compact-sel-label" id="cDiffLabel" style="display:none">Diff:</span>
-                <select class="compact-sel" id="cDiff" style="display:none">
+                <span class="compact-sel-label compact-sel-hidden" id="cDiffLabel">Diff:</span>
+                <select class="compact-sel compact-sel-hidden" id="cDiff">
                     <option value="easy">Easy</option>
                     <option value="medium">Med</option>
                     <option value="hard">Hard</option>
                 </select>
-                <span class="compact-sel-label" id="cPlayLabel" style="display:none">Play:</span>
-                <select class="compact-sel" id="cPlay" style="display:none">
+                <span class="compact-sel-label compact-sel-hidden" id="cPlayLabel">Play:</span>
+                <select class="compact-sel compact-sel-hidden" id="cPlay">
                     <option value="blue">Blue</option>
                     <option value="red">Red</option>
                 </select>
@@ -1037,7 +1038,7 @@ select.theme-subtitle {
             </div>
         </div>
 
-        <div class="copyright">Copyright Joel Pickard 2025</div>
+        <div class="copyright">An Original Dice Game for Two Players &nbsp;|&nbsp; Copyright Joel Pickard 2025</div>
     </div>
 
     <script src="js/scoring.js"></script>
@@ -1050,7 +1051,9 @@ select.theme-subtitle {
 const themeSelector = document.getElementById('themeSelector');
         const themeCss      = document.getElementById('theme-css');
         function loadSavedTheme() {
-            const saved = localStorage.getItem('pockets-theme') || 'victorian';
+            const isNarrow = window.innerWidth <= 480;
+            const defaultTheme = isNarrow ? 'compact' : 'victorian';
+            const saved = localStorage.getItem('pockets-theme') || defaultTheme;
             themeSelector.value = saved;
             switchTheme(saved);
         }
