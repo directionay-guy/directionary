@@ -136,6 +136,8 @@ body.theme-compact {
     overflow: visible;
 }
 .compact-sel { display: none; }
+.theme-compact .compact-sel.compact-sel-hidden,
+.theme-compact .compact-sel-label.compact-sel-hidden { display: none !important; }
 .theme-compact .compact-sel {
     display: inline-block !important;
     background-color: var(--navy-mid);
