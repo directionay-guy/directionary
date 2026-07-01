@@ -213,10 +213,11 @@ function syncCompactAIControlsVisibility() {
     var cDiffLabel = document.getElementById('cDiffLabel');
     var cPlayLabel = document.getElementById('cPlayLabel');
     var isAI = (gameMode === 'ai');
-    if (cDiff)      { cDiff.style.display      = isAI ? '' : 'none'; }
-    if (cPlay)      { cPlay.style.display      = isAI ? '' : 'none'; }
-    if (cDiffLabel) { cDiffLabel.style.display = isAI ? '' : 'none'; }
-    if (cPlayLabel) { cPlayLabel.style.display = isAI ? '' : 'none'; }
+    [cDiff, cPlay, cDiffLabel, cPlayLabel].forEach(function(el) {
+        if (!el) return;
+        if (isAI) { el.classList.remove('compact-sel-hidden'); }
+        else       { el.classList.add('compact-sel-hidden'); }
+    });
 }
 
 // =============================================================================
