@@ -311,6 +311,9 @@ body.theme-compact {
 .theme-compact .copyright {
     color: rgba(200,168,75,0.55);
     font-size: 0.7em;
+    order: 99;
+    text-align: center;
+    padding: 4px 8px;
 }
 .theme-compact .player-header,
 .theme-compact .player-name {
