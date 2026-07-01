@@ -327,11 +327,10 @@ window.PocketsStats = {
     switchStatsTab
 };
 
-// Wire up View Stats button
-document.addEventListener('DOMContentLoaded', function() {
-    const viewStatsBtn = document.getElementById('viewStats');
+// Wire up View Stats button - scripts load at page bottom so DOM is already ready
+(function() {
+    var viewStatsBtn = document.getElementById('viewStats');
     if (viewStatsBtn) {
-        viewStatsBtn.onclick = null;
         viewStatsBtn.addEventListener('click', function() { toggleStatsPanel(); });
     }
-});
+})();
