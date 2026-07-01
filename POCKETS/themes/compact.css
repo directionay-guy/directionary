@@ -87,7 +87,7 @@ body.theme-compact {
     font-weight: normal;
     position: relative; z-index: 1;
 }
-.theme-compact .subtitle { display: block; font-size: 0.7em; opacity: 0.75; margin: 2px 0 0; letter-spacing: 0.08em; }
+.theme-compact .subtitle { display: block; font-size: 0.7em; color: #40c8c8; opacity: 0.9; margin: 2px 0 0; letter-spacing: 0.08em; }
 .theme-compact .theme-subtitle,
 .theme-compact select {
     font-size: 0.75em;
