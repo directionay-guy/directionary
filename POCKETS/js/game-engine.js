@@ -208,15 +208,10 @@ function changeColorWithConfirm(newColor, selectEl) {
 }
 
 function syncCompactAIControlsVisibility() {
-    var cDiff = document.getElementById('cDiff');
-    var cPlay = document.getElementById('cPlay');
-    var cDiffLabel = document.getElementById('cDiffLabel');
-    var cPlayLabel = document.getElementById('cPlayLabel');
-    var isAI = (gameMode === 'ai');
-    [cDiff, cPlay, cDiffLabel, cPlayLabel].forEach(function(el) {
-        if (!el) return;
-        if (isAI) { el.classList.remove('compact-sel-hidden'); }
-        else       { el.classList.add('compact-sel-hidden'); }
+    var show = (gameMode === 'ai') ? '' : 'none';
+    ['cDiff','cPlay','cDiffLabel','cPlayLabel'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) { el.style.setProperty('display', show === '' ? '' : 'none', 'important'); }
     });
 }
 
