@@ -351,6 +351,8 @@ function setAIDifficulty(difficulty) {
     if (btn) { btn.classList.add('active'); }
     const cDiffEl = document.getElementById('cDiff');
     if (cDiffEl) { cDiffEl.value = difficulty; }
+    const uDiffEl = document.getElementById('uDiff');
+    if (uDiffEl) { uDiffEl.value = difficulty; }
     if (typeof savePocketsSettings === 'function') { savePocketsSettings(); }
     if (typeof showDifficultyToast === 'function') { showDifficultyToast(difficulty); }
 }
