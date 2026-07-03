@@ -134,6 +134,37 @@ body.theme-dark {
 /* ==========================================================
    GAME MODE BAR
    ========================================================== */
+.theme-dark .btn-controls-only { display: none !important; }
+.theme-dark .universal-controls {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+    width: 100%;
+}
+.theme-dark .uni-label {
+    color: var(--dim);
+    font-size: 0.85em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-style: normal;
+}
+.theme-dark .uni-sel {
+    background: var(--black);
+    color: var(--white);
+    border: var(--line-mid);
+    font-size: 0.9em;
+    letter-spacing: 0.06em;
+    padding: 4px 22px 4px 8px;
+    cursor: pointer;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M0 0L5 6L10 0Z' fill='rgba(255,255,255,0.45)'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+    background-size: 9px;
+}
+.theme-dark .uni-sel:focus { outline: 1px solid var(--green); }
+
 .theme-dark .game-mode {
     background: var(--black);
     border: var(--line-mid);
