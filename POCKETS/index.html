@@ -361,6 +361,10 @@ select.theme-subtitle {
         .compact-sel-label { display: none !important; }
         .compact-sel { display: none !important; }
         .compact-sel-hidden { display: none !important; }
+        .universal-controls { display: none !important; }
+        .uni-sel-hidden { display: none !important; }
+        .uni-sel { font-family: inherit; cursor: pointer; }
+        .uni-label { font-style: italic; }
 
         /* Responsive controls - below this width, ANY theme switches to the
            same compact dropdown controls Compact theme already has, instead
@@ -368,6 +372,8 @@ select.theme-subtitle {
            styling (higher selector specificity wins for it specifically);
            this is the fallback for the other six themes on a narrow screen. */
         /* ── New game section ── */
+        .game-board { align-items: stretch; }
+        .player-area { display: flex; flex-direction: column; }
         .new-game-section { display:flex;justify-content:center;align-items:stretch;gap:12px;flex-wrap:wrap; }
         .new-game-section .btn { min-height:40px;padding:8px 22px;display:inline-flex;align-items:center;justify-content:center;line-height:1.2; }
 
@@ -723,12 +729,13 @@ select.theme-subtitle {
         </div>
 
         <div class="game-mode" id="gameMode">
-            <span class="gm-label">Mode:</span>
-            <div class="gm-group">
+            <!-- Button-group controls: shown by default, hidden by themes that use dropdowns -->
+            <span class="gm-label btn-controls-only">Mode:</span>
+            <div class="gm-group btn-controls-only">
                 <button class="mode-btn active" id="twoPlayerMode">👥 2 Players</button>
                 <button class="mode-btn" id="aiMode">🤖 vs AI</button>
             </div>
-            <div class="ai-difficulty hidden" id="aiDifficulty">
+            <div class="ai-difficulty hidden btn-controls-only" id="aiDifficulty">
                 <span class="gm-label">Difficulty:</span>
                 <div class="gm-group">
                     <button class="difficulty-btn active" id="easyAI">Easy</button>
@@ -736,14 +743,35 @@ select.theme-subtitle {
                     <button class="difficulty-btn" id="hardAI">Hard</button>
                 </div>
             </div>
-            <div class="play-as-toggle hidden" id="playAsToggle">
+            <div class="play-as-toggle hidden btn-controls-only" id="playAsToggle">
                 <span class="gm-label">Play as:</span>
                 <div class="gm-group">
                     <button class="difficulty-btn active" id="playAsBlue">🔵 Blue</button>
                     <button class="difficulty-btn" id="playAsRed">🔴 Red</button>
                 </div>
             </div>
-            <!-- Compact theme dropdowns: hidden in all other themes -->
+
+            <!-- Universal full-label dropdowns: for Victorian, Steampunk, Art Deco, Cosmic, Dark -->
+            <div class="universal-controls" id="universalControls">
+                <label class="uni-label">Mode:</label>
+                <select class="uni-sel" id="uMode">
+                    <option value="2player">2 Players</option>
+                    <option value="ai">vs AI</option>
+                </select>
+                <label class="uni-label uni-sel-hidden" id="uDiffLabel">Difficulty:</label>
+                <select class="uni-sel uni-sel-hidden" id="uDiff">
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+                <label class="uni-label uni-sel-hidden" id="uPlayLabel">Play as:</label>
+                <select class="uni-sel uni-sel-hidden" id="uPlay">
+                    <option value="blue">Blue</option>
+                    <option value="red">Red</option>
+                </select>
+            </div>
+
+            <!-- Compact + Bitmap short-label dropdowns -->
             <div class="compact-controls" id="compactControls">
                 <span class="compact-sel-label">Mode:</span>
                 <select class="compact-sel" id="cMode">
@@ -939,7 +967,7 @@ select.theme-subtitle {
         </div>
 
         <div class="bonus-legend">
-            <h4>Bonus Points for Take One and Rolldown Winners:</h4>
+            <h4>Bonus Points — Take One Winner and Rolldown Round:</h4>
             1 pair = 1pt | 2 pair = 2pts | 3 of a kind = 3pts | full house = 4pts | straight = 5pts | 4 of a kind = 6pts | 5 of a kind = 10pts
         </div>
 
