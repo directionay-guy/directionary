@@ -166,44 +166,43 @@ function isGameInProgress() {
 // optional - pass it for <select> elements so a cancelled change reverts the
 // dropdown's displayed value (native selects update visually before any JS
 // confirm can intervene).
-function changeModeWithConfirm(newMode, displayLabel, selectEl) {
+function showSettingsChangeModal(onConfirm, onCancel) {
+    showConfirm(
+        'Settings locked during game',
+        'Mode, difficulty and color can only change between games.',
+        function() { newGame(); if (onConfirm) { onConfirm(); } },
+        onCancel
+    );
+    // Override the OK button label to say "New Game" not "Confirm"
+    var okBtn = document.getElementById('confirmOk');
+    if (okBtn) { okBtn.textContent = 'New Game'; }
+    var cancelBtn = document.getElementById('confirmCancel');
+    if (cancelBtn) { cancelBtn.textContent = 'Cancel'; }
+}
+
+function changeModeWithConfirm(newMode, selectEl) {
     if (gameMode === newMode) { return; }
     var previousMode = gameMode;
     if (isGameInProgress()) {
-        showConfirm(
-            'Switch to ' + displayLabel + '?',
-            'Switching modes will start a new game. Current progress will be lost.',
-            function() {
-                setGameMode(newMode);
-                newGame();
-                if (typeof showToast === 'function') { showToast('Mode: ' + displayLabel, 2200); }
-            },
+        showSettingsChangeModal(
+            function() { setGameMode(newMode); },
             function() { if (selectEl) { selectEl.value = previousMode; } }
         );
     } else {
         setGameMode(newMode);
-        if (typeof showToast === 'function') { showToast('Mode: ' + displayLabel, 2200); }
     }
 }
 
 function changeColorWithConfirm(newColor, selectEl) {
     if (gameState.humanColor === newColor) { return; }
     var previousColor = gameState.humanColor;
-    var label = (newColor === 'blue') ? 'Blue' : 'Red';
     if (isGameInProgress()) {
-        showConfirm(
-            'Switch to ' + label + '?',
-            'Switching colors will start a new game. Current progress will be lost.',
-            function() {
-                setPlayerColor(newColor);
-                newGame();
-                if (typeof showToast === 'function') { showToast('Playing as: ' + label, 2200); }
-            },
+        showSettingsChangeModal(
+            function() { setPlayerColor(newColor); },
             function() { if (selectEl) { selectEl.value = previousColor; } }
         );
     } else {
         setPlayerColor(newColor);
-        if (typeof showToast === 'function') { showToast('Playing as: ' + label, 2200); }
     }
 }
 
@@ -214,6 +213,18 @@ function syncCompactAIControlsVisibility() {
         if (el) { el.style.setProperty('display', isAI ? 'inline-block' : 'none', 'important'); }
     });
     ['cDiffLabel','cPlayLabel'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) { el.style.setProperty('display', isAI ? 'inline' : 'none', 'important'); }
+    });
+}
+
+function syncUniversalAIControlsVisibility() {
+    var isAI = (gameMode === 'ai');
+    ['uDiff','uPlay'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) { el.style.setProperty('display', isAI ? 'inline-block' : 'none', 'important'); }
+    });
+    ['uDiffLabel','uPlayLabel'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) { el.style.setProperty('display', isAI ? 'inline' : 'none', 'important'); }
     });
@@ -404,7 +415,10 @@ function setGameMode(mode) {
     }
     var cModeEl = document.getElementById('cMode');
     if (cModeEl) { cModeEl.value = mode; }
+    var uModeEl = document.getElementById('uMode');
+    if (uModeEl) { uModeEl.value = mode; }
     syncCompactAIControlsVisibility();
+    syncUniversalAIControlsVisibility();
     savePocketsSettings();
 }
 
@@ -438,6 +452,8 @@ function setPlayerColor(color) {
     if (redBtn)  { redBtn.classList.toggle('active', color === 'red');   }
     var cPlayEl = document.getElementById('cPlay');
     if (cPlayEl) { cPlayEl.value = color; }
+    var uPlayEl = document.getElementById('uPlay');
+    if (uPlayEl) { uPlayEl.value = color; }
     // Update headers — human is on the BLUE side regardless of chosen color
     var is2p = (gameMode === '2player');
     document.getElementById('bluePlayerHeader').textContent =
@@ -2085,59 +2101,59 @@ function initializeGame() {
     }
 
     document.getElementById('twoPlayerMode').addEventListener('click', function() {
-        changeModeWithConfirm('2player', '2 Players');
+        changeModeWithConfirm('2player');
     });
     document.getElementById('aiMode').addEventListener('click', function() {
-        changeModeWithConfirm('ai', 'vs AI');
+        changeModeWithConfirm('ai');
     });
 
     function isDifficultyChangeSafe() {
-        // Safe to change difficulty when sitting at "Start Round" (no dice placed yet
-        // this round, nobody has rolled) - block only when genuinely mid-action.
         return gameState.phase === 'placing' ||
                gameState.phase === 'scoring' ||
                gameState.blueRolled || gameState.redRolled;
     }
-    function changeDifficultyGuarded(difficulty) {
+    function changeDifficultyGuarded(difficulty, revertEl) {
         if (isDifficultyChangeSafe()) {
-            if (typeof showToast === 'function') { showToast('Change difficulty between games', 2200); }
+            showSettingsChangeModal(
+                function() { setAIDifficulty(difficulty); },
+                function() { if (revertEl) { revertEl.value = (typeof aiDifficulty !== 'undefined') ? aiDifficulty : 'medium'; } }
+            );
             return;
         }
         setAIDifficulty(difficulty);
     }
+
     document.getElementById('easyAI').addEventListener('click',   function() { changeDifficultyGuarded('easy');   });
     document.getElementById('mediumAI').addEventListener('click', function() { changeDifficultyGuarded('medium'); });
     document.getElementById('hardAI').addEventListener('click',   function() { changeDifficultyGuarded('hard');   });
 
-    // Compact theme dropdown equivalents - same shared helpers, same rules,
-    // so mode/color switching behaves identically regardless of which UI
-    // the player is using.
+    // Compact + Bitmap short-label dropdowns
     var cMode = document.getElementById('cMode');
     var cDiff = document.getElementById('cDiff');
     var cPlay = document.getElementById('cPlay');
     if (cMode) {
-        cMode.addEventListener('change', function() {
-            var chosen = this.value;
-            var label  = (chosen === 'ai') ? 'vs AI' : '2 Players';
-            changeModeWithConfirm(chosen, label, cMode);
-        });
+        cMode.addEventListener('change', function() { changeModeWithConfirm(this.value, cMode); });
     }
     if (cDiff) {
-        cDiff.addEventListener('change', function() {
-            if (isDifficultyChangeSafe()) {
-                if (typeof showToast === 'function') { showToast('Change difficulty between games', 2200); }
-                cDiff.value = (typeof aiDifficulty !== 'undefined') ? aiDifficulty : 'medium';
-                return;
-            }
-            setAIDifficulty(this.value);
-        });
+        cDiff.addEventListener('change', function() { changeDifficultyGuarded(this.value, cDiff); });
     }
     if (cPlay) {
-        cPlay.addEventListener('change', function() {
-            changeColorWithConfirm(this.value, cPlay);
-        });
+        cPlay.addEventListener('change', function() { changeColorWithConfirm(this.value, cPlay); });
     }
 
+    // Universal full-label dropdowns (Victorian, Steampunk, Art Deco, Cosmic, Dark)
+    var uMode = document.getElementById('uMode');
+    var uDiff = document.getElementById('uDiff');
+    var uPlay = document.getElementById('uPlay');
+    if (uMode) {
+        uMode.addEventListener('change', function() { changeModeWithConfirm(this.value, uMode); });
+    }
+    if (uDiff) {
+        uDiff.addEventListener('change', function() { changeDifficultyGuarded(this.value, uDiff); });
+    }
+    if (uPlay) {
+        uPlay.addEventListener('change', function() { changeColorWithConfirm(this.value, uPlay); });
+    }
 
     document.getElementById('viewStats').addEventListener('click', function() {
         if (typeof toggleStatsPanel === 'function') {
@@ -2155,6 +2171,7 @@ function initializeGame() {
     }
 
     syncCompactAIControlsVisibility();
+    syncUniversalAIControlsVisibility();
     updateScoreDisplay();
     updateGameStatus();
     injectFullscreenButton();
