@@ -147,6 +147,41 @@ body.theme-victorian::before {
 /* ==========================================================
    GAME MODE BAR
    ========================================================== */
+.theme-victorian .btn-controls-only { display: none !important; }
+.theme-victorian #aiDifficulty.btn-controls-only { display: none !important; }
+.theme-victorian #playAsToggle.btn-controls-only { display: none !important; }
+.theme-victorian .universal-controls {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    width: 100%;
+}
+.theme-victorian .uni-label {
+    color: var(--ink);
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700; font-style: italic;
+    font-size: 1em; letter-spacing: 0.04em;
+}
+.theme-victorian .uni-sel {
+    background: linear-gradient(180deg, var(--parchment-soft) 0%, var(--parchment) 100%);
+    color: var(--ink);
+    border: 1px solid var(--gold);
+    border-radius: 3px;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700; font-size: 0.95em;
+    letter-spacing: 0.06em;
+    padding: 4px 24px 4px 8px;
+    cursor: pointer;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M0 0L5 6L10 0Z' fill='%23c8a84b'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 7px center;
+    background-size: 9px;
+    box-shadow: var(--shadow-soft);
+}
+.theme-victorian .uni-sel:focus { outline: 1px solid var(--gold-bright); }
+
 .theme-victorian .game-mode {
     background: linear-gradient(180deg, var(--parchment-soft) 0%, var(--parchment) 100%);
     border: 1px solid var(--gold);
@@ -287,12 +322,12 @@ body.theme-victorian::before {
 }
 .theme-victorian .rolloff-result {
     color: var(--cream); font-family: 'Cormorant Garamond', serif;
-    font-style: italic; font-size: 0.9em; text-align: center; min-height: 16px;
+    font-style: italic; font-size: 1.2em; text-align: center; min-height: 20px;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 .theme-victorian .rolloff-result.winner {
     color: var(--gold-bright); font-weight: 700; font-style: normal;
-    font-variant: small-caps;
+    font-size: 1.6em; font-variant: small-caps;
     text-shadow: 0 0 12px var(--gold-glow), 0 1px 0 rgba(0,0,0,0.5);
 }
 .theme-victorian .player-rolls {
