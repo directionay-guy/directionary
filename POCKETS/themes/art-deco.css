@@ -200,6 +200,40 @@ body.theme-art-deco::before {
 /* ==========================================================
    GAME MODE BAR
    ========================================================== */
+.theme-art-deco .btn-controls-only { display: none !important; }
+.theme-art-deco .universal-controls {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    width: 100%;
+}
+.theme-art-deco .uni-label {
+    color: var(--chrome-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.8em;
+    font-style: normal;
+    font-family: 'Poiret One', sans-serif;
+}
+.theme-art-deco .uni-sel {
+    background: var(--bg-mid);
+    color: var(--chrome);
+    border: 1px solid var(--chrome-dark);
+    font-family: 'Poiret One', sans-serif;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    padding: 4px 22px 4px 8px;
+    cursor: pointer;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M0 0L5 6L10 0Z' fill='%23a8acb8'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+    background-size: 9px;
+}
+.theme-art-deco .uni-sel:focus { outline: 1px solid var(--emerald); }
+
 .theme-art-deco .game-mode {
     background: var(--bg-panel);
     border: 1px solid var(--chrome-dark);
