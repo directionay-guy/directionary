@@ -374,6 +374,7 @@ select.theme-subtitle {
         /* ── New game section ── */
         .game-board { align-items: stretch; }
         .player-area { display: flex; flex-direction: column; }
+        .copyright { margin-top: 18px; padding-bottom: 10px; }
         .new-game-section { display:flex;justify-content:center;align-items:stretch;gap:12px;flex-wrap:wrap; }
         .new-game-section .btn { min-height:40px;padding:8px 22px;display:inline-flex;align-items:center;justify-content:center;line-height:1.2; }
 
@@ -389,6 +390,9 @@ select.theme-subtitle {
             transition: background 0.2s ease, color 0.2s ease;
         }
         .fullscreen-btn:hover { background: rgba(0,0,0,0.6); color: #fff; }
+        @media (hover: none) and (pointer: coarse) {
+            .fullscreen-btn { display: none !important; }
+        }
 
         /* ── Pre-final overlay (kept in DOM, no longer shown) ── */
         .pre-final-screen { position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:500;background:rgba(10,5,2,0.90);backdrop-filter:blur(4px);padding:16px; }
