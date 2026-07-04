@@ -211,9 +211,9 @@
     font-style: normal;
 }
 .theme-steampunk .uni-sel {
-    background: linear-gradient(145deg, #342e24, #242018);
+    background: #242018 !important;
     color: #e8d4a8 !important;
-    -webkit-text-fill-color: #e8d4a8;
+    -webkit-text-fill-color: #e8d4a8 !important;
     border: 1px solid var(--sp-brass-lo);
     border-top-color: var(--sp-brass);
     border-radius: 4px;
@@ -221,10 +221,14 @@
     padding: 4px 22px 4px 8px;
     cursor: pointer;
     appearance: none; -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M0 0L5 6L10 0Z' fill='%23cd7f32'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 6px center;
-    background-size: 9px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M0 0L5 6L10 0Z' fill='%23cd7f32'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 6px center !important;
+    background-size: 9px !important;
+}
+.theme-steampunk .uni-sel option {
+    background: #242018;
+    color: #e8d4a8;
 }
 .theme-steampunk .uni-sel:focus { outline: 1px solid var(--sp-brass-hi); }
 
