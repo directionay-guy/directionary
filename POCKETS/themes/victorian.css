@@ -345,32 +345,32 @@ body.theme-victorian::before {
 .theme-victorian .controls { text-align: center; }
 .theme-victorian .start-btn {
     background: linear-gradient(180deg, var(--forest) 0%, var(--forest-deep) 100%);
-    color: var(--gold-bright); border: 1px solid var(--gold); border-radius: 4px;
+    color: var(--gold-bright); border: 2px solid var(--gold-bright); border-radius: 4px;
     padding: 9px 30px; font-family: 'Cormorant Garamond', serif;
     font-weight: 700; font-variant: small-caps; font-size: 1.05em;
     letter-spacing: 0.1em; cursor: pointer;
-    box-shadow: var(--shadow-emboss), 0 4px 10px rgba(0,0,0,0.4), 0 0 0 1px var(--line-gilt-soft) inset;
-    text-shadow: 0 1px 0 rgba(0,0,0,0.4);
+    box-shadow: var(--shadow-emboss), 0 4px 10px rgba(0,0,0,0.4), 0 0 8px var(--gold-glow), 0 0 0 1px rgba(200,168,75,0.3) inset;
+    text-shadow: 0 0 8px var(--gold-glow), 0 1px 0 rgba(0,0,0,0.4);
 }
 .theme-victorian .start-btn:hover {
     background: linear-gradient(180deg, #4d5d44 0%, #3a4634 100%);
     border-color: var(--gold-bright);
-    box-shadow: var(--shadow-emboss), 0 5px 14px rgba(0,0,0,0.5), 0 0 16px var(--gold-glow), 0 0 0 1px var(--line-gilt) inset;
+    box-shadow: var(--shadow-emboss), 0 5px 14px rgba(0,0,0,0.5), 0 0 20px var(--gold-glow), 0 0 0 1px var(--line-gilt) inset;
 }
 .theme-victorian .blue-btn,
 .theme-victorian .red-btn {
-    color: var(--cream); border: 1px solid var(--gold); border-radius: 4px;
+    color: var(--gold-bright); border: 2px solid var(--gold-bright); border-radius: 4px;
     padding: 11px 22px; font-family: 'Cormorant Garamond', serif;
     font-weight: 700; font-variant: small-caps; font-size: 1.05em;
     letter-spacing: 0.1em; cursor: pointer; transition: all 0.25s ease;
-    box-shadow: var(--shadow-emboss), var(--shadow-soft);
-    text-shadow: 0 1px 0 rgba(0,0,0,0.4);
+    box-shadow: var(--shadow-emboss), 0 0 8px var(--gold-glow);
+    text-shadow: 0 0 8px var(--gold-glow), 0 1px 0 rgba(0,0,0,0.4);
 }
 .theme-victorian .blue-btn { background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%); }
 .theme-victorian .red-btn  { background: linear-gradient(180deg, var(--burgundy) 0%, var(--burgundy-deep) 100%); }
 .theme-victorian .blue-btn:hover, .theme-victorian .red-btn:hover {
     border-color: var(--gold-bright);
-    box-shadow: var(--shadow-emboss), 0 4px 12px rgba(0,0,0,0.5), 0 0 12px var(--gold-glow);
+    box-shadow: var(--shadow-emboss), 0 4px 12px rgba(0,0,0,0.5), 0 0 18px var(--gold-glow);
 }
 .theme-victorian .btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
 
