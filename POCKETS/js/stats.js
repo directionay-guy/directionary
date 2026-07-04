@@ -347,6 +347,34 @@ function generateOddsTabHTML() {
         <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>A win is a win, but a 5-pip win with a straight bonus (+5) scores very differently than a 1-pip win with no combo.</span></div>
     </div>
 
+    <div class="stat-card">
+        <h4>💾 The Save Pocket — By The Numbers</h4>
+        <p style="font-size:0.82em;opacity:0.75;margin-bottom:8px;">You saved a die. Next round you roll 3 new ones. Here's what the math says about improving it:</p>
+        <div class="stat-row" style="font-size:0.8em;opacity:0.6;"><span><strong>Saved die</strong></span><span><strong>Chance a new die beats it</strong></span></div>
+        <div class="stat-row"><span>Saved a 1</span><span class="stat-value">99.5%</span></div>
+        <div class="stat-row"><span>Saved a 2</span><span class="stat-value">96.3%</span></div>
+        <div class="stat-row"><span>Saved a 3</span><span class="stat-value">87.5%</span></div>
+        <div class="stat-row"><span>Saved a 4</span><span class="stat-value">70.4%</span></div>
+        <div class="stat-row"><span>Saved a 5</span><span class="stat-value">42.1%</span></div>
+        <div class="stat-row"><span>Saved a 6</span><span class="stat-value">0%</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>A saved 5 has less than even odds of being beaten by any of your 3 new dice. Save 5s and 6s confidently.</span></div>
+        <div class="stat-row" style="font-size:0.8em;opacity:0.6;"><span><strong>Saved a 6? Chance all 3 new dice miss it:</strong></span><span><strong>57.9%</strong></span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>More than half the time, your saved 6 is the best die in your hand next round before the roll is even finished.</span></div>
+    </div>
+
+    <div class="stat-card">
+        <h4>🏅 What Your Best New Die Will Be</h4>
+        <p style="font-size:0.82em;opacity:0.75;margin-bottom:8px;">Rolling 3 dice — what's the highest one likely to be?</p>
+        <div class="stat-row"><span>Best die is a 6:</span><span class="stat-value">42.1%</span></div>
+        <div class="stat-row"><span>Best die is a 5:</span><span class="stat-value">28.2%</span></div>
+        <div class="stat-row"><span>Best die is a 4:</span><span class="stat-value">17.1%</span></div>
+        <div class="stat-row"><span>Best die is a 3:</span><span class="stat-value">8.8%</span></div>
+        <div class="stat-row"><span>Best die is a 2:</span><span class="stat-value">3.2%</span></div>
+        <div class="stat-row"><span>Best die is a 1 (ouch):</span><span class="stat-value">0.5%</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>Average best die across 3 rolls: <strong>4.96</strong> — nearly a 5 every round.</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>Your worst die averages <strong>2.04</strong>. The spread between best and worst is about <strong>2.9 pips</strong> per round. Plan accordingly.</span></div>
+    </div>
+
     <div class="stat-card" style="text-align:center;">
         <h4>🏆 The One True Fact</h4>
         <p style="font-size:0.88em;opacity:0.85;margin:0 0 6px;">"The roll is random. The choices aren't."</p>
