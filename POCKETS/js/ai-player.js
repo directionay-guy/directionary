@@ -49,9 +49,9 @@ class PocketsAI {
 
     getPersonality(difficulty) {
         return {
-            easy:   { name: 'Rookie Bot', thinkTime: [700,  1100], mistakeChance: 0.30 },
-            medium: { name: 'Clever Bot', thinkTime: [1100, 1700] },
-            hard:   { name: 'Master Bot', thinkTime: [1400, 2000] }
+            easy:   { name: 'Rookie Bot', thinkTime: [400,  700],  mistakeChance: 0.30 },
+            medium: { name: 'Clever Bot', thinkTime: [700,  1100] },
+            hard:   { name: 'Master Bot', thinkTime: [900,  1400] }
         }[difficulty] || { name: 'Clever Bot', thinkTime: [1100, 1700] };
     }
 
@@ -354,7 +354,6 @@ function setAIDifficulty(difficulty) {
     const uDiffEl = document.getElementById('uDiff');
     if (uDiffEl) { uDiffEl.value = difficulty; }
     if (typeof savePocketsSettings === 'function') { savePocketsSettings(); }
-    if (typeof showDifficultyToast === 'function') { showDifficultyToast(difficulty); }
 }
 
 // ── AI move execution ─────────────────────────────────────────────────────────
