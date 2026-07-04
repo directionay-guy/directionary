@@ -184,11 +184,11 @@ function generateStatsHTML(tab) {
             <button class="stats-tab-btn ${tab==='blue'?'active':''}" onclick="switchStatsTab('blue')">🔵 Blue</button>
             <button class="stats-tab-btn ${tab==='red'?'active':''}"  onclick="switchStatsTab('red')">🔴 Red</button>
             <button class="stats-tab-btn ${tab==='ai'?'active':''}"   onclick="switchStatsTab('ai')">🤖 AI</button>
-            <button class="stats-tab-btn ${tab==='odds'?'active':''}" onclick="switchStatsTab('odds')">🎲 Odds</button>
+            <button class="stats-tab-btn ${tab==='game'||tab==='trivia'?'active':''}" onclick="switchStatsTab('game')">🎲 Game</button>
         </div>`;
 
-    if (tab === 'ai')   { return tabs + generateAITabHTML(); }
-    if (tab === 'odds') { return tabs + generateOddsTabHTML(); }
+    if (tab === 'ai')    { return tabs + generateAITabHTML(); }
+    if (tab === 'game' || tab === 'trivia')  { return tabs + generateGameTabHTML(tab); }
     return tabs + generatePlayerTabHTML(tab);
 }
 
@@ -294,91 +294,123 @@ function generateAITabHTML() {
         </div>`;
 }
 
-function generateOddsTabHTML() {
+function generateGameTabHTML(inner) {
+    inner = inner || 'game';
+    const innerTabs = `
+        <div class="stats-tabs" style="margin-bottom:10px;">
+            <button class="stats-tab-btn ${inner==='game'?'active':''}" onclick="switchStatsTab('game')" style="font-size:0.85em;padding:6px 12px;">📊 Game Odds</button>
+            <button class="stats-tab-btn ${inner==='trivia'?'active':''}" onclick="switchStatsTab('trivia')" style="font-size:0.85em;padding:6px 12px;">✨ Did You Know?</button>
+        </div>`;
+    return innerTabs + (inner === 'trivia' ? generateTriviaHTML() : generateGameOddsHTML());
+}
+
+function generateGameOddsHTML() {
     return `
     <div class="stat-card" style="text-align:center;padding-bottom:6px;">
         <h4 style="margin-bottom:4px;">🎲 The Honest Dice Disclaimer</h4>
-        <p style="font-size:0.88em;opacity:0.85;margin:0;">Every die in POCKETS is programmed to produce a truly random number from 1 to 6. No weighting, no favoritism, no conspiracy. The 1s are just as likely as the 6s. We checked. Repeatedly. While losing.</p>
+        <p style="font-size:0.88em;opacity:0.85;margin:0;">Every die in POCKETS produces a truly random number from 1 to 6. No weighting, no favoritism, no conspiracy. The 1s are just as likely as the 6s.</p>
     </div>
 
     <div class="stat-card">
-        <h4>🎯 Single Round Odds (4 dice)</h4>
-        <div class="stat-row"><span>Rolling a specific number on one die:</span><span class="stat-value">1 in 6</span></div>
-        <div class="stat-row"><span>One pair (any):</span><span class="stat-value">~1 in 1.3</span></div>
-        <div class="stat-row"><span>Two pair:</span><span class="stat-value">~1 in 8</span></div>
-        <div class="stat-row"><span>3 of a kind:</span><span class="stat-value">~1 in 10</span></div>
-        <div class="stat-row"><span>A straight (e.g. 2-3-4-5):</span><span class="stat-value">~1 in 18</span></div>
-        <div class="stat-row"><span>4 of a kind:</span><span class="stat-value">1 in 216</span></div>
-        <div class="stat-row"><span>All four dice showing 6:</span><span class="stat-value">1 in 1,296</span></div>
-        <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span colspan="2">That's about once every 18 hours of continuous play. Keep rolling.</span></div>
+        <h4>🎯 Combo Odds — 4 Dice</h4>
+        <div class="stat-row"><span>At least one pair:</span><span class="stat-value">~77%</span></div>
+        <div class="stat-row"><span>Two pair:</span><span class="stat-value">~12%</span></div>
+        <div class="stat-row"><span>3 of a kind:</span><span class="stat-value">~10%</span></div>
+        <div class="stat-row"><span>A straight (any 4 in sequence):</span><span class="stat-value">~5.6%</span></div>
+        <div class="stat-row"><span>4 of a kind:</span><span class="stat-value">~0.46%</span></div>
+        <div class="stat-row"><span>No combo at all:</span><span class="stat-value">~23%</span></div>
     </div>
 
     <div class="stat-card">
-        <h4>🌌 Rolldown Round Odds (5 dice)</h4>
-        <div class="stat-row"><span>Any 5 of a kind (the holy grail):</span><span class="stat-value">1 in 1,296</span></div>
-        <div class="stat-row"><span>Five 6s specifically:</span><span class="stat-value">1 in 7,776</span></div>
-        <div class="stat-row"><span>4 of a kind:</span><span class="stat-value">~1 in 45</span></div>
-        <div class="stat-row"><span>Full house:</span><span class="stat-value">~1 in 26</span></div>
-        <div class="stat-row"><span>A straight (5 dice, any run of 5):</span><span class="stat-value">~1 in 13</span></div>
-        <div class="stat-row"><span>Max possible score (five 6s + bonus):</span><span class="stat-value">40 pts</span></div>
-        <div class="stat-row"><span>Min possible score (five 1s, no combo):</span><span class="stat-value">5 pts</span></div>
-    </div>
-
-    <div class="stat-card">
-        <h4>🤯 Cosmic Rarity Events</h4>
-        <div class="stat-row"><span>Both players roll all 6s simultaneously:</span><span class="stat-value">1 in 1,679,616</span></div>
-        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>About as likely as flipping heads 20 times in a row.</span></div>
-        <div class="stat-row"><span>Both players roll identical 4-die combinations:</span><span class="stat-value">1 in 1,296</span></div>
-        <div class="stat-row"><span>Winning Take with a 1 (opponent rolls 1 too):</span><span class="stat-value">1 in 6</span></div>
-        <div class="stat-row"><span>Saving a 6, then rolling another 6 next round:</span><span class="stat-value">1 in 6</span></div>
-        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>Feels rarer. It isn't. Save more 6s.</span></div>
-        <div class="stat-row"><span>Rolling four 1s (the nightmare):</span><span class="stat-value">1 in 1,296</span></div>
-        <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>Same odds as rolling four 6s. The dice are indifferent to your feelings.</span></div>
+        <h4>🌌 Combo Odds — Rolldown (5 Dice)</h4>
+        <div class="stat-row"><span>Full house:</span><span class="stat-value">~3.9%</span></div>
+        <div class="stat-row"><span>Straight (5 in sequence):</span><span class="stat-value">~7.7%</span></div>
+        <div class="stat-row"><span>4 of a kind:</span><span class="stat-value">~2.3%</span></div>
+        <div class="stat-row"><span>5 of a kind:</span><span class="stat-value">~0.08%</span></div>
+        <div class="stat-row"><span>Max score (five 6s + bonus):</span><span class="stat-value">40 pts</span></div>
+        <div class="stat-row"><span>Min score (five 1s, no combo):</span><span class="stat-value">5 pts</span></div>
     </div>
 
     <div class="stat-card">
         <h4>📊 Take Battle Odds</h4>
-        <div class="stat-row"><span>Winning Take if you both roll randomly:</span><span class="stat-value">~42%</span></div>
-        <div class="stat-row"><span>Tying Take (zero points for both):</span><span class="stat-value">~17%</span></div>
-        <div class="stat-row"><span>Losing Take:</span><span class="stat-value">~42%</span></div>
+        <div class="stat-row"><span>Win Take (both random dice):</span><span class="stat-value">~42%</span></div>
+        <div class="stat-row"><span>Tie Take (zero points both):</span><span class="stat-value">~17%</span></div>
+        <div class="stat-row"><span>Lose Take:</span><span class="stat-value">~42%</span></div>
         <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>The randomness is symmetric. The decisions aren't.</span></div>
-        <div class="stat-row"><span>Winning Take by 5+ pips:</span><span class="stat-value">~14%</span></div>
-        <div class="stat-row"><span>Winning Take by exactly 1 pip:</span><span class="stat-value">~14%</span></div>
-        <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>A win is a win, but a 5-pip win with a straight bonus (+5) scores very differently than a 1-pip win with no combo.</span></div>
+        <div class="stat-row"><span>Win by 5+ pips:</span><span class="stat-value">~14%</span></div>
+        <div class="stat-row"><span>Win by exactly 1 pip:</span><span class="stat-value">~14%</span></div>
     </div>
 
     <div class="stat-card">
-        <h4>💾 The Save Pocket — By The Numbers</h4>
-        <p style="font-size:0.82em;opacity:0.75;margin-bottom:8px;">You saved a die. Next round you roll 3 new ones. Here's what the math says about improving it:</p>
-        <div class="stat-row" style="font-size:0.8em;opacity:0.6;"><span><strong>Saved die</strong></span><span><strong>Chance a new die beats it</strong></span></div>
-        <div class="stat-row"><span>Saved a 1</span><span class="stat-value">99.5%</span></div>
-        <div class="stat-row"><span>Saved a 2</span><span class="stat-value">96.3%</span></div>
-        <div class="stat-row"><span>Saved a 3</span><span class="stat-value">87.5%</span></div>
-        <div class="stat-row"><span>Saved a 4</span><span class="stat-value">70.4%</span></div>
-        <div class="stat-row"><span>Saved a 5</span><span class="stat-value">42.1%</span></div>
-        <div class="stat-row"><span>Saved a 6</span><span class="stat-value">0%</span></div>
-        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>A saved 5 has less than even odds of being beaten by any of your 3 new dice. Save 5s and 6s confidently.</span></div>
-        <div class="stat-row" style="font-size:0.8em;opacity:0.6;"><span><strong>Saved a 6? Chance all 3 new dice miss it:</strong></span><span><strong>57.9%</strong></span></div>
-        <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>More than half the time, your saved 6 is the best die in your hand next round before the roll is even finished.</span></div>
+        <h4>💾 Save Pocket — Improvement Odds</h4>
+        <p style="font-size:0.82em;opacity:0.75;margin-bottom:8px;">Rolling 3 new dice — chance at least one beats your saved die:</p>
+        <div class="stat-row"><span>Saved a 1:</span><span class="stat-value">99.5%</span></div>
+        <div class="stat-row"><span>Saved a 2:</span><span class="stat-value">96.3%</span></div>
+        <div class="stat-row"><span>Saved a 3:</span><span class="stat-value">87.5%</span></div>
+        <div class="stat-row"><span>Saved a 4:</span><span class="stat-value">70.4%</span></div>
+        <div class="stat-row"><span>Saved a 5:</span><span class="stat-value">42.1%</span></div>
+        <div class="stat-row"><span>Saved a 6:</span><span class="stat-value">0%</span></div>
     </div>
 
     <div class="stat-card">
-        <h4>🏅 What Your Best New Die Will Be</h4>
-        <p style="font-size:0.82em;opacity:0.75;margin-bottom:8px;">Rolling 3 dice — what's the highest one likely to be?</p>
+        <h4>🏅 Your Best New Die — Distribution</h4>
+        <p style="font-size:0.82em;opacity:0.75;margin-bottom:8px;">Rolling 3 dice — highest result distribution:</p>
         <div class="stat-row"><span>Best die is a 6:</span><span class="stat-value">42.1%</span></div>
         <div class="stat-row"><span>Best die is a 5:</span><span class="stat-value">28.2%</span></div>
         <div class="stat-row"><span>Best die is a 4:</span><span class="stat-value">17.1%</span></div>
         <div class="stat-row"><span>Best die is a 3:</span><span class="stat-value">8.8%</span></div>
         <div class="stat-row"><span>Best die is a 2:</span><span class="stat-value">3.2%</span></div>
-        <div class="stat-row"><span>Best die is a 1 (ouch):</span><span class="stat-value">0.5%</span></div>
-        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>Average best die across 3 rolls: <strong>4.96</strong> — nearly a 5 every round.</span></div>
-        <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>Your worst die averages <strong>2.04</strong>. The spread between best and worst is about <strong>2.9 pips</strong> per round. Plan accordingly.</span></div>
+        <div class="stat-row"><span>Best die is a 1:</span><span class="stat-value">0.5%</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>Average best die: <strong>4.96</strong>. Average worst die: <strong>2.04</strong>. Typical spread: <strong>~2.9 pips</strong>.</span></div>
+    </div>`;
+}
+
+function generateTriviaHTML() {
+    return `
+    <div class="stat-card">
+        <h4>🤯 Cosmic Rarity Events</h4>
+        <div class="stat-row"><span>Both players roll all 6s simultaneously:</span><span class="stat-value">1 in 1,679,616</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>About as likely as flipping heads 20 times in a row. If it happens, frame the screenshot.</span></div>
+        <div class="stat-row"><span>Both players roll identical 4-die combos:</span><span class="stat-value">1 in 1,296</span></div>
+        <div class="stat-row"><span>Rolling four 1s (the nightmare):</span><span class="stat-value">1 in 1,296</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>Same odds as four 6s. The dice are indifferent to your feelings.</span></div>
+        <div class="stat-row"><span>Five 6s in the Rolldown:</span><span class="stat-value">1 in 7,776</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>Worth 40 points. Has definitely happened. Probably not to you. Yet.</span></div>
+    </div>
+
+    <div class="stat-card">
+        <h4>💡 The Saved 6 Insight</h4>
+        <div class="stat-row"><span>Chance none of 3 new dice equal or beat a saved 6:</span><span class="stat-value">57.9%</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>More than half the time, your saved 6 is the best die in your hand before the roll is even finished.</span></div>
+        <div class="stat-row"><span>Chance of rolling another 6 to pair with it:</span><span class="stat-value">~42% per die</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>Feels rarer than it is. Save more 6s.</span></div>
+    </div>
+
+    <div class="stat-card">
+        <h4>🎲 Things That Surprise Everyone</h4>
+        <div class="stat-row"><span>You'll have NO combo about this often:</span><span class="stat-value">1 in 4 rounds</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>Feels like it happens more. It doesn't. You just remember it more.</span></div>
+        <div class="stat-row"><span>Winning Take with a 1 (opponent also plays 1):</span><span class="stat-value">1 in 6</span></div>
+        <div class="stat-row"><span>Your best of 3 dice averages almost exactly:</span><span class="stat-value">5</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>Every round your top die is nearly a 5. Plan around it.</span></div>
+        <div class="stat-row"><span>A saved 4 will be beaten by a new die:</span><span class="stat-value">7 in 10 rounds</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>So why are you keeping that 4 in your Save pocket late game?</span></div>
+    </div>
+
+    <div class="stat-card">
+        <h4>📐 The Keep Math Nobody Does</h4>
+        <div class="stat-row"><span>Two 6s in Keep every round for 8 rounds:</span><span class="stat-value">96 pts</span></div>
+        <div class="stat-row"><span>That's almost the whole game. Without a single Take fight.</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>Keep is underrated. Not every round needs a Take battle.</span></div>
+        <div class="stat-row"><span>Expected Keep score per round (avg 2 dice):</span><span class="stat-value">~7 pts</span></div>
+        <div class="stat-row"><span>Expected Take win margin (random dice):</span><span class="stat-value">~2.1 pips</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>A 2-pip Take win with no combo is worth less than either Keep die on average. Choose your fights.</span></div>
     </div>
 
     <div class="stat-card" style="text-align:center;">
         <h4>🏆 The One True Fact</h4>
         <p style="font-size:0.88em;opacity:0.85;margin:0 0 6px;">"The roll is random. The choices aren't."</p>
-        <p style="font-size:0.8em;opacity:0.6;margin:0;">Every statistic above describes what the dice do on their own. POCKETS is about what you do after that.</p>
+        <p style="font-size:0.8em;opacity:0.6;margin:0;">Every number above describes what the dice do on their own. POCKETS is about what you do after that.</p>
     </div>`;
 }
 
