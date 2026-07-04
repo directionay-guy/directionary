@@ -184,9 +184,11 @@ function generateStatsHTML(tab) {
             <button class="stats-tab-btn ${tab==='blue'?'active':''}" onclick="switchStatsTab('blue')">🔵 Blue</button>
             <button class="stats-tab-btn ${tab==='red'?'active':''}"  onclick="switchStatsTab('red')">🔴 Red</button>
             <button class="stats-tab-btn ${tab==='ai'?'active':''}"   onclick="switchStatsTab('ai')">🤖 AI</button>
+            <button class="stats-tab-btn ${tab==='odds'?'active':''}" onclick="switchStatsTab('odds')">🎲 Odds</button>
         </div>`;
 
-    if (tab === 'ai') { return tabs + generateAITabHTML(); }
+    if (tab === 'ai')   { return tabs + generateAITabHTML(); }
+    if (tab === 'odds') { return tabs + generateOddsTabHTML(); }
     return tabs + generatePlayerTabHTML(tab);
 }
 
@@ -290,6 +292,66 @@ function generateAITabHTML() {
         <div class="stats-footer" style="opacity:0.5;font-size:0.85em;text-align:center;padding:8px;">
             AI record is permanent — no clear button
         </div>`;
+}
+
+function generateOddsTabHTML() {
+    return `
+    <div class="stat-card" style="text-align:center;padding-bottom:6px;">
+        <h4 style="margin-bottom:4px;">🎲 The Honest Dice Disclaimer</h4>
+        <p style="font-size:0.88em;opacity:0.85;margin:0;">Every die in POCKETS is programmed to produce a truly random number from 1 to 6. No weighting, no favoritism, no conspiracy. The 1s are just as likely as the 6s. We checked. Repeatedly. While losing.</p>
+    </div>
+
+    <div class="stat-card">
+        <h4>🎯 Single Round Odds (4 dice)</h4>
+        <div class="stat-row"><span>Rolling a specific number on one die:</span><span class="stat-value">1 in 6</span></div>
+        <div class="stat-row"><span>One pair (any):</span><span class="stat-value">~1 in 1.3</span></div>
+        <div class="stat-row"><span>Two pair:</span><span class="stat-value">~1 in 8</span></div>
+        <div class="stat-row"><span>3 of a kind:</span><span class="stat-value">~1 in 10</span></div>
+        <div class="stat-row"><span>A straight (e.g. 2-3-4-5):</span><span class="stat-value">~1 in 18</span></div>
+        <div class="stat-row"><span>4 of a kind:</span><span class="stat-value">1 in 216</span></div>
+        <div class="stat-row"><span>All four dice showing 6:</span><span class="stat-value">1 in 1,296</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span colspan="2">That's about once every 18 hours of continuous play. Keep rolling.</span></div>
+    </div>
+
+    <div class="stat-card">
+        <h4>🌌 Rolldown Round Odds (5 dice)</h4>
+        <div class="stat-row"><span>Any 5 of a kind (the holy grail):</span><span class="stat-value">1 in 1,296</span></div>
+        <div class="stat-row"><span>Five 6s specifically:</span><span class="stat-value">1 in 7,776</span></div>
+        <div class="stat-row"><span>4 of a kind:</span><span class="stat-value">~1 in 45</span></div>
+        <div class="stat-row"><span>Full house:</span><span class="stat-value">~1 in 26</span></div>
+        <div class="stat-row"><span>A straight (5 dice, any run of 5):</span><span class="stat-value">~1 in 13</span></div>
+        <div class="stat-row"><span>Max possible score (five 6s + bonus):</span><span class="stat-value">40 pts</span></div>
+        <div class="stat-row"><span>Min possible score (five 1s, no combo):</span><span class="stat-value">5 pts</span></div>
+    </div>
+
+    <div class="stat-card">
+        <h4>🤯 Cosmic Rarity Events</h4>
+        <div class="stat-row"><span>Both players roll all 6s simultaneously:</span><span class="stat-value">1 in 1,679,616</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>About as likely as flipping heads 20 times in a row.</span></div>
+        <div class="stat-row"><span>Both players roll identical 4-die combinations:</span><span class="stat-value">1 in 1,296</span></div>
+        <div class="stat-row"><span>Winning Take with a 1 (opponent rolls 1 too):</span><span class="stat-value">1 in 6</span></div>
+        <div class="stat-row"><span>Saving a 6, then rolling another 6 next round:</span><span class="stat-value">1 in 6</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>Feels rarer. It isn't. Save more 6s.</span></div>
+        <div class="stat-row"><span>Rolling four 1s (the nightmare):</span><span class="stat-value">1 in 1,296</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>Same odds as rolling four 6s. The dice are indifferent to your feelings.</span></div>
+    </div>
+
+    <div class="stat-card">
+        <h4>📊 Take Battle Odds</h4>
+        <div class="stat-row"><span>Winning Take if you both roll randomly:</span><span class="stat-value">~42%</span></div>
+        <div class="stat-row"><span>Tying Take (zero points for both):</span><span class="stat-value">~17%</span></div>
+        <div class="stat-row"><span>Losing Take:</span><span class="stat-value">~42%</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>The randomness is symmetric. The decisions aren't.</span></div>
+        <div class="stat-row"><span>Winning Take by 5+ pips:</span><span class="stat-value">~14%</span></div>
+        <div class="stat-row"><span>Winning Take by exactly 1 pip:</span><span class="stat-value">~14%</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>A win is a win, but a 5-pip win with a straight bonus (+5) scores very differently than a 1-pip win with no combo.</span></div>
+    </div>
+
+    <div class="stat-card" style="text-align:center;">
+        <h4>🏆 The One True Fact</h4>
+        <p style="font-size:0.88em;opacity:0.85;margin:0 0 6px;">"The roll is random. The choices aren't."</p>
+        <p style="font-size:0.8em;opacity:0.6;margin:0;">Every statistic above describes what the dice do on their own. POCKETS is about what you do after that.</p>
+    </div>`;
 }
 
 function clearPlayerStats(color) {
