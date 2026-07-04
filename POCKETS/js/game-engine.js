@@ -454,22 +454,22 @@ function setPlayerColor(color) {
     if (cPlayEl) { cPlayEl.value = color; }
     var uPlayEl = document.getElementById('uPlay');
     if (uPlayEl) { uPlayEl.value = color; }
-    // Update headers — human is on the BLUE side regardless of chosen color
+    // Update headers — clean, no "(You)" or "(Blue)" appended
     var is2p = (gameMode === '2player');
     document.getElementById('bluePlayerHeader').textContent =
-        is2p ? 'BLUE PLAYER' : (color === 'red' ? '🔴 RED PLAYER (You)' : 'BLUE PLAYER');
+        is2p ? 'BLUE PLAYER' : (color === 'red' ? 'RED PLAYER' : 'BLUE PLAYER');
     document.getElementById('redPlayerHeader').textContent  =
-        is2p ? 'RED PLAYER'  : (color === 'red' ? '🔵 AI (Blue)'        : 'AI PLAYER');
+        is2p ? 'RED PLAYER'  : (color === 'red' ? 'AI PLAYER'  : 'AI PLAYER');
     // Update score area labels
     var blueScoreLabel = document.getElementById('blueScoreLabel');
     var redScoreLabel  = document.getElementById('redScoreLabel');
     if (blueScoreLabel) {
         blueScoreLabel.textContent = is2p ? 'Blue Player Score' :
-            (color === 'red' ? 'Red Player Score (You)' : 'Blue Player Score');
+            (color === 'red' ? 'Red Player Score' : 'Blue Player Score');
     }
     if (redScoreLabel) {
         redScoreLabel.textContent  = is2p ? 'Red Player Score'  :
-            (color === 'red' ? 'AI Score (Blue)'        : 'Red Player Score');
+            (color === 'red' ? 'AI Score'         : 'Red Player Score');
     }
 
     // Force-refresh rolloff dice with correct visual colors immediately
@@ -1028,7 +1028,7 @@ function resolveRolloff() {
         }
         updateGameStatus();
         autosaveGame();
-    }, 2800);
+    }, 1800);
 }
 
 // =============================================================================
@@ -1160,7 +1160,7 @@ function startPlacement() {
     setActionPanelView('status');
     updateGameStatus();
     if (gameMode === 'ai' && gameState.currentPlayer === 'red') {
-        setTimeout(function() { makeAIMove(); }, 1000);
+        setTimeout(function() { makeAIMove(); }, 600);
     }
     autosaveGame();
 }
@@ -1246,7 +1246,7 @@ function placeDieInPocket(pocketElement) {
         renderDice();
         updateGameStatus();
         if (gameMode === 'ai' && gameState.currentPlayer === 'red') {
-            setTimeout(function() { makeAIMove(); }, 500);
+            setTimeout(function() { makeAIMove(); }, 300);
         }
     } else {
         calculateRoundScore();
@@ -1419,14 +1419,18 @@ function displayRoundScores(blueKeep, blueBonus, blueCombo,
     var blueDiceArea = document.getElementById('blueDiceArea');
     var redDiceArea  = document.getElementById('redDiceArea');
 
+    var isBitmap = document.body.classList.contains('theme-bitmap');
+
     var blueDiv = document.createElement('div');
     blueDiv.className = 'round-score-display';
     var blueText = 'Round Score: ' + (blueKeep + blueBonus) + ' pts';
     if (blueBonus > 0) {
         blueText += '<br>Keep: ' + blueKeep + ', Take: ' + (blueBonus - blueCombo);
         if (blueCombo > 0) { blueText += ', Bonus: ' + blueCombo; }
+        else if (isBitmap) { blueText += ', Bonus: 0'; }
     } else {
         blueText += '<br>Keep: ' + blueKeep;
+        if (isBitmap) { blueText += '<br>Bonus: 0'; }
     }
     blueDiv.innerHTML = blueText;
     blueDiceArea.appendChild(blueDiv);
@@ -1437,8 +1441,10 @@ function displayRoundScores(blueKeep, blueBonus, blueCombo,
     if (redBonus > 0) {
         redText += '<br>Keep: ' + redKeep + ', Take: ' + (redBonus - redCombo);
         if (redCombo > 0) { redText += ', Bonus: ' + redCombo; }
+        else if (isBitmap) { redText += ', Bonus: 0'; }
     } else {
         redText += '<br>Keep: ' + redKeep;
+        if (isBitmap) { redText += '<br>Bonus: 0'; }
     }
     redDiv.innerHTML = redText;
     redDiceArea.appendChild(redDiv);
