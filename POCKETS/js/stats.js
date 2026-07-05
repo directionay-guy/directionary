@@ -423,7 +423,10 @@ function clearPlayerStats(color) {
             function() {
                 pocketsStats.clearProfile(color);
                 switchStatsTab(color);
-            }
+            },
+            null,
+            'Clear Stats',
+            'Cancel'
         );
     } else {
         if (confirm('Clear ' + color + ' stats? Cannot be undone.')) {
