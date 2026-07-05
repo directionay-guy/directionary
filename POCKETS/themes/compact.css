@@ -343,7 +343,7 @@ body.theme-compact {
     margin-bottom: 3px;
 }
 .theme-compact .player-area.blue svg.dice .dice-face {
-    fill: var(--navy-mid); stroke: var(--gold); stroke-width: 1.5;
+    fill: var(--navy-light); stroke: var(--gold); stroke-width: 1.5;
 }
 .theme-compact .player-area.blue svg.dice .dice-dot { fill: var(--cream); }
 .theme-compact .player-area.red  svg.dice .dice-face {
