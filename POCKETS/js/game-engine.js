@@ -171,13 +171,10 @@ function showSettingsChangeModal(onConfirm, onCancel) {
         'Settings locked during game',
         'Mode, difficulty and color can only change between games.',
         function() { newGame(); if (onConfirm) { onConfirm(); } },
-        onCancel
+        onCancel,
+        'New Game',
+        'Cancel'
     );
-    // Override the OK button label to say "New Game" not "Confirm"
-    var okBtn = document.getElementById('confirmOk');
-    if (okBtn) { okBtn.textContent = 'New Game'; }
-    var cancelBtn = document.getElementById('confirmCancel');
-    if (cancelBtn) { cancelBtn.textContent = 'Cancel'; }
 }
 
 function changeModeWithConfirm(newMode, selectEl) {
@@ -642,7 +639,7 @@ function setActionPanelView(view) {
 // CONFIRM MODAL
 // =============================================================================
 
-function showConfirm(title, message, onConfirm, onCancel) {
+function showConfirm(title, message, onConfirm, onCancel, okLabel, cancelLabel) {
     var modal = document.getElementById('confirmModal');
     if (!modal) {
         if (onConfirm) { onConfirm(); }
@@ -655,6 +652,8 @@ function showConfirm(title, message, onConfirm, onCancel) {
 
     var okBtn     = document.getElementById('confirmOk');
     var cancelBtn = document.getElementById('confirmCancel');
+    okBtn.textContent     = okLabel     || 'Confirm';
+    cancelBtn.textContent = cancelLabel || 'Cancel';
 
     function close() {
         modal.classList.add('hidden');
