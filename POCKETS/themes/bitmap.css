@@ -446,7 +446,7 @@ body.theme-bitmap {
     flex-direction: column;
     justify-content: flex-start;
 }
-.theme-bitmap .take-pocket { height: 82px; min-height: 82px; max-height: 82px; }
+.theme-bitmap .take-pocket { height: 82px; min-height: 82px; max-height: 82px; position: relative; }
 .theme-bitmap .save-pocket  { height: 82px; min-height: 82px; max-height: 82px; }
 
 /* Pockets stay plain white always, regardless of state - hardcoded rather
