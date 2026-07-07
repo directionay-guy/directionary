@@ -456,6 +456,14 @@ body.theme-victorian::before {
         drop-shadow(0 10px 14px rgba(0, 0, 0, 0.65)) !important;
     z-index: 10;
     transition: transform 0.15s ease, filter 0.15s ease !important;
+    animation: none !important;
+}
+.theme-victorian .dice.selected:hover {
+    transform: translateY(-14px) scale(1.08) !important;
+    filter:
+        drop-shadow(0 0 6px rgba(255, 215, 0, 0.98))
+        drop-shadow(0 0 16px rgba(255, 180, 0, 0.75))
+        drop-shadow(0 10px 14px rgba(0, 0, 0, 0.65)) !important;
 }
 
 /* Pocket tiny circles — REMOVED (were illegible, looked like bugs) */
