@@ -399,6 +399,7 @@ body.theme-bitmap {
    ========================================================== */
 .theme-bitmap .dice-area {
     display: flex;
+    flex-wrap: wrap;
     gap: 4px;
     justify-content: center;
     align-items: center;
@@ -407,6 +408,12 @@ body.theme-bitmap {
     background: var(--mac-grey-hi);
     border: var(--bm-line);
     margin-bottom: 6px;
+    overflow: visible;
+}
+.theme-bitmap .round-score-display {
+    font-size: 0.72em; line-height: 1.5; text-align: left;
+    padding: 2px 6px; width: 100%;
+    font-family: inherit; flex-basis: 100%;
 }
 .theme-bitmap .dice-area svg.dice { width: 34px !important; height: 34px !important; }
 .theme-bitmap .player-area.blue svg.dice .dice-face {
