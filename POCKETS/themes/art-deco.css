@@ -732,7 +732,7 @@ body.theme-art-deco::before {
 
 /* Selected die — emerald glow, fully opaque, no dimming */
 .theme-art-deco .dice.selected {
-    transform: none;
+    transform: translateY(-6px) !important;
     opacity: 1;
     border-color: var(--emerald);
     box-shadow:
@@ -742,6 +742,15 @@ body.theme-art-deco::before {
     background: linear-gradient(145deg,
         rgba(78, 192, 122, 0.10) 0%,
         #f0e9d6 100%);
+    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+    animation: none !important;
+}
+.theme-art-deco .dice.selected:hover {
+    transform: translateY(-6px) !important;
+    box-shadow:
+        0 3px 8px rgba(0, 0, 0, 0.5),
+        0 0 16px var(--emerald-glow),
+        inset 0 1px 1px rgba(255, 255, 255, 0.7) !important;
 }
 
 /* SVG rect — transparent so ivory container shows through */
