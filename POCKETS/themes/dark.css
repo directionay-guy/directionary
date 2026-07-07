@@ -436,10 +436,16 @@ body.theme-dark {
     border-color: var(--dim);
 }
 .theme-dark .dice.selected {
-    transform: none;
+    transform: translateY(-6px) !important;
     opacity: 1;
     border: 2px solid var(--green);
     box-shadow: 0 0 12px var(--green-dim), 0 0 0 2px rgba(34, 197, 94, 0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+    animation: none !important;
+}
+.theme-dark .dice.selected:hover {
+    transform: translateY(-6px) !important;
+    box-shadow: 0 0 12px var(--green-dim), 0 0 0 2px rgba(34, 197, 94, 0.3) !important;
 }
 
 /* SVG face — transparent, shows the white CSS background */
