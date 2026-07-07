@@ -2,8 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>POCKETS Score Sheet</title>
+
+<!-- Google Analytics — replace G-XXXXXXXXXX with your measurement ID -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -115,6 +124,7 @@ tbody tr.rd-row .p1c, tbody tr.rd-row .p2c { background: rgba(180,140,30,0.35); 
     min-height: 42px; -webkit-appearance: none;
 }
 .score-input:focus { background: rgba(255,255,255,0.07); border-bottom-color: #c8a84b; }
+.score-input.kp-active-cell { background: rgba(200,168,75,0.15); border-bottom: 2px solid #c8a84b; }
 .p1c .score-input { color: #b0d0ff; }
 .p2c .score-input { color: #ffb0b0; }
 .rd-row .score-input { color: #2a1508; font-weight: bold; }
@@ -205,6 +215,7 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 .pocket-lbl {
     font-size:0.72em; text-transform:uppercase; letter-spacing:0.08em;
     color:rgba(200,168,75,0.65); text-align:center; line-height:1.1; font-weight:bold;
+    padding-top:4px;
 }
 .pocket-val {
     flex:0 0 auto;
@@ -329,9 +340,62 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
     width:80%; max-width:320px;
 }
 
-/* ════════════════════════════════
-   SIGN UP TAB
-   ════════════════════════════════ */
+/* Previous save hint */
+.prev-save-hint {
+    font-size:0.68em; text-align:center; opacity:0; pointer-events:none;
+    transition:opacity 0.3s; padding:2px 0; line-height:1.2;
+    letter-spacing:0.04em;
+}
+.prev-save-hint.visible { opacity:1; }
+.prev-save-hint.blue-hint { color:rgba(144,192,255,0.7); }
+.prev-save-hint.red-hint  { color:rgba(255,85,85,0.7); }
+
+/* Custom keypad — touch only, Tally mode only */
+#custom-keypad {
+    display:none;
+    position:fixed; bottom:0; left:0; right:0;
+    background:#1a2744; border-top:2px solid rgba(200,168,75,0.4);
+    padding:8px; z-index:800;
+    max-width:700px; margin:0 auto;
+}
+#custom-keypad.keypad-visible { display:block; }
+.keypad-grid {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:6px;
+    margin-bottom:6px;
+}
+.kp-btn {
+    background:rgba(255,255,255,0.08); color:#f5f0e4;
+    border:1px solid rgba(200,168,75,0.25); border-radius:6px;
+    font-family:inherit; font-size:1.3em; font-weight:bold;
+    padding:10px; cursor:pointer; text-align:center;
+    -webkit-tap-highlight-color:transparent;
+    transition:background 0.1s;
+}
+.kp-btn:active { background:rgba(200,168,75,0.3); }
+.kp-btn.kp-back { font-size:1em; }
+.kp-row2 { display:grid; grid-template-columns:1fr 2fr; gap:6px; }
+.kp-done {
+    background:rgba(200,168,75,0.15); color:#c8a84b;
+    border:1px solid rgba(200,168,75,0.4); border-radius:6px;
+    font-family:inherit; font-size:1em; font-weight:bold;
+    padding:12px; cursor:pointer; text-align:center;
+    -webkit-tap-highlight-color:transparent;
+}
+.kp-done:active { background:rgba(200,168,75,0.35); }
+.kp-newround {
+    background:rgba(100,160,80,0.2); color:#90d070;
+    border:1px solid rgba(100,160,80,0.4); border-radius:6px;
+    font-family:inherit; font-size:1em; font-weight:bold;
+    padding:12px; cursor:pointer; text-align:center;
+    -webkit-tap-highlight-color:transparent;
+}
+.kp-newround:active { background:rgba(100,160,80,0.4); }
+.kp-newround:disabled { opacity:0.35; cursor:default; }
+
+/* Block taps on dice board while flash overlay is showing */
+#dice-wrap.flash-blocking { pointer-events:none; }
+#flash { pointer-events:none; }
+#flash.flash-active { pointer-events:auto; }
 .signup-title {
     padding: 10px 12px 6px;
     font-size: 0.75em; text-transform: uppercase;
@@ -607,6 +671,28 @@ tbody tr.placeholder-row td { border-bottom: 1px solid rgba(255,255,255,0.03); }
 
 <div id="toast"></div>
 
+<!-- Custom keypad — touch/tally mode only -->
+<div id="custom-keypad">
+  <div class="keypad-grid">
+    <button class="kp-btn" onclick="kpDigit('1')">1</button>
+    <button class="kp-btn" onclick="kpDigit('2')">2</button>
+    <button class="kp-btn" onclick="kpDigit('3')">3</button>
+    <button class="kp-btn" onclick="kpDigit('4')">4</button>
+    <button class="kp-btn" onclick="kpDigit('5')">5</button>
+    <button class="kp-btn" onclick="kpDigit('6')">6</button>
+    <button class="kp-btn" onclick="kpDigit('7')">7</button>
+    <button class="kp-btn" onclick="kpDigit('8')">8</button>
+    <button class="kp-btn" onclick="kpDigit('9')">9</button>
+    <button class="kp-btn kp-back" onclick="kpBack()">⌫</button>
+    <button class="kp-btn" onclick="kpDigit('0')">0</button>
+    <button class="kp-btn kp-done" onclick="kpDone()">✓</button>
+  </div>
+  <div class="kp-row2">
+    <button class="kp-done" onclick="kpDone()">Done</button>
+    <button class="kp-newround" id="kp-newround-btn" onclick="kpNewRound()" disabled>New Round ▶</button>
+  </div>
+</div>
+
 <script>
 // == Storage ========================================================
 var KEY  = 'pockets-v1';
@@ -623,6 +709,116 @@ function loadDB() {
 }
 function saveDB() { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch(e){} }
 function saveCur() { try { localStorage.setItem(CKEY, JSON.stringify(rounds)); } catch(e){} }
+
+// ── Previous save hint ─────────────────────────────────────────────
+function showPrevSaveHint(color, val) {
+    var id = color === 'blue' ? 'prev-save-blue' : 'prev-save-red';
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = 'Prev save: ' + val;
+    el.classList.add('visible');
+}
+function hidePrevSaveHint(color) {
+    var id = color === 'blue' ? 'prev-save-blue' : 'prev-save-red';
+    var el = document.getElementById(id);
+    if (el) { el.classList.remove('visible'); el.textContent = ''; }
+}
+
+// ── Custom keypad (touch/tally only) ──────────────────────────────
+var kpActiveInput = null;
+var kpIsTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+function kpInit() {
+    if (!kpIsTouch) return;
+    var kp = document.getElementById('custom-keypad');
+    if (kp) kp.classList.add('keypad-visible');
+    // Select first empty score cell
+    var cells = document.querySelectorAll('#tbody input.score-input');
+    if (cells.length) kpFocus(cells[0]);
+}
+
+function kpFocus(input) {
+    if (kpActiveInput) kpActiveInput.classList.remove('kp-active-cell');
+    kpActiveInput = input;
+    if (input) {
+        input.classList.add('kp-active-cell');
+        input.readOnly = true;
+        input.blur();
+    }
+    kpUpdateNewRound();
+}
+
+function kpDigit(d) {
+    if (!kpActiveInput) return;
+    var cur = kpActiveInput.value;
+    var next = cur + d;
+    var rdIdx = getRDIdx();
+    var idx = parseInt(kpActiveInput.dataset.idx);
+    var isRD = (rdIdx >= 0 && idx === rdIdx);
+    var cap = isRD ? 40 : 23;
+    if (parseInt(next) > cap) next = String(cap);
+    kpActiveInput.value = next;
+    // Trigger the input event so scoring updates
+    kpActiveInput.dispatchEvent(new Event('input'));
+    kpUpdateNewRound();
+}
+
+function kpBack() {
+    if (!kpActiveInput) return;
+    kpActiveInput.value = kpActiveInput.value.slice(0, -1);
+    kpActiveInput.dispatchEvent(new Event('input'));
+    kpUpdateNewRound();
+}
+
+function kpDone() {
+    if (kpActiveInput) {
+        kpActiveInput.dispatchEvent(new Event('change'));
+        kpActiveInput.classList.remove('kp-active-cell');
+        kpActiveInput = null;
+    }
+}
+
+function kpNewRound() {
+    var btn = document.getElementById('kp-newround-btn');
+    if (btn && btn.disabled) return;
+    kpDone();
+    // Trigger adding a new round — same as makeCell's blur handler
+    var lastRow = rounds[rounds.length - 1];
+    if (lastRow && lastRow.p1 !== null && lastRow.p2 !== null) {
+        rounds.push({p1:null, p2:null});
+        renderSheet();
+        saveCur();
+        // Focus first input of new round
+        setTimeout(function() {
+            var cells = document.querySelectorAll('#tbody input.score-input');
+            var empties = Array.from(cells).filter(function(c){ return c.value === ''; });
+            if (empties.length) kpFocus(empties[0]);
+        }, 100);
+    }
+}
+
+function kpUpdateNewRound() {
+    var btn = document.getElementById('kp-newround-btn');
+    if (!btn) return;
+    var lastRow = rounds[rounds.length - 1];
+    var bothFilled = lastRow && lastRow.p1 !== null && lastRow.p2 !== null;
+    btn.disabled = !bothFilled;
+}
+
+// Wire score cells to keypad focus on touch
+function kpWireInputs() {
+    if (!kpIsTouch) return;
+    var cells = document.querySelectorAll('#tbody input.score-input');
+    cells.forEach(function(inp) {
+        inp.readOnly = true;
+        inp.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            kpFocus(inp);
+        }, {passive:false});
+        inp.addEventListener('click', function() { kpFocus(inp); });
+    });
+}
+
 function loadCur() { try { var d=JSON.parse(localStorage.getItem(CKEY)); if(d&&d.length) return d; } catch(e){} return null; }
 function clearCur() { try { localStorage.removeItem(CKEY); } catch(e){} }
 
@@ -885,6 +1081,7 @@ function renderSheet() {
         tbody.appendChild(etr);
     }
     updateTotals();
+    if (kpIsTouch) { kpWireInputs(); kpUpdateNewRound(); }
 }
 
 function makeCell(idx, player, cls, isRD) {
@@ -1051,11 +1248,13 @@ function doSwitchMode() {
     var btn = document.getElementById('btn-mode');
     var ms  = document.getElementById('manual-section');
     var dw  = document.getElementById('dice-wrap');
+    var kp  = document.getElementById('custom-keypad');
     if (!diceMode) {
         diceMode = true;
         btn.textContent  = 'Switch to Tally Mode';
         ms.style.display = 'none';
         dw.className     = 'on tablet';
+        if (kp) kp.classList.remove('keypad-visible');
         rounds = [{p1:null, p2:null}];
         dv = {bk1:null,bk2:null,bdie3:null,bdie4:null,bsave:null,rk1:null,rk2:null,rdie3:null,rdie4:null,rsave:null,takeB:null,takeR:null};
         savedBSave=null; savedRSave=null;
@@ -1069,6 +1268,7 @@ function doSwitchMode() {
         rounds = [{p1:null, p2:null}];
         clearCur();
         renderSheet();
+        if (kpIsTouch && kp) kp.classList.add('keypad-visible');
     }
 }
 
@@ -1104,10 +1304,16 @@ function buildDiceBoard() {
     // Side columns: RD1/RD2/Save in RD mode, Keep1/Keep2/Save in regular
     bk.appendChild(makePocket('blue-pocket','bk1', isRD?'RD 1':'Keep 1','blue',true));
     bk.appendChild(makePocket('blue-pocket','bk2', isRD?'RD 2':'Keep 2','blue',true));
+    var bHint = document.createElement('div');
+    bHint.id = 'prev-save-blue'; bHint.className = 'prev-save-hint blue-hint';
+    bk.appendChild(bHint);
     bk.appendChild(makePocket('blue-pocket','bsave','Save','blue',true));
 
     rk.appendChild(makePocket('red-pocket','rk1', isRD?'RD 1':'Keep 1','red',true));
     rk.appendChild(makePocket('red-pocket','rk2', isRD?'RD 2':'Keep 2','red',true));
+    var rHint = document.createElement('div');
+    rHint.id = 'prev-save-red'; rHint.className = 'prev-save-hint red-hint';
+    rk.appendChild(rHint);
     rk.appendChild(makePocket('red-pocket','rsave','Save','red',true));
 
     // Pre-fill save values in Rolldown
@@ -1262,7 +1468,12 @@ function makeNumBtn(n, key, color) {
     btn.className = 'num-btn '+(color==='blue'?'blue-btn':'red-btn');
     btn.textContent = n;
     btn.dataset.key = key; btn.dataset.val = n;
-    (function(k,v,c){ btn.addEventListener('click', function(){ tapDie(k,v,c); }); })(key,n,color);
+    (function(k,v,c){ btn.addEventListener('click', function(){
+        tapDie(k,v,c);
+        // Hide prev save hint when player taps a number in Save pocket
+        if (k === 'bsave') hidePrevSaveHint('blue');
+        if (k === 'rsave') hidePrevSaveHint('red');
+    }); })(key,n,color);
     return btn;
 }
 
@@ -1495,15 +1706,23 @@ function hideFlashCard() {
     el.style.pointerEvents = 'none';
     el.style.cursor = 'default';
     el.onclick = null;
+    el.classList.remove('flash-active');
+    var dw = document.getElementById('dice-wrap');
+    if (dw) dw.classList.remove('flash-blocking');
 }
 function onRoundDismiss() {
     hideFlashCard();
+    var prevBSave = dv.bsave;
+    var prevRSave = dv.rsave;
     savedBSave = dv.bsave; savedRSave = dv.rsave;
     dv = {bk1:null,bk2:null,bdie3:null,bdie4:null,bsave:null,rk1:null,rk2:null,rdie3:null,rdie4:null,rsave:null,takeB:null,takeR:null};
     var rdIdx = getRDIdx();
     var rdDone = rdIdx >= 0 && rounds[rdIdx] && rounds[rdIdx].p1!==null && rounds[rdIdx].p2!==null;
     if (rdDone) { showWinnerCard(rdIdx); return; }
     buildDiceBoard();
+    // Show previous save hints after board rebuilds
+    if (prevBSave !== null) { showPrevSaveHint('blue', prevBSave); }
+    if (prevRSave !== null) { showPrevSaveHint('red',  prevRSave); }
     var lastR = rounds[rounds.length-1];
     if (rdIdx >= 0 && rounds.length-1 === rdIdx && lastR.p1===null && lastR.p2===null) {
         setTimeout(function(){
@@ -1588,7 +1807,10 @@ function finalizeRound() {
     el.style.display = 'block';
     el.style.cursor = 'pointer';
     el.style.pointerEvents = 'auto';
+    el.classList.add('flash-active');
     el.onclick = onRoundDismiss;
+    var dw = document.getElementById('dice-wrap');
+    if (dw) dw.classList.add('flash-blocking');
 }
 
 // == Save / New game ================================================
@@ -1770,6 +1992,12 @@ if(cur&&cur.length) rounds=cur;
 updateNameSelects();
 renderSheet();
 applyOrientationMode();
+// Show custom keypad on touch devices (tally mode only, permanent)
+if (kpIsTouch && !diceMode) {
+    var kp = document.getElementById('custom-keypad');
+    if (kp) kp.classList.add('keypad-visible');
+    kpUpdateNewRound();
+}
 </script>
 </body>
 </html>
