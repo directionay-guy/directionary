@@ -8,6 +8,15 @@
     <meta name="apple-mobile-web-app-title" content="POCKETS">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POCKETS — Keep. Take. Save. Win.</title>
+
+    <!-- Google Analytics — replace G-XXXXXXXXXX with your measurement ID -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX');
+    </script>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -1444,7 +1453,8 @@ const themeSelector = document.getElementById('themeSelector');
   <ol>
     <li><strong>Roll-Off:</strong> Each player rolls one die — higher number goes first in placement. Ties roll again.</li>
     <li><strong>Roll Dice:</strong> Both players roll their dice — 4 in Round 1, then 3 fresh dice each subsequent round (your saved die is the fourth).</li>
-    <li><strong>Place Dice:</strong> Players alternate placing one die at a time into pockets.</li>
+    <li><strong>Place Dice:</strong> Players alternate placing one die at a time into pockets. Any die, any pocket, any order — the choice is yours each turn.</li>
+    <li><strong>Selection is not placement:</strong> You may pick up a die, change your mind, and pick up a different one as many times as you like. Once a die is placed in a pocket it is permanent — no changes after placement. In the digital game: tap a die to select it, tap another to change your mind, tap a pocket to lock it in.</li>
     <li><strong>Score Round:</strong> Points calculated. If either player has crossed 100, the Rolldown button appears.</li>
   </ol>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
