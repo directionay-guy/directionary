@@ -417,6 +417,14 @@ body.theme-bitmap {
     fill: var(--bm-red-panel);  stroke: var(--bm-red);  stroke-width: 1.5;
 }
 .theme-bitmap .player-area.red  svg.dice .dice-dot { fill: var(--bm-red);  }
+.theme-bitmap .dice.selected {
+    transform: translateY(-5px) !important;
+    box-shadow: 2px 2px 0 #000, 0 0 0 2px #000 !important;
+    outline: 2px solid #000;
+    transition: transform 0.1s ease !important;
+    animation: none !important;
+}
+.theme-bitmap .dice.selected:hover { transform: translateY(-5px) !important; }
 
 /* ==========================================================
    POCKETS
@@ -493,14 +501,14 @@ body.theme-bitmap {
 .theme-bitmap .pocket-dice svg.dice { flex-shrink: 0; }
 .theme-bitmap .pocket-score { color: var(--mac-black) !important; }
 .theme-bitmap .take-pocket .pocket-score {
-    position: absolute; top: 3px; min-width: 18px; min-height: auto;
+    position: absolute; top: 3px; right: 4px; left: auto; min-width: 18px; min-height: auto;
     padding: 1px 4px; margin: 0; font-family: inherit; font-size: 0.8em;
     background: var(--mac-white); border: var(--bm-line);
     box-shadow: 1px 1px 0 #000;
 }
 .theme-bitmap .take-pocket .pocket-score:empty { display: none; }
-.theme-bitmap .player-area.blue .take-pocket .pocket-score { left:  4px; right: auto; }
-.theme-bitmap .player-area.red  .take-pocket .pocket-score { right: 4px; left:  auto; }
+.theme-bitmap .player-area.blue .take-pocket .pocket-score { right: 4px; left: auto; }
+.theme-bitmap .player-area.red  .take-pocket .pocket-score { right: 4px; left: auto; }
 
 /* ==========================================================
    BONUS LEGEND
