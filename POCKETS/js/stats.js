@@ -327,8 +327,10 @@ function generateGameOddsHTML() {
         <div class="stat-row"><span>Straight (5 in sequence):</span><span class="stat-value">~7.7%</span></div>
         <div class="stat-row"><span>4 of a kind:</span><span class="stat-value">~2.3%</span></div>
         <div class="stat-row"><span>5 of a kind:</span><span class="stat-value">~0.08%</span></div>
-        <div class="stat-row"><span>Max score (five 6s + bonus):</span><span class="stat-value">40 pts</span></div>
-        <div class="stat-row"><span>Min score (five 1s, no combo):</span><span class="stat-value">5 pts</span></div>
+        <div class="stat-row"><span>Max score — regular round (two 6s Keep + win Take by 5 + straight bonus):</span><span class="stat-value">22 pts</span></div>
+        <div class="stat-row"><span>Min score — regular round (two 1s Keep, lose Take, no combo):</span><span class="stat-value">2 pts</span></div>
+        <div class="stat-row"><span>Max score — Rolldown (five 6s + 5-of-a-kind bonus):</span><span class="stat-value">40 pts</span></div>
+        <div class="stat-row"><span>Min score — Rolldown (five 1s, no combo):</span><span class="stat-value">5 pts</span></div>
     </div>
 
     <div class="stat-card">
