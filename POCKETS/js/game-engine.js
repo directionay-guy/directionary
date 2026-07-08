@@ -1436,8 +1436,8 @@ function displayRoundScores(blueKeep, blueBonus, blueCombo,
     var blueText = 'Round Score: ' + (blueKeep + blueBonus) + ' pts';
     if (blueBonus > 0) {
         blueText += '<br>Keep: ' + blueKeep + ', Take: ' + (blueBonus - blueCombo);
-        if (blueCombo > 0) { blueText += ', Bonus: ' + blueCombo; }
-        else if (isBitmap) { blueText += ', Bonus: 0'; }
+        if (blueCombo > 0) { blueText += '<br>Bonus: ' + blueCombo; }
+        else if (isBitmap)  { blueText += '<br>Bonus: 0'; }
     } else {
         blueText += '<br>Keep: ' + blueKeep;
         if (isBitmap) { blueText += '<br>Bonus: 0'; }
@@ -1450,8 +1450,8 @@ function displayRoundScores(blueKeep, blueBonus, blueCombo,
     var redText = 'Round Score: ' + (redKeep + redBonus) + ' pts';
     if (redBonus > 0) {
         redText += '<br>Keep: ' + redKeep + ', Take: ' + (redBonus - redCombo);
-        if (redCombo > 0) { redText += ', Bonus: ' + redCombo; }
-        else if (isBitmap) { redText += ', Bonus: 0'; }
+        if (redCombo > 0) { redText += '<br>Bonus: ' + redCombo; }
+        else if (isBitmap)  { redText += '<br>Bonus: 0'; }
     } else {
         redText += '<br>Keep: ' + redKeep;
         if (isBitmap) { redText += '<br>Bonus: 0'; }
