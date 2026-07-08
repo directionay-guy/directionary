@@ -617,7 +617,7 @@ body.theme-art-deco::before {
     color: var(--pearl);
     padding: 4px 12px;
     margin-top: 6px;
-    height: 38px;
+    min-height: 38px;
     font-family: 'Poiret One', sans-serif;
     letter-spacing: 0.1em;
     font-size: 0.85em;
