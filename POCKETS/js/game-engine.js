@@ -449,8 +449,12 @@ function setPlayerColor(color) {
     // Update rolloff die aria-labels for accessibility
     var blueDieBtn = document.getElementById('blueRolloffDie');
     var redDieBtn  = document.getElementById('redRolloffDie');
-    if (blueDieBtn) { blueDieBtn.setAttribute('aria-label', colorLabel(color === 'red' ? 'blue' : 'blue') + ': roll for first player'); }
-    if (redDieBtn)  { redDieBtn.setAttribute('aria-label',  'AI: roll for first player'); }
+    if (blueDieBtn) { blueDieBtn.setAttribute('aria-label', colorLabel('blue') + ': roll for first player'); }
+    if (redDieBtn)  { redDieBtn.setAttribute('aria-label',  color === 'red' ? 'AI: roll for first player' : colorLabel('red') + ': roll for first player'); }
+
+    // Re-render rolloff dice with correct colors for this color assignment
+    if (blueDieBtn && blueDieBtn.innerHTML) { setRolloffDieFadedInPlace(blueDieBtn); }
+    if (redDieBtn  && redDieBtn.innerHTML)  { setRolloffDieFadedInPlace(redDieBtn);  }
 
     var blueBtn = document.getElementById('playAsBlue');
     var redBtn  = document.getElementById('playAsRed');
@@ -853,6 +857,26 @@ function setRolloffDieFadedInPlace(buttonEl) {
     buttonEl.innerHTML = '';
     buttonEl.classList.add('faded');
     buttonEl.appendChild(createDieSVG(1, 'rolloff-' + buttonEl.id, false));
+    // Apply color swap if playing as Red
+    if (gameState.humanColor === 'red') {
+        var isBlueButton = (buttonEl.id === 'blueRolloffDie');
+        var cs = getComputedStyle(document.body);
+        var isBitmap = document.body.classList.contains('theme-bitmap');
+        var humanFace = isBitmap ? '#f4dddd' : (cs.getPropertyValue('--burgundy').trim() || '#6e3030');
+        var aiFace    = isBitmap ? '#dde4f4' : (cs.getPropertyValue('--navy').trim()     || '#2a3559');
+        var humanDot  = isBitmap ? '#800000' : (cs.getPropertyValue('--gold-pale').trim() || '#c8a84b');
+        var aiDot     = isBitmap ? '#000080' : (cs.getPropertyValue('--gold-pale').trim() || '#c8a84b');
+        var svg = buttonEl.querySelector('svg');
+        if (svg) {
+            var face = svg.querySelector('.dice-face');
+            if (face) {
+                face.setAttribute('style', 'fill:' + (isBlueButton ? humanFace : aiFace) + ' !important; stroke:' + (isBlueButton ? humanDot : aiDot) + ' !important;');
+            }
+            svg.querySelectorAll('.dice-dot').forEach(function(d) {
+                d.setAttribute('style', 'fill:' + (isBlueButton ? humanDot : aiDot) + ' !important;');
+            });
+        }
+    }
     // Intentionally keeps parked-left / parked-right — dice stay at sides
 }
 
@@ -1031,7 +1055,8 @@ function resolveRolloff() {
         }
 
         if (gameMode === 'ai') {
-            document.getElementById('redRoll').textContent = '🤖 AI Will Roll';
+            var aiRollId = humanIsRed ? 'blueRoll' : 'redRoll';
+            document.getElementById(aiRollId).textContent = '🤖 AI Will Roll';
             if (winner === 'red') {
                 setTimeout(function() { rollPlayerDice('red'); }, 500);
             }
@@ -1080,7 +1105,7 @@ function rollPlayerDice(player) {
 
     if (player === 'blue') {
         btn.textContent = colorEmoji('blue') + ' ' + colorLabel('blue') + ' Rolled';
-    } else if (gameMode === 'ai') {
+    } else if (gameMode === 'ai' && gameState.humanColor !== 'red') {
         btn.textContent = '🤖 AI Rolled';
     } else {
         btn.textContent = colorEmoji('red') + ' ' + colorLabel('red') + ' Rolled';
@@ -1089,9 +1114,13 @@ function rollPlayerDice(player) {
     // Enable the other player's button now it's their turn to roll
     var otherColor = (player === 'blue') ? 'red' : 'blue';
     var otherBtn   = document.getElementById(otherColor + 'Roll');
+    var otherIsAI  = (gameMode === 'ai') && (
+        (otherColor === 'red'  && gameState.humanColor !== 'red') ||
+        (otherColor === 'blue' && gameState.humanColor === 'red')
+    );
     if (otherBtn && !gameState[otherColor + 'Rolled']) {
         otherBtn.disabled = false;
-        if (!(gameMode === 'ai' && otherColor === 'red')) {
+        if (!otherIsAI) {
             otherBtn.classList.add('roll-prompt-pulse');
         }
     }
