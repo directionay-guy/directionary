@@ -858,7 +858,7 @@ body.theme-cosmic::after {
     color: var(--cream);
     padding: 4px 12px;
     margin-top: 6px;
-    height: 38px;
+    min-height: 38px;
     font-family: 'Comfortaa', sans-serif;
     letter-spacing: 0.05em;
     font-size: 0.88em;
