@@ -355,19 +355,26 @@ function restoreGameFromSave(saved) {
         if (typeof brightenPlaceholderDice === 'function') { brightenPlaceholderDice(); }
         var blueRollBtn = document.getElementById('blueRoll');
         var redRollBtn  = document.getElementById('redRoll');
+        var humanIsRed  = (gameState.humanColor === 'red');
         if (blueRollBtn) {
             blueRollBtn.disabled = !!gameState.blueRolled;
             blueRollBtn.classList.remove('roll-prompt-pulse');
             blueRollBtn.classList.remove('hidden');
-            blueRollBtn.textContent = gameState.blueRolled
-                ? (colorEmoji('blue') + ' ' + colorLabel('blue') + ' Rolled')
-                : (colorEmoji('blue') + ' ' + colorLabel('blue') + ' Roll Dice');
+            if (gameMode === 'ai' && humanIsRed) {
+                // Human is red, so blue button is the AI
+                blueRollBtn.textContent = gameState.blueRolled ? '🤖 AI Rolled' : '🤖 AI Will Roll';
+            } else {
+                blueRollBtn.textContent = gameState.blueRolled
+                    ? (colorEmoji('blue') + ' ' + colorLabel('blue') + ' Rolled')
+                    : (colorEmoji('blue') + ' ' + colorLabel('blue') + ' Roll Dice');
+            }
         }
         if (redRollBtn) {
             redRollBtn.disabled = !!gameState.redRolled;
             redRollBtn.classList.remove('roll-prompt-pulse');
             redRollBtn.classList.remove('hidden');
-            if (gameMode === 'ai') {
+            if (gameMode === 'ai' && !humanIsRed) {
+                // Human is blue, so red button is the AI
                 redRollBtn.textContent = gameState.redRolled ? '🤖 AI Rolled' : '🤖 AI Will Roll';
             } else {
                 redRollBtn.textContent = gameState.redRolled
@@ -377,7 +384,9 @@ function restoreGameFromSave(saved) {
         }
         var pulseColor = (gameState.currentPlayer === 'blue' && !gameState.blueRolled) ? 'blue'
                         : (gameState.currentPlayer === 'red'  && !gameState.redRolled)  ? 'red' : null;
-        if (pulseColor && !(gameMode === 'ai' && pulseColor === 'red')) {
+        // Don't pulse the AI's button
+        var aiColor = gameMode === 'ai' ? (humanIsRed ? 'blue' : 'red') : null;
+        if (pulseColor && pulseColor !== aiColor) {
             var pulseBtn = document.getElementById(pulseColor + 'Roll');
             if (pulseBtn) { pulseBtn.classList.add('roll-prompt-pulse'); }
         }
@@ -1015,7 +1024,9 @@ function resolveRolloff() {
         // Dim non-first player's button — winner of rolloff goes first
         var secondColor = (winner === 'blue') ? 'red' : 'blue';
         document.getElementById(secondColor + 'Roll').disabled = true;
-        if (!(gameMode === 'ai' && winner === 'red')) {
+        var humanIsRed = (gameState.humanColor === 'red');
+        var aiColor = gameMode === 'ai' ? (humanIsRed ? 'blue' : 'red') : null;
+        if (!(gameMode === 'ai' && winner === aiColor)) {
             document.getElementById(winner + 'Roll').classList.add('roll-prompt-pulse');
         }
 
@@ -1806,11 +1817,11 @@ function resetRollButtons() {
     redBtn.classList.toggle('blue-btn',   humanIsRed);
 
     blueBtn.disabled    = false;
-    blueBtn.textContent = colorLabel('blue') + ' Roll Dice';
+    blueBtn.textContent = colorEmoji('blue') + ' ' + colorLabel('blue') + ' Roll Dice';
     blueBtn.classList.add('hidden');
 
     redBtn.disabled    = false;
-    redBtn.textContent = colorLabel('red') + ' Roll Dice';
+    redBtn.textContent = colorEmoji('red') + ' ' + colorLabel('red') + ' Roll Dice';
     redBtn.classList.add('hidden');
 }
 
