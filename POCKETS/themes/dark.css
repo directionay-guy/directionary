@@ -634,7 +634,7 @@ body.theme-dark {
     color: var(--white);
     padding: 4px 12px;
     margin-top: 6px;
-    height: 38px;
+    min-height: 38px;
     font-size: 0.88em;
     display: flex; align-items: center; justify-content: center;
 }
