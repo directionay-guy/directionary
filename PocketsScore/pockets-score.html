@@ -384,6 +384,7 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 #custom-keypad {
     display:none;
     position:fixed; bottom:68px; left:8px; right:8px;
+    max-width: 420px; margin: 0 auto;
     background:#f0ede6; border:1px solid #b8a88a;
     border-radius:10px; padding:6px;
     box-shadow:0 4px 18px rgba(0,0,0,0.45);
@@ -814,7 +815,6 @@ function kpDigit(d) {
     var cap = isRD ? 40 : 23;
     if (parseInt(next) > cap) next = String(cap);
     kpActiveInput.value = next;
-    // Trigger the input event so scoring updates
     kpActiveInput.dispatchEvent(new Event('input'));
     kpUpdateNewRound();
 }
@@ -827,24 +827,34 @@ function kpBack() {
 }
 
 function kpDone() {
-    if (kpActiveInput) {
-        kpActiveInput.dispatchEvent(new Event('change'));
-        kpActiveInput.classList.remove('kp-active-cell');
-        kpActiveInput = null;
+    if (!kpActiveInput) return;
+    var rdIdx = getRDIdx();
+    var idx = parseInt(kpActiveInput.dataset.idx);
+    var isRD = (rdIdx >= 0 && idx === rdIdx);
+    var minVal = isRD ? 11 : 2;
+    var v = parseInt(kpActiveInput.value);
+    if (!isNaN(v) && v < minVal) {
+        kpActiveInput.value = String(minVal);
+        kpActiveInput.dispatchEvent(new Event('input'));
     }
+    kpActiveInput.dispatchEvent(new Event('change'));
+    kpActiveInput.classList.remove('kp-active-cell');
+    kpActiveInput = null;
 }
 
 function kpNewRound() {
     var btn = document.getElementById('kp-newround-btn');
     if (btn && btn.disabled) return;
     kpDone();
-    // Trigger adding a new round — same as makeCell's blur handler
+    var rdIdx = getRDIdx();
+    var rdDone = rdIdx >= 0 && rounds[rdIdx] && rounds[rdIdx].p1 !== null && rounds[rdIdx].p2 !== null;
+    if (rdDone) return; // Game is over — no more rounds
     var lastRow = rounds[rounds.length - 1];
-    if (lastRow && lastRow.p1 !== null && lastRow.p2 !== null) {
+    var isLastRD = rdIdx >= 0 && rounds.length - 1 === rdIdx;
+    if (lastRow && lastRow.p1 !== null && lastRow.p2 !== null && !isLastRD) {
         rounds.push({p1:null, p2:null});
         renderSheet();
         saveCur();
-        // Focus first input of new round
         setTimeout(function() {
             var cells = document.querySelectorAll('#tbody input.score-input');
             var empties = Array.from(cells).filter(function(c){ return c.value === ''; });
@@ -856,9 +866,12 @@ function kpNewRound() {
 function kpUpdateNewRound() {
     var btn = document.getElementById('kp-newround-btn');
     if (!btn) return;
+    var rdIdx = getRDIdx();
+    var rdDone = rdIdx >= 0 && rounds[rdIdx] && rounds[rdIdx].p1 !== null && rounds[rdIdx].p2 !== null;
     var lastRow = rounds[rounds.length - 1];
+    var isLastRD = rdIdx >= 0 && rounds.length - 1 === rdIdx;
     var bothFilled = lastRow && lastRow.p1 !== null && lastRow.p2 !== null;
-    btn.disabled = !bothFilled;
+    btn.disabled = !bothFilled || rdDone || isLastRD;
 }
 
 // Wire score cells to keypad focus on touch
@@ -940,6 +953,15 @@ function showTab(panel, btn) {
     if (panel==='p-hist')   renderHistory();
     if (panel==='p-rec')    { var s=document.getElementById('rec-search'); renderRecords(s?s.value:''); }
     if (panel==='p-signup') renderRoster();
+    // Show keypad only on score sheet tab in tally mode
+    var kp = document.getElementById('custom-keypad');
+    if (kp) {
+        if (panel === 'p-sheet' && kpIsTouch && !diceMode) {
+            kp.classList.add('keypad-visible');
+        } else {
+            kp.classList.remove('keypad-visible');
+        }
+    }
 }
 document.getElementById('t-sheet') .addEventListener('click', function(){ showTab('p-sheet', 't-sheet'); });
 document.getElementById('t-signup').addEventListener('click', function(){ showTab('p-signup','t-signup'); });
