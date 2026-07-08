@@ -127,7 +127,7 @@ tbody tr.rd-row .p1c, tbody tr.rd-row .p2c { background: rgba(180,140,30,0.35); 
 .score-input.kp-active-cell { background: rgba(200,168,75,0.15) !important; border-bottom: 2px solid #c8a84b !important; outline: none; }
 /* Keep bottom rows visible above floating keypad on touch */
 @media (hover: none) and (pointer: coarse) {
-    #manual-section { padding-bottom: 80px; }
+    #manual-section { padding-bottom: 180px; }
 }
 .p1c .score-input { color: #b0d0ff; }
 .p2c .score-input { color: #ffb0b0; }
@@ -343,58 +343,91 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
     width:80%; max-width:320px;
 }
 
-/* Previous save hint */
+/* Previous save hint — absolutely positioned over gap between Keep2 and Save */
+#dice-main-area { position: relative; }
+/* Previous save hints — float in the blue/red space flanking the center column */
 .prev-save-hint {
-    font-size:0.68em; text-align:center; opacity:0; pointer-events:none;
-    transition:opacity 0.3s; padding:2px 0; line-height:1.2;
-    letter-spacing:0.04em;
+    position: absolute;
+    top: calc(var(--ps) * 2 + 14px);
+    width: calc(var(--ps) - 2px);
+    height: var(--ps);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s;
+    z-index: 2;
 }
-.prev-save-hint.visible { opacity:1; }
-.prev-save-hint.blue-hint { color:rgba(144,192,255,0.7); }
-.prev-save-hint.red-hint  { color:rgba(255,85,85,0.7); }
+.prev-save-hint.blue-hint { left: 2px; }
+.prev-save-hint.red-hint  { right: 2px; }
+.prev-save-hint.visible { opacity: 1; }
+.prev-save-hint .hint-word {
+    font-size: 0.55em; letter-spacing: 0.06em;
+    text-transform: uppercase; line-height: 1.3;
+}
+.prev-save-hint .hint-die {
+    width: 55%; flex-shrink: 0;
+}
+.prev-save-hint .hint-die svg { width: 100%; display: block; }
+.prev-save-hint.blue-hint .hint-word { color: rgba(144,192,255,0.4); }
+.prev-save-hint.blue-hint .hint-die svg rect { stroke: rgba(144,192,255,0.35); }
+.prev-save-hint.blue-hint .hint-die svg circle { fill: rgba(144,192,255,0.35); }
+.prev-save-hint.red-hint .hint-word  { color: rgba(255,85,85,0.4); }
+.prev-save-hint.red-hint .hint-die svg rect { stroke: rgba(255,85,85,0.35); }
+.prev-save-hint.red-hint .hint-die svg circle { fill: rgba(255,85,85,0.35); }
 
-/* Custom keypad — compact floating, off-white, touch/tally mode only */
+/* Custom keypad — wide/short, off-white, touch/tally mode only */
 #custom-keypad {
     display:none;
-    position:fixed; bottom:8px; right:8px;
+    position:fixed; bottom:68px; left:8px; right:8px;
     background:#f0ede6; border:1px solid #b8a88a;
     border-radius:10px; padding:6px;
     box-shadow:0 4px 18px rgba(0,0,0,0.45);
-    z-index:800; width:160px;
+    z-index:800;
 }
 #custom-keypad.keypad-visible { display:block; }
-.keypad-grid {
-    display:grid; grid-template-columns:repeat(3,1fr); gap:4px;
-    margin-bottom:4px;
+.keypad-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 52px;
+    grid-template-rows: 44px 44px;
+    gap: 4px;
 }
 .kp-btn {
     background:#fff; color:#1a2744;
     border:1px solid #c8b88a; border-radius:5px;
-    font-family:inherit; font-size:1.1em; font-weight:bold;
-    width:44px; height:44px; cursor:pointer; text-align:center;
+    font-family:inherit; font-size:1.2em; font-weight:bold;
+    cursor:pointer; text-align:center;
     -webkit-tap-highlight-color:transparent;
     transition:background 0.1s;
     display:flex; align-items:center; justify-content:center;
 }
 .kp-btn:active { background:#e8dcc8; }
-.kp-btn.kp-back { font-size:0.95em; color:#888; }
-.kp-row2 { display:grid; grid-template-columns:1fr 1fr; gap:4px; }
+.kp-btn.kp-back { font-size:0.9em; color:#888; }
+.kp-side {
+    grid-column: 6;
+    grid-row: 1 / 3;
+    display: flex; flex-direction: column; gap: 4px;
+}
 .kp-done {
+    flex:1;
     background:#e8e0d0; color:#1a2744;
     border:1px solid #c8b88a; border-radius:5px;
-    font-family:inherit; font-size:0.8em; font-weight:bold;
-    height:32px; cursor:pointer; text-align:center;
+    font-family:inherit; font-size:0.75em; font-weight:bold;
+    cursor:pointer; text-align:center;
     -webkit-tap-highlight-color:transparent;
     display:flex; align-items:center; justify-content:center;
 }
 .kp-done:active { background:#d8ccb8; }
 .kp-newround {
+    flex:2;
     background:#c8e0b8; color:#1a3a0a;
     border:1px solid #88b868; border-radius:5px;
-    font-family:inherit; font-size:0.78em; font-weight:bold;
-    height:32px; cursor:pointer; text-align:center;
+    font-family:inherit; font-size:0.72em; font-weight:bold;
+    cursor:pointer; text-align:center; line-height:1.3;
     -webkit-tap-highlight-color:transparent;
     display:flex; align-items:center; justify-content:center;
+    padding: 2px;
 }
 .kp-newround:active { background:#b0d0a0; }
 .kp-newround:disabled { opacity:0.35; cursor:default; }
@@ -678,9 +711,9 @@ tbody tr.placeholder-row td { border-bottom: 1px solid rgba(255,255,255,0.03); }
 
 <div id="toast"></div>
 
-<!-- Custom keypad — compact floating, off-white, touch/tally mode only -->
+<!-- Custom keypad — wide/short, touch/tally mode only -->
 <div id="custom-keypad">
-  <div class="keypad-grid">
+  <div class="keypad-main">
     <button class="kp-btn" onclick="kpDigit('1')">1</button>
     <button class="kp-btn" onclick="kpDigit('2')">2</button>
     <button class="kp-btn" onclick="kpDigit('3')">3</button>
@@ -692,9 +725,11 @@ tbody tr.placeholder-row td { border-bottom: 1px solid rgba(255,255,255,0.03); }
     <button class="kp-btn" onclick="kpDigit('9')">9</button>
     <button class="kp-btn kp-back" onclick="kpBack()">⌫</button>
     <button class="kp-btn" onclick="kpDigit('0')">0</button>
-    <button class="kp-btn kp-done" onclick="kpDone()">✓</button>
+    <div class="kp-side">
+      <button class="kp-done" onclick="kpDone()">✓</button>
+      <button class="kp-newround" id="kp-newround-btn" onclick="kpNewRound()" disabled>New<br>Round</button>
+    </div>
   </div>
-  <button class="kp-newround" id="kp-newround-btn" onclick="kpNewRound()" disabled style="width:100%;height:32px;">▶ New Round</button>
 </div>
 
 <script>
@@ -719,7 +754,21 @@ function showPrevSaveHint(color, val) {
     var id = color === 'blue' ? 'prev-save-blue' : 'prev-save-red';
     var el = document.getElementById(id);
     if (!el) return;
-    el.textContent = 'Prev save: ' + val;
+    // Build ghosted die SVG
+    var pips = {
+        1:[[50,50]], 2:[[30,30],[70,70]], 3:[[30,30],[50,50],[70,70]],
+        4:[[30,30],[70,30],[30,70],[70,70]],
+        5:[[30,30],[70,30],[50,50],[30,70],[70,70]],
+        6:[[30,26],[70,26],[30,50],[70,50],[30,74],[70,74]]
+    };
+    var dots = (pips[val]||[]).map(function(p){
+        return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="8"/>';
+    }).join('');
+    var svg = '<svg viewBox="0 0 100 100" style="width:100%;display:block;">'
+        + '<rect x="5" y="5" width="90" height="90" rx="16" fill="none" stroke-width="6"/>'
+        + dots + '</svg>';
+    var dieEl = el.querySelector('.hint-die');
+    if (dieEl) dieEl.innerHTML = svg;
     el.classList.add('visible');
 }
 function hidePrevSaveHint(color) {
@@ -1308,17 +1357,27 @@ function buildDiceBoard() {
     // Side columns: RD1/RD2/Save in RD mode, Keep1/Keep2/Save in regular
     bk.appendChild(makePocket('blue-pocket','bk1', isRD?'RD 1':'Keep 1','blue',true));
     bk.appendChild(makePocket('blue-pocket','bk2', isRD?'RD 2':'Keep 2','blue',true));
-    var bHint = document.createElement('div');
-    bHint.id = 'prev-save-blue'; bHint.className = 'prev-save-hint blue-hint';
-    bk.appendChild(bHint);
     bk.appendChild(makePocket('blue-pocket','bsave','Save','blue',true));
 
     rk.appendChild(makePocket('red-pocket','rk1', isRD?'RD 1':'Keep 1','red',true));
     rk.appendChild(makePocket('red-pocket','rk2', isRD?'RD 2':'Keep 2','red',true));
+    rk.appendChild(makePocket('red-pocket','rsave','Save','red',true));
+
+    // Hints float in dice-main-area flanking the center column at Save pocket level
+    var mainArea = document.getElementById('dice-main-area');
+    // Remove old hints if any
+    ['prev-save-blue','prev-save-red'].forEach(function(id){
+        var old = document.getElementById(id);
+        if (old) old.parentNode.removeChild(old);
+    });
+    var bHint = document.createElement('div');
+    bHint.id = 'prev-save-blue'; bHint.className = 'prev-save-hint blue-hint';
+    bHint.innerHTML = '<span class="hint-word">Previous</span><span class="hint-word">Saved</span><div class="hint-die"></div>';
+    mainArea.appendChild(bHint);
     var rHint = document.createElement('div');
     rHint.id = 'prev-save-red'; rHint.className = 'prev-save-hint red-hint';
-    rk.appendChild(rHint);
-    rk.appendChild(makePocket('red-pocket','rsave','Save','red',true));
+    rHint.innerHTML = '<span class="hint-word">Previous</span><span class="hint-word">Saved</span><div class="hint-die"></div>';
+    mainArea.appendChild(rHint);
 
     // Pre-fill save values in Rolldown
     if (isRD && savedBSave!==null) { preTapPocket('bsave', savedBSave, 'blue'); lockPocket('bsave'); }
