@@ -1,1697 +1,2231 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="POCKETS">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POCKETS — Keep. Take. Save. Win.</title>
+// POCKETS GAME ENGINE
+// Variable rounds — Finale triggers when a player crosses 100pts
+//
+// DEV NOTE — to future Claude:
+// Do NOT compress or minify this file. Do NOT chain ternaries.
+// Do NOT use forEach for multi-step logic. Do NOT combine declarations.
+// Write one statement per line. This file has repeatedly broken when
+// "optimized" for brevity. Readability = reliability here.
 
-    <!-- Google Analytics — replace G-XXXXXXXXXX with your measurement ID -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-XXXXXXXXXX');
-    </script>
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            font-family: 'Georgia', serif;
-            margin: 0; padding: 20px;
-            min-height: 100vh;
-            transition: all 0.3s ease;
-        }
-        .hidden { display: none !important; }
-        .stats-panel { display: block; padding: 16px; margin-top: 8px; }
-        .dice { transition: all 0.3s ease; cursor: pointer; }
-        .dice:hover { transform: translateY(-3px); }
-        .pocket { transition: all 0.3s ease; cursor: pointer; }
-        .btn {
-            padding: 12px 24px; border-radius: 8px;
-            font-weight: bold; cursor: pointer;
-            transition: all 0.3s ease; border: none;
-        }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+let gameMode = '2player';
+let aiDifficulty = 'easy';
+let aiThinking = false;
 
-        /* ── Max width + centering ── */
-        .game-container {
-            max-width: 960px;
-            margin: 0 auto;
-            width: 100%;
-            position: relative;
-        }
+let gameState = {
+    round: 1,
+    currentPlayer: 'blue',
+    phase: 'rolling',
+    firstPlayer: null,
+    blueDice: [],
+    redDice: [],
+    blueOriginalRoll: [],
+    redOriginalRoll: [],
+    blueSavedDie: null,
+    redSavedDie: null,
+    blueScore: 0,
+    redScore: 0,
+    selectedDie: null,
+    diceToPlace: 8,
+    placementTurn: 0,
+    roundScores: { blue: {}, red: {} },
+    blueRolled: false,
+    redRolled: false,
+    blueFinalRolled: false,
+    redFinalRolled: false,
+    finaleMode: false,
+    finaleRolls: { blue: [], red: [] },
+    finaleCurrentPlayer: 'blue',
+    humanColor: 'blue'
+};
 
-        /* ── Help & Strategy modal — clean legible style for all themes except dark ── */
-        body:not(.theme-dark) #helpModal .modal-content,
-        body:not(.theme-dark) #strategyModal .modal-content {
-            background: #f8f7f4 !important;
-            color: #1a1a1a !important;
-            border: 1px solid #ccc !important;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.18) !important;
-            font-family: Georgia, 'Times New Roman', serif !important;
-        }
-        body:not(.theme-dark) #helpModal .modal-header,
-        body:not(.theme-dark) #strategyModal .modal-header {
-            background: #2a2a2a !important;
-            color: #f0f0f0 !important;
-            border-bottom: 1px solid #444 !important;
-            font-family: Georgia, serif !important;
-        }
-        body:not(.theme-dark) #helpModal .modal-close,
-        body:not(.theme-dark) #strategyModal .modal-close {
-            color: #f0f0f0 !important;
-            opacity: 0.85;
-        }
-        body:not(.theme-dark) #helpModal .modal-close:hover,
-        body:not(.theme-dark) #strategyModal .modal-close:hover {
-            opacity: 1;
-            background: rgba(255,255,255,0.15) !important;
-        }
-        body:not(.theme-dark) #helpModal .modal-body,
-        body:not(.theme-dark) #strategyModal .modal-body,
-        body:not(.theme-dark) #helpContent,
-        body:not(.theme-dark) #strategyContent {
-            background: #f8f7f4 !important;
-            color: #1a1a1a !important;
-            font-family: Georgia, 'Times New Roman', serif !important;
-            font-size: 1em !important;
-            font-weight: normal !important;
-            line-height: 1.7 !important;
-        }
-        body:not(.theme-dark) #helpContent h3,
-        body:not(.theme-dark) #helpContent h4,
-        body:not(.theme-dark) #strategyContent h3,
-        body:not(.theme-dark) #strategyContent h4 {
-            color: #2a2a2a !important;
-            font-family: Georgia, serif !important;
-            font-weight: bold !important;
-            border-bottom: 1px solid #ccc !important;
-        }
-        body:not(.theme-dark) #helpContent p,
-        body:not(.theme-dark) #helpContent li,
-        body:not(.theme-dark) #strategyContent p,
-        body:not(.theme-dark) #strategyContent li {
-            color: #1a1a1a !important;
-            font-weight: normal !important;
-        }
-        body:not(.theme-dark) #helpContent strong,
-        body:not(.theme-dark) #strategyContent strong {
-            color: #111 !important;
-            font-weight: bold !important;
-        }
-        body:not(.theme-dark) #helpContent .help-combo-table td,
-        body:not(.theme-dark) #strategyContent .help-combo-table td {
-            color: #1a1a1a !important;
-            border-bottom: 1px solid #ddd !important;
-        }
-        body:not(.theme-dark) #helpContent .help-combo-table td:last-child,
-        body:not(.theme-dark) #strategyContent .help-combo-table td:last-child {
-            color: #800000 !important;
-            font-weight: bold !important;
-        }
-        body:not(.theme-dark) #helpContent .guide-nav-btn,
-        body:not(.theme-dark) #strategyContent .guide-nav-btn {
-            background: #fff !important;
-            color: #000080 !important;
-            border: 1px solid #999 !important;
-        }
-        body:not(.theme-dark) #helpContent .guide-back-top,
-        body:not(.theme-dark) #strategyContent .guide-back-top {
-            display: inline-block;
-            color: #444 !important;
-            background: #e8e4dc !important;
-            border: 1px solid #bbb !important;
-            padding: 2px 10px !important;
-            font-size: 0.82em !important;
-            text-decoration: none !important;
-            border-radius: 3px;
-        }
-        body:not(.theme-dark) #helpContent .guide-back-top:hover,
-        body:not(.theme-dark) #strategyContent .guide-back-top:hover {
-            background: #d8d4cc !important;
-            color: #111 !important;
-        }
-        body:not(.theme-dark) #helpContent .help-section,
-        body:not(.theme-dark) #strategyContent .help-section {
-            background: transparent !important;
-            border-color: #ddd !important;
-        }
-        .theme-selector-wrap {
-            display: inline-flex; align-items: center; gap: 4px; vertical-align: middle;
-        }
-        .theme-icon-glow {
-            font-size: 1.1em;
-            filter: drop-shadow(0 0 5px rgba(210, 210, 230, 0.8)) drop-shadow(0 0 2px rgba(255,255,255,0.5));
-            line-height: 1;
-            pointer-events: none;
-            user-select: none;
-        }
-        
-select.theme-subtitle {
-            appearance: none; -webkit-appearance: none;
-            background-color: transparent; border: none; color: inherit;
-            font: inherit; text-align: center; text-align-last: center;
-            cursor: pointer; padding: 4px 26px 4px 10px; margin: 0 auto;
-            display: block; outline: none; transition: opacity 0.2s ease;
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'><path fill='%23ffffff' opacity='0.95' d='M1 1l5 6 5-6'/></svg>") !important;
-            background-repeat: no-repeat; background-position: right 6px center;
-            background-size: 12px !important;
-        }
-        select.theme-subtitle:hover { opacity: 0.82; }
-        select.theme-subtitle option { background: #f5f3ee; color: #1a1a1a; font-weight: normal; }
+// =============================================================================
+// SVG DIE FACTORY
+// =============================================================================
 
-        /* ── Modal overlay ── */
-        .modal-overlay {
-            position: fixed; inset: 0;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 600; padding: 16px; background: rgba(0,0,0,0.75);
+function createDieSVG(value, id, isSaved) {
+    if (isSaved === undefined) { isSaved = false; }
+
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("width", "44");
+    svg.setAttribute("height", "44");
+    svg.setAttribute("viewBox", "0 0 60 60");
+    svg.classList.add("dice");
+    if (isSaved) { svg.classList.add("saved-tint"); }
+    svg.setAttribute("data-value", value);
+    svg.setAttribute("data-id", id);
+
+    var rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("class", "dice-face");
+    rect.setAttribute("x", "5");
+    rect.setAttribute("y", "5");
+    rect.setAttribute("width", "50");
+    rect.setAttribute("height", "50");
+    svg.appendChild(rect);
+
+    var dotPositions = {
+        1: [[30, 30]],
+        2: [[20, 20], [40, 40]],
+        3: [[20, 20], [30, 30], [40, 40]],
+        4: [[20, 20], [40, 20], [20, 40], [40, 40]],
+        5: [[20, 20], [40, 20], [30, 30], [20, 40], [40, 40]],
+        6: [[20, 17], [40, 17], [20, 30], [40, 30], [20, 43], [40, 43]]
+    };
+
+    var positions = dotPositions[value];
+    for (var i = 0; i < positions.length; i++) {
+        var cx = positions[i][0];
+        var cy = positions[i][1];
+        var dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        dot.setAttribute("class", "dice-dot");
+        dot.setAttribute("cx", cx);
+        dot.setAttribute("cy", cy);
+        dot.setAttribute("r", "4");
+        svg.appendChild(dot);
+    }
+
+    return svg;
+}
+
+// =============================================================================
+// PIP REFRESHER — updates pip layout on an existing die SVG in place.
+// Used by the roll animation to cycle random pip counts while the die spins.
+// =============================================================================
+
+function refreshDiePips(svgEl, value) {
+    var dotPositions = {
+        1: [[30, 30]],
+        2: [[20, 20], [40, 40]],
+        3: [[20, 20], [30, 30], [40, 40]],
+        4: [[20, 20], [40, 20], [20, 40], [40, 40]],
+        5: [[20, 20], [40, 20], [30, 30], [20, 40], [40, 40]],
+        6: [[20, 17], [40, 17], [20, 30], [40, 30], [20, 43], [40, 43]]
+    };
+    var existing = svgEl.querySelectorAll('.dice-dot');
+    for (var i = existing.length - 1; i >= 0; i--) {
+        existing[i].parentNode.removeChild(existing[i]);
+    }
+    var positions = dotPositions[value] || dotPositions[1];
+    for (var j = 0; j < positions.length; j++) {
+        var dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        dot.setAttribute('class', 'dice-dot');
+        dot.setAttribute('cx', positions[j][0]);
+        dot.setAttribute('cy', positions[j][1]);
+        dot.setAttribute('r', '4');
+        svgEl.appendChild(dot);
+    }
+}
+
+// =============================================================================
+// SETTINGS PERSISTENCE — first-time visitors default to AI/Medium/Blue (an
+// approachable but real opponent, for someone with no partner physically
+// present). Returning players always resume whatever they last used.
+// =============================================================================
+
+var POCKETS_SETTINGS_KEY = 'pocketsSettings';
+
+function savePocketsSettings() {
+    try {
+        localStorage.setItem(POCKETS_SETTINGS_KEY, JSON.stringify({
+            mode:       gameMode,
+            difficulty: (typeof aiDifficulty !== 'undefined') ? aiDifficulty : 'medium',
+            color:      gameState.humanColor || 'blue'
+        }));
+    } catch (e) { /* localStorage unavailable - settings just won't persist, not fatal */ }
+}
+
+function loadPocketsSettings() {
+    try {
+        var raw = localStorage.getItem(POCKETS_SETTINGS_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+}
+
+function applyDefaultOrSavedSettings() {
+    var saved = loadPocketsSettings();
+    if (saved && saved.mode) {
+        setGameMode(saved.mode);
+        if (saved.mode === 'ai') {
+            if (saved.difficulty) { setAIDifficulty(saved.difficulty); }
+            if (saved.color)      { setPlayerColor(saved.color); }
         }
-        .modal-overlay.hidden { display: none !important; }
-        .modal-content { max-height: 88vh; overflow-y: auto; border-radius: 8px; width: min(640px,100%); }
-        .modal-header { position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; }
-        .modal-header h2 { margin: 0; }
-        .modal-body { padding: 20px 24px; }
-        .modal-close { background: transparent; border: none; cursor: pointer; font-size: 1.2em; padding: 4px 8px; border-radius: 4px; }
-        .modal-confirm { width: min(440px,100%); }
-        .confirm-buttons { display: flex; justify-content: center; gap: 12px; margin-top: 18px; }
-        .confirm-buttons .btn { min-width: 110px; padding: 10px 22px; }
+    } else {
+        // First-time visitor - no saved settings on record at all.
+        setGameMode('ai');
+        setAIDifficulty('medium');
+        setPlayerColor('blue');
+    }
+}
 
-        /* ── Action panel ── */
-        .action-panel { position: relative; height: 130px; margin-bottom: 12px; }
-        .action-panel > .controls,
-        .action-panel > .coin-flip,
-        .action-panel > .action-status,
-        .action-panel > .winner-display {
-            position: absolute; inset: 0;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .action-panel > .coin-flip { flex-direction: column; gap: 4px; }
-        .action-panel > .hidden { display: none; }
-        .action-status { font-size: 1.1em; }
+function isGameInProgress() {
+    return gameState.phase !== 'setup' && gameState.round > 0;
+}
 
-        /* ── Winner announcement ── */
-        @keyframes winnerPulse {
-            0%,100% { transform: scale(1); }
-            50%      { transform: scale(1.07); }
-        }
-        .winner-pulse {
-            font-size: 1.9em;
-            font-weight: bold;
-            text-align: center;
-            animation: winnerPulse 1.4s ease-in-out infinite;
-            letter-spacing: 0.04em;
-        }
-        .winner-pulse.gold-pulse {
-            color: #ffd700;
-            text-shadow: 0 0 18px rgba(255,215,0,0.9), 0 0 36px rgba(255,200,0,0.6);
-        }
-        .winner-pulse.silver-pulse {
-            color: #d8d8d8;
-            text-shadow: 0 0 18px rgba(220,220,220,0.9), 0 0 36px rgba(200,200,200,0.5);
-        }
+// Used for both desktop buttons and the Compact dropdown, so mode-switching
+// behaves identically everywhere: confirm + reset when there's real progress
+// to lose, apply immediately when there's nothing at stake yet. selectEl is
+// optional - pass it for <select> elements so a cancelled change reverts the
+// dropdown's displayed value (native selects update visually before any JS
+// confirm can intervene).
+function showSettingsChangeModal(onConfirm, onCancel) {
+    showConfirm(
+        'Settings locked during game',
+        'Mode, difficulty and color can only change between games.',
+        function() { newGame(); if (onConfirm) { onConfirm(); } },
+        onCancel,
+        'New Game',
+        'Cancel'
+    );
+}
 
-        /* ── Take result bottom strip ── */
-        .action-take-result {
-            position: absolute; bottom: 7px; left: 0; right: 0;
-            text-align: center; font-size: 0.82em;
-            opacity: 0; transform: translateY(-6px);
-            transition: opacity 0.6s ease, transform 0.6s ease;
-            pointer-events: none; z-index: 2;
-        }
-        .action-take-result.visible { opacity: 1; transform: translateY(0); }
+function changeModeWithConfirm(newMode, selectEl) {
+    if (gameMode === newMode) { return; }
+    var previousMode = gameMode;
+    if (isGameInProgress()) {
+        showSettingsChangeModal(
+            function() { setGameMode(newMode); },
+            function() { if (selectEl) { selectEl.value = previousMode; } }
+        );
+    } else {
+        setGameMode(newMode);
+    }
+}
 
-        /* ── Selected die ── */
-        .dice.selected {
-            transform: translateY(-14px) scale(1.06) !important;
-            filter:
-                drop-shadow(0 0 8px rgba(255,215,0,0.95))
-                drop-shadow(0 0 18px rgba(255,180,0,0.65))
-                drop-shadow(0 8px 14px rgba(0,0,0,0.65)) !important;
-            transition: transform 0.15s ease, filter 0.15s ease !important;
-            z-index: 10;
-        }
+function changeColorWithConfirm(newColor, selectEl) {
+    if (gameState.humanColor === newColor) { return; }
+    var previousColor = gameState.humanColor;
+    if (isGameInProgress()) {
+        showSettingsChangeModal(
+            function() { setPlayerColor(newColor); },
+            function() { if (selectEl) { selectEl.value = previousColor; } }
+        );
+    } else {
+        setPlayerColor(newColor);
+    }
+}
 
-        /* ── Dice animations ── */
-        @keyframes diceRoll {
-            0%   { transform: rotate(0deg)   scale(1);   }
-            25%  { transform: rotate(90deg)  scale(1.1); }
-            50%  { transform: rotate(180deg) scale(0.9); }
-            75%  { transform: rotate(270deg) scale(1.1); }
-            100% { transform: rotate(360deg) scale(1);   }
-        }
-        @keyframes diceJitter {
-            0%,100% { transform: translate(0,0)      rotate(0deg);  }
-            20%     { transform: translate(-2px,-1px) rotate(-2deg); }
-            40%     { transform: translate( 2px,-2px) rotate( 1deg); }
-            60%     { transform: translate(-1px, 2px) rotate(-1deg); }
-            80%     { transform: translate( 1px,-1px) rotate( 2deg); }
-        }
-        .dice.rolling { animation: diceRoll   0.8s ease-in-out; }
-        .dice.jitter  { animation: diceJitter 0.4s ease-in-out; }
+function syncCompactAIControlsVisibility() {
+    var isAI = (gameMode === 'ai');
+    ['cDiff','cPlay'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) { el.style.setProperty('display', isAI ? 'inline-block' : 'none', 'important'); }
+    });
+    ['cDiffLabel','cPlayLabel'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) { el.style.setProperty('display', isAI ? 'inline' : 'none', 'important'); }
+    });
+}
 
-        /* Shared pulse - used by .finale-btn (5 themes already reference this name
-           but never defined it - this single definition fixes all of them at once)
-           and by .roll-prompt-pulse on the active player's Roll Dice button. */
-        @keyframes pulse {
-            0%, 100% { transform: scale(1);    opacity: 1;    }
-            50%      { transform: scale(1.05); opacity: 0.85; }
-        }
-        .roll-prompt-pulse { animation: pulse 1.4s ease-in-out infinite; }
+function syncUniversalAIControlsVisibility() {
+    var isAI = (gameMode === 'ai');
+    ['uDiff','uPlay'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) { el.style.setProperty('display', isAI ? 'inline-block' : 'none', 'important'); }
+    });
+    ['uDiffLabel','uPlayLabel'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) { el.style.setProperty('display', isAI ? 'inline' : 'none', 'important'); }
+    });
+}
 
-        /* Rolloff die invite-to-tap wobble - a brief burst then a pause,
-           repeating every few seconds. Only applies to the active, tappable
-           die; stops the instant it's tapped (disabled) or already faded. */
-        @keyframes rolloffInvite {
-            0%, 80%, 100% { transform: scale(1) rotate(0deg); }
-            5%            { transform: scale(1.08) rotate(-4deg); }
-            10%           { transform: scale(1.08) rotate(4deg); }
-            15%           { transform: scale(1) rotate(-2deg); }
-            20%           { transform: scale(1) rotate(0deg); }
-        }
-        /* Parked-position-aware versions - an active animation's transform
-           value completely replaces (not combines with) a static transform
-           rule, so without these, the wobble silently erased whichever
-           +-70px offset .parked-left/.parked-right had set, pulling the die
-           back toward center every cycle. */
-        @keyframes rolloffInviteParkedLeft {
-            0%, 80%, 100% { transform: translateX(-70px) scale(1) rotate(0deg); }
-            5%            { transform: translateX(-70px) scale(1.08) rotate(-4deg); }
-            10%           { transform: translateX(-70px) scale(1.08) rotate(4deg); }
-            15%           { transform: translateX(-70px) scale(1) rotate(-2deg); }
-            20%           { transform: translateX(-70px) scale(1) rotate(0deg); }
-        }
-        @keyframes rolloffInviteParkedRight {
-            0%, 80%, 100% { transform: translateX(70px) scale(1) rotate(0deg); }
-            5%            { transform: translateX(70px) scale(1.08) rotate(-4deg); }
-            10%           { transform: translateX(70px) scale(1.08) rotate(4deg); }
-            15%           { transform: translateX(70px) scale(1) rotate(-2deg); }
-            20%           { transform: translateX(70px) scale(1) rotate(0deg); }
-        }
-        .rolloff-die:not(.faded):not(:disabled):not(.parked-left):not(.parked-right) {
-            animation: rolloffInvite 3s ease-in-out infinite;
-        }
-        .rolloff-die.parked-left:not(.faded):not(:disabled) {
-            animation: rolloffInviteParkedLeft 3s ease-in-out infinite;
-        }
-        .rolloff-die.parked-right:not(.faded):not(:disabled) {
-            animation: rolloffInviteParkedRight 3s ease-in-out infinite;
-        }
+// =============================================================================
+// IN-PROGRESS GAME PERSISTENCE — never lose progress on a reload or coming
+// back after time away. The ONLY way to discard a saved game is the explicit
+// New Game button (handled in newGame() itself). No "resume?" prompt - the
+// game silently picks up exactly where it was, since asking still carries a
+// real risk of an accidental decline losing real progress.
+// =============================================================================
 
-        /* ── Rolloff die buttons ── */
-        .rolloff-die {
-            width: 64px; height: 64px; background: transparent; border: none;
-            padding: 0; cursor: pointer; display: inline-flex;
-            align-items: center; justify-content: center;
-            transition: filter 0.2s ease; font: inherit;
-        }
-        .rolloff-die svg.dice { width: 56px !important; height: 56px !important; }
-        .rolloff-die.faded svg.dice { opacity: 0.45; }
-        .rolloff-die:hover:not(:disabled) { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); }
-        .rolloff-die:disabled { cursor: default; }
+var POCKETS_SAVED_GAME_KEY = 'pocketsSavedGame';
+var gameWasRestoredOnLoad  = false;
 
-        /* ── Rolloff spin animations ── */
-        @keyframes spinLeft  { 0%{transform:translateX(0) rotate(0deg);}    100%{transform:translateX(-70px) rotate(-720deg);} }
-        @keyframes spinRight { 0%{transform:translateX(0) rotate(0deg);}    100%{transform:translateX( 70px) rotate( 720deg);} }
-        @keyframes spinInPlaceLeft  { 0%{transform:translateX(-70px) rotate(0deg);} 100%{transform:translateX(-70px) rotate(-720deg);} }
-        @keyframes spinInPlaceRight { 0%{transform:translateX( 70px) rotate(0deg);} 100%{transform:translateX( 70px) rotate( 720deg);} }
-        .rolloff-die.spinning-left  { animation: spinLeft  0.65s ease-out forwards; }
-        .rolloff-die.spinning-right { animation: spinRight 0.65s ease-out forwards; }
-        .rolloff-die.parked-left    { transform: translateX(-70px); }
-        .rolloff-die.parked-right   { transform: translateX( 70px); }
-        .rolloff-die.parked-left.spinning-in-place  { animation: spinInPlaceLeft  0.65s ease-out forwards; }
-        .rolloff-die.parked-right.spinning-in-place { animation: spinInPlaceRight 0.65s ease-out forwards; }
+// Snapshot of what's actually placed in each pocket right now, for both
+// players. gameState itself has no clean record of board placement - it only
+// lives in the live DOM - so this reads the real source of truth at save time
+// rather than trying to track it as a parallel structure that could drift.
+function captureBoardPlacements() {
+    return { blue: getDiceFromPockets('blue'), red: getDiceFromPockets('red') };
+}
 
-        /* ── Rolloff arena ── */
-        .rolloff-arena { display: inline-flex; align-items: center; justify-content: center; gap: 0; position: relative; }
-        .rolloff-center { min-width: 130px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; }
-        .rolloff-vs     { font-weight: bold; font-size: 1em; opacity: 0.6; letter-spacing: 3px; }
-        .rolloff-result { font-size: 1.15em; min-height: 20px; font-weight: bold; }
-        .rolloff-result.winner { font-size: 1.5em; }
-        .player-rolls { display: flex; gap: 16px; justify-content: center; padding: 8px; }
-        .player-rolls.hidden { display: none !important; }
-        .first-player-rolloff { text-align: center; width: 100%; }
-        .first-player-rolloff.hidden { display: none !important; }
-        .rolloff-prompt { font-size: 1.3em; margin-bottom: 8px; }
+function autosaveGame() {
+    try {
+        localStorage.setItem(POCKETS_SAVED_GAME_KEY, JSON.stringify({
+            gameState:  gameState,
+            gameMode:   gameMode,
+            difficulty: (typeof aiDifficulty !== 'undefined') ? aiDifficulty : 'medium',
+            rolloffState: (typeof rolloffState !== 'undefined') ? rolloffState : null,
+            board: captureBoardPlacements()
+        }));
+    } catch (e) { /* localStorage unavailable - not fatal, just won't persist */ }
+}
 
-        /* ── Header ornaments ── */
-        .game-header { position: relative; }
-        .header-ornament { position: absolute; z-index: 2; }
-        .header-ornament.top-left     { top: 10px;    left: 14px;  }
-        .header-ornament.top-right    { top: 10px;    right: 14px; }
-        .header-ornament.bottom-left  { bottom: 10px; left: 14px;  }
-        .header-ornament.bottom-right { bottom: 10px; right: 14px; }
-        body.theme-victorian .header-ornament::before { content: "❦"; }
-        body.theme-steampunk .header-ornament::before { content: "⚙"; }
-        body.theme-art-deco  .header-ornament::before { content: "✦"; }
-        body.theme-cosmic    .header-ornament::before { content: "❂"; }
-        body.theme-steampunk .header-ornament { width:auto;height:auto;background:none;border:none;border-radius:0;box-shadow:none;font-size:2em;color:var(--brass-aged,#c9a961);text-shadow:0 0 8px rgba(201,169,97,0.45); }
-        body.theme-steampunk .header-ornament.top-left     { top:8px;left:12px;bottom:auto;right:auto; }
-        body.theme-steampunk .header-ornament.top-right    { top:8px;right:12px;bottom:auto;left:auto; }
-        body.theme-steampunk .header-ornament.bottom-left  { bottom:8px;left:12px;top:auto;right:auto; }
-        body.theme-steampunk .header-ornament.bottom-right { bottom:8px;right:12px;top:auto;left:auto; }
-        body.theme-victorian .header-ornament.top-left     { transform: rotate(135deg); }
-        body.theme-victorian .header-ornament.top-right    { transform: rotate(-135deg); }
-        body.theme-victorian .header-ornament.bottom-left  { transform: rotate(45deg); }
-        body.theme-victorian .header-ornament.bottom-right { transform: rotate(-45deg); }
+function loadSavedGame() {
+    try {
+        var raw = localStorage.getItem(POCKETS_SAVED_GAME_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+}
 
-        /* ── Game mode bar ── */
-        .game-mode { display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:10px 16px !important;margin-bottom:14px !important; }
-        .game-mode .gm-label { font-weight:bold;font-size:0.95em;opacity:0.85;letter-spacing:0.5px; }
-        .game-mode .gm-group { display:inline-flex;gap:6px; }
-        .game-mode .mode-btn,.game-mode .difficulty-btn { padding:7px 14px !important;font-size:0.92em !important;margin:0 !important; }
-        .game-mode .ai-difficulty { display:inline-flex;align-items:center;gap:8px;padding:0 !important;margin:0 !important;border:none !important;background:transparent !important; }
-        .game-mode .ai-difficulty.hidden { display:none !important; }
-        /* Compact dropdown controls — hidden globally, shown only by compact.css */
-        .compact-controls { display: none !important; }
-        .compact-sel-label { display: none !important; }
-        .compact-sel { display: none !important; }
-        .compact-sel-hidden { display: none !important; }
-        .universal-controls { display: none !important; }
-        .uni-sel-hidden { display: none !important; }
-        .uni-sel { font-family: inherit; cursor: pointer; }
-        .uni-label { font-style: italic; }
+function clearSavedGame() {
+    try { localStorage.removeItem(POCKETS_SAVED_GAME_KEY); } catch (e) { /* not fatal */ }
+}
 
-        /* Responsive controls - below this width, ANY theme switches to the
-           same compact dropdown controls Compact theme already has, instead
-           of the wider button-groups. Compact theme keeps its own distinct
-           styling (higher selector specificity wins for it specifically);
-           this is the fallback for the other six themes on a narrow screen. */
-        /* ── New game section ── */
-        .game-board { align-items: stretch; }
-        .player-area { display: flex; flex-direction: column; }
-        .copyright { margin-top: 18px; padding-bottom: 10px; }
-        .new-game-section { display:flex;justify-content:center;align-items:stretch;gap:12px;flex-wrap:wrap; }
-        .new-game-section .btn { min-height:40px;padding:8px 22px;display:inline-flex;align-items:center;justify-content:center;line-height:1.2; }
+// Places a die into a pocket purely visually, for reconstructing a saved
+// board. Deliberately does NOT go through placeDieInPocket()'s game-logic
+// side effects (decrementing diceToPlace, advancing placementTurn, checking
+// round-completion, cloning pockets to strip listeners) - gameState is being
+// restored directly from the save already, so re-deriving any of that here
+// would double-count it.
+function restorePocketDie(pocketEl, value, isSaved) {
+    if (!pocketEl) { return; }
+    var pocketDice = pocketEl.querySelector('.pocket-dice');
+    if (!pocketDice) { return; }
+    var die = createDieSVG(value, pocketEl.id + '-restored-' + Date.now(), !!isSaved);
+    die.style.width  = '40px';
+    die.style.height = '40px';
+    pocketDice.appendChild(die);
+}
 
-        /* ── Fullscreen button — base fallback, themes override ── */
-        .fullscreen-btn {
-            background: rgba(0,0,0,0.3);
-            color: #cccccc;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 4px 10px;
-            font-size: 0.82em;
-            cursor: pointer;
-            margin-left: auto;
-            transition: background 0.2s ease, color 0.2s ease;
-        }
-        .fullscreen-btn:hover { background: rgba(0,0,0,0.6); color: #fff; }
-        @media (hover: none) and (pointer: coarse) {
-            .fullscreen-btn { display: none !important; }
-        }
-
-        /* ── Pre-final overlay (kept in DOM, no longer shown) ── */
-        .pre-final-screen { position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:500;background:rgba(10,5,2,0.90);backdrop-filter:blur(4px);padding:16px; }
-        .pre-final-inner  { text-align:center;max-width:520px;width:100%; }
-        .pre-final-ornament { font-size:2.8em;margin-bottom:12px; }
-        .pre-final-title    { font-size:1.9em;font-weight:bold;margin:0 0 16px; }
-        .pre-final-flavour  { font-style:italic;line-height:1.7;margin-bottom:24px;font-size:1.05em; }
-        .pre-final-saved-reminder { border-radius:8px;padding:12px 20px;margin-bottom:32px;font-size:0.95em; }
-
-        /* ── Final roll modal ── */
-        .final-roll-modal { position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,15,20,0.94);display:flex;align-items:center;justify-content:center;z-index:2000;backdrop-filter:blur(6px);padding:20px; }
-        .final-roll-content { background:linear-gradient(145deg,rgba(40,40,40,0.97),rgba(20,20,20,0.99));border:3px solid #ffd700;border-radius:20px;padding:36px;max-width:820px;width:100%;text-align:center;color:#fff;box-shadow:0 20px 40px rgba(0,0,0,0.85),0 0 60px rgba(255,215,0,0.28);max-height:92vh;overflow-y:auto; }
-        .final-roll-title { font-size:2.3em;color:#ffd700;margin:0 0 24px;text-shadow:0 0 20px rgba(255,215,0,0.5); }
-        .final-scores-display { display:grid;grid-template-columns:1fr 1fr;gap:28px;margin:24px 0; }
-        .player-final-score { padding:20px;border:2px solid #666;border-radius:15px;background:rgba(0,0,0,0.3);transition:box-shadow 0.4s ease,transform 0.2s ease; }
-        .player-final-score.blue { border-color:#4a90e2;background:rgba(74,144,226,0.12); }
-        .player-final-score.red  { border-color:#e24a4a;background:rgba(226,74,74,0.12); }
-        .player-final-score.active-turn { box-shadow:0 0 24px rgba(255,215,0,0.55);transform:translateY(-2px); }
-        .player-name { font-size:1.3em;font-weight:bold;margin-bottom:12px;letter-spacing:0.5px; }
-        .saved-die-display { font-size:1.6em;margin:8px auto;padding:8px 14px;background:rgba(255,255,255,0.1);border-radius:10px;display:inline-block;min-width:50px; }
-        .saved-die-display .saved-label { font-size:0.55em;color:#ccc;display:block;margin-bottom:2px;letter-spacing:1px; }
-        .saved-die-display svg.dice { width:36px !important;height:36px !important;display:block;margin:4px auto 0; }
-        .running-total { font-size:3em;font-weight:bold;color:#ffd700;margin:14px 0 6px;text-shadow:0 0 15px rgba(255,215,0,0.6);transition:transform 0.25s ease; }
-        .running-total.bumped { transform:scale(1.18); }
-        .running-total-label { font-size:0.7em;color:#aaa;letter-spacing:2px;margin-bottom:-6px; }
-        .dice-rolled-container { display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:44px;margin-top:10px; }
-        .dice-rolled { width:38px !important;height:38px !important;animation:rollIn 0.7s ease-out; }
-        @keyframes rollIn { 0%{transform:rotate(0deg) scale(0.4);opacity:0;} 55%{transform:rotate(200deg) scale(1.25);opacity:0.9;} 100%{transform:rotate(360deg) scale(1);opacity:1;} }
-        .player-combo-bonus { font-size:0.95em;margin-top:8px;min-height:20px;font-weight:bold; }
-        .player-combo-bonus:empty { min-height:0; }
-        .drama-message { font-size:1.3em;color:#fff;margin:18px 0 6px;min-height:28px;font-weight:bold;text-shadow:0 2px 4px rgba(0,0,0,0.8); }
-        .current-turn  { font-size:1em;color:#ccc;margin:6px 0 18px;min-height:22px; }
-        .final-roll-btns { display:flex;gap:20px;justify-content:center;margin:4px 0; }
-        .blue-final-btn { background:linear-gradient(145deg,#2a3559,#1a2541) !important; }
-        .red-final-btn  { background:linear-gradient(145deg,#6e3030,#4d2020) !important; }
-        .roll-die-btn { background:linear-gradient(145deg,#ffd700,#e6c200);color:#000;border:2px solid #ccac00;padding:14px 32px;border-radius:10px;font-size:1.15em;font-weight:bold;cursor:pointer;transition:transform 0.2s ease,box-shadow 0.2s ease;box-shadow:0 6px 12px rgba(0,0,0,0.4);font-family:inherit; }
-        .roll-die-btn:hover:not(:disabled) { background:linear-gradient(145deg,#ffed4e,#ffd700);transform:translateY(-2px);box-shadow:0 8px 16px rgba(0,0,0,0.5); }
-        .roll-die-btn:disabled { opacity:0.35;cursor:not-allowed;transform:none; }
-        .final-celebration { margin-top:26px;padding:22px;background:rgba(255,215,0,0.08);border:2px solid #ffd700;border-radius:15px;animation:celebrationFadeIn 0.6s ease-out; }
-        @keyframes celebrationFadeIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
-        .winner-announcement { font-size:1.8em;font-weight:bold;color:#ffd700;margin-bottom:12px;text-shadow:0 0 20px rgba(255,215,0,0.8); }
-        .final-margin { font-size:1.1em;color:#ddd;margin-bottom:18px;line-height:1.5; }
-        .final-celebration .btn { margin:4px 6px; }
-        @media (max-width:768px) { .final-roll-content{padding:24px 18px;} .final-roll-title{font-size:1.7em;} .final-scores-display{grid-template-columns:1fr;gap:16px;} .running-total{font-size:2.4em;} }
-
-        .loading-screen { position:fixed;top:0;left:0;width:100%;height:100%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;z-index:9999;font-size:1.5em; }
-
-        /* Rules content typography */
-        .help-section { margin-bottom:20px; }
-        .help-section h3 { margin:0 0 8px;font-size:1.05em; }
-        .help-section ul,.help-section ol { padding-left:20px;margin:4px 0; }
-        .help-section li { margin-bottom:4px;line-height:1.6; }
-        .help-combo-table { border-collapse:collapse;margin:8px 0;font-size:0.95em; }
-        .help-combo-table td { padding:4px 12px;border-bottom:1px solid rgba(0,0,0,0.1); }
-        .help-combo-table td:last-child { font-weight:bold;text-align:right; }
-
-        /* ── Title-bar dice (replacing the fleur-de-lis) ── */
-        .game-title { display:flex; align-items:center; justify-content:center; gap:0.25em; flex-wrap:nowrap; }
-        .title-die {
-            display: inline-block; vertical-align: middle;
-            width: 44px; height: 44px;
-            /* Silver default palette */
-            --td-face-top:   #e6e7ea;
-            --td-face-right: #a5a8af;
-            --td-face-left:  #6f747b;
-            --td-edge:       #4a4e55;
-            --td-pip:        #15171b;
-            /* Silver-blue glow (per the spec) */
-            filter:
-                drop-shadow(0 0 6px rgba(140, 175, 230, 0.65))
-                drop-shadow(0 0 12px rgba(120, 160, 220, 0.35))
-                drop-shadow(0 2px 2px rgba(0,0,0,0.5));
-        }
-        .title-die .td-face { stroke: var(--td-edge); stroke-width: 0.8; stroke-linejoin: round; }
-        .title-die .td-top   { fill: var(--td-face-top); }
-        .title-die .td-right { fill: var(--td-face-right); }
-        .title-die .td-left  { fill: var(--td-face-left); }
-        .title-die .td-edge  { stroke: var(--td-edge); stroke-width: 0.5; opacity: 0.55; }
-        .title-die .td-pip   { fill: var(--td-pip); }
-
-        /* Per-theme tinting (silver default → warm/brass/etc.) */
-        body.theme-victorian .title-die {
-            --td-face-top:   #ecdcae;
-            --td-face-right: #b89a5e;
-            --td-face-left:  #7d6736;
-            --td-edge:       #463412;
-            --td-pip:        #1f1408;
-        }
-        body.theme-steampunk .title-die {
-            --td-face-top:   #d8a774;
-            --td-face-right: #a07840;
-            --td-face-left:  #634520;
-            --td-edge:       #36200e;
-            --td-pip:        #100804;
-        }
-        body.theme-art-deco .title-die {
-            /* Polished silver — keeps default palette but tightens contrast */
-            --td-face-top:   #f0f1f4;
-            --td-face-right: #aaadb4;
-            --td-face-left:  #62666c;
-            --td-edge:       #2c2f34;
-        }
-        body.theme-cosmic .title-die {
-            --td-face-top:   #d4dbeb;
-            --td-face-right: #7d8db0;
-            --td-face-left:  #424d6e;
-            --td-edge:       #1c2238;
-            --td-pip:        #060818;
-        }
-
-        /* ── Smooth opacity transition for placeholder dice ── */
-        #blueDiceArea .dice,
-        #redDiceArea .dice {
-            transition: opacity 0.4s ease;
-        }
-
-        /* ── Persistent rolloff tie message (made visually obvious) ── */
-        .rolloff-result.tie-active {
-            color: #f4c873 !important;
-            font-size: 1.05em !important;
-            font-weight: 600 !important;
-            font-style: normal !important;
-            font-variant: small-caps;
-            letter-spacing: 0.05em;
-            text-shadow: 0 0 10px rgba(244,200,115,0.55),
-                         0 1px 2px rgba(0,0,0,0.7) !important;
-            animation: pockets-tie-pulse 1.6s ease-in-out infinite;
-        }
-        @keyframes pockets-tie-pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50%      { opacity: 0.7; transform: scale(0.97); }
-        }
-
-        /* ── AI difficulty change toast ── */
-        .difficulty-toast {
-            position: absolute; top: 12px; right: 14px;
-            max-width: 280px;
-            background: rgba(20, 22, 28, 0.92); color: #f5f3ee;
-            padding: 8px 14px; border-radius: 6px;
-            font-family: inherit; font-weight: bold; font-size: 0.88em;
-            letter-spacing: 0.04em;
-            line-height: 1.4;
-            text-align: left;
-            z-index: 80;
-            opacity: 1;
-            transform: translateY(0);
-            transition: opacity 0.35s ease, transform 0.35s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.45);
-            border: 1px solid rgba(255,255,255,0.18);
-            pointer-events: none;
-        }
-        .difficulty-toast.toast-hidden {
-            opacity: 0;
-            transform: translateY(-8px);
-        }
-
-        /* ── Guide / Rules modal nav buttons ── */
-        .guide-nav-btn {
-            display: inline-block;
-            padding: 6px 12px;
-            margin: 3px 4px 3px 0;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.18);
-            color: inherit;
-            text-decoration: none;
-            font-size: 0.88em;
-            font-weight: 500;
-            letter-spacing: 0.02em;
-            transition: background 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
-            cursor: pointer;
-        }
-        .guide-nav-btn:hover {
-            background: rgba(255,255,255,0.16);
-            border-color: rgba(255,255,255,0.4);
-            transform: translateY(-1px);
-            text-decoration: none;
-        }
-        .guide-back-top {
-            display: inline-block;
-            padding: 4px 10px;
-            margin-top: 4px;
-            border-radius: 5px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.14);
-            color: inherit;
-            text-decoration: none;
-            font-size: 0.78em;
-            opacity: 0.72;
-            transition: opacity 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-            cursor: pointer;
-        }
-        .guide-back-top:hover {
-            opacity: 1;
-            background: rgba(255,255,255,0.12);
-            border-color: rgba(255,255,255,0.3);
-            text-decoration: none;
-        }
-
-        /* Per-theme: dark opaque backgrounds with accent borders/text for reliable contrast */
-        body.theme-victorian .guide-nav-btn,
-        body.theme-victorian .guide-back-top {
-            background: rgba(64,42,18,0.88);
-            border-color: rgba(216,181,104,0.55);
-            color: #f0deae;
-        }
-        body.theme-victorian .guide-nav-btn:hover,
-        body.theme-victorian .guide-back-top:hover {
-            background: rgba(96,62,28,0.94);
-            border-color: rgba(216,181,104,0.9);
-            color: #fff0c8;
-        }
-        body.theme-steampunk .guide-nav-btn,
-        body.theme-steampunk .guide-back-top {
-            background: rgba(40,28,16,0.88);
-            border-color: rgba(200,140,80,0.55);
-            color: #e8c897;
-        }
-        body.theme-steampunk .guide-nav-btn:hover,
-        body.theme-steampunk .guide-back-top:hover {
-            background: rgba(64,44,24,0.94);
-            border-color: rgba(200,140,80,0.9);
-            color: #fbe2b8;
-        }
-        body.theme-art-deco .guide-nav-btn,
-        body.theme-art-deco .guide-back-top {
-            background: rgba(20,28,48,0.88);
-            border-color: rgba(220,220,235,0.5);
-            color: #e8e9ee;
-        }
-        body.theme-art-deco .guide-nav-btn:hover,
-        body.theme-art-deco .guide-back-top:hover {
-            background: rgba(34,44,70,0.94);
-            border-color: rgba(220,220,235,0.8);
-            color: #ffffff;
-        }
-        body.theme-cosmic .guide-nav-btn,
-        body.theme-cosmic .guide-back-top {
-            background: rgba(15,22,44,0.9);
-            border-color: rgba(160,190,240,0.55);
-            color: #d6e0f0;
-        }
-        body.theme-cosmic .guide-nav-btn:hover,
-        body.theme-cosmic .guide-back-top:hover {
-            background: rgba(30,40,72,0.95);
-            border-color: rgba(160,190,240,0.9);
-            color: #f0f6ff;
-        }
-
-        /* ── Theme-styled action buttons (New Game / View Stats / Export / Clear) ── */
-        .action-btn {
-            font-family: inherit;
-            font-size: 0.95em;
-            letter-spacing: 0.04em;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.35);
-        }
-        body.theme-victorian .action-btn {
-            background: linear-gradient(180deg, #7d5424 0%, #4f3414 100%);
-            color: #f3e1b3;
-            border: 1px solid rgba(216,181,104,0.65);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-        }
-        body.theme-victorian .action-btn:hover {
-            background: linear-gradient(180deg, #9a6a30 0%, #6a481c 100%);
-            color: #fff2c8;
-            border-color: rgba(216,181,104,0.95);
-        }
-        body.theme-steampunk .action-btn {
-            background: linear-gradient(180deg, #6a4824 0%, #38240e 100%);
-            color: #f0c896;
-            border: 1px solid rgba(200,140,80,0.7);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-        }
-        body.theme-steampunk .action-btn:hover {
-            background: linear-gradient(180deg, #8a5e30 0%, #543518 100%);
-            color: #ffe2b8;
-            border-color: rgba(200,140,80,0.95);
-        }
-        body.theme-art-deco .action-btn {
-            background: linear-gradient(180deg, #2a3454 0%, #15203a 100%);
-            color: #e6e7ee;
-            border: 1px solid rgba(220,220,235,0.55);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-        }
-        body.theme-art-deco .action-btn:hover {
-            background: linear-gradient(180deg, #3a4674 0%, #1f2c50 100%);
-            color: #ffffff;
-            border-color: rgba(220,220,235,0.9);
-        }
-        body.theme-cosmic .action-btn {
-            background: linear-gradient(180deg, #1f2a52 0%, #0c1430 100%);
-            color: #d6e0f0;
-            border: 1px solid rgba(160,190,240,0.6);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-        }
-        body.theme-cosmic .action-btn:hover {
-            background: linear-gradient(180deg, #2e3d70 0%, #182040 100%);
-            color: #f0f6ff;
-            border-color: rgba(160,190,240,0.95);
-        }
-
-        /* ── Stats tabs ── */
-        .stats-tabs { display: flex; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 8px; }
-        .stats-tab-btn { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: inherit; padding: 5px 14px; border-radius: 4px; cursor: pointer; font-size: 0.9em; opacity: 0.6; transition: opacity 0.2s; }
-        .stats-tab-btn.active { opacity: 1; border-color: currentColor; font-weight: 700; }
-        .stats-tab-btn:hover { opacity: 0.85; }
-        .stats-footer { margin-top: 16px; text-align: center; }
-        .stats-clear-btn { font-size: 0.85em; opacity: 0.7; }
-        .stats-clear-btn:hover { opacity: 1; }
-
-        /* ── Play As toggle ── */
-        .play-as-toggle { display: flex; align-items: center; gap: 8px; }
-        .play-as-toggle.hidden { display: none; }
-    </style>
-    <link id="theme-css" rel="stylesheet" href="themes/victorian.css"></head>
-<body class="theme-victorian">
-    <div class="loading-screen" id="loadingScreen">🎲 Loading Pockets Game… 🎲</div>
-
-    <div class="game-container">
-        <div class="difficulty-toast toast-hidden" id="difficultyToast" aria-live="polite"></div>
-        <div class="game-header">
-            <div class="header-ornament top-left"></div>
-            <div class="header-ornament top-right"></div>
-            <div class="header-ornament bottom-left"></div>
-            <div class="header-ornament bottom-right"></div>
-            <h1 class="game-title"><svg class="title-die" viewBox="-25 -25 50 50" width="44" height="44" aria-hidden="true"><polygon class="td-face td-top" points="0,-20 17.3,-10 0,0 -17.3,-10"/><polygon class="td-face td-right" points="17.3,-10 17.3,10 0,20 0,0"/><polygon class="td-face td-left" points="-17.3,-10 -17.3,10 0,20 0,0"/><line class="td-edge" x1="0" y1="-20" x2="0" y2="0"/><line class="td-edge" x1="0" y1="0" x2="0" y2="20"/><line class="td-edge" x1="-17.3" y1="-10" x2="0" y2="0"/><line class="td-edge" x1="17.3" y1="-10" x2="0" y2="0"/><circle class="td-pip" cx="0" cy="-15" r="1.4"/><circle class="td-pip" cx="-8.65" cy="-10" r="1.4"/><circle class="td-pip" cx="0" cy="-10" r="1.4"/><circle class="td-pip" cx="8.65" cy="-10" r="1.4"/><circle class="td-pip" cx="0" cy="-5" r="1.4"/><circle class="td-pip" cx="5.2" cy="1" r="1.4"/><circle class="td-pip" cx="12.1" cy="-3" r="1.4"/><circle class="td-pip" cx="5.2" cy="7" r="1.4"/><circle class="td-pip" cx="12.1" cy="3" r="1.4"/><circle class="td-pip" cx="5.2" cy="13" r="1.4"/><circle class="td-pip" cx="12.1" cy="9" r="1.4"/><circle class="td-pip" cx="-12.97" cy="-2.5" r="1.4"/><circle class="td-pip" cx="-4.33" cy="2.5" r="1.4"/><circle class="td-pip" cx="-12.97" cy="7.5" r="1.4"/><circle class="td-pip" cx="-4.33" cy="12.5" r="1.4"/></svg> POCKETS <svg class="title-die" viewBox="-25 -25 50 50" width="44" height="44" aria-hidden="true"><polygon class="td-face td-top" points="0,-20 17.3,-10 0,0 -17.3,-10"/><polygon class="td-face td-right" points="17.3,-10 17.3,10 0,20 0,0"/><polygon class="td-face td-left" points="-17.3,-10 -17.3,10 0,20 0,0"/><line class="td-edge" x1="0" y1="-20" x2="0" y2="0"/><line class="td-edge" x1="0" y1="0" x2="0" y2="20"/><line class="td-edge" x1="-17.3" y1="-10" x2="0" y2="0"/><line class="td-edge" x1="17.3" y1="-10" x2="0" y2="0"/><circle class="td-pip" cx="0" cy="-15" r="1.4"/><circle class="td-pip" cx="-8.65" cy="-10" r="1.4"/><circle class="td-pip" cx="0" cy="-10" r="1.4"/><circle class="td-pip" cx="8.65" cy="-10" r="1.4"/><circle class="td-pip" cx="0" cy="-5" r="1.4"/><circle class="td-pip" cx="5.2" cy="1" r="1.4"/><circle class="td-pip" cx="12.1" cy="-3" r="1.4"/><circle class="td-pip" cx="5.2" cy="7" r="1.4"/><circle class="td-pip" cx="12.1" cy="3" r="1.4"/><circle class="td-pip" cx="5.2" cy="13" r="1.4"/><circle class="td-pip" cx="12.1" cy="9" r="1.4"/><circle class="td-pip" cx="-12.97" cy="-2.5" r="1.4"/><circle class="td-pip" cx="-4.33" cy="2.5" r="1.4"/><circle class="td-pip" cx="-12.97" cy="7.5" r="1.4"/><circle class="td-pip" cx="-4.33" cy="12.5" r="1.4"/></svg></h1>
-            <p class="subtitle">Keep. Take. Save. Win.</p>
-            <span class="theme-selector-wrap">
-                <span id="themeIcon" class="theme-icon-glow">🎩</span><select class="theme-subtitle" id="themeSelector" aria-label="Choose theme">
-                <option value="victorian">Victorian Edition</option>
-                <option value="compact">Compact (Mobile)</option>
-                <option value="steampunk">Steampunk Edition</option>
-                <option value="art-deco">Art Deco Edition</option>
-                <option value="cosmic">Cosmic Edition</option>
-                <option value="dark">Dark Mode</option>
-                <option value="bitmap">Bitmap</option>
-            </select></span>
-        </div>
-
-        <div class="game-mode" id="gameMode">
-            <!-- Button-group controls: shown by default, hidden by themes that use dropdowns -->
-            <span class="gm-label btn-controls-only">Mode:</span>
-            <div class="gm-group btn-controls-only">
-                <button class="mode-btn active" id="twoPlayerMode">👥 2 Players</button>
-                <button class="mode-btn" id="aiMode">🤖 vs AI</button>
-            </div>
-            <div class="ai-difficulty hidden btn-controls-only" id="aiDifficulty">
-                <span class="gm-label">Difficulty:</span>
-                <div class="gm-group">
-                    <button class="difficulty-btn active" id="easyAI">Easy</button>
-                    <button class="difficulty-btn" id="mediumAI">Medium</button>
-                    <button class="difficulty-btn" id="hardAI">Hard</button>
-                </div>
-            </div>
-            <div class="play-as-toggle hidden btn-controls-only" id="playAsToggle">
-                <span class="gm-label">Play as:</span>
-                <div class="gm-group">
-                    <button class="difficulty-btn active" id="playAsBlue">🔵 Blue</button>
-                    <button class="difficulty-btn" id="playAsRed">🔴 Red</button>
-                </div>
-            </div>
-
-            <!-- Universal full-label dropdowns: for Victorian, Steampunk, Art Deco, Cosmic, Dark -->
-            <div class="universal-controls" id="universalControls">
-                <label class="uni-label">Mode:</label>
-                <select class="uni-sel" id="uMode">
-                    <option value="2player">2 Players</option>
-                    <option value="ai">vs AI</option>
-                </select>
-                <label class="uni-label uni-sel-hidden" id="uDiffLabel">Difficulty:</label>
-                <select class="uni-sel uni-sel-hidden" id="uDiff">
-                    <option value="easy">Easy</option>
-                    <option value="medium">Medium</option>
-                    <option value="hard">Hard</option>
-                </select>
-                <label class="uni-label uni-sel-hidden" id="uPlayLabel">Play as:</label>
-                <select class="uni-sel uni-sel-hidden" id="uPlay">
-                    <option value="blue">Blue</option>
-                    <option value="red">Red</option>
-                </select>
-            </div>
-
-            <!-- Compact + Bitmap short-label dropdowns -->
-            <div class="compact-controls" id="compactControls">
-                <span class="compact-sel-label">Mode:</span>
-                <select class="compact-sel" id="cMode">
-                    <option value="2player">2P</option>
-                    <option value="ai">AI</option>
-                </select>
-                <span class="compact-sel-label compact-sel-hidden" id="cDiffLabel">Diff:</span>
-                <select class="compact-sel compact-sel-hidden" id="cDiff">
-                    <option value="easy">Easy</option>
-                    <option value="medium">Med</option>
-                    <option value="hard">Hard</option>
-                </select>
-                <span class="compact-sel-label compact-sel-hidden" id="cPlayLabel">Play:</span>
-                <select class="compact-sel compact-sel-hidden" id="cPlay">
-                    <option value="blue">Blue</option>
-                    <option value="red">Red</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="round-info">
-            <strong>Round <span id="currentRound">1</span><span id="roundSuffix"></span></strong>
-            <div style="display:flex;gap:6px;">
-                <button class="btn help-btn" id="helpBtn">📖 Rules</button>
-                <button class="btn help-btn" id="strategyBtn">♙ Strategy</button>
-            </div>
-        </div>
-
-        <div class="action-panel" id="actionPanel">
-            <!-- Steampunk gear train — hidden in all other themes via CSS -->
-            <div class="sp-gear-train" aria-hidden="true">
-                <div class="sp-gear sp-gear-1"></div>
-                <div class="sp-gear sp-gear-2"></div>
-                <div class="sp-gear sp-gear-3"></div>
-                <div class="sp-gear sp-gear-4"></div>
-                <div class="sp-gear sp-gear-5"></div>
-            </div>
-
-            <!-- State A: Start Round / Start Rolldown -->
-            <div class="controls" id="gameControls">
-                <button class="btn start-btn roll-prompt-pulse" id="startRound">Start Round 1</button>
-                <button class="btn start-btn finale-btn hidden" id="startFinale">▶ Start Rolldown</button>
-            </div>
-
-            <!-- State B: Rolloff + Roll buttons -->
-            <div class="coin-flip hidden" id="coinFlip">
-                <div class="first-player-rolloff" id="firstPlayerRolloff">
-                    <div class="rolloff-prompt" id="rolloffPrompt">Tap your die — higher number goes first!</div>
-                    <div class="rolloff-arena">
-                        <button class="rolloff-die" id="blueRolloffDie" aria-label="Blue: roll for first player"></button>
-                        <div class="rolloff-center">
-                            <div class="rolloff-vs">VS</div>
-                            <div class="rolloff-result" id="rolloffResult"></div>
-                        </div>
-                        <button class="rolloff-die" id="redRolloffDie" aria-label="Red: roll for first player"></button>
-                    </div>
-                </div>
-                <div class="player-rolls hidden" id="playerRolls">
-                    <button class="btn blue-btn" id="blueRoll">🔵 Blue Roll Dice</button>
-                    <button class="btn red-btn"  id="redRoll">🔴 Red Roll Dice</button>
-                </div>
-            </div>
-
-            <!-- State C: Status text -->
-            <div class="action-status hidden" id="actionStatus">
-                <span id="turnInfo"></span>
-            </div>
-
-            <!-- State D: Winner announcement -->
-            <div class="winner-display hidden" id="winnerDisplay">
-                <div class="winner-pulse" id="winnerPulseText"></div>
-            </div>
-
-            <!-- Persistent bottom strip (take result, round 10 reminder, etc.) -->
-            <div class="action-take-result hidden" id="actionTakeResult"></div>
-        </div>
-
-        <!-- Hidden, kept for JS compatibility -->
-        <div class="take-difference hidden" id="takeDifference"></div>
-
-        <!-- Pre-Final Screen (kept in DOM but no longer shown — replaced by in-panel flow) -->
-        <div class="pre-final-screen hidden" id="preFinalScreen">
-            <div class="pre-final-inner">
-                <div class="pre-final-ornament">⚜</div>
-                <h2 class="pre-final-title">The Rolldown Approaches</h2>
-                <p class="pre-final-flavour">Ten rounds of cunning play draw to a close.<br>Now comes the final reckoning — your saved die enters the arena.</p>
-                <div class="pre-final-saved-reminder">💎 Your <strong>Save One</strong> die carries forward into the Rolldown</div>
-                <button class="btn proceed-btn" id="proceedFinalBtn">Proceed to the Rolldown →</button>
-            </div>
-        </div>
-
-        <!-- Final Roll Drama Modal -->
-        <div class="final-roll-modal hidden" id="finalRollModal" role="dialog" aria-modal="true" aria-labelledby="finalRollTitle">
-            <div class="final-roll-content">
-                <h2 class="final-roll-title" id="finalRollTitle">🎬 FINAL ROUND 🎬</h2>
-                <div class="final-scores-display">
-                    <div class="player-final-score blue" id="blueFinalCard">
-                        <div class="player-name">🔵 BLUE PLAYER</div>
-                        <div class="saved-die-display" id="blueSavedDie">
-                            <span class="saved-label">SAVED</span>
-                            <span id="blueSavedDieValue">—</span>
-                        </div>
-                        <div class="running-total-label">RUNNING TOTAL</div>
-                        <div class="running-total" id="blueRunningTotal">0</div>
-                        <div class="dice-rolled-container" id="blueDiceRolled"></div>
-                        <div class="player-combo-bonus" id="blueComboBonusDisplay"></div>
-                    </div>
-                    <div class="player-final-score red" id="redFinalCard">
-                        <div class="player-name">🔴 RED PLAYER</div>
-                        <div class="saved-die-display" id="redSavedDie">
-                            <span class="saved-label">SAVED</span>
-                            <span id="redSavedDieValue">—</span>
-                        </div>
-                        <div class="running-total-label">RUNNING TOTAL</div>
-                        <div class="running-total" id="redRunningTotal">0</div>
-                        <div class="dice-rolled-container" id="redDiceRolled"></div>
-                        <div class="player-combo-bonus" id="redComboBonusDisplay"></div>
-                    </div>
-                </div>
-                <div class="drama-message" id="dramaMessage">Get ready for the final showdown!</div>
-                <div class="current-turn" id="currentTurnMessage">Tap your button to begin</div>
-                <div class="final-roll-btns">
-                    <button class="roll-die-btn blue-final-btn" id="blueRollFinalDie">🔵 Roll My Die</button>
-                    <button class="roll-die-btn red-final-btn"  id="redRollFinalDie">🔴 Roll My Die</button>
-                </div>
-                <div class="final-celebration hidden" id="finalCelebration">
-                    <div class="winner-announcement" id="winnerAnnouncement"></div>
-                    <div class="final-margin" id="finalMargin"></div>
-                    <button class="btn start-btn" id="closeFinalModal">Continue</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Game Board -->
-        <div class="game-board">
-            <div class="player-area blue">
-                <div class="player-header blue-player" id="bluePlayerHeader">BLUE PLAYER</div>
-                <div class="dice-area" id="blueDiceArea"></div>
-                <div class="pockets">
-                    <div class="pocket" id="blueKeep1" data-player="blue" data-pocket="keep1">
-                        <div class="pocket-label">Keep Two #1</div>
-                        <div class="pocket-dice"></div>
-                    </div>
-                    <div class="pocket" id="blueKeep2" data-player="blue" data-pocket="keep2">
-                        <div class="pocket-label">Keep Two #2</div>
-                        <div class="pocket-dice"></div>
-                    </div>
-                    <div class="pocket take-pocket" id="blueTake" data-player="blue" data-pocket="take">
-                        <div class="pocket-label">Take One</div>
-                        <div class="pocket-dice"></div>
-                        <div class="pocket-score hidden" id="blueTakeScore"></div>
-                    </div>
-                    <div class="finale-pocket hidden" id="blueFinale">
-                        <div class="pocket-label">ROLLDOWN</div>
-                        <div class="finale-running-total" id="blueFinaleTotal">0</div>
-                        <div class="finale-bonus" id="blueFinaleBonus"></div>
-                    </div>
-                    <div class="pocket save-pocket" id="blueSave" data-player="blue" data-pocket="save">
-                        <div class="pocket-label">Save One</div>
-                        <div class="pocket-dice"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="player-area red">
-                <div class="player-header red-player" id="redPlayerHeader">RED PLAYER</div>
-                <div class="dice-area" id="redDiceArea"></div>
-                <div class="pockets">
-                    <div class="pocket" id="redKeep1" data-player="red" data-pocket="keep1">
-                        <div class="pocket-label">Keep Two #1</div>
-                        <div class="pocket-dice"></div>
-                    </div>
-                    <div class="pocket" id="redKeep2" data-player="red" data-pocket="keep2">
-                        <div class="pocket-label">Keep Two #2</div>
-                        <div class="pocket-dice"></div>
-                    </div>
-                    <div class="pocket take-pocket" id="redTake" data-player="red" data-pocket="take">
-                        <div class="pocket-label">Take One</div>
-                        <div class="pocket-dice"></div>
-                        <div class="pocket-score hidden" id="redTakeScore"></div>
-                    </div>
-                    <div class="finale-pocket hidden" id="redFinale">
-                        <div class="pocket-label">ROLLDOWN</div>
-                        <div class="finale-running-total" id="redFinaleTotal">0</div>
-                        <div class="finale-bonus" id="redFinaleBonus"></div>
-                    </div>
-                    <div class="pocket save-pocket" id="redSave" data-player="red" data-pocket="save">
-                        <div class="pocket-label">Save One</div>
-                        <div class="pocket-dice"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="bonus-legend">
-            <h4>Bonus Points — Take One Winner and Rolldown Round:</h4>
-            1 pair = 1pt | 2 pair = 2pts | 3 of a kind = 3pts | full house = 4pts | straight = 5pts | 4 of a kind = 6pts | 5 of a kind = 10pts
-        </div>
-
-        <div class="scores">
-            <div class="score-area" id="blueScoreArea">
-                <h3 class="blue-player" id="blueScoreLabel">Blue Player Score</h3>
-                <div class="score-display" id="blueScore">0</div>
-            </div>
-            <div class="score-area" id="redScoreArea">
-                <h3 class="red-player" id="redScoreLabel">Red Player Score</h3>
-                <div class="score-display" id="redScore">0</div>
-            </div>
-        </div>
-
-        <div class="stats-panel hidden" id="statsPanel">
-            <h3>Player Statistics</h3>
-            <div id="statsContent"></div>
-        </div>
-
-        <div class="new-game-section">
-            <button class="btn action-btn" id="newGame">New Game</button>
-            <button class="btn action-btn" id="viewStats">View Stats</button>
-        </div>
-
-        <!-- Confirm Modal -->
-        <div class="modal-overlay hidden" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
-            <div class="modal-content modal-confirm">
-                <div class="modal-header"><h2 id="confirmTitle">Are you sure?</h2></div>
-                <div class="modal-body">
-                    <p id="confirmMessage">This action can't be undone.</p>
-                    <div class="confirm-buttons">
-                        <button class="btn confirm-cancel" id="confirmCancel">Cancel</button>
-                        <button class="btn confirm-ok" id="confirmOk">Confirm</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Strategy Modal -->
-        <div class="modal-overlay hidden" id="strategyModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Strategy Guide</h2>
-                    <button class="modal-close" id="closeStrategy">✕</button>
-                </div>
-                <div class="modal-body" id="strategyContent"></div>
-            </div>
-        </div>
-
-        <!-- Rules Modal -->
-        <div class="modal-overlay hidden" id="helpModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>How to Play Pockets</h2>
-                    <button class="modal-close" id="closeHelp">✕</button>
-                </div>
-                <div class="modal-body" id="helpContent"></div>
-            </div>
-        </div>
-
-        <div class="copyright">An Original Dice Game for Two Players &nbsp;|&nbsp; Copyright Joel Pickard 2025</div>
-    </div>
-
-    <script src="js/scoring.js"></script>
-    <script src="js/ai-player.js"></script>
-    <script src="js/stats.js"></script>
-    <script src="js/game-engine.js"></script>
-
-    <script>
-        // ── Theme switching ──────────────────────────────
-const themeSelector = document.getElementById('themeSelector');
-        const themeCss      = document.getElementById('theme-css');
-        function loadSavedTheme() {
-            const isNarrow = window.innerWidth <= 480;
-            const defaultTheme = isNarrow ? 'compact' : 'victorian';
-            const saved = localStorage.getItem('pockets-theme') || defaultTheme;
-            themeSelector.value = saved;
-            switchTheme(saved);
-        }
-        themeSelector.addEventListener('change', e => {
-            switchTheme(e.target.value);
-            localStorage.setItem('pockets-theme', e.target.value);
+function restoreBoardPlacements(board) {
+    if (!board) { return; }
+    ['blue', 'red'].forEach(function(color) {
+        var placed = board[color];
+        if (!placed) { return; }
+        var savedDie = (color === 'blue') ? gameState.blueSavedDie : gameState.redSavedDie;
+        ['keep1', 'keep2', 'take', 'save'].forEach(function(pocketKey) {
+            if (!placed[pocketKey] || placed[pocketKey].length === 0) { return; }
+            var value = placed[pocketKey][0];
+            var pocketIdSuffix = pocketKey.charAt(0).toUpperCase() + pocketKey.slice(1);
+            var pocketEl = document.getElementById(color + pocketIdSuffix);
+            var isSaved  = (pocketKey === 'save' && savedDie === value);
+            restorePocketDie(pocketEl, value, isSaved);
         });
-        function switchTheme(theme) {
-            themeCss.href = `themes/${theme}.css`;
-            document.body.className = `theme-${theme}`;
-            var icons = {victorian:'🎩', steampunk:'⚙️', 'art-deco':'🏛️', cosmic:'🌌', dark:'⬛', bitmap:'🐱', compact:'📱'};
-            var el = document.getElementById('themeIcon');
-            if (el) { el.textContent = icons[theme] || '🎩'; }
-        }
+    });
+}
 
-        // ── Rules modal ──────────────────────────────────
-        document.getElementById('strategyBtn').addEventListener('click', () => {
-            document.getElementById('strategyModal').classList.remove('hidden');
-            loadStrategyGuide();
-        });
-        document.getElementById('closeStrategy').addEventListener('click', () => {
-            document.getElementById('strategyModal').classList.add('hidden');
-        });
-        document.getElementById('strategyModal').addEventListener('click', e => {
-            if (e.target.id === 'strategyModal') document.getElementById('strategyModal').classList.add('hidden');
-        });
+// Restores everything: data (gameState itself, mode, difficulty, rolloff
+// state) AND the visual board (placed dice, unplaced dice still waiting to be
+// placed, and whichever action-panel view matches where the game actually
+// was). Mid-Finale visual state is intentionally not frame-perfectly
+// reconstructed here (see session notes) - the underlying scores/data are
+// still fully preserved either way, nothing is lost.
+function restoreGameFromSave(saved) {
+    gameWasRestoredOnLoad = true;
+    gameState = saved.gameState;
+    gameMode  = saved.gameMode;
+    if (typeof rolloffState !== 'undefined' && saved.rolloffState) {
+        rolloffState = saved.rolloffState;
+    }
 
-        function loadStrategyGuide() {
-            document.getElementById('strategyContent').innerHTML = `
-<div class="help-section">
-  <nav style="margin-bottom:18px;line-height:2.4;">
-    <strong>Jump to:</strong><br>
-    <a class="guide-nav-btn" href="#sg-short">The Short Version</a>
-    <a class="guide-nav-btn" href="#sg-rules-note">One Rule Worth Knowing</a>
-    <a class="guide-nav-btn" href="#sg-before">Before the Round</a>
-    <a class="guide-nav-btn" href="#sg-rff">Roll For First</a>
-    <a class="guide-nav-btn" href="#sg-yourroll">Reading Your Roll</a>
-    <a class="guide-nav-btn" href="#sg-placement">The Placement Game</a>
-    <a class="guide-nav-btn" href="#sg-take">The Take Decision</a>
-    <a class="guide-nav-btn" href="#sg-save">The Save Decision</a>
-    <a class="guide-nav-btn" href="#sg-reading">Reading Your Opponent</a>
-    <a class="guide-nav-btn" href="#sg-late">Late Game</a>
-    <a class="guide-nav-btn" href="#sg-rolldown">The Rolldown</a>
-    <a class="guide-nav-btn" href="#sg-errors">Common Mistakes</a>
-    <a class="guide-nav-btn" href="#sg-ai">vs. the AI</a>
-  </nav>
-</div>
+    setGameMode(gameMode);
+    if (gameMode === 'ai' && saved.difficulty) { setAIDifficulty(saved.difficulty); }
+    setPlayerColor(gameState.humanColor || 'blue');
 
-<div class="help-section" id="sg-short">
-  <h3>The Short Version</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"The dice don't decide the game. They present the puzzle. You decide how to solve it."</p>
-  <p>POCKETS is a decision game that happens to use dice. The rolling is the easy part. Four dice land in front of you, and then the actual game begins.</p>
-  <p>Every die you rolled must go somewhere. <strong>Keep Two</strong> — both dice score, no fight, guaranteed income. <strong>Take One</strong> — the higher die wins the difference in pips, plus a combo bonus if you earned one. Win it and it pays. Lose it and you score zero from that pocket. <strong>Save One</strong> — scores nothing this round, but your saved die becomes your fourth die next round. One round forward. That's the whole deal.</p>
-  <p>The game ends when a player crosses 100 points. The final round is the Rolldown — all five dice score directly, biggest combo possible, and the last saved die from the previous round becomes the fifth Rolldown die.</p>
-  <p>Everything in this guide comes down to one question, asked four times per round: <em>given what I know right now, where does this die do the most good?</em></p>
-  <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
-</div>
+    restoreBoardPlacements(saved.board);
 
-<div class="help-section" id="sg-rules-note">
-  <h3>One Rule Worth Knowing Before You Play</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"In chess, touching a piece means you must move it. POCKETS is the opposite."</p>
-  <p>In POCKETS — both the physical game and the digital version — <strong>selecting a die doesn't commit it.</strong> You can pick up a die, think better of it, put it down, and pick up a different one. Change your mind as many times as you like. Browse your options. Take your time.</p>
-  <p><strong>But once you place a die in a pocket, it is there for good.</strong> No take-backs. No adjustments. That pocket is closed.</p>
-  <p>In the digital game: tap a die to highlight it, tap another die to change your selection, tap a pocket to lock it in permanently.</p>
-  <p>In the physical game: handle the dice freely, but the moment a die touches a pocket and you release it, the placement stands.</p>
-  <p>This matters strategically. You can <em>pick up</em> your strongest die and hover it over Take — watching your opponent sweat — and then put it in Keep instead. Mind games are legal. Permanent placements are not reversible.</p>
-  <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
-</div>
+    // renderDiceWithAnimation() clears the tray itself even with zero dice -
+    // always call it, regardless of how many are left to place. Skipping it
+    // when the array was empty used to leave whatever was already in the DOM
+    // untouched, which is exactly how stale/duplicate dice could linger.
+    renderDiceWithAnimation('blue', gameState.blueDice || [], true);
+    renderDiceWithAnimation('red',  gameState.redDice  || [], true);
 
-<div class="help-section" id="sg-before">
-  <h3>Before the Round Begins</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"The round hasn't started and you already have information. Use it."</p>
-  <p>Before a single die is rolled, you know three things: the current scores, what your opponent saved last round, and roughly how many rounds remain before someone hits 100. That's a lot to work with.</p>
-  <p><strong>The Save pocket — the most misunderstood rule in the game.</strong></p>
-  <p>The saved die carries forward exactly one round. That's it. It becomes your fourth die for the next round — meaning you roll only three new dice. After that round, the saved die is used up, gone, scored or not. If you want to carry a die forward again, you have to actively choose to save again. Nothing happens automatically. Nothing compounds on its own.</p>
+    document.getElementById('currentRound').textContent = gameState.round;
+    var startRoundBtn = document.getElementById('startRound');
+    if (startRoundBtn) { startRoundBtn.textContent = 'Start Round ' + gameState.round; }
 
-  <svg viewBox="0 0 480 120" style="width:100%;max-width:480px;display:block;margin:14px auto;" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="480" height="120" rx="8" fill="rgba(0,0,0,0.15)"/>
-    <rect x="20" y="28" width="88" height="62" rx="6" fill="rgba(100,160,100,0.3)" stroke="rgba(200,168,75,0.6)" stroke-width="1.5"/>
-    <text x="64" y="48" text-anchor="middle" fill="#f5f0e4" font-size="11" font-family="serif">Round 4</text>
-    <text x="64" y="67" text-anchor="middle" fill="#c8a84b" font-size="20" font-weight="bold" font-family="serif">6</text>
-    <text x="64" y="82" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">you save it</text>
-    <line x1="112" y1="59" x2="152" y2="59" stroke="#c8a84b" stroke-width="2" marker-end="url(#arv3a)"/>
-    <rect x="157" y="28" width="88" height="62" rx="6" fill="rgba(100,160,100,0.3)" stroke="rgba(200,168,75,0.6)" stroke-width="1.5"/>
-    <text x="201" y="48" text-anchor="middle" fill="#f5f0e4" font-size="11" font-family="serif">Round 5</text>
-    <text x="201" y="67" text-anchor="middle" fill="#c8a84b" font-size="20" font-weight="bold" font-family="serif">6</text>
-    <text x="201" y="82" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">4th die</text>
-    <text x="258" y="52" text-anchor="middle" fill="#f5f0e4" font-size="9" font-family="serif">save</text>
-    <text x="258" y="64" text-anchor="middle" fill="#f5f0e4" font-size="9" font-family="serif">again?</text>
-    <line x1="251" y1="72" x2="291" y2="72" stroke="rgba(200,168,75,0.45)" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arv3b)"/>
-    <rect x="296" y="28" width="88" height="62" rx="6" fill="rgba(100,160,100,0.12)" stroke="rgba(200,168,75,0.25)" stroke-width="1.5" stroke-dasharray="5,3"/>
-    <text x="340" y="48" text-anchor="middle" fill="#f5f0e4" font-size="11" font-family="serif">Round 6</text>
-    <text x="340" y="67" text-anchor="middle" fill="#c8a84b" font-size="16" font-weight="bold" font-family="serif">?</text>
-    <text x="340" y="82" text-anchor="middle" fill="#f5f0e4" font-size="9" opacity="0.6" font-family="serif">your choice</text>
-    <text x="415" y="55" text-anchor="middle" fill="#f5f0e4" font-size="9" opacity="0.6" font-family="serif">NOT</text>
-    <text x="415" y="67" text-anchor="middle" fill="#f5f0e4" font-size="9" opacity="0.6" font-family="serif">automatic</text>
-    <defs>
-      <marker id="arv3a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="#c8a84b" stroke-width="1.5"/></marker>
-      <marker id="arv3b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="rgba(200,168,75,0.45)" stroke-width="1.5"/></marker>
-    </defs>
-  </svg>
-
-  <p>Why does this matter so much? Because a saved 6 isn't a permanent weapon — it's a very good die you've guaranteed yourself for one more round. After that, you decide again. Sometimes the right answer is to save it again. Sometimes it's to finally fight with it in Take. The decision is always fresh.</p>
-  <p><strong>What your opponent's Save pocket tells you right now:</strong> Whatever die is sitting in their Save pocket is their guaranteed fourth die this round. A saved 6 means they're walking into this round with a 6 already in hand. Factor that into your Take calculus before you roll.</p>
-  <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="sg-rff">
-  <h3>Roll For First</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Going first lets you set the agenda. Going second lets you answer it."</p>
-  <p>Each round, both players roll a single separate die. Higher number goes first in the placement sequence that round. Ties re-roll. This die is <em>not</em> one of your four placement dice — it's purely for determining order. (In the physical game, it becomes your fifth die in the Rolldown. In the digital game, the Rolldown's fifth die comes from your Save pocket.)</p>
-  <p><strong>What "going first" actually means:</strong> You place one die first. Then your opponent places one die. Then you place one die. Then your opponent. You alternate, one die at a time, until all pockets are filled. Nobody places two dice in a row. Nobody sees all of anyone's dice before placing their own. You simply place die #1 before your opponent places die #1.</p>
-  <p><strong>Going first — the opportunity:</strong> You set the tone. You can place aggressively in Take immediately, forcing your opponent to react to your commitment rather than making their own independent choice. A 6 placed in Take before your opponent has shown anything is genuine pressure — they now have to decide whether to fight it or concede, and that decision constrains everything else they do this round.</p>
-  <p><strong>Going first — the risk:</strong> Your opponent sees your first placement before they make theirs. You've shown something; they've shown nothing. If your first placement is in Keep or Save, you've revealed that you're not immediately threatening Take — your opponent can relax slightly. If your first placement is in Take, you've committed that die publicly.</p>
-  <p><strong>Going second — the power:</strong> You see their first placement before making yours. That's real information. If they placed in Take, you know what you're fighting. If they placed in Keep, you know they're not (yet) threatening Take. You can directly counter their opening move. You can also use your placement to <em>force them onto the defensive</em> — a well-placed die after seeing their first move can box them into a corner. With the right dice, going second and placing aggressively puts the first player in a position they didn't expect to be in.</p>
-  <p><strong>A concrete example:</strong> They go first and place a 3 in Take. You're going second and you have a 6. You can now place your 6 in Take, win by 3 points plus your combo, and the first player is stuck. Or you can place your 6 in Keep, beat their 3 in Take with a lesser die, and bank the 6 safely. Going second gave you that choice. Going first would have meant committing blind.</p>
-  <p><em>Note: the Roll For First die itself is visible to both players. Your opponent rolled a 5 to beat your 4? That 5 is now in their hand for this round. Watch where it goes.</em></p>
-  <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="sg-yourroll">
-  <h3>Reading Your Own Roll</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Before you place a single die, the roll already has opinions about what you should do. Listen to them."</p>
-  <p>You just rolled. Four dice are in front of you (or three, plus your saved die). Before you look at your opponent, look at what you have. Two questions settle most decisions:</p>
-  <p><strong>Question 1: Do I have a combo?</strong> Your combo bonus is locked the moment you finish rolling — it's based on your full four-die hand including any saved die. Rolling three 5s with a saved 5 in your pocket gives you four 5s — that's a 4-of-a-kind bonus (+6) waiting to cash in, but only if you win Take. Matching dice dramatically increase your urgency to win Take. No combo at all? Your urgency drops considerably.</p>
-  <p><strong>Question 2: What did I save last round, and is it still the right die to save again?</strong> Your saved die is in your hand right now. A saved 6 plus a rolled 6 is a pair — a combo that cost you nothing new. A saved 4 that sits next to two rolled 6s is probably ready to retire — save one of the 6s instead.</p>
-
-  <svg viewBox="0 0 480 205" style="width:100%;max-width:480px;display:block;margin:14px auto;" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="480" height="205" rx="8" fill="rgba(0,0,0,0.15)"/>
-    <text x="240" y="20" text-anchor="middle" fill="#c8a84b" font-size="12" font-family="serif" font-weight="bold">WHAT DOES YOUR ROLL SUGGEST?</text>
-    <rect x="10" y="30" width="222" height="78" rx="5" fill="rgba(80,130,80,0.2)" stroke="rgba(200,168,75,0.3)" stroke-width="1"/>
-    <text x="121" y="48" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">6 6 3 1 — Pair of 6s</text>
-    <text x="121" y="63" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">One 6 → Take (pair bonus waiting)</text>
-    <text x="121" y="77" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">Other 6 → Keep. 3 → Keep. 1 → Save.</text>
-    <text x="121" y="96" text-anchor="middle" fill="rgba(160,220,140,0.9)" font-size="10" font-family="serif">Fight Take hard — combo justifies it</text>
-    <rect x="248" y="30" width="222" height="78" rx="5" fill="rgba(80,80,130,0.2)" stroke="rgba(200,168,75,0.3)" stroke-width="1"/>
-    <text x="359" y="48" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">3 4 5 2 — Straight!</text>
-    <text x="359" y="63" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">5 → Take (+5 bonus locked in)</text>
-    <text x="359" y="77" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">4 → Keep. 3 → Keep. 2 → Save.</text>
-    <text x="359" y="96" text-anchor="middle" fill="rgba(150,150,220,0.9)" font-size="10" font-family="serif">Win Take at almost any cost</text>
-    <rect x="10" y="118" width="222" height="78" rx="5" fill="rgba(130,80,80,0.2)" stroke="rgba(200,168,75,0.3)" stroke-width="1"/>
-    <text x="121" y="136" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">6 4 2 1 — No combo</text>
-    <text x="121" y="151" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">6 → Keep. 4 → Keep.</text>
-    <text x="121" y="165" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">2 → Take (concede). 1 → Save? No.</text>
-    <text x="121" y="184" text-anchor="middle" fill="rgba(220,160,140,0.9)" font-size="10" font-family="serif">Bank points. Take isn't worth fighting.</text>
-    <rect x="248" y="118" width="222" height="78" rx="5" fill="rgba(110,100,60,0.2)" stroke="rgba(200,168,75,0.3)" stroke-width="1"/>
-    <text x="359" y="136" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">5 5 5 2 — 3 of a kind</text>
-    <text x="359" y="151" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">One 5 → Take. Two 5s → Keep.</text>
-    <text x="359" y="165" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">2 → Save (no better option)</text>
-    <text x="359" y="184" text-anchor="middle" fill="rgba(210,200,140,0.9)" font-size="10" font-family="serif">Commit to Take — +3 bonus waiting</text>
-  </svg>
-
-  <p>No combo and mediocre numbers? Your roll is telling you this isn't a Take round. Place your two best dice in Keep, concede Take with something low, save a reasonable die, and come back swinging next round. Forcing Take with no combo and no dominant die is the most common way to throw a round away.</p>
-  <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="sg-placement">
-  <h3>The Placement Game — Information, Sequence, and Misdirection</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Every placement is a move. Every move reveals something. Choose what you reveal."</p>
-  <p>This is where POCKETS gets genuinely deep and most beginners don't realize it yet.</p>
-  <p>On your turn, you pick any one of your remaining unplaced dice and put it in any available pocket. There's no required order. You can place in Take first, Save first, Keep first — any die, any pocket, any sequence. Then your opponent does the same. You alternate, one die per turn, until all four pockets are filled.</p>
-  <p><strong>This means placement order is a strategic choice, not just a mechanical one.</strong></p>
-  <p><strong>Placing in Take early</strong> is a declaration. You're committing a die publicly and telling your opponent: "I'm fighting for this pocket. React to that." A 6 in Take before your opponent has placed anything forces them into a difficult decision — fight it and burn their best die, or concede and let you collect the combo payout unopposed. Either way, you're shaping how they use the rest of their dice.</p>
-  <p><strong>Placing in Keep first</strong> reveals almost nothing. Your opponent sees that you're not immediately threatening Take, but doesn't know your Take die or your intention. You're giving away less information while still advancing your position. A player who places in Keep first and then reveals a surprising Take die later has successfully hidden their hand.</p>
-  <p><strong>Placing in Save first</strong> is a signal — but what it signals depends on context. Early game it might mean you have a strong die worth banking. Late game it might mean your roll is weak and you're trying to salvage something. A savvy opponent reads it differently at different score states.</p>
-  <p><strong>Misdirection is legal.</strong> You can select a die — highlighting it in the digital game, picking it up physically — and then put it back and choose a different one. You can hover over Take before placing in Keep. Mind games within the selection phase are entirely within the rules. Only a completed placement is final.</p>
-
-  <svg viewBox="0 0 480 145" style="width:100%;max-width:480px;display:block;margin:14px auto;" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="480" height="145" rx="8" fill="rgba(0,0,0,0.15)"/>
-    <text x="240" y="18" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">WHAT YOUR FIRST PLACEMENT SIGNALS</text>
-    <rect x="10" y="26" width="140" height="108" rx="5" fill="rgba(180,140,40,0.15)" stroke="rgba(200,168,75,0.3)" stroke-width="1"/>
-    <text x="80" y="44" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">Take first</text>
-    <text x="80" y="60" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">"I'm fighting this pocket."</text>
-    <text x="80" y="74" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Forces opponent to react.</text>
-    <text x="80" y="88" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">High risk, high info.</text>
-    <text x="80" y="106" text-anchor="middle" fill="rgba(200,210,150,0.85)" font-size="9" font-family="serif">Best with combo or 6.</text>
-    <text x="80" y="120" text-anchor="middle" fill="rgba(200,210,150,0.85)" font-size="9" font-family="serif">Risky without either.</text>
-    <rect x="170" y="26" width="140" height="108" rx="5" fill="rgba(80,100,160,0.15)" stroke="rgba(200,168,75,0.3)" stroke-width="1"/>
-    <text x="240" y="44" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">Keep first</text>
-    <text x="240" y="60" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">"I'm banking points."</text>
-    <text x="240" y="74" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Reveals little. Keeps</text>
-    <text x="240" y="88" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Take intentions hidden.</text>
-    <text x="240" y="106" text-anchor="middle" fill="rgba(150,170,220,0.85)" font-size="9" font-family="serif">Best with mediocre roll.</text>
-    <text x="240" y="120" text-anchor="middle" fill="rgba(150,170,220,0.85)" font-size="9" font-family="serif">Also good for misdirection.</text>
-    <rect x="330" y="26" width="140" height="108" rx="5" fill="rgba(80,140,80,0.15)" stroke="rgba(200,168,75,0.3)" stroke-width="1"/>
-    <text x="400" y="44" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">Save first</text>
-    <text x="400" y="60" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">"I'm playing long game."</text>
-    <text x="400" y="74" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">May signal weak roll.</text>
-    <text x="400" y="88" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Or a disciplined player.</text>
-    <text x="400" y="106" text-anchor="middle" fill="rgba(140,200,140,0.85)" font-size="9" font-family="serif">Read by score context.</text>
-    <text x="400" y="120" text-anchor="middle" fill="rgba(140,200,140,0.85)" font-size="9" font-family="serif">Late game: Rolldown prep.</text>
-  </svg>
-
-  <p><strong>Reacting to your opponent's first placement:</strong> This is where going second becomes genuinely powerful. They placed in Take first with a 4. Now you know their Take die is a 4. You can beat it with a 5, collect whatever margin and combo applies, and your opponent has no recourse — they committed first. Or you can place your 5 in Keep, concede Take with your 1 or 2, bank 5 guaranteed points, and watch them "win" Take by beating your 1 for a single pip. Sometimes giving someone a small Take win is better than fighting them for it.</p>
-  <p><strong>The constraint cascade:</strong> Every placement narrows both players' remaining options. The last die placed is the least free — by then, only one pocket remains and one die remains. The whole game is a narrowing of choices, which is why early placements carry the most strategic weight. Think forward: if I place this die here now, what will be left for my final placement?</p>
-  <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="sg-take">
-  <h3>The Take Decision — Full Picture</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Take is the most exciting pocket and the most misused one. Usually by the same player."</p>
-  <p>Take is the only pocket where both players compete directly. Higher die wins the pip difference plus combo bonus. Loser scores zero from Take. It's high-stakes and it should be — but most beginners overvalue it.</p>
-  <p><strong>When Take is worth fighting for:</strong></p>
-  <ul>
-    <li>You have a combo of +3 or better — the multiplier makes Take worth significantly more than the raw pip margin</li>
-    <li>You can win by 3 or more pips — even without a combo, a large margin is meaningful</li>
-    <li>You're going second and opponent placed a low die first — easy wins are still wins, take them</li>
-    <li>You're behind in score and need to make ground — a +5 swing in one round is one of the fastest ways to close a gap</li>
-    <li>Your combo is big enough that winning Take is worth burning your best die to do it</li>
-  </ul>
-  <p><strong>When to let Take go:</strong></p>
-  <ul>
-    <li>You'd win by 1 or 2 pips with no combo — you're risking your best die for 1–2 points</li>
-    <li>Opponent placed a 6 in Take and you don't also have a 6 — send a 1 or 2, keep your strong dice in Keep</li>
-    <li>Your roll is mediocre and no combo exists — Keep is your friend this round</li>
-    <li>You're comfortably ahead — grinding safe Keep rounds lets the opponent take the risks</li>
-  </ul>
-  <p><strong>The "concede with intent" play:</strong> Deliberately sending a 1 or 2 to Take isn't giving up — it's a choice. You let your opponent "win" Take for a small margin while you bank your 5 and 6 in Keep for 11 guaranteed points. They win Take by 3 with no combo: that's 3 points. You scored 11. The math often favors graceful concession over desperate fighting.</p>
-  <p><strong>The "bait" play:</strong> Place a middling die — a 4 — in Take first. Your opponent may have a 5 and commit it to beat you by 1, no combo, for a single point. Meanwhile you banked your 6 and 5 in Keep. They "won" Take. You won the round.</p>
-  <p><strong>The "informational" Take:</strong> Sometimes you place in Take not to win it, but to force a decision. A 5 placed in Take before your opponent has committed forces them to decide whether to fight or concede before they've seen your other dice. That decision constrains everything else they do. You might not win Take — but you've already changed how they play the round.</p>
-  <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="sg-save">
-  <h3>The Save Decision — Round by Round</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Save isn't a vault. It's a courier — it hands one die forward, and then it's done."</p>
-  <p>The Save pocket scores nothing this round. In exchange, your saved die becomes your fourth die next round — meaning you roll only three new dice instead of four. After that round, the saved die is finished unless you choose to save it again. Every round is a fresh decision.</p>
-  <p><strong>What's worth saving?</strong></p>
-  <ul>
-    <li><strong>6:</strong> Almost always. A guaranteed 6 in your hand next round is powerful — it may pair with a rolled 6 for a combo, and it's a strong Take die whenever you need it. At 57.9% probability that none of your three new dice will even match it, a saved 6 is almost certainly the best die in your next hand before you even roll.</li>
-    <li><strong>5:</strong> Usually. Solid and flexible. The odds of rolling a new 5 or 6 to replace it are less than even, so a saved 5 holds real value.</li>
-    <li><strong>4:</strong> Situational. Early game with plenty of rounds ahead, fine. Late game when you could be saving a 5 or 6, questionable. Near Rolldown, almost certainly replace it.</li>
-    <li><strong>3 or lower:</strong> Rarely justified. You're locking in a weak die when you need a strong Rolldown die. The exception: your entire roll is garbage and even a 3 guaranteed beats the risk of rolling another 1.</li>
-  </ul>
-  <p><strong>Replacing your saved die:</strong> If you saved a 4 two rounds ago and this round you rolled a 6 that doesn't have a better home, replace it. Your Save pocket is not a commitment — it's a choice you make fresh every round. The 6 becomes your new courier; the 4 retires.</p>
-  <p><strong>Save and combos:</strong> The saved die is part of your four-die hand. A saved 5 plus a rolled 5 is a pair. A saved 6 plus two rolled 6s is three-of-a-kind. These aren't lucky accidents — they're the reward for disciplined Save decisions compounding over multiple rounds.</p>
-
-  <svg viewBox="0 0 480 135" style="width:100%;max-width:480px;display:block;margin:14px auto;" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="480" height="135" rx="8" fill="rgba(0,0,0,0.15)"/>
-    <text x="240" y="18" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">SAVE PRIORITY BY GAME STAGE</text>
-    <text x="80" y="38" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">Early (&lt;50 pts)</text>
-    <text x="240" y="38" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">Mid (50–80 pts)</text>
-    <text x="400" y="38" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">Late (80+ pts)</text>
-    <line x1="10" y1="46" x2="470" y2="46" stroke="rgba(200,168,75,0.2)" stroke-width="1"/>
-    <text x="80" y="65" text-anchor="middle" fill="#90c870" font-size="13" font-family="serif" font-weight="bold">5 or 6</text>
-    <text x="80" y="80" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">4 is acceptable.</text>
-    <text x="80" y="94" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Many rounds ahead.</text>
-    <text x="80" y="108" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Build the habit early.</text>
-    <text x="240" y="65" text-anchor="middle" fill="#c8a040" font-size="13" font-family="serif" font-weight="bold">5 or 6</text>
-    <text x="240" y="80" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Replace a 4 if you have 6.</text>
-    <text x="240" y="94" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">If trailing, push Take</text>
-    <text x="240" y="108" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">instead of banking.</text>
-    <text x="400" y="65" text-anchor="middle" fill="#d06040" font-size="13" font-family="serif" font-weight="bold">6 only</text>
-    <text x="400" y="80" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Rolldown approaches.</text>
-    <text x="400" y="94" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">This IS your 5th die.</text>
-    <text x="400" y="108" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Do not compromise.</text>
-  </svg>
-
-  <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="sg-reading">
-  <h3>Reading Your Opponent</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Every die they place is a fact. Accumulate them."</p>
-  <p>POCKETS is an open-information game. Every die both players place is visible to both players. This is an enormous amount of strategic data that beginners consistently underuse.</p>
-  <p><strong>Their Save pocket is the most important thing on the board.</strong> It tells you their Rolldown die — whatever is there when scores hit 100 becomes their fifth die in the finale. A player who has saved 6s for several rounds walks into the Rolldown with a 6 already locked in. A player with a 2 saved has squandered their preparation. Watch it every round. Note when it changes.</p>
-  <p><strong>Their first placement each round is their opening statement.</strong></p>
-  <ul>
-    <li><strong>They place in Take first with a 6:</strong> They're committed and probably have a combo. Concede with a low die unless you also have a 6 and a reason to fight it.</li>
-    <li><strong>They place in Take first with a 4 or 5:</strong> They're confident but not dominant. Fight it if your combo justifies the cost. Don't fight it if you'd win by 1 pip with no combo.</li>
-    <li><strong>They place in Take first with a 1 or 2:</strong> They're conceding Take. Their roll is probably mediocre. Beat it with any reasonable die, collect the margin plus combo, and move on.</li>
-    <li><strong>They place in Keep first:</strong> Their Take intentions are hidden. Don't assume they're conceding — they may be setting up misdirection. Watch the next placement carefully.</li>
-    <li><strong>They place in Save first:</strong> Read against the score. Early game it's discipline. Late game with scores near 80, it's Rolldown preparation. Near 100 with a weak saved die, it might be desperation.</li>
-  </ul>
-  <p><strong>The score gap is your risk barometer.</strong> If you're 20 points ahead with scores below 70, conservative Keep rounds and disciplined Saves are correct — let your opponent take the risks. If you're 20 points behind with scores above 70, you cannot afford conservative play. Every round you don't close the gap is a round closer to losing the Rolldown from behind.</p>
-  <p><strong>Their unplaced dice.</strong> As a round progresses, you can sometimes infer what's left. If they've placed their 6 in Keep and their 4 in Take, and they have two more placements to make, the remaining dice are probably their weaker ones. You can relax about their Take threat — it's already on the board.</p>
-  <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="sg-late">
-  <h3>Late Game — When the Rules Change</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"When either score crosses 80, you're no longer playing for points. You're playing for Rolldown position."</p>
-  <p>The early and mid game are about accumulating points efficiently. The late game is about something different: getting your Save pocket right before the Rolldown triggers, and managing the score gap so the Rolldown works in your favor.</p>
-  <p><strong>The Rolldown can come at any moment once scores pass 80.</strong> Any round where either player crosses 100 triggers it. You might have one more regular round, or you might not — and whatever is in your Save pocket at that moment is your Rolldown die. There is no adjustment window. Plan accordingly.</p>
-  <p><strong>If your current saved die is weak (4 or below) and scores are above 80:</strong> This may be your last chance to replace it. A 3 saved in round 6 might have been defensible then. A 3 as your Rolldown die in round 9 is a problem. Fix it before the Rolldown takes the choice away from you.</p>
-  <p><strong>If you're ahead near 100:</strong> Check your saved die. Is it a 5 or 6? Hold it. Don't let the excitement of being ahead make you careless about the Rolldown setup.</p>
-  <p><strong>If you're behind near 100:</strong> You need Take wins and you need a strong saved die. Risky Take plays that would have been wrong at round 4 may be entirely correct at round 9 — you don't have the luxury of patience anymore. A 15–20 point deficit is closeable in the Rolldown, but only with a good fifth die and some luck on new dice. Give yourself the best possible chance.</p>
-  <p><strong>The Rolldown can close surprising gaps.</strong> Five 6s plus a 5-of-a-kind bonus is 40 points. Five 5s plus 5-of-a-kind is 35 points. A player who is 18 points behind walking into the Rolldown is not out of the game. Do not concede. Calculate first.</p>
-  <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="sg-rolldown">
-  <h3>The Rolldown</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"All five dice score. No Take battle. No bluffing. Just roll and add — with the biggest combo possible."</p>
-  <p>When either player crosses 100 at the end of a regular round, the next round is the Rolldown. The player who triggered it clicks Start Rolldown.</p>
-  <p><strong>How it works:</strong></p>
-  <ul>
-    <li>Your saved die from the previous round is already locked in its pocket.</li>
-    <li>Both players roll four new dice. All five dice — the four new ones plus the saved one — score directly as their face values added together.</li>
-    <li>No pockets, no Take battle, no conceding with a low die. Everything scores.</li>
-    <li>Combo bonuses apply across all five dice. This is the only round where Full House (+4) and 5-of-a-kind (+10) are achievable.</li>
-  </ul>
-  <p><strong>In the physical game:</strong> The Roll For First die that was used at the start of each round becomes the fifth Rolldown die. It's the reason that separate die exists — it has a purpose in the finale.</p>
-  <p><strong>In the digital game:</strong> The fifth die is your saved die from the previous round. Both players roll four new dice in the roll area.</p>
-  <p><strong>Rolldown strategy is mostly decided before the Rolldown begins.</strong> The die you saved is locked. The only choice left is to roll and hope. That said:</p>
-  <ul>
-    <li>Add up the actual numbers before reacting emotionally. Gaps that feel insurmountable often aren't when the math runs.</li>
-    <li>If you're behind: you need high numbers on all four new dice, and you need a combo. Five 6s is the dream. Five of anything is still +10. Root for matching numbers above all else.</li>
-    <li>If you're ahead: your saved die is earning its keep. A 6 in Save means you walk in with one 6 guaranteed. Relax — but don't stop paying attention until the final tally.</li>
-  </ul>
-  <p><em>The highest possible Rolldown score: five 6s (30 pts) + 5-of-a-kind bonus (10 pts) = 40 points total. The lowest: 1,1,1,2,2 (full house) = 7 + 4 = 11 points — because with 5 dice you almost always hit some combo. The game is genuinely capable of wild reversals right to the end. Don't give up and don't get cocky.</em></p>
-  <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="sg-errors">
-  <h3>Common Mistakes — Yes, You're Probably Making Some</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Every mistake in POCKETS has a name. Most of them have a player who makes it every single game."</p>
-  <ul>
-    <li><strong>Treating Save as permanent.</strong> The most common misunderstanding in the game. The saved die lasts one round. Then you choose again. It does not compound, stack, or persist on its own.</li>
-    <li><strong>Saving weak dice.</strong> A saved 2 is your guaranteed fourth die next round. You've locked in a liability. Save 5s and 6s whenever possible.</li>
-    <li><strong>Not replacing a weak saved die late game.</strong> You saved a 3 in round 5. It's round 9, scores are 88–75. That 3 is your Rolldown die unless you fix it right now. Fix it.</li>
-    <li><strong>Fighting every Take battle.</strong> Some Take battles should be conceded gracefully. A 1 in Take while you bank your 6 and 5 in Keep is often the better round. Conceding isn't losing — it's choosing where to score.</li>
-    <li><strong>Ignoring the combo bonus.</strong> You rolled three 4s. You're about to just... bank them all in Keep? Your combo is +3 and it only pays if you win Take. Fight Take this round.</li>
-    <li><strong>Ignoring the score context.</strong> The same placement decision that's correct at 30–30 can be completely wrong at 85–70. Check the scores before every placement.</li>
-    <li><strong>Never using misdirection.</strong> Selecting a die and then changing to a different one is legal and effective. Pick up your 6, hover it over Take, put it in Keep. Watch what your opponent does in response.</li>
-    <li><strong>Assuming going first is always worse.</strong> Going first with a strong combo and a 6 to commit is often the better position — you set the agenda and your opponent reacts. Going second is only an advantage if you use the information it gives you.</li>
-    <li><strong>Conceding in the Rolldown.</strong> Count the numbers. A 20-point gap with five dice yet to score can absolutely close. The game isn't over until the math says it is.</li>
-  </ul>
-  <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="sg-ai">
-  <h3>vs. the AI</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"The AI doesn't get nervous. But a patient human who reads the board has a real shot."</p>
-  <p>All three AI difficulty levels share the same underlying approach — what changes is how much information each one uses when making decisions.</p>
-  <ul>
-    <li><strong>Easy:</strong> Makes decisions with limited awareness — it sees whether scores are near 100, but has no read on hand strength or your placements. On top of that, it deliberately makes recognizable beginner mistakes: saving weak dice, committing to Take with its worst die. A player applying this guide should beat Easy consistently.</li>
-    <li><strong>Medium:</strong> Reads its own hand quality each round and has a rough sense of how far behind it is — but never looks at what you've placed. It plays its own dice reasonably well but can't fully react to you. Expect more competitive rounds, but exploitable blind spots late in close games.</li>
-    <li><strong>Hard:</strong> Full picture — its own hand quality, a live read on your placements so far this round, and a precise calculation of the score gap. It weighs every placement against Keep vs Take vs Save vs what you've already shown. It will walk away from a Take battle the math doesn't favor. It will replace a weak saved die the moment a better one is available. It plays the way this guide recommends — and it doesn't get distracted, emotional, or impatient. A patient human using everything in this guide has a genuine chance. A human on autopilot doesn't.</li>
-  </ul>
-  <p>The AI's real advantage isn't seeing further into the future than you. It's making the correct decision in the moment, consistently, using the same open information you have access to. The information is equal. The consistency is what's hard to match.</p>
-  <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
-</div>
-</div>`;
-        }
-
-        document.getElementById('helpBtn').addEventListener('click', () => {
-            document.getElementById('helpModal').classList.remove('hidden');
-            loadGameRules();
-        });
-        document.getElementById('closeHelp').addEventListener('click', () => {
-            document.getElementById('helpModal').classList.add('hidden');
-        });
-        document.getElementById('helpModal').addEventListener('click', e => {
-            if (e.target.id === 'helpModal') document.getElementById('helpModal').classList.add('hidden');
-        });
-
-        function loadGameRules() {
-            document.getElementById('helpContent').innerHTML = `
-<div class="help-section">
-  <nav style="margin-bottom:16px;line-height:2.1;">
-    <strong>Jump to:</strong><br>
-    <a class="guide-nav-btn" href="#rules-overview">Overview</a>
-    <a class="guide-nav-btn" href="#rules-setup">Setup</a>
-    <a class="guide-nav-btn" href="#rules-round">Round Structure</a>
-    <a class="guide-nav-btn" href="#rules-pockets">The Four Pockets</a>
-    <a class="guide-nav-btn" href="#rules-scoring">Scoring</a>
-    <a class="guide-nav-btn" href="#rules-finale">The Rolldown</a>
-    <a class="guide-nav-btn" href="#rules-strategy">Strategy Tips</a>
-    <a class="guide-nav-btn" href="#rules-ai">AI Opponents</a>
-    <a class="guide-nav-btn" href="#rules-themes">Themes</a>
-  </nav>
-</div>
-
-<div class="help-section" id="rules-overview">
-  <h3>📋 Game Overview</h3>
-  <p>POCKETS is a strategic dice game for 2 players (or vs. the AI). Each round, players roll 4 dice and place them into four pockets to score points. The first player to cross 100 points triggers the Rolldown — a final round where all dice score directly. Highest total wins.</p>
-  <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="rules-setup">
-  <h3>🎯 Game Setup</h3>
-  <ul>
-    <li><strong>Round 1:</strong> Both players roll 4 dice and place them into pockets.</li>
-    <li><strong>Rounds 2 onward:</strong> Roll 3 fresh dice — your saved die from last round is the fourth.</li>
-    <li><strong>Rolldown:</strong> Triggered when either player crosses 100 points at the end of a round. Both players roll 4 new dice — your saved die is the fifth. All 5 score directly.</li>
-    <li><strong>Four Pockets:</strong> Keep Two #1, Keep Two #2, Take One, Save One.</li>
-  </ul>
-  <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="rules-round">
-  <h3>🎲 Round Structure</h3>
-  <ol>
-    <li><strong>Roll-Off:</strong> Each player rolls one die — higher number goes first in placement. Ties roll again.</li>
-    <li><strong>Roll Dice:</strong> Both players roll their dice — 4 in Round 1, then 3 fresh dice each subsequent round (your saved die is the fourth).</li>
-    <li><strong>Place Dice:</strong> Players alternate placing one die at a time into pockets. Any die, any pocket, any order — the choice is yours each turn.</li>
-    <li><strong>Selection is not placement:</strong> You may pick up a die, change your mind, and pick up a different one as many times as you like. Once a die is placed in a pocket it is permanent — no changes after placement. In the digital game: tap a die to select it, tap another to change your mind, tap a pocket to lock it in.</li>
-    <li><strong>Score Round:</strong> Points calculated. If either player has crossed 100, the Rolldown button appears.</li>
-  </ol>
-  <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="rules-pockets">
-  <h3>📦 The Four Pockets</h3>
-  <ul>
-    <li><strong>🎯 Keep Two #1 &amp; #2:</strong> Each holds 1 die. Both dice add to your score each round.</li>
-    <li><strong>⚔️ Take One:</strong> Higher die wins the difference in pips, plus a combo bonus based on the winner's original 4-die roll. Loser gets nothing from Take.</li>
-    <li><strong>💎 Save One:</strong> Scores nothing this round — becomes your 4th die next round, and your 5th die in the Rolldown.</li>
-  </ul>
-  <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="rules-scoring">
-  <h3>🏆 Scoring</h3>
-  <ul>
-    <li><strong>Keep Points:</strong> Sum of both Keep pocket dice.</li>
-    <li><strong>Take Battle:</strong> Winner scores (their die − opponent's die) points, plus a combo bonus on their original 4-die roll.</li>
-  </ul>
-  <table class="help-combo-table">
-    <tr><td>1 Pair</td><td>+1 pt</td></tr>
-    <tr><td>Two Pair</td><td>+2 pts</td></tr>
-    <tr><td>3 of a Kind</td><td>+3 pts</td></tr>
-    <tr><td>Full House</td><td>+4 pts (Rolldown only)</td></tr>
-    <tr><td>Straight</td><td>+5 pts</td></tr>
-    <tr><td>4 of a Kind</td><td>+6 pts</td></tr>
-    <tr><td>5 of a Kind</td><td>+10 pts (Rolldown only)</td></tr>
-  </table>
-  <p style="margin-top:8px"><em>The combo bonus is calculated on your original 4-die roll — placement doesn't change it. But the bonus only pays out if you win Take that round.</em></p>
-  <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="rules-finale">
-  <h3>🎲 The Rolldown</h3>
-  <p>When either player crosses 100 points at the end of a round, the Rolldown begins. The player with the higher score clicks <strong>Start Rolldown</strong>.</p>
-  <ul>
-    <li>Your saved die stays in its pocket — already chosen.</li>
-    <li>Both players roll 4 new dice, alternating one at a time.</li>
-    <li>All 5 dice score directly — no pockets, no Take battle.</li>
-    <li>Full house (+4) and 5-of-a-kind (+10) combo bonuses now available.</li>
-  </ul>
-  <p><em>💡 The die in your Save pocket when the Rolldown triggers is your fifth Rolldown die. Choose it wisely throughout the game.</em></p>
-  <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="rules-strategy">
-  <h3>🧠 Strategy Tips (Short Version)</h3>
-  <ul>
-    <li><strong>Keep:</strong> Your safe floor. Both dice score, no opposition. A reasonable destination for any die that doesn't have a stronger case elsewhere.</li>
-    <li><strong>Take:</strong> The leverage play. Win for the difference plus your combo bonus; lose and the die scores nothing. Push hard with a real combo or a dominant high die.</li>
-    <li><strong>Save:</strong> Investment. Scores 0 this round but carries forward as your fourth die each round, then becomes your fifth die in the Rolldown. Save 5s and 6s when you can.</li>
-    <li><strong>Watch your opponent's Save pocket and the score</strong> — when either player nears 100, the Rolldown is imminent.</li>
-  </ul>
-  <p>See the full <strong>Strategy Guide</strong> button for deeper play.</p>
-  <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="rules-ai">
-  <h3>🤖 AI Opponents</h3>
-  <ul>
-    <li><strong>Easy:</strong> Sees only the score, not your pockets or its own hand strength — good for learning the ropes, with the occasional beginner-style mistake built in.</li>
-    <li><strong>Medium:</strong> Reads its own hand and roughly how far behind it is, but never looks at your placements.</li>
-    <li><strong>Hard:</strong> Full picture — reads your placements too, and weighs every Take fight rather than chasing it by default.</li>
-  </ul>
-  <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
-</div>
-
-<div class="help-section" id="rules-themes">
-  <h3>🎨 Themes</h3>
-  <ul>
-    <li>🎩 <strong>Victorian</strong> | 📱 <strong>Compact (Mobile)</strong> | ⚙️ <strong>Steampunk</strong> | 🏛️ <strong>Art Deco</strong> | 🌌 <strong>Cosmic</strong> | 🌑 <strong>Dark Mode</strong> | 🐱 <strong>Bitmap</strong></li>
-  </ul>
-  <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
-</div>
-`;
-        }
-
-        // ── Initialisation ───────────────────────────────
-
-        function showToast(message, durationMs) {
-            const toast = document.getElementById('difficultyToast');
-            if (!toast) return;
-            toast.textContent = message;
-            toast.classList.remove('toast-hidden');
-            clearTimeout(toast._t);
-            toast._t = setTimeout(() => toast.classList.add('toast-hidden'), durationMs || 2200);
-        }
-
-        function showDifficultyToast(label) {
-            const pretty = label.charAt(0).toUpperCase() + label.slice(1);
-            showToast('🤖 AI difficulty: ' + pretty, 2200);
-        }
-
-        function brightenPlaceholderDice() {
-            // Game-engine.js's showPlaceholderDice sets style.opacity = '0.35'.
-            // Override to full brightness once rolloff is starting.
-            document.querySelectorAll('#blueDiceArea .dice, #redDiceArea .dice')
-                .forEach(d => { d.style.opacity = '1'; });
-        }
-
-        function initializeGameSystem() {
-            try {
-                loadSavedTheme();
-                if (typeof initializeGame === 'function') initializeGame();
-                else console.warn('game-engine.js not loaded');
-
-                // Render idle 1-pip placeholder dice on page load so the board
-                // looks like a dice game immediately, before "Start Round 1" -
-                // but only for a genuinely fresh page. A real in-progress game
-                // that was just restored must never have this overwrite it.
-                if (typeof showPlaceholderDice === 'function' &&
-                    !(typeof gameWasRestoredOnLoad !== 'undefined' && gameWasRestoredOnLoad)) {
-                    showPlaceholderDice();
-                }
-
-                // The 4 placeholder dice should stay dull through the entire
-                // rolloff battle, only brightening once "Roll Dice" actually
-                // appears - that happens in game-engine.js's resolveRolloff(),
-                // not here. No listener needed on this button for that anymore.
-
-                // After New Game resets the board, re-render the faded
-                // placeholder dice so the board doesn't look empty between games.
-                // BUT: the New Game button doesn't directly call newGame() — it
-                // opens a confirm modal first, and only the modal's "Confirm OK"
-                // click triggers newGame(). So we have to listen on #confirmOk,
-                // not #newGame, and detect a fresh game by checking whether the
-                // dice areas got wiped (which is newGame's signature).
-                const confirmOkBtn = document.getElementById('confirmOk');
-                if (confirmOkBtn) {
-                    confirmOkBtn.addEventListener('click', () => {
-                        // setTimeout(0) defers until after the modal's own
-                        // onOk handler has run newGame() (which wipes the
-                        // dice areas).
-                        setTimeout(() => {
-                            const blueArea = document.getElementById('blueDiceArea');
-                            const redArea  = document.getElementById('redDiceArea');
-                            if (blueArea && redArea &&
-                                blueArea.children.length === 0 &&
-                                redArea.children.length === 0 &&
-                                typeof showPlaceholderDice === 'function') {
-                                showPlaceholderDice();
-                            }
-                        }, 0);
-                    });
-                }
-
-                // Mode/difficulty/color switching mid-game is handled entirely
-                // by game-engine.js's isGameInProgress()-based confirm+reset
-                // system (changeModeWithConfirm / changeColorWithConfirm),
-                // which is driven by real, persisted gameState rather than a
-                // transient flag - it correctly reflects a restored in-progress
-                // game too, which a session-only flag here never could.
-
-                // ── Persistent rolloff tie message ──
-                // The "Tied at X — tap again!" message can be cleared
-                // unexpectedly before the user reads it. Watch the rolloff
-                // result element; if a tie message gets blanked out before
-                // the user actually taps a rolloff die, restore it.
-                const rolloffResultEl = document.getElementById('rolloffResult');
-                const blueRolloffDie  = document.getElementById('blueRolloffDie');
-                const redRolloffDie   = document.getElementById('redRolloffDie');
-                if (rolloffResultEl && blueRolloffDie && redRolloffDie) {
-                    let _persistedTieText = '';
-                    const observer = new MutationObserver(() => {
-                        const text = rolloffResultEl.textContent || '';
-                        if (text.indexOf('Tied at') === 0) {
-                            // A new tie was just announced. Remember it and
-                            // add the visual-emphasis class.
-                            _persistedTieText = text;
-                            rolloffResultEl.classList.add('tie-active');
-                        } else if (text === '' && _persistedTieText) {
-                            // Something cleared the tie text before the user
-                            // tapped a die — restore it.
-                            rolloffResultEl.textContent = _persistedTieText;
-                        } else if (text && text.indexOf('Tied at') !== 0) {
-                            // Non-tie message took over (winner announced,
-                            // etc.) — stand down.
-                            _persistedTieText = '';
-                            rolloffResultEl.classList.remove('tie-active');
-                        }
-                    });
-                    observer.observe(rolloffResultEl, {
-                        childList: true, characterData: true, subtree: true
-                    });
-                    // When the user actually taps a rolloff die, clear our
-                    // persistence flag so game-engine's normal "clear text on
-                    // tap" behavior at the start of rolloffRollDie works.
-                    // (Listeners fire in registration order; ours runs AFTER
-                    // game-engine's, so by the time the MutationObserver
-                    // microtask fires, _persistedTieText is already empty.)
-                    const onRolloffDieTap = () => {
-                        _persistedTieText = '';
-                        rolloffResultEl.classList.remove('tie-active');
-                    };
-                    blueRolloffDie.addEventListener('click', onRolloffDieTap);
-                    redRolloffDie.addEventListener('click', onRolloffDieTap);
-                }
-
-                // Fix anchor navigation inside both modals. The links use
-                // href="#section-id" but the scrollable container is .modal-content
-                // (not the window), so default hash navigation doesn't scroll the
-                // panel. Intercept and call scrollIntoView on the target.
-                ['strategyContent', 'helpContent'].forEach(contentId => {
-                    const container = document.getElementById(contentId);
-                    if (!container) return;
-                    container.addEventListener('click', (e) => {
-                        const link = e.target.closest('a[href^="#"]');
-                        if (!link) return;
-                        e.preventDefault();
-                        const targetId = link.getAttribute('href').slice(1);
-                        const target = document.getElementById(targetId);
-                        if (target) {
-                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    });
-                });
-
-                // Difficulty change feedback (the toast) now fires from inside
-                // ai-player.js's setAIDifficulty() itself, sequenced right
-                // after the real change - not as an independent listener here
-                // that could fire even if the real change somehow didn't.
-
-                document.getElementById('loadingScreen').style.display = 'none';
-            } catch (err) {
-                console.error('Game init error:', err);
-                document.getElementById('loadingScreen').innerHTML = '❌ Game failed to load. Check all files are present.';
+    if (gameState.phase === 'gameOver') {
+        // Re-display the winner screen exactly as it was. endGame() is safe
+        // to call again here - it's guarded against re-recording stats for
+        // a game that already finished.
+        endGame();
+    } else if (gameState.phase === 'scoring') {
+        // A reload during the brief "Round complete - calculating scores..."
+        // window kills the pending 2-second timer that would have normally
+        // advanced things automatically - it never fires again on its own.
+        // Finish that transition right now instead of leaving the message
+        // (and the old round's pockets) stuck forever.
+        check100Trigger();
+    } else if (gameState.phase === 'placing') {
+        // Matches startPlacement()'s own setActionPanelView('status') call.
+        setActionPanelView('status');
+    } else if (gameState.phase === 'rolling' && gameState.firstPlayer) {
+        // Rolloff already resolved this round - show the roll-dice buttons,
+        // correctly reflecting who's already rolled.
+        setActionPanelView('rolls');
+        if (typeof brightenPlaceholderDice === 'function') { brightenPlaceholderDice(); }
+        var blueRollBtn = document.getElementById('blueRoll');
+        var redRollBtn  = document.getElementById('redRoll');
+        var humanIsRed  = (gameState.humanColor === 'red');
+        if (blueRollBtn) {
+            blueRollBtn.disabled = !!gameState.blueRolled;
+            blueRollBtn.classList.remove('roll-prompt-pulse');
+            blueRollBtn.classList.remove('hidden');
+            if (gameMode === 'ai' && humanIsRed) {
+                // Human is red, so blue button is the AI
+                blueRollBtn.textContent = gameState.blueRolled ? '🤖 AI Rolled' : '🤖 AI Will Roll';
+            } else {
+                blueRollBtn.textContent = gameState.blueRolled
+                    ? (colorEmoji('blue') + ' ' + colorLabel('blue') + ' Rolled')
+                    : (colorEmoji('blue') + ' ' + colorLabel('blue') + ' Roll Dice');
             }
         }
-        window.addEventListener('load', () => setTimeout(initializeGameSystem, 100));
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                if (document.getElementById('loadingScreen').style.display !== 'none')
-                    initializeGameSystem();
-            }, 500);
+        if (redRollBtn) {
+            redRollBtn.disabled = !!gameState.redRolled;
+            redRollBtn.classList.remove('roll-prompt-pulse');
+            redRollBtn.classList.remove('hidden');
+            if (gameMode === 'ai' && !humanIsRed) {
+                // Human is blue, so red button is the AI
+                redRollBtn.textContent = gameState.redRolled ? '🤖 AI Rolled' : '🤖 AI Will Roll';
+            } else {
+                redRollBtn.textContent = gameState.redRolled
+                    ? (colorEmoji('red') + ' ' + colorLabel('red') + ' Rolled')
+                    : (colorEmoji('red') + ' ' + colorLabel('red') + ' Roll Dice');
+            }
+        }
+        var pulseColor = (gameState.currentPlayer === 'blue' && !gameState.blueRolled) ? 'blue'
+                        : (gameState.currentPlayer === 'red'  && !gameState.redRolled)  ? 'red' : null;
+        // Don't pulse the AI's button
+        var aiColor = gameMode === 'ai' ? (humanIsRed ? 'blue' : 'red') : null;
+        if (pulseColor && pulseColor !== aiColor) {
+            var pulseBtn = document.getElementById(pulseColor + 'Roll');
+            if (pulseBtn) { pulseBtn.classList.add('roll-prompt-pulse'); }
+        }
+    } else {
+        // Either between rounds (Start Round button) or caught mid-rolloff-tap
+        // (a 1-2 second window) - both fall back to the Start Round screen,
+        // a deliberate simplification since precisely replaying an in-progress
+        // rolloff tap isn't worth the complexity for something that brief.
+        setActionPanelView('start');
+    }
+
+    updateScoreDisplay();
+    updateGameStatus();
+}
+
+function setGameMode(mode) {
+    gameMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+    var playAsToggle = document.getElementById('playAsToggle');
+    if (mode === '2player') {
+        document.getElementById('twoPlayerMode').classList.add('active');
+        document.getElementById('aiDifficulty').classList.add('hidden');
+        if (playAsToggle) { playAsToggle.classList.add('hidden'); }
+        setPlayerColor('blue');
+    } else {
+        document.getElementById('aiMode').classList.add('active');
+        document.getElementById('aiDifficulty').classList.remove('hidden');
+        if (playAsToggle) { playAsToggle.classList.remove('hidden'); }
+        setPlayerColor(gameState.humanColor || 'blue');
+    }
+    var cModeEl = document.getElementById('cMode');
+    if (cModeEl) { cModeEl.value = mode; }
+    var uModeEl = document.getElementById('uMode');
+    if (uModeEl) { uModeEl.value = mode; }
+    syncCompactAIControlsVisibility();
+    syncUniversalAIControlsVisibility();
+    savePocketsSettings();
+}
+
+function setPlayerColor(color) {
+    // AI is ALWAYS red internally — this is a visual/stats swap only
+    gameState.humanColor = color;
+    var container = document.querySelector('.game-container');
+    if (container) {
+        container.classList.toggle('playing-as-red', color === 'red');
+    }
+
+    // Swap roll dice button colors
+    var blueRollBtn = document.getElementById('blueRoll');
+    var redRollBtn  = document.getElementById('redRoll');
+    if (blueRollBtn && redRollBtn) {
+        blueRollBtn.classList.toggle('blue-btn', color === 'blue');
+        blueRollBtn.classList.toggle('red-btn',  color === 'red');
+        redRollBtn.classList.toggle('red-btn',   color === 'blue');
+        redRollBtn.classList.toggle('blue-btn',  color === 'red');
+    }
+
+    // Update rolloff die aria-labels for accessibility
+    var blueDieBtn = document.getElementById('blueRolloffDie');
+    var redDieBtn  = document.getElementById('redRolloffDie');
+    if (blueDieBtn) { blueDieBtn.setAttribute('aria-label', colorLabel('blue') + ': roll for first player'); }
+    if (redDieBtn)  { redDieBtn.setAttribute('aria-label',  color === 'red' ? 'AI: roll for first player' : colorLabel('red') + ': roll for first player'); }
+
+    // Re-render rolloff dice with correct colors for this color assignment
+    if (blueDieBtn && blueDieBtn.innerHTML) { setRolloffDieFadedInPlace(blueDieBtn); }
+    if (redDieBtn  && redDieBtn.innerHTML)  { setRolloffDieFadedInPlace(redDieBtn);  }
+
+    var blueBtn = document.getElementById('playAsBlue');
+    var redBtn  = document.getElementById('playAsRed');
+    if (blueBtn) { blueBtn.classList.toggle('active', color === 'blue'); }
+    if (redBtn)  { redBtn.classList.toggle('active', color === 'red');   }
+    var cPlayEl = document.getElementById('cPlay');
+    if (cPlayEl) { cPlayEl.value = color; }
+    var uPlayEl = document.getElementById('uPlay');
+    if (uPlayEl) { uPlayEl.value = color; }
+    // Update headers — clean, no "(You)" or "(Blue)" appended
+    var is2p = (gameMode === '2player');
+    document.getElementById('bluePlayerHeader').textContent =
+        is2p ? 'BLUE PLAYER' : (color === 'red' ? 'RED PLAYER' : 'BLUE PLAYER');
+    document.getElementById('redPlayerHeader').textContent  =
+        is2p ? 'RED PLAYER'  : (color === 'red' ? 'AI PLAYER'  : 'AI PLAYER');
+    // Update score area labels
+    var blueScoreLabel = document.getElementById('blueScoreLabel');
+    var redScoreLabel  = document.getElementById('redScoreLabel');
+    if (blueScoreLabel) {
+        blueScoreLabel.textContent = is2p ? 'Blue Player Score' :
+            (color === 'red' ? 'Red Player Score' : 'Blue Player Score');
+    }
+    if (redScoreLabel) {
+        redScoreLabel.textContent  = is2p ? 'Red Player Score'  :
+            (color === 'red' ? 'AI Score'         : 'Red Player Score');
+    }
+
+    // Force-refresh rolloff dice with correct visual colors immediately
+    var blueDie = document.getElementById('blueRolloffDie');
+    var redDie  = document.getElementById('redRolloffDie');
+    if (blueDie) { setRolloffDieFaded(blueDie); }
+    if (redDie)  { setRolloffDieFaded(redDie);  }
+    savePocketsSettings();
+}
+
+
+// Returns the DISPLAY name for an internal color, respecting visual swap
+function colorLabel(internalColor) {
+    if (gameState.humanColor === 'red') {
+        return internalColor === 'blue' ? 'Red' : 'Blue';
+    }
+    return internalColor === 'blue' ? 'Blue' : 'Red';
+}
+function colorLabelUpper(internalColor) { return colorLabel(internalColor).toUpperCase(); }
+function colorEmoji(internalColor) {
+    var isRed = (gameState.humanColor === 'red')
+        ? (internalColor === 'blue')   // swapped
+        : (internalColor === 'red');
+    return isRed ? '🔴' : '🔵';
+}
+// Mode button click — shows confirm modal so the new mode is always visible
+// and clearly applied before the new game starts.
+function handleModeButtonClick(newMode) {
+    if (newMode === gameMode) { return; }   // no change, nothing to do
+    var modeName = (newMode === 'ai') ? 'VS AI' : '2 Players';
+    showConfirm(
+        'Switch to ' + modeName + '?',
+        'Switching to ' + modeName + ' will start a new game. Current progress will be lost.',
+        function() {
+            setGameMode(newMode);
+            newGame();
+        }
+    );
+}
+
+// =============================================================================
+// FULL SCREEN — native API on most platforms. On iOS, the real Fullscreen API
+// is either unsupported (pre-Safari 17.2) or actively disruptive once it does
+// work (iPadOS shows an unskippable "keystrokes may be monitored" security
+// warning specifically triggered by rapid tapping, which a tap-heavy dice game
+// hits constantly). The actual chrome-free experience on iOS comes from
+// installing as a Home Screen web app instead, so guide toward that there
+// rather than fighting the platform.
+// =============================================================================
+
+function isIOSDevice() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
+function isStandaloneApp() {
+    return window.navigator.standalone === true ||
+           (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+}
+
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(function(err) {
+            console.log('Fullscreen unavailable:', err);
         });
-    </script>
-</body>
-</html>
+    } else {
+        if (document.exitFullscreen) { document.exitFullscreen(); }
+    }
+}
+
+function showAddToHomeScreenGuidance() {
+    alert('For the best full-screen experience on iPhone/iPad:\n\n' +
+          '1. Tap the Share button\n' +
+          '2. Tap "Add to Home Screen"\n' +
+          '3. Launch POCKETS from its new icon — no browser bar!');
+}
+
+function injectFullscreenButton() {
+    if (document.getElementById('fullscreenBtn')) { return; }
+    if (isStandaloneApp()) { return; } // already chrome-free, nothing to offer
+
+    var gameModeEl = document.querySelector('.game-mode');
+    if (!gameModeEl) { return; }
+
+    var btn = document.createElement('button');
+    btn.id        = 'fullscreenBtn';
+    btn.className = 'fullscreen-btn';
+
+    if (isIOSDevice()) {
+        btn.textContent = 'Add to Home Screen';
+        btn.addEventListener('click', showAddToHomeScreenGuidance);
+    } else {
+        btn.textContent = 'Full Screen';
+        btn.addEventListener('click', toggleFullscreen);
+        document.addEventListener('fullscreenchange', function() {
+            var b = document.getElementById('fullscreenBtn');
+            if (b) { b.textContent = document.fullscreenElement ? 'Exit Full' : 'Full Screen'; }
+        });
+    }
+
+    gameModeEl.appendChild(btn);
+}
+
+// setAIDifficulty() lives in ai-player.js — it needs to recreate the pocketsAI
+// instance, not just update the button state, so it must not be duplicated here.
+// (A duplicate definition here previously won due to script load order and
+// silently broke difficulty switching entirely - removed.)
+
+// =============================================================================
+// PANEL BOTTOM STRIP
+// =============================================================================
+
+function showPanelBottom(message) {
+    var el = document.getElementById('actionTakeResult');
+    if (!el) { return; }
+    el.textContent = message;
+    el.classList.remove('hidden');
+    setTimeout(function() { el.classList.add('visible'); }, 10);
+}
+
+function hidePanelBottom(instant) {
+    var el = document.getElementById('actionTakeResult');
+    if (!el) { return; }
+    el.classList.remove('visible');
+    if (instant) {
+        el.classList.add('hidden');
+    } else {
+        setTimeout(function() { el.classList.add('hidden'); }, 500);
+    }
+}
+
+// =============================================================================
+// ACTION PANEL VIEW MANAGER
+// =============================================================================
+
+function setActionPanelView(view) {
+    var gameControls  = document.getElementById('gameControls');
+    var coinFlip      = document.getElementById('coinFlip');
+    var actionStatus  = document.getElementById('actionStatus');
+    var winnerDisplay = document.getElementById('winnerDisplay');
+    var fpRolloff     = document.getElementById('firstPlayerRolloff');
+    var playerRolls   = document.getElementById('playerRolls');
+
+    if (gameControls)  { gameControls.classList.add('hidden'); }
+    if (coinFlip)      { coinFlip.classList.add('hidden'); }
+    if (actionStatus)  { actionStatus.classList.add('hidden'); }
+    if (winnerDisplay) { winnerDisplay.classList.add('hidden'); }
+
+    if (view === 'start') {
+        gameControls.classList.remove('hidden');
+
+    } else if (view === 'rolloff') {
+        coinFlip.classList.remove('hidden');
+        fpRolloff.classList.remove('hidden');
+        playerRolls.classList.add('hidden');
+
+    } else if (view === 'rolls') {
+        coinFlip.classList.remove('hidden');
+        fpRolloff.classList.add('hidden');
+        playerRolls.classList.remove('hidden');
+
+    } else if (view === 'status') {
+        actionStatus.classList.remove('hidden');
+
+    } else if (view === 'winner') {
+        if (winnerDisplay) { winnerDisplay.classList.remove('hidden'); }
+    }
+}
+
+// =============================================================================
+// CONFIRM MODAL
+// =============================================================================
+
+function showConfirm(title, message, onConfirm, onCancel, okLabel, cancelLabel) {
+    var modal = document.getElementById('confirmModal');
+    if (!modal) {
+        if (onConfirm) { onConfirm(); }
+        return;
+    }
+
+    document.getElementById('confirmTitle').textContent   = title;
+    document.getElementById('confirmMessage').textContent = message;
+    modal.classList.remove('hidden');
+
+    var okBtn     = document.getElementById('confirmOk');
+    var cancelBtn = document.getElementById('confirmCancel');
+    okBtn.textContent     = okLabel     || 'Confirm';
+    cancelBtn.textContent = cancelLabel || 'Cancel';
+
+    function close() {
+        modal.classList.add('hidden');
+        okBtn.removeEventListener('click', onOk);
+        cancelBtn.removeEventListener('click', onCancelClick);
+        modal.removeEventListener('click', onBackdrop);
+    }
+    function onOk()         { close(); if (onConfirm) { onConfirm(); } }
+    function onCancelClick(){ close(); if (onCancel)  { onCancel();  } }
+    function onBackdrop(e)  { if (e.target === modal) { close(); if (onCancel) { onCancel(); } } }
+
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancelClick);
+    modal.addEventListener('click', onBackdrop);
+}
+
+// =============================================================================
+// START ROUND
+// =============================================================================
+
+function startRound() {
+    if (gameState.phase !== 'rolling') { return; }
+
+    // firstPlayer must mean "has THIS round's rolloff resolved" - reset it
+    // here, at the moment a new round actually begins. It was previously
+    // only ever set once per game and never cleared, which made it
+    // impossible to reliably tell "between rounds" apart from "rolloff just
+    // resolved" - the real cause of restore sometimes skipping straight to
+    // Roll Dice and bypassing this function's own pocket-clearing below.
+    gameState.firstPlayer = null;
+
+    // Clear take pocket badges at start of new round
+    document.getElementById('blueTakeScore').classList.add('hidden');
+    document.getElementById('redTakeScore').classList.add('hidden');
+
+    // Clear pockets (Keep Two and Take One only — Save One carries forward)
+    var players = ['blue', 'red'];
+    var pockets = ['Keep1', 'Keep2', 'Take'];
+    for (var p = 0; p < players.length; p++) {
+        for (var k = 0; k < pockets.length; k++) {
+            var el = document.getElementById(players[p] + pockets[k]);
+            el.querySelector('.pocket-dice').innerHTML = '';
+        }
+        if (gameState.round > 1) {
+            var saveEl = document.getElementById(players[p] + 'Save');
+            saveEl.querySelector('.pocket-dice').innerHTML = '';
+        }
+    }
+
+    resetRoundUI();
+    gameState.blueRolled = false;
+    gameState.redRolled  = false;
+
+    hidePanelBottom(false);
+    showPlaceholderDice();
+    startFirstPlayerRolloff();
+    autosaveGame();
+}
+
+function showPlaceholderDice() {
+    var players = ['blue', 'red'];
+    for (var p = 0; p < players.length; p++) {
+        var player  = players[p];
+        var area    = document.getElementById(player + 'DiceArea');
+        area.innerHTML = '';
+
+        var numNew  = (gameState.round === 1) ? 4 : 3;
+        var savedDie = (player === 'blue') ? gameState.blueSavedDie : gameState.redSavedDie;
+
+        for (var i = 0; i < numNew; i++) {
+            var die = createDieSVG(1, player + '-ph-' + i, false);
+            die.style.opacity       = '0.35';
+            die.style.pointerEvents = 'none';
+            area.appendChild(die);
+        }
+
+        if (gameState.round > 1 && savedDie) {
+            var saved = createDieSVG(savedDie, player + '-ph-saved', true);
+            saved.style.pointerEvents = 'none';
+            area.appendChild(saved);
+        }
+    }
+}
+
+function resetRoundUI() {
+    document.getElementById('takeDifference').classList.add('hidden');
+    // Take pocket badges persist until startRound() — not cleared here
+}
+
+// =============================================================================
+// FIRST-PLAYER ROLLOFF
+// =============================================================================
+
+var rolloffState = { blue: null, red: null, locked: false };
+
+function startFirstPlayerRolloff() {
+    rolloffState = { blue: null, red: null, locked: false };
+    setActionPanelView('rolloff');
+
+    var blueDie = document.getElementById('blueRolloffDie');
+    var redDie  = document.getElementById('redRolloffDie');
+
+    blueDie.classList.remove('parked-left');
+    blueDie.classList.remove('parked-right');
+    blueDie.classList.remove('spinning-left');
+    blueDie.classList.remove('spinning-right');
+    blueDie.classList.remove('spinning-in-place');
+
+    redDie.classList.remove('parked-left');
+    redDie.classList.remove('parked-right');
+    redDie.classList.remove('spinning-left');
+    redDie.classList.remove('spinning-right');
+    redDie.classList.remove('spinning-in-place');
+
+    // Only the AI's die should appear faded/non-interactive. #blueRolloffDie
+    // is always the human's button and #redRolloffDie is always the AI's,
+    // structurally - this matches the same "AI is always internally red"
+    // convention used everywhere else in the codebase. The humanColor swap
+    // only changes which COLORS are painted onto these two buttons; it never
+    // changes which one is actually the human's. No color-conditional logic
+    // is needed here at all - that was the bug.
+    var isAIMode = (gameMode === 'ai');
+    setRolloffDieFaded(blueDie, false);
+    setRolloffDieFaded(redDie, isAIMode);
+    blueDie.disabled = false;
+    redDie.disabled  = (gameMode === 'ai');
+
+    var vsEl = document.querySelector('.rolloff-vs');
+    if (vsEl) { vsEl.classList.remove('hidden'); }
+
+    var result = document.getElementById('rolloffResult');
+    result.textContent = '';
+    result.classList.remove('winner');
+
+    document.getElementById('firstPlayerRolloff').classList.remove('hidden');
+    document.getElementById('playerRolls').classList.add('hidden');
+
+    // Always set from current gameMode — fixes the AI->2player bug
+    if (gameMode === 'ai') {
+        var humanLabel = (gameState.humanColor === 'red') ? 'red' : 'blue';
+        document.getElementById('rolloffPrompt').textContent =
+            'Tap your ' + humanLabel + ' die — AI will roll right after.';
+    } else {
+        document.getElementById('rolloffPrompt').textContent =
+            'Tap your die — higher number goes first!';
+    }
+}
+
+function setRolloffDieFaded(buttonEl, shouldFade) {
+    if (shouldFade === undefined) { shouldFade = true; }
+    buttonEl.innerHTML = '';
+    if (shouldFade) { buttonEl.classList.add('faded'); }
+    else { buttonEl.classList.remove('faded'); }
+    var isBlueButton = (buttonEl.id === 'blueRolloffDie');
+    var svg = createDieSVG(1, 'rolloff-' + buttonEl.id, false);
+    buttonEl.appendChild(svg);
+
+    // Force face+dot colors when swapped — reads theme CSS vars so each theme looks right
+    if (gameState.humanColor === 'red') {
+        var cs        = getComputedStyle(document.body);
+        var isBitmap  = document.body.classList.contains('theme-bitmap');
+        var humanFace, aiFace, humanDot, aiDot;
+        if (isBitmap) {
+            humanFace = '#f4dddd';
+            aiFace    = '#dde4f4';
+            humanDot  = '#800000';
+            aiDot     = '#000080';
+        } else {
+            humanFace = cs.getPropertyValue('--burgundy').trim() || '#6e3030';
+            aiFace    = cs.getPropertyValue('--navy').trim()     || '#2a3559';
+            humanDot  = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
+            aiDot     = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
+        }
+        var faceFill   = isBlueButton ? humanFace : aiFace;
+        var faceStroke = isBlueButton ? humanDot  : aiDot;  // stroke matches dot color
+        var dotFill    = isBlueButton ? humanDot  : aiDot;
+        var face = svg.querySelector('.dice-face');
+        if (face) {
+            face.setAttribute('style', 'fill: ' + faceFill + ' !important; stroke: ' + faceStroke + ' !important;');
+        }
+        svg.querySelectorAll('.dice-dot').forEach(function(d) {
+            d.setAttribute('style', 'fill: ' + dotFill + ' !important;');
+        });
+    }
+}
+
+function setRolloffDieFadedInPlace(buttonEl) {
+    buttonEl.innerHTML = '';
+    buttonEl.classList.add('faded');
+    buttonEl.appendChild(createDieSVG(1, 'rolloff-' + buttonEl.id, false));
+    // Apply color swap if playing as Red
+    if (gameState.humanColor === 'red') {
+        var isBlueButton = (buttonEl.id === 'blueRolloffDie');
+        var cs = getComputedStyle(document.body);
+        var isBitmap = document.body.classList.contains('theme-bitmap');
+        var humanFace = isBitmap ? '#f4dddd' : (cs.getPropertyValue('--burgundy').trim() || '#6e3030');
+        var aiFace    = isBitmap ? '#dde4f4' : (cs.getPropertyValue('--navy').trim()     || '#2a3559');
+        var humanDot  = isBitmap ? '#800000' : (cs.getPropertyValue('--gold-pale').trim() || '#c8a84b');
+        var aiDot     = isBitmap ? '#000080' : (cs.getPropertyValue('--gold-pale').trim() || '#c8a84b');
+        var svg = buttonEl.querySelector('svg');
+        if (svg) {
+            var face = svg.querySelector('.dice-face');
+            if (face) {
+                face.setAttribute('style', 'fill:' + (isBlueButton ? humanFace : aiFace) + ' !important; stroke:' + (isBlueButton ? humanDot : aiDot) + ' !important;');
+            }
+            svg.querySelectorAll('.dice-dot').forEach(function(d) {
+                d.setAttribute('style', 'fill:' + (isBlueButton ? humanDot : aiDot) + ' !important;');
+            });
+        }
+    }
+    // Intentionally keeps parked-left / parked-right — dice stay at sides
+}
+
+function rolloffRollDie(player) {
+    if (rolloffState.locked) { return; }
+    if (rolloffState[player] !== null) { return; }
+
+    var dieEl = document.getElementById(player + 'RolloffDie');
+    var parkClass, spinClass;
+
+    if (player === 'blue') {
+        parkClass = 'parked-left';
+        spinClass = 'spinning-left';
+    } else {
+        parkClass = 'parked-right';
+        spinClass = 'spinning-right';
+    }
+
+    var alreadyParked = dieEl.classList.contains(parkClass);
+
+    // Clear the tie text as soon as a die is tapped
+    var resultEl = document.getElementById('rolloffResult');
+    if (resultEl) { resultEl.textContent = ''; }
+
+    dieEl.disabled = true;
+    dieEl.classList.remove('faded');
+
+    var value = Math.floor(Math.random() * 6) + 1;
+    var startVal = Math.floor(Math.random() * 6) + 1;
+    var rollSvg  = createDieSVG(startVal, 'rolloff-' + player + '-' + Date.now(), false);
+    dieEl.innerHTML = '';
+    dieEl.appendChild(rollSvg);
+
+    // Force face+dot colors to match visual swap, using theme-aware CSS vars
+    if (gameState.humanColor === 'red') {
+        var cs       = getComputedStyle(document.body);
+        var isBitmap = document.body.classList.contains('theme-bitmap');
+        var humanFace, aiFace, humanDot, aiDot;
+        if (isBitmap) {
+            humanFace = '#f4dddd'; aiFace = '#dde4f4';
+            humanDot  = '#800000'; aiDot  = '#000080';
+        } else {
+            humanFace = cs.getPropertyValue('--burgundy').trim() || '#6e3030';
+            aiFace    = cs.getPropertyValue('--navy').trim()     || '#2a3559';
+            humanDot  = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
+            aiDot     = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
+        }
+        var isHuman    = (player === 'blue');
+        var faceFill   = isHuman ? humanFace : aiFace;
+        var faceStroke = isHuman ? humanDot  : aiDot;
+        var dotFill    = isHuman ? humanDot  : aiDot;
+        var face = rollSvg.querySelector('.dice-face');
+        if (face) {
+            face.setAttribute('style', 'fill: ' + faceFill + ' !important; stroke: ' + faceStroke + ' !important;');
+        }
+        rollSvg.querySelectorAll('.dice-dot').forEach(function(d) {
+            d.setAttribute('style', 'fill: ' + dotFill + ' !important;');
+        });
+    }
+
+    if (!alreadyParked) {
+        dieEl.classList.add(spinClass);
+        var pipIntervalA = setInterval(function() {
+            refreshDiePips(rollSvg, Math.floor(Math.random() * 6) + 1);
+        }, 80);
+        setTimeout(function() {
+            clearInterval(pipIntervalA);
+            refreshDiePips(rollSvg, value);
+            dieEl.classList.remove(spinClass);
+            dieEl.classList.add(parkClass);
+            rolloffState[player] = value;
+            afterRolloffDieSettled(player);
+        }, 650);
+    } else {
+        dieEl.classList.add('spinning-in-place');
+        var pipIntervalB = setInterval(function() {
+            refreshDiePips(rollSvg, Math.floor(Math.random() * 6) + 1);
+        }, 80);
+        setTimeout(function() {
+            clearInterval(pipIntervalB);
+            refreshDiePips(rollSvg, value);
+            dieEl.classList.remove('spinning-in-place');
+            rolloffState[player] = value;
+            afterRolloffDieSettled(player);
+        }, 650);
+    }
+}
+
+function afterRolloffDieSettled(player) {
+    autosaveGame();
+    if (gameMode === 'ai' && player === 'blue' && rolloffState.red === null) {
+        setTimeout(function() { rolloffRollDie('red'); }, 400);
+    }
+    if (rolloffState.blue !== null && rolloffState.red !== null) {
+        setTimeout(resolveRolloff, 400);
+    }
+}
+
+function resolveRolloff() {
+    var blueVal = rolloffState.blue;
+    var redVal  = rolloffState.red;
+    var result  = document.getElementById('rolloffResult');
+    var vsEl    = document.querySelector('.rolloff-vs');
+
+    if (vsEl) { vsEl.classList.add('hidden'); }
+
+    if (blueVal === redVal) {
+        rolloffState.locked = true;
+        result.textContent = 'Tied at ' + blueVal + ' — tap again!';
+        result.classList.remove('winner');
+
+        setTimeout(function() {
+            rolloffState = { blue: null, red: null, locked: false };
+            var bd = document.getElementById('blueRolloffDie');
+            var rd = document.getElementById('redRolloffDie');
+            bd.disabled = false;
+            rd.disabled = (gameMode === 'ai');
+            // Keep dice showing their actual tied values — just re-fade the AI's
+            // die (the human's stays clickable AND visually active). Resetting
+            // to placeholder 1s caused the "Tied at X but I see 1s" confusion,
+            // so the values stay as-is here. #blueRolloffDie is always the
+            // human's button structurally, regardless of the color swap.
+            var isAIModeNow = (gameMode === 'ai');
+            bd.classList.remove('faded');
+            if (isAIModeNow) { rd.classList.add('faded'); } else { rd.classList.remove('faded'); }
+            var vsElAgain = document.querySelector('.rolloff-vs');
+            if (vsElAgain) { vsElAgain.classList.remove('hidden'); }
+        }, 1200);
+        return;
+    }
+
+    rolloffState.locked = true;
+
+    var winner;
+    if (blueVal > redVal) {
+        winner = 'blue';
+    } else {
+        winner = 'red';
+    }
+
+    gameState.firstPlayer   = winner;
+    gameState.currentPlayer = winner;
+
+    var winnerName, winnerColor;
+    if (winner === 'blue') {
+        winnerName  = colorLabelUpper('blue');
+        winnerColor = (gameState.humanColor === 'red') ? '#e24a4a' : '#4a90e2';
+    } else if (gameMode === 'ai') {
+        winnerName  = 'AI';
+        winnerColor = (gameState.humanColor === 'red') ? '#4a90e2' : '#e24a4a';
+    } else {
+        winnerName  = colorLabelUpper('red');
+        winnerColor = (gameState.humanColor === 'red') ? '#4a90e2' : '#e24a4a';
+    }
+
+    result.classList.add('winner');
+    result.innerHTML = '<span style="color:' + winnerColor + '">' + winnerName + '</span> goes first!';
+
+    setTimeout(function() {
+        setActionPanelView('rolls');
+        // The 4 placeholder dice stay dull through the whole rolloff battle -
+        // only brighten them now, the moment Roll Dice buttons actually appear.
+        if (typeof brightenPlaceholderDice === 'function') { brightenPlaceholderDice(); }
+        var blueBtn = document.getElementById('blueRoll');
+        var redBtn  = document.getElementById('redRoll');
+        blueBtn.classList.remove('hidden');
+        redBtn.classList.remove('hidden');
+
+        // Dim non-first player's button — winner of rolloff goes first
+        var secondColor = (winner === 'blue') ? 'red' : 'blue';
+        document.getElementById(secondColor + 'Roll').disabled = true;
+        var humanIsRed = (gameState.humanColor === 'red');
+        var aiColor = gameMode === 'ai' ? (humanIsRed ? 'blue' : 'red') : null;
+        if (!(gameMode === 'ai' && winner === aiColor)) {
+            document.getElementById(winner + 'Roll').classList.add('roll-prompt-pulse');
+        }
+
+        if (gameMode === 'ai') {
+            var aiRollId = humanIsRed ? 'blueRoll' : 'redRoll';
+            document.getElementById(aiRollId).textContent = '🤖 AI Will Roll';
+            if (winner === 'red') {
+                setTimeout(function() { rollPlayerDice('red'); }, 500);
+            }
+        }
+        updateGameStatus();
+        autosaveGame();
+    }, 1800);
+}
+
+// =============================================================================
+// PLAYER DICE ROLLING
+// =============================================================================
+
+function rollPlayerDice(player) {
+    if (player === 'blue' && gameState.blueRolled) { return; }
+    if (player === 'red'  && gameState.redRolled)  { return; }
+
+    var btn = document.getElementById(player + 'Roll');
+    btn.disabled = true;
+    btn.classList.remove('roll-prompt-pulse');
+
+    var dice = [];
+    if (gameState.round === 1) {
+        for (var i = 0; i < 4; i++) {
+            dice.push(Math.floor(Math.random() * 6) + 1);
+        }
+    } else {
+        for (var j = 0; j < 3; j++) {
+            dice.push(Math.floor(Math.random() * 6) + 1);
+        }
+        var savedDie = (player === 'blue') ? gameState.blueSavedDie : gameState.redSavedDie;
+        if (savedDie) { dice.push(savedDie); }
+    }
+
+    if (player === 'blue') {
+        gameState.blueDice        = dice;
+        gameState.blueOriginalRoll = dice.slice();
+        gameState.blueRolled      = true;
+    } else {
+        gameState.redDice        = dice;
+        gameState.redOriginalRoll = dice.slice();
+        gameState.redRolled      = true;
+    }
+
+    renderDiceWithAnimation(player, dice);
+
+    if (player === 'blue') {
+        if (gameMode === 'ai' && gameState.humanColor === 'red') {
+            btn.textContent = '🤖 AI Rolled';
+        } else {
+            btn.textContent = colorEmoji('blue') + ' ' + colorLabel('blue') + ' Rolled';
+        }
+    } else {
+        if (gameMode === 'ai' && gameState.humanColor !== 'red') {
+            btn.textContent = '🤖 AI Rolled';
+        } else {
+            btn.textContent = colorEmoji('red') + ' ' + colorLabel('red') + ' Rolled';
+        }
+    }
+
+    // Enable the other player's button now it's their turn to roll
+    var otherColor = (player === 'blue') ? 'red' : 'blue';
+    var otherBtn   = document.getElementById(otherColor + 'Roll');
+    var otherIsAI  = (gameMode === 'ai') && (
+        (otherColor === 'red'  && gameState.humanColor !== 'red') ||
+        (otherColor === 'blue' && gameState.humanColor === 'red')
+    );
+    if (otherBtn && !gameState[otherColor + 'Rolled']) {
+        otherBtn.disabled = false;
+        if (!otherIsAI) {
+            otherBtn.classList.add('roll-prompt-pulse');
+        }
+    }
+
+    if (gameMode === 'ai' && player === 'blue' && !gameState.redRolled) {
+        setTimeout(function() { rollPlayerDice('red'); }, 1500);
+    }
+
+    if (gameState.blueRolled && gameState.redRolled) {
+        setTimeout(function() { startPlacement(); }, 1000);
+    }
+    autosaveGame();
+}
+
+function renderDiceWithAnimation(player, dice, skipAnimation) {
+    var diceArea = document.getElementById(player + 'DiceArea');
+    diceArea.innerHTML = '';
+
+    for (var i = 0; i < dice.length; i++) {
+        var value   = dice[i];
+        var isSaved = false;
+
+        if (gameState.round > 1 && i === dice.length - 1) {
+            if (player === 'blue' && gameState.blueSavedDie) { isSaved = true; }
+            if (player === 'red'  && gameState.redSavedDie)  { isSaved = true; }
+        }
+
+        // Saved dice show their correct value immediately — no animation.
+        // Non-saved dice normally start random and cycle to the final value,
+        // but skipAnimation (used when restoring a saved game) shows the
+        // correct value directly - a restore must never look like a fresh
+        // roll just happened, even though the underlying data was correct
+        // the whole time.
+        var startVal = (isSaved || skipAnimation) ? value : Math.floor(Math.random() * 6) + 1;
+        var die      = createDieSVG(startVal, player + '-' + i, isSaved);
+        die.setAttribute('data-value', value);   // override startVal with correct final value
+        if (!isSaved && !skipAnimation) { die.classList.add('rolling'); }  // saved/restored dice don't animate
+
+        // Closure captures die element, final value, saved flag, and index
+        (function(dieEl, finalValue, isSavedDie, dieIdx) {
+            dieEl.addEventListener('click', function() { selectDie(player, dieIdx); });
+
+            if (!isSavedDie && !skipAnimation) {
+                // Cycle random pips every 80ms while the die spins
+                var pipInterval = setInterval(function() {
+                    refreshDiePips(dieEl, Math.floor(Math.random() * 6) + 1);
+                }, 80);
+                // Snap to final value just before spin ends, so it's visible landing
+                setTimeout(function() {
+                    clearInterval(pipInterval);
+                    refreshDiePips(dieEl, finalValue);
+                }, 680);
+            }
+        })(die, value, isSaved, i);
+
+        diceArea.appendChild(die);
+    }
+
+    setTimeout(function() {
+        var allDice = document.querySelectorAll('.dice');
+        allDice.forEach(function(d) {
+            d.classList.remove('rolling');
+            d.classList.remove('jitter');
+        });
+    }, 800);
+}
+
+// =============================================================================
+// PLACEMENT
+// =============================================================================
+
+function startPlacement() {
+    gameState.phase         = 'placing';
+    gameState.diceToPlace   = 8;
+    gameState.placementTurn = 0;
+    setActionPanelView('status');
+    updateGameStatus();
+    if (gameMode === 'ai' && gameState.currentPlayer === 'red') {
+        setTimeout(function() { makeAIMove(); }, 600);
+    }
+    autosaveGame();
+}
+
+function selectDie(player, index) {
+    if (gameState.phase !== 'placing') { return; }
+    if (player !== gameState.currentPlayer) { return; }
+
+    var allSelected = document.querySelectorAll('.dice.selected');
+    allSelected.forEach(function(d) { d.classList.remove('selected'); });
+
+    var dieEl = document.querySelector('[data-id="' + player + '-' + index + '"]');
+    if (dieEl && !dieEl.classList.contains('selected')) {
+        dieEl.classList.add('selected');
+        var capturedValue = parseInt(dieEl.getAttribute('data-value'));
+        gameState.selectedDie = { player: player, index: index, value: capturedValue };
+        highlightAvailablePockets();
+        autosaveGame();
+    }
+}
+
+function highlightAvailablePockets() {
+    var allPockets = document.querySelectorAll('.pocket');
+    allPockets.forEach(function(pocket) {
+        pocket.classList.remove('active');
+        pocket.replaceWith(pocket.cloneNode(true));
+    });
+
+    if (!gameState.selectedDie) { return; }
+
+    var player  = gameState.selectedDie.player;
+    var pockets = document.querySelectorAll('[data-player="' + player + '"]');
+
+    pockets.forEach(function(pocket) {
+        if (pocket.querySelectorAll('.dice').length < 1) {
+            pocket.classList.add('active');
+            pocket.addEventListener('click', function() { placeDieInPocket(pocket); });
+        }
+    });
+}
+
+function placeDieInPocket(pocketElement) {
+    if (!gameState.selectedDie) { return; }
+
+    var player   = gameState.selectedDie.player;
+    var index    = gameState.selectedDie.index;
+    var dieValue = gameState.selectedDie.value;
+
+    var pocketDie = createDieSVG(dieValue, 'pocket-' + Date.now(), false);
+    pocketDie.style.width  = '40px';
+    pocketDie.style.height = '40px';
+    pocketDie.classList.remove('saved-tint');
+    pocketElement.querySelector('.pocket-dice').appendChild(pocketDie);
+
+    updatePocketScore(pocketElement, player);
+
+    var dieEl = document.querySelector('[data-id="' + player + '-' + index + '"]');
+    if (dieEl) { dieEl.remove(); }
+
+    if (player === 'blue') {
+        gameState.blueDice.splice(index, 1);
+    } else {
+        gameState.redDice.splice(index, 1);
+    }
+
+    gameState.selectedDie = null;
+
+    var allPockets = document.querySelectorAll('.pocket');
+    allPockets.forEach(function(p) {
+        p.classList.remove('active');
+        p.replaceWith(p.cloneNode(true));
+    });
+
+    gameState.diceToPlace--;
+    gameState.placementTurn++;
+
+    if (gameState.diceToPlace > 0) {
+        if (gameState.currentPlayer === 'blue') {
+            gameState.currentPlayer = 'red';
+        } else {
+            gameState.currentPlayer = 'blue';
+        }
+        renderDice();
+        updateGameStatus();
+        if (gameMode === 'ai' && gameState.currentPlayer === 'red') {
+            setTimeout(function() { makeAIMove(); }, 300);
+        }
+    } else {
+        calculateRoundScore();
+    }
+
+    updateTakeDifference();
+    autosaveGame();
+}
+
+function renderDice() {
+    var blueDiceArea = document.getElementById('blueDiceArea');
+    var redDiceArea  = document.getElementById('redDiceArea');
+    blueDiceArea.innerHTML = '';
+    redDiceArea.innerHTML  = '';
+
+    for (var i = 0; i < gameState.blueDice.length; i++) {
+        var blueVal   = gameState.blueDice[i];
+        var blueIsSaved = (gameState.round > 1 &&
+                           i === gameState.blueDice.length - 1 &&
+                           gameState.blueSavedDie === blueVal);
+        var blueDie = createDieSVG(blueVal, 'blue-' + i, blueIsSaved);
+        (function(idx) {
+            blueDie.addEventListener('click', function() { selectDie('blue', idx); });
+        })(i);
+        blueDiceArea.appendChild(blueDie);
+    }
+
+    for (var j = 0; j < gameState.redDice.length; j++) {
+        var redVal    = gameState.redDice[j];
+        var redIsSaved = (gameState.round > 1 &&
+                          j === gameState.redDice.length - 1 &&
+                          gameState.redSavedDie === redVal);
+        var redDie = createDieSVG(redVal, 'red-' + j, redIsSaved);
+        (function(idx) {
+            redDie.addEventListener('click', function() { selectDie('red', idx); });
+        })(j);
+        redDiceArea.appendChild(redDie);
+    }
+}
+
+function updatePocketScore(pocketElement, player) {
+    var pocketType = pocketElement.dataset.pocket;
+    if (pocketType === 'take') {
+        var dicEls = pocketElement.querySelectorAll('.dice');
+        if (dicEls.length > 0) {
+            var scoreEl = document.getElementById(player + 'TakeScore');
+            scoreEl.textContent = dicEls[0].getAttribute('data-value');
+            scoreEl.classList.remove('hidden');
+        }
+    }
+}
+
+function updateTakeDifference() {
+    var bluePockets = getDiceFromPockets('blue');
+    var redPockets  = getDiceFromPockets('red');
+    var blueTake   = bluePockets.take || [];
+    var redTake    = redPockets.take  || [];
+
+    document.getElementById('takeDifference').classList.add('hidden');
+
+    if (blueTake.length > 0 && redTake.length > 0) {
+        var bd   = blueTake[0];
+        var rd   = redTake[0];
+        var diff = Math.abs(bd - rd);
+
+        if (diff > 0 && bd > rd) {
+            document.getElementById('blueTakeScore').textContent = '+' + diff;
+        } else {
+            document.getElementById('blueTakeScore').textContent = '0';
+        }
+
+        if (diff > 0 && rd > bd) {
+            document.getElementById('redTakeScore').textContent = '+' + diff;
+        } else {
+            document.getElementById('redTakeScore').textContent = '0';
+        }
+
+        // Take win/loss message removed — redundant, players see pocket numbers
+    }
+}
+
+function getDiceFromPockets(player) {
+    var pockets   = {};
+    var pocketTypes = ['keep1', 'keep2', 'take', 'save'];
+
+    for (var i = 0; i < pocketTypes.length; i++) {
+        var pt  = pocketTypes[i];
+        var cap = pt.charAt(0).toUpperCase() + pt.slice(1);
+        var el  = document.getElementById(player + cap);
+        var diceEls = el.querySelectorAll('.dice');
+        var values  = [];
+        diceEls.forEach(function(d) { values.push(parseInt(d.getAttribute('data-value'))); });
+        if (values.length > 0) { pockets[pt] = values; }
+    }
+
+    return pockets;
+}
+
+// =============================================================================
+// SCORING
+// =============================================================================
+
+function calculateRoundScore() {
+    gameState.phase = 'scoring';
+
+    // Belt-and-suspenders: ensure no pockets remain highlighted
+    document.querySelectorAll('.pocket.active').forEach(function(p) {
+        p.classList.remove('active');
+    });
+
+    var bluePockets = getDiceFromPockets('blue');
+    var redPockets  = getDiceFromPockets('red');
+
+    var blueKeep1 = bluePockets.keep1 || [];
+    var blueKeep2 = bluePockets.keep2 || [];
+    var blueKeepScore = blueKeep1.concat(blueKeep2).reduce(function(a, b) { return a + b; }, 0);
+
+    var redKeep1 = redPockets.keep1 || [];
+    var redKeep2 = redPockets.keep2 || [];
+    var redKeepScore = redKeep1.concat(redKeep2).reduce(function(a, b) { return a + b; }, 0);
+
+    var blueTakeDie = 0;
+    var redTakeDie  = 0;
+    if (bluePockets.take && bluePockets.take.length > 0) { blueTakeDie = bluePockets.take[0]; }
+    if (redPockets.take  && redPockets.take.length  > 0) { redTakeDie  = redPockets.take[0];  }
+
+    var blueBonus      = 0;
+    var redBonus       = 0;
+    var blueComboBonus = 0;
+    var redComboBonus  = 0;
+
+    if (blueTakeDie > redTakeDie) {
+        blueBonus      = blueTakeDie - redTakeDie;
+        blueComboBonus = calculateBonusPoints(gameState.blueOriginalRoll);
+        blueBonus      = blueBonus + blueComboBonus;
+    } else if (redTakeDie > blueTakeDie) {
+        redBonus      = redTakeDie - blueTakeDie;
+        redComboBonus = calculateBonusPoints(gameState.redOriginalRoll);
+        redBonus      = redBonus + redComboBonus;
+    }
+
+    // Take result element cleared — message removed
+
+    displayRoundScores(blueKeepScore, blueBonus, blueComboBonus,
+                       redKeepScore,  redBonus,  redComboBonus);
+
+    gameState.blueScore += blueKeepScore + blueBonus;
+    gameState.redScore  += redKeepScore  + redBonus;
+
+    if (bluePockets.save && bluePockets.save.length > 0) {
+        gameState.blueSavedDie = bluePockets.save[0];
+    } else {
+        gameState.blueSavedDie = null;
+    }
+    if (redPockets.save && redPockets.save.length > 0) {
+        gameState.redSavedDie = redPockets.save[0];
+    } else {
+        gameState.redSavedDie = null;
+    }
+
+    updateScoreDisplay();
+
+    setTimeout(function() {
+        check100Trigger();
+    }, 2000);
+}
+
+function displayRoundScores(blueKeep, blueBonus, blueCombo,
+                             redKeep,  redBonus,  redCombo) {
+    var blueDiceArea = document.getElementById('blueDiceArea');
+    var redDiceArea  = document.getElementById('redDiceArea');
+
+    var isBitmap = document.body.classList.contains('theme-bitmap');
+
+    var blueDiv = document.createElement('div');
+    blueDiv.className = 'round-score-display';
+    var blueText = 'Round Score: ' + (blueKeep + blueBonus) + ' pts';
+    if (blueBonus > 0) {
+        blueText += '<br>Keep: ' + blueKeep + ', Take: ' + (blueBonus - blueCombo);
+        if (blueCombo > 0 && isBitmap)  { blueText += '<br>Bonus: ' + blueCombo; }
+        else if (blueCombo > 0)          { blueText += ', Bonus: ' + blueCombo; }
+        else if (isBitmap)               { blueText += '<br>Bonus: 0'; }
+    } else {
+        blueText += '<br>Keep: ' + blueKeep;
+        if (isBitmap) { blueText += '<br>Bonus: 0'; }
+    }
+    blueDiv.innerHTML = blueText;
+    blueDiceArea.appendChild(blueDiv);
+
+    var redDiv = document.createElement('div');
+    redDiv.className = 'round-score-display';
+    var redText = 'Round Score: ' + (redKeep + redBonus) + ' pts';
+    if (redBonus > 0) {
+        redText += '<br>Keep: ' + redKeep + ', Take: ' + (redBonus - redCombo);
+        if (redCombo > 0 && isBitmap)  { redText += '<br>Bonus: ' + redCombo; }
+        else if (redCombo > 0)          { redText += ', Bonus: ' + redCombo; }
+        else if (isBitmap)              { redText += '<br>Bonus: 0'; }
+    } else {
+        redText += '<br>Keep: ' + redKeep;
+        if (isBitmap) { redText += '<br>Bonus: 0'; }
+    }
+    redDiv.innerHTML = redText;
+    redDiceArea.appendChild(redDiv);
+}
+
+// =============================================================================
+// 100-POINT TRIGGER
+// =============================================================================
+
+function check100Trigger() {
+    var blueOver = gameState.blueScore >= 100;
+    var redOver  = gameState.redScore  >= 100;
+
+    if (!blueOver && !redOver) {
+        nextRound();
+        return;
+    }
+
+    var msg;
+    if (blueOver && redOver) {
+        if (gameState.blueScore > gameState.redScore) {
+            msg = 'Both players crossed 100 — ' + colorLabel('blue') + ' leads! Click Start Rolldown to begin.';
+        } else if (gameState.redScore > gameState.blueScore) {
+            msg = 'Both players crossed 100 — ' + colorLabel('red') + ' leads! Click Start Rolldown to begin.';
+        } else {
+            msg = 'Both players crossed 100 and are tied! Click Start Rolldown.';
+        }
+    } else if (blueOver) {
+        msg = colorLabel('blue') + ' crossed 100 points! Click Start Rolldown to begin.';
+    } else {
+        msg = colorLabel('red') + ' crossed 100 points! Click Start Rolldown to begin.';
+    }
+
+    showPanelBottom(msg);
+    document.getElementById('startRound').classList.add('hidden');
+    document.getElementById('startFinale').classList.remove('hidden');
+    setActionPanelView('start');
+}
+
+// =============================================================================
+// FINALE — BOARD-BASED FLOW
+// =============================================================================
+
+function startFinale() {
+    gameState.phase              = 'finale';
+    gameState.finaleMode         = true;
+    gameState.finaleRolls        = { blue: [], red: [] };
+    gameState.finaleCurrentPlayer = gameState.firstPlayer || 'blue';
+
+    document.getElementById('startFinale').classList.add('hidden');
+    document.getElementById('startRound').classList.add('hidden');
+    document.getElementById('currentRound').textContent = 'Rolldown';
+
+    hidePanelBottom(false);
+
+    // Hide regular pockets — Keep Two and Take One only
+    var keepTake = document.querySelectorAll(
+        '.pocket[data-pocket="keep1"], .pocket[data-pocket="keep2"], .pocket[data-pocket="take"]'
+    );
+    keepTake.forEach(function(p) { p.classList.add('finale-hidden'); });
+
+    // Show Finale pocket areas
+    document.getElementById('blueFinale').classList.remove('hidden');
+    document.getElementById('redFinale').classList.remove('hidden');
+
+    // Reset Finale totals to saved die value
+    var blueSaved = gameState.blueSavedDie || 0;
+    var redSaved  = gameState.redSavedDie  || 0;
+    document.getElementById('blueFinaleTotal').textContent = blueSaved;
+    document.getElementById('redFinaleTotal').textContent  = redSaved;
+    document.getElementById('blueFinaleBonus').textContent = '';
+    document.getElementById('redFinaleBonus').textContent  = '';
+
+    // Clear dice areas and show 4 dimmed dice per player
+    document.getElementById('blueDiceArea').innerHTML = '';
+    document.getElementById('redDiceArea').innerHTML  = '';
+    showDimmedDice('blue');
+    showDimmedDice('red');
+
+    setActionPanelView('rolls');   // shows coinFlip + playerRolls, hides firstPlayerRolloff
+
+    // Hide "of 10" suffix — round count irrelevant in Finale
+    var suffix = document.getElementById('roundSuffix');
+    if (suffix) { suffix.classList.add('hidden'); }
+
+    updateFinaleUI();
+
+    document.getElementById('turnInfo').textContent =
+        gameState.finaleCurrentPlayer === 'blue' ? "Blue's Finale roll" : "Red's Finale roll";
+
+    if (gameMode === 'ai' && gameState.finaleCurrentPlayer === 'red') {
+        setTimeout(function() { rollFinale('red'); }, 1200);
+    }
+}
+
+function showDimmedDice(player) {
+    var area = document.getElementById(player + 'DiceArea');
+    for (var i = 0; i < 4; i++) {
+        var die = createDieSVG(1, player + '-finale-dim-' + i, false);
+        die.classList.add('dimmed-die');
+        area.appendChild(die);
+    }
+}
+
+function rollFinale(player) {
+    if (!gameState.finaleMode) { return; }
+    if (gameState.finaleCurrentPlayer !== player) { return; }
+    var rolls = gameState.finaleRolls[player];
+    if (rolls.length >= 4) { return; }
+
+    var value = Math.floor(Math.random() * 6) + 1;
+    rolls.push(value);
+
+    // Animate the correct dimmed die in roll bar
+    var area     = document.getElementById(player + 'DiceArea');
+    var dimDice  = area.querySelectorAll('.dimmed-die');
+    // Always target the first remaining dimmed die in this player's roll bar
+    var targetDie = dimDice[0];
+
+    if (targetDie) {
+        targetDie.classList.remove('dimmed-die');
+        targetDie.classList.add('rolling');
+        targetDie.setAttribute('data-value', value);
+        var captured    = value;
+        var capturedDie = targetDie;
+        // Cycle pips randomly while rolling, then snap to final value
+        var pipInterval = setInterval(function() {
+            refreshDiePips(capturedDie, Math.floor(Math.random() * 6) + 1);
+        }, 80);
+        setTimeout(function() {
+            clearInterval(pipInterval);
+            capturedDie.classList.remove('rolling');
+            refreshDiePips(capturedDie, captured);
+        }, 680);
+    }
+
+    // Update running total in Finale pocket
+    var savedDie = (player === 'blue') ? (gameState.blueSavedDie || 0) : (gameState.redSavedDie || 0);
+    var rollSum  = rolls.reduce(function(a, b) { return a + b; }, 0);
+    var running  = savedDie + rollSum;
+    var totalEl  = document.getElementById(player + 'FinaleTotal');
+    totalEl.textContent = running;
+    totalEl.classList.add('bumped');
+    setTimeout(function() { totalEl.classList.remove('bumped'); }, 260);
+
+    // Context message
+    var flavor = '';
+    if (value === 6) { flavor = ' Big one!'; }
+    if (value === 1) { flavor = ' Ouch.'; }
+    var label = (player === 'blue') ? 'Blue' : 'Red';
+    document.getElementById('turnInfo').textContent =
+        label + ' rolled a ' + value + '.' + flavor;
+
+    var blueDone = (gameState.finaleRolls.blue.length >= 4);
+    var redDone  = (gameState.finaleRolls.red.length  >= 4);
+
+    if (blueDone && redDone) {
+        setTimeout(function() { finalizeFinale(); }, 900);
+        return;
+    }
+
+    // Alternate players
+    var next;
+    if (!blueDone && !redDone) {
+        next = (player === 'blue') ? 'red' : 'blue';
+    } else if (!blueDone) {
+        next = 'blue';
+    } else {
+        next = 'red';
+    }
+
+    gameState.finaleCurrentPlayer = next;
+    updateFinaleUI();
+
+    if (gameMode === 'ai' && next === 'red') {
+        setTimeout(function() { rollFinale('red'); }, 1100);
+    }
+}
+
+function updateFinaleUI() {
+    var player   = gameState.finaleCurrentPlayer;
+    var blueBtn  = document.getElementById('blueRoll');
+    var redBtn   = document.getElementById('redRoll');
+    var blueDone = (gameState.finaleRolls.blue.length >= 4);
+    var redDone  = (gameState.finaleRolls.red.length  >= 4);
+
+    blueBtn.classList.remove('hidden');
+    redBtn.classList.remove('hidden');
+
+    var blueNum = gameState.finaleRolls.blue.length + 1;
+    var redNum  = gameState.finaleRolls.red.length  + 1;
+
+    blueBtn.textContent = blueDone ? colorLabel('blue') + ' Done' : colorLabel('blue') + ' Roll ' + blueNum + ' of 4';
+    blueBtn.disabled    = (player !== 'blue') || blueDone;
+
+    if (gameMode === 'ai') {
+        document.getElementById('redRoll').textContent = (gameState.finaleRolls.red.length >= 4) ? 'AI Done' : 'AI Rolling...';
+        redBtn.disabled    = true;
+    } else {
+        redBtn.textContent = redDone ? colorLabel('red') + ' Done' : colorLabel('red') + ' Roll ' + redNum + ' of 4';
+        redBtn.disabled    = (player !== 'red') || redDone;
+    }
+
+    document.getElementById('turnInfo').textContent =
+        blueDone && redDone ? 'Calculating final scores...' :
+        player === 'blue'   ? "Blue's Rolldown roll" : "Red's Rolldown roll";
+}
+
+function finalizeFinale() {
+    var blueHand = gameState.finaleRolls.blue.slice();
+    if (gameState.blueSavedDie !== null && gameState.blueSavedDie !== undefined) {
+        blueHand.push(gameState.blueSavedDie);
+    }
+    var redHand = gameState.finaleRolls.red.slice();
+    if (gameState.redSavedDie !== null && gameState.redSavedDie !== undefined) {
+        redHand.push(gameState.redSavedDie);
+    }
+
+    var blueTotal = blueHand.reduce(function(a, b) { return a + b; }, 0);
+    var redTotal  = redHand.reduce(function(a, b) { return a + b; }, 0);
+    var blueCombo = calculateBonusPoints(blueHand);
+    var redCombo  = calculateBonusPoints(redHand);
+    var blueFinal = blueTotal + blueCombo;
+    var redFinal  = redTotal  + redCombo;
+
+    document.getElementById('blueFinaleTotal').textContent = blueFinal;
+    document.getElementById('redFinaleTotal').textContent  = redFinal;
+
+    if (blueCombo > 0) {
+        document.getElementById('blueFinaleBonus').textContent = 'With +' + blueCombo + ' bonus';
+    }
+    if (redCombo > 0) {
+        document.getElementById('redFinaleBonus').textContent = 'With +' + redCombo + ' bonus';
+    }
+
+    gameState.blueScore += blueFinal;
+    gameState.redScore  += redFinal;
+    updateScoreDisplay();
+
+    // Hide roll buttons
+    document.getElementById('blueRoll').classList.add('hidden');
+    document.getElementById('redRoll').classList.add('hidden');
+
+    endGame();
+}
+
+// Kept for any legacy HTML references
+function proceedToFinalRound()      {}
+function startFinalRollDrama()      {}
+function rollFinalDie()             {}
+function finalizeFinalRoll()        {}
+function closeFinalRollModal()      {}
+function shareFinalResult()         { shareFinalResultNew(); }
+
+function shareFinalResultNew() {
+    var blueTotal = gameState.blueScore;
+    var redTotal  = gameState.redScore;
+    var resultLine;
+    if (blueTotal > redTotal) {
+        resultLine = colorLabel('blue') + ' wins ' + blueTotal + ' to ' + redTotal;
+    } else if (redTotal > blueTotal) {
+        resultLine = colorLabel('red') + ' wins ' + redTotal + ' to ' + blueTotal;
+    } else {
+        resultLine = 'Tie at ' + blueTotal;
+    }
+    var text = 'POCKETS — ' + resultLine + '\nA strategic dice game.';
+    if (navigator.share) {
+        navigator.share({ title: 'POCKETS', text: text }).catch(function() {});
+    } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+            var btn = document.getElementById('shareResultFooter');
+            if (btn) {
+                var orig = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(function() { btn.textContent = orig; }, 1800);
+            }
+        });
+    }
+}
+
+// =============================================================================
+// GAME STATUS TEXT
+// =============================================================================
+
+function updateGameStatus() {
+    var turnInfo = document.getElementById('turnInfo');
+
+    if (gameState.phase === 'rolling') {
+        turnInfo.textContent = '';
+    } else if (gameState.phase === 'placing') {
+        var playerName;
+        if (gameMode === 'ai' && gameState.currentPlayer === 'red') {
+            if (aiThinking) {
+                turnInfo.textContent = 'AI is thinking...';
+                return;
+            }
+            playerName = 'AI';
+        } else {
+            playerName = colorLabel(gameState.currentPlayer);
+        }
+        turnInfo.textContent = playerName + ' places a die';
+        var isHumanTurn = (gameMode !== 'ai') || (gameState.currentPlayer === 'blue');
+        var showHint    = (gameState.round === 1) && isHumanTurn &&
+                          (gameState.placementTurn === 0 ||
+                           gameState.placementTurn === 1);
+        if (showHint) {
+            var hintHtml = playerName + ' places a die';
+            hintHtml += '<br><span class="placement-hint">Tap a die · then tap a pocket</span>';
+            turnInfo.innerHTML = hintHtml;
+        }
+    } else if (gameState.phase === 'scoring') {
+        turnInfo.textContent = 'Round complete — calculating scores...';
+    } else if (gameState.phase === 'finale') {
+        // handled by updateFinaleUI
+    }
+}
+
+function updateScoreDisplay() {
+    document.getElementById('blueScore').textContent = gameState.blueScore;
+    document.getElementById('redScore').textContent  = gameState.redScore;
+}
+
+// =============================================================================
+// NEXT ROUND
+// =============================================================================
+
+function nextRound() {
+    gameState.round++;
+    gameState.phase         = 'rolling';
+    gameState.selectedDie   = null;
+    gameState.diceToPlace   = 8;
+    gameState.placementTurn = 0;
+    gameState.blueRolled    = false;
+    gameState.redRolled     = false;
+    // Reset the moment THIS round ends, not just when Start Round is next
+    // clicked - a save captured in the gap between "round ended" and
+    // "Start Round clicked" (e.g. closing the app right after a round)
+    // would otherwise still carry the previous round's stale value,
+    // making restore incorrectly think rolloff already happened.
+    gameState.firstPlayer   = null;
+
+    resetRoundUI();
+    document.getElementById('currentRound').textContent = gameState.round;
+    document.getElementById('startRound').textContent   = 'Start Round ' + gameState.round;
+    setActionPanelView('start');
+    resetRollButtons();
+    updateGameStatus();
+    autosaveGame();
+}
+
+function resetRollButtons() {
+    var blueBtn    = document.getElementById('blueRoll');
+    var redBtn     = document.getElementById('redRoll');
+    var humanIsRed = (gameState.humanColor === 'red');
+
+    // Enforce correct color classes every round
+    blueBtn.classList.toggle('blue-btn', !humanIsRed);
+    blueBtn.classList.toggle('red-btn',   humanIsRed);
+    redBtn.classList.toggle('red-btn',   !humanIsRed);
+    redBtn.classList.toggle('blue-btn',   humanIsRed);
+
+    blueBtn.disabled    = false;
+    blueBtn.textContent = colorEmoji('blue') + ' ' + colorLabel('blue') + ' Roll Dice';
+    blueBtn.classList.add('hidden');
+
+    redBtn.disabled    = false;
+    redBtn.textContent = colorEmoji('red') + ' ' + colorLabel('red') + ' Roll Dice';
+    redBtn.classList.add('hidden');
+}
+
+// =============================================================================
+// END GAME
+// =============================================================================
+
+function endGame() {
+    gameState.phase = 'gameOver';
+
+    var winner;
+    if (gameState.blueScore > gameState.redScore) {
+        winner = 'Blue';
+    } else if (gameState.redScore > gameState.blueScore) {
+        winner = 'Red';
+    } else {
+        winner = 'Tie';
+    }
+
+    // Big pulsing winner text in the green panel
+    var pulseEl = document.getElementById('winnerPulseText');
+    if (pulseEl) {
+        if (winner === 'Tie') {
+            pulseEl.textContent = "IT'S A TIE!";
+            pulseEl.className   = 'winner-pulse silver-pulse';
+        } else {
+            pulseEl.textContent = colorLabel(winner.toLowerCase()).toUpperCase() + ' WINS!';
+            pulseEl.className   = 'winner-pulse silver-pulse';
+        }
+    }
+    setActionPanelView('winner');
+
+    // Keep brass number styling — add class on top, don't replace
+    document.getElementById('blueScore').classList.add('final-total');
+    document.getElementById('redScore').classList.add('final-total');
+
+    var blueArea = document.querySelector('.scores .score-area:first-child');
+    var redArea  = document.querySelector('.scores .score-area:last-child');
+
+    if (winner === 'Blue' || winner === 'Tie') {
+        blueArea.classList.add('winner');
+        addWinnerText(blueArea);
+    }
+    if (winner === 'Red' || winner === 'Tie') {
+        redArea.classList.add('winner');
+        addWinnerText(redArea);
+    }
+
+    // Show take button in footer
+    var shareFooter = document.getElementById('shareResultFooter');
+    if (shareFooter) { shareFooter.classList.remove('hidden'); }
+
+    // Guard against double-recording: endGame() also runs when a finished
+    // game's winner screen gets re-displayed on restore, but that's a replay
+    // of an already-recorded result, not a second game.
+    if (typeof saveGameStats === 'function' && !gameState.statsAlreadySaved) {
+        gameState.statsAlreadySaved = true;
+        saveGameStats({
+            winner:       winner,
+            blueScore:    gameState.blueScore,
+            redScore:     gameState.redScore,
+            gameMode:     gameMode,
+            aiDifficulty: (gameMode === 'ai') ? aiDifficulty : null,
+            humanColor:   gameState.humanColor || 'blue',
+            date:         new Date().toISOString()
+        });
+    }
+
+    autosaveGame();
+}
+
+function addWinnerText(scoreArea) {
+    var el = document.createElement('div');
+    el.className   = 'winner-text';
+    el.textContent = 'WINNER!';
+    scoreArea.appendChild(el);
+}
+
+// =============================================================================
+// NEW GAME
+// =============================================================================
+
+function newGame() {
+    clearSavedGame();
+    gameState = {
+        round: 1, currentPlayer: 'blue', phase: 'rolling', firstPlayer: null,
+        blueDice: [], redDice: [], blueOriginalRoll: [], redOriginalRoll: [],
+        blueSavedDie: null, redSavedDie: null, blueScore: 0, redScore: 0,
+        selectedDie: null, diceToPlace: 8, placementTurn: 0,
+        roundScores: { blue: {}, red: {} },
+        blueRolled: false, redRolled: false, blueFinalRolled: false, redFinalRolled: false,
+        finaleMode: false,
+        finaleRolls: { blue: [], red: [] },
+        finaleCurrentPlayer: 'blue',
+        humanColor: gameState.humanColor || 'blue'
+    };
+
+    document.getElementById('startRound').textContent   = 'Start Round 1';
+    document.getElementById('currentRound').textContent = '1';
+    var suffix = document.getElementById('roundSuffix');
+    if (suffix) { suffix.classList.remove('hidden'); }
+
+    resetRollButtons();
+    rolloffState = { blue: null, red: null, locked: false };
+
+    var blueDie = document.getElementById('blueRolloffDie');
+    var redDie  = document.getElementById('redRolloffDie');
+    blueDie.classList.remove('parked-left');
+    blueDie.classList.remove('parked-right');
+    blueDie.classList.remove('spinning-left');
+    blueDie.classList.remove('spinning-right');
+    blueDie.classList.remove('spinning-in-place');
+    redDie.classList.remove('parked-left');
+    redDie.classList.remove('parked-right');
+    redDie.classList.remove('spinning-left');
+    redDie.classList.remove('spinning-right');
+    redDie.classList.remove('spinning-in-place');
+
+    var vsEl = document.querySelector('.rolloff-vs');
+    if (vsEl) { vsEl.classList.remove('hidden'); }
+
+    document.getElementById('firstPlayerRolloff').classList.remove('hidden');
+    document.getElementById('playerRolls').classList.add('hidden');
+    document.getElementById('rolloffResult').textContent = '';
+    document.getElementById('rolloffResult').classList.remove('winner');
+
+    setRolloffDieFaded(blueDie);
+    setRolloffDieFaded(redDie);
+
+    // Fix AI->2player prompt bug — always reset from current gameMode
+    if (gameMode === 'ai') {
+        var humanLabel = (gameState.humanColor === 'red') ? 'red' : 'blue';
+        document.getElementById('rolloffPrompt').textContent =
+            'Tap your ' + humanLabel + ' die — AI will roll right after.';
+    } else {
+        document.getElementById('rolloffPrompt').textContent =
+            'Tap your die — higher number goes first!';
+    }
+
+    hidePanelBottom(true);
+    document.getElementById('blueTakeScore').classList.add('hidden');
+    document.getElementById('redTakeScore').classList.add('hidden');
+
+    setActionPanelView('start');
+    document.getElementById('preFinalScreen').classList.add('hidden');
+    document.getElementById('finalRollModal').classList.add('hidden');
+    document.getElementById('finalCelebration').classList.add('hidden');
+
+    document.getElementById('blueRollFinalDie').classList.remove('hidden');
+    document.getElementById('redRollFinalDie').classList.remove('hidden');
+    document.getElementById('blueRollFinalDie').disabled = false;
+    document.getElementById('redRollFinalDie').disabled  = false;
+
+    var finalScores = document.querySelectorAll('.final-score-display');
+    finalScores.forEach(function(el) { el.remove(); });
+
+    // Restore regular pockets hidden during Finale
+    var keepTake = document.querySelectorAll('.pocket.finale-hidden');
+    keepTake.forEach(function(p) { p.classList.remove('finale-hidden'); });
+
+    // Hide Finale pocket areas
+    var blueFinale = document.getElementById('blueFinale');
+    var redFinale  = document.getElementById('redFinale');
+    if (blueFinale) { blueFinale.classList.add('hidden'); }
+    if (redFinale)  { redFinale.classList.add('hidden');  }
+
+    // Reset Start Finale button
+    var startFinaleBtn = document.getElementById('startFinale');
+    if (startFinaleBtn) { startFinaleBtn.classList.add('hidden'); }
+    document.getElementById('startRound').classList.remove('hidden');
+
+    var scoreAreas = document.querySelectorAll('.score-area');
+    scoreAreas.forEach(function(area) {
+        area.classList.remove('winner');
+        var wt = area.querySelector('.winner-text');
+        if (wt) { wt.remove(); }
+    });
+
+    document.getElementById('blueScore').classList.remove('final-total');
+    document.getElementById('redScore').classList.remove('final-total');
+
+    var shareFooter = document.getElementById('shareResultFooter');
+    if (shareFooter) { shareFooter.classList.add('hidden'); }
+
+    var pocketContainers = document.querySelectorAll('.pockets');
+    pocketContainers.forEach(function(p) { p.style.display = 'grid'; });
+
+    var pocketDice = document.querySelectorAll('.pocket-dice');
+    pocketDice.forEach(function(c) { c.innerHTML = ''; });
+
+    // Clear any lingering active/highlighted state from previous game
+    document.querySelectorAll('.pocket.active').forEach(function(p) {
+        p.classList.remove('active');
+    });
+
+    document.getElementById('blueDiceArea').innerHTML = '';
+    document.getElementById('redDiceArea').innerHTML  = '';
+    document.getElementById('takeDifference').classList.add('hidden');
+
+    resetRoundUI();
+    updateScoreDisplay();
+    updateGameStatus();
+    autosaveGame();
+}
+
+// =============================================================================
+// AI MOVE (basic fallback — full AI in ai-player.js)
+// =============================================================================
+
+function makeAIMove() {
+    if (typeof makeAIMoveExternal === 'function') {
+        makeAIMoveExternal();
+        return;
+    }
+    if (gameState.redDice.length > 0) {
+        var idx = Math.floor(Math.random() * gameState.redDice.length);
+        selectDie('red', idx);
+        setTimeout(function() {
+            var emptyPockets = document.querySelectorAll('[data-player="red"].active');
+            if (emptyPockets.length > 0) {
+                var pick = Math.floor(Math.random() * emptyPockets.length);
+                placeDieInPocket(emptyPockets[pick]);
+            }
+        }, 500);
+    }
+}
+
+// =============================================================================
+// INITIALISE
+// =============================================================================
+
+function initializeGame() {
+    // Save state the instant the page loses focus or is about to go away -
+    // a phone call, text alert, doorbell, switching apps, locking the phone,
+    // closing the tab. This is the real safety net: it doesn't matter which
+    // specific action the player was mid-way through, because it isn't tied
+    // to any one button or tap. Anything this misses is also covered by the
+    // explicit autosaveGame() calls throughout the rest of the file, but this
+    // is what actually makes interruption-at-any-moment safe.
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden') { autosaveGame(); }
+    });
+    window.addEventListener('pagehide', function() { autosaveGame(); });
+
+    document.getElementById('startRound').addEventListener('click', startRound);
+
+    document.getElementById('blueRoll').addEventListener('click', function() {
+        if (gameState.finaleMode) { rollFinale('blue'); } else { rollPlayerDice('blue'); }
+    });
+    document.getElementById('redRoll').addEventListener('click', function() {
+        if (gameState.finaleMode) { rollFinale('red'); } else { rollPlayerDice('red'); }
+    });
+
+    var startFinaleBtn = document.getElementById('startFinale');
+    if (startFinaleBtn) { startFinaleBtn.addEventListener('click', startFinale); }
+
+    document.getElementById('newGame').addEventListener('click', function() {
+        showConfirm(
+            'Start a new game?',
+            'This will end the current game and reset the board. Are you sure?',
+            newGame
+        );
+    });
+
+    document.getElementById('blueRolloffDie').addEventListener('click', function() { rolloffRollDie('blue'); });
+    document.getElementById('redRolloffDie').addEventListener('click',  function() { rolloffRollDie('red');  });
+
+    var proceedBtn = document.getElementById('proceedFinalBtn');
+    if (proceedBtn) { proceedBtn.addEventListener('click', proceedToFinalRound); }
+
+    // Legacy modal buttons — stubs, kept for safety
+    var blueModalBtn = document.getElementById('blueRollFinalDie');
+    var redModalBtn  = document.getElementById('redRollFinalDie');
+    if (blueModalBtn) { blueModalBtn.addEventListener('click', function() {}); }
+    if (redModalBtn)  { redModalBtn.addEventListener('click',  function() {}); }
+
+    var closeModal = document.getElementById('closeFinalModal');
+    if (closeModal) { closeModal.addEventListener('click', closeFinalRollModal); }
+
+    var shareBtn = document.getElementById('shareResult');
+    if (shareBtn) { shareBtn.addEventListener('click', shareFinalResult); }
+
+    var shareFooter = document.getElementById('shareResultFooter');
+    if (shareFooter) { shareFooter.addEventListener('click', shareFinalResult); }
+
+    var playAsBlue = document.getElementById('playAsBlue');
+    var playAsRed  = document.getElementById('playAsRed');
+    if (playAsBlue) {
+        playAsBlue.addEventListener('click', function() { changeColorWithConfirm('blue'); });
+    }
+    if (playAsRed) {
+        playAsRed.addEventListener('click', function() { changeColorWithConfirm('red'); });
+    }
+
+    document.getElementById('twoPlayerMode').addEventListener('click', function() {
+        changeModeWithConfirm('2player');
+    });
+    document.getElementById('aiMode').addEventListener('click', function() {
+        changeModeWithConfirm('ai');
+    });
+
+    function isDifficultyChangeSafe() {
+        return gameState.phase === 'placing' ||
+               gameState.phase === 'scoring' ||
+               gameState.blueRolled || gameState.redRolled;
+    }
+    function changeDifficultyGuarded(difficulty, revertEl) {
+        if (isDifficultyChangeSafe()) {
+            showSettingsChangeModal(
+                function() { setAIDifficulty(difficulty); },
+                function() { if (revertEl) { revertEl.value = (typeof aiDifficulty !== 'undefined') ? aiDifficulty : 'medium'; } }
+            );
+            return;
+        }
+        setAIDifficulty(difficulty);
+    }
+
+    document.getElementById('easyAI').addEventListener('click',   function() { changeDifficultyGuarded('easy');   });
+    document.getElementById('mediumAI').addEventListener('click', function() { changeDifficultyGuarded('medium'); });
+    document.getElementById('hardAI').addEventListener('click',   function() { changeDifficultyGuarded('hard');   });
+
+    // Compact + Bitmap short-label dropdowns
+    var cMode = document.getElementById('cMode');
+    var cDiff = document.getElementById('cDiff');
+    var cPlay = document.getElementById('cPlay');
+    if (cMode) {
+        cMode.addEventListener('change', function() { changeModeWithConfirm(this.value, cMode); });
+    }
+    if (cDiff) {
+        cDiff.addEventListener('change', function() { changeDifficultyGuarded(this.value, cDiff); });
+    }
+    if (cPlay) {
+        cPlay.addEventListener('change', function() { changeColorWithConfirm(this.value, cPlay); });
+    }
+
+    // Universal full-label dropdowns (Victorian, Steampunk, Art Deco, Cosmic, Dark)
+    var uMode = document.getElementById('uMode');
+    var uDiff = document.getElementById('uDiff');
+    var uPlay = document.getElementById('uPlay');
+    if (uMode) {
+        uMode.addEventListener('change', function() { changeModeWithConfirm(this.value, uMode); });
+    }
+    if (uDiff) {
+        uDiff.addEventListener('change', function() { changeDifficultyGuarded(this.value, uDiff); });
+    }
+    if (uPlay) {
+        uPlay.addEventListener('change', function() { changeColorWithConfirm(this.value, uPlay); });
+    }
+
+    document.getElementById('viewStats').addEventListener('click', function() {
+        if (typeof toggleStatsPanel === 'function') {
+            toggleStatsPanel();
+        } else if (window.PocketsStats && typeof window.PocketsStats.toggleStatsPanel === 'function') {
+            window.PocketsStats.toggleStatsPanel();
+        }
+    });
+
+    var savedGame = loadSavedGame();
+    if (savedGame && savedGame.gameState) {
+        restoreGameFromSave(savedGame);
+    } else {
+        applyDefaultOrSavedSettings();
+    }
+
+    syncCompactAIControlsVisibility();
+    syncUniversalAIControlsVisibility();
+    updateScoreDisplay();
+    updateGameStatus();
+    injectFullscreenButton();
+}
