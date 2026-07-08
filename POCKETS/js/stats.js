@@ -330,7 +330,7 @@ function generateGameOddsHTML() {
         <div class="stat-row"><span>4 of a kind:</span><span class="stat-value">~2.3%</span></div>
         <div class="stat-row"><span>5 of a kind:</span><span class="stat-value">~0.08%</span></div>
         <div class="stat-row"><span>Max score — Rolldown (five 6s + 5-of-a-kind bonus):</span><span class="stat-value">40 pts</span></div>
-        <div class="stat-row"><span>Min score — Rolldown (five 1s, no combo):</span><span class="stat-value">5 pts</span></div>
+        <div class="stat-row"><span>Min score — Rolldown (e.g. 1,1,1,2,2 = full house = 11 pts):</span><span class="stat-value">11 pts</span></div>
     </div>
 
     <div class="stat-card">
