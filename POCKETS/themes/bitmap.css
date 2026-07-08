@@ -404,18 +404,20 @@ body.theme-bitmap {
     justify-content: center;
     align-items: center;
     padding: 6px 0;
-    min-height: 48px;
+    height: 68px;
+    min-height: 68px;
+    max-height: 68px;
     background: var(--mac-grey-hi);
     border: var(--bm-line);
     margin-bottom: 6px;
-    overflow: visible;
+    overflow: hidden;
 }
 .theme-bitmap .round-score-display {
     font-size: 0.72em; line-height: 1.5; text-align: left;
     padding: 2px 6px; width: 100%;
     font-family: inherit; flex-basis: 100%;
 }
-.theme-bitmap .dice-area svg.dice { width: 34px !important; height: 34px !important; }
+.theme-bitmap .dice-area svg.dice { width: 42px !important; height: 42px !important; }
 .theme-bitmap .player-area.blue svg.dice .dice-face {
     fill: var(--bm-blue-panel); stroke: var(--bm-blue); stroke-width: 1.5;
 }
