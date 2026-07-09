@@ -407,22 +407,16 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
     display:flex; align-items:center; justify-content:center;
 }
 .kp-btn:active { background:#e8dcc8; }
-.kp-btn.kp-back { font-size:0.9em; color:#888; }
+.kp-btn.kp-back {
+    flex:1;
+    font-size:1.4em; color:#555;
+    background:#e8e0d0; border-color:#c8b88a;
+}
 .kp-side {
     grid-column: 6;
     grid-row: 1 / 3;
     display: flex; flex-direction: column; gap: 4px;
 }
-.kp-done {
-    flex:1;
-    background:#e8e0d0; color:#1a2744;
-    border:1px solid #c8b88a; border-radius:5px;
-    font-family:inherit; font-size:0.75em; font-weight:bold;
-    cursor:pointer; text-align:center;
-    -webkit-tap-highlight-color:transparent;
-    display:flex; align-items:center; justify-content:center;
-}
-.kp-done:active { background:#d8ccb8; }
 .kp-newround {
     flex:2;
     background:#c8e0b8; color:#1a3a0a;
@@ -727,10 +721,10 @@ tbody tr.placeholder-row td { border-bottom: 1px solid rgba(255,255,255,0.03); }
     <button class="kp-btn" onclick="kpDigit('7')">7</button>
     <button class="kp-btn" onclick="kpDigit('8')">8</button>
     <button class="kp-btn" onclick="kpDigit('9')">9</button>
-    <button class="kp-btn kp-back" onclick="kpBack()">⌫</button>
     <button class="kp-btn" onclick="kpDigit('0')">0</button>
+    <button class="kp-btn" onclick="kpDigit('0')" style="visibility:hidden"></button>
     <div class="kp-side">
-      <button class="kp-done" onclick="kpDone()">✓</button>
+      <button class="kp-btn kp-back" onclick="kpBack()">⌫</button>
       <button class="kp-newround" id="kp-newround-btn" onclick="kpNewRound()" disabled>New<br>Round</button>
     </div>
   </div>
@@ -809,9 +803,7 @@ function kpDigit(d) {
     if (!kpActiveInput) return;
     var cur = kpActiveInput.value;
     var next = cur + d;
-    var rdIdx = getRDIdx();
-    var idx = parseInt(kpActiveInput.dataset.idx);
-    var isRD = (rdIdx >= 0 && idx === rdIdx);
+    var isRD = kpActiveInput.dataset.isrd === '1';
     var cap = isRD ? 40 : 23;
     if (parseInt(next) > cap) next = String(cap);
     kpActiveInput.value = next;
@@ -828,13 +820,16 @@ function kpBack() {
 
 function kpDone() {
     if (!kpActiveInput) return;
-    var rdIdx = getRDIdx();
-    var idx = parseInt(kpActiveInput.dataset.idx);
-    var isRD = (rdIdx >= 0 && idx === rdIdx);
+    var isRD = kpActiveInput.dataset.isrd === '1';
     var minVal = isRD ? 11 : 2;
+    var cap = isRD ? 40 : 23;
     var v = parseInt(kpActiveInput.value);
     if (!isNaN(v) && v < minVal) {
         kpActiveInput.value = String(minVal);
+        kpActiveInput.dispatchEvent(new Event('input'));
+    }
+    if (!isNaN(v) && v > cap) {
+        kpActiveInput.value = String(cap);
         kpActiveInput.dispatchEvent(new Event('input'));
     }
     kpActiveInput.dispatchEvent(new Event('change'));
@@ -1179,9 +1174,13 @@ function makeCell(idx, player, cls, isRD) {
         var prev=getRDIdx(); updateTotals();
         if(getRDIdx()!==prev) renderSheet();
     });
+    inp.dataset.idx = idx;
+    inp.dataset.player = player;
+    inp.dataset.isrd = isRD ? '1' : '0';
     inp.addEventListener('blur', function(){
         var v=this.value;
-        if(v!==''){var fl=isRD?11:2; if(parseInt(v)<fl){this.value=String(fl);rounds[idx][player]=fl;saveCur();updateTotals();}}
+        var fl=isRD?11:2;
+        if(v!==''&&parseInt(v)<fl){this.value=String(fl);rounds[idx][player]=fl;saveCur();updateTotals();}
         if(idx===rounds.length-1&&!isRD&&rounds[idx].p1!==null&&rounds[idx].p2!==null){
             rounds.push({p1:null,p2:null}); renderSheet();
             setTimeout(function(){ var ins=document.querySelectorAll('.p1c input'); if(ins.length) ins[ins.length-1].focus(); },40);
@@ -1190,6 +1189,10 @@ function makeCell(idx, player, cls, isRD) {
     inp.addEventListener('keydown', function(e){
         if(e.key==='Enter'||e.keyCode===13){
             e.preventDefault();
+            // Enforce minimum before moving on
+            var v=this.value;
+            var fl=isRD?11:2;
+            if(v!==''&&parseInt(v)<fl){this.value=String(fl);rounds[idx][player]=fl;saveCur();updateTotals();}
             var all=Array.from(document.querySelectorAll('.score-input'));
             var next=all[all.indexOf(this)+1];
             if(next) next.focus(); else this.blur();
@@ -1659,8 +1662,11 @@ function renderDiceSheet() {
     if(dt1) dt1.textContent=t1; if(dt2) dt2.textContent=t2;
 }
 
+var lastPlacedKey = null;
+
 function tapDie(key, val, color, btn) {
     dv[key] = val;
+    lastPlacedKey = key;
     // Update value display for non-take pockets
     var valEl = document.getElementById('dval-'+key);
     if (valEl) {
@@ -1801,6 +1807,7 @@ function hideFlashCard() {
 }
 function onRoundDismiss() {
     hideFlashCard();
+    lastPlacedKey = null;
     var prevBSave = dv.bsave;
     var prevRSave = dv.rsave;
     savedBSave = dv.bsave; savedRSave = dv.rsave;
@@ -1892,14 +1899,94 @@ function finalizeRound() {
               '<div style="font-size:2em;font-weight:bold">'+s.rScore+'</div></div>'+
         '</div>'+
         '<div style="font-size:0.75em;margin-bottom:12px;color:rgba(26,39,68,0.8)">'+lead+'</div>'+
-        '<div style="font-size:0.8em;background:rgba(26,39,68,0.15);border-radius:4px;padding:7px 16px;display:inline-block">Tap to continue</div>';
+        '<div style="font-size:0.8em;background:rgba(26,39,68,0.15);border-radius:4px;padding:7px 16px;display:inline-block">Tap to continue</div>'+
+        '<div style="margin-top:10px"><span id="correct-last-btn" style="font-size:0.75em;color:rgba(26,39,68,0.7);cursor:pointer;text-decoration:underline;">✏️ Correct last score</span></div>';
     el.style.display = 'block';
     el.style.cursor = 'pointer';
     el.style.pointerEvents = 'auto';
     el.classList.add('flash-active');
-    el.onclick = onRoundDismiss;
+    el.onclick = function(e) {
+        if (e.target && e.target.id === 'correct-last-btn') {
+            correctLastScore();
+        } else {
+            onRoundDismiss();
+        }
+    };
     var dw = document.getElementById('dice-wrap');
     if (dw) dw.classList.add('flash-blocking');
+}
+
+function correctLastScore() {
+    if (!lastPlacedKey) return;
+    // Hide the flash overlay but keep board state
+    hideFlashCard();
+    // Remove the last round from rounds (we'll re-add when done)
+    if (rounds.length > 0 && rounds[rounds.length-1].p1 !== null) {
+        rounds.pop();
+        saveCur();
+        renderSheet();
+        renderDiceSheet();
+    }
+    // Dim all pockets except the last placed one
+    var allPockets = document.querySelectorAll('.dice-pocket');
+    allPockets.forEach(function(p) {
+        p.style.opacity = '0.3';
+        p.style.pointerEvents = 'none';
+    });
+    // Unlock the last placed pocket
+    var lastPocket = document.querySelector('[data-pocket-key="'+lastPlacedKey+'"]')
+        || document.getElementById('pocket-'+lastPlacedKey)
+        || (function(){
+            var el = document.getElementById('dval-'+lastPlacedKey);
+            return el ? el.closest('.dice-pocket') : null;
+        })();
+    if (lastPocket) {
+        lastPocket.style.opacity = '1';
+        lastPocket.style.pointerEvents = 'auto';
+        // Replace die SVG with FIX text
+        var valEl = document.getElementById('dval-'+lastPlacedKey);
+        if (valEl) {
+            valEl.innerHTML = '<div style="font-size:0.7em;font-weight:bold;letter-spacing:0.1em;opacity:0.8;text-align:center;">FIX</div>';
+            valEl.classList.add('empty');
+        }
+        // Unfade all num-btns in this pocket
+        var btns = lastPocket.querySelectorAll('.num-btn');
+        btns.forEach(function(b){ b.classList.remove('faded','selected'); });
+    }
+    // Override tapDie for just this pocket to re-trigger finalizeRound after fix
+    var fixingKey = lastPlacedKey;
+    var origTapDie = window._origTapDie;
+    if (!origTapDie) window._origTapDie = tapDie;
+    // Monkey-patch: next tap on this pocket re-runs finalizeRound
+    var numBtns = lastPocket ? lastPocket.querySelectorAll('.num-btn') : [];
+    numBtns.forEach(function(btn) {
+        btn.onclick = function() {
+            var val = parseInt(this.dataset.val);
+            var color = fixingKey.startsWith('b') ? 'blue' : 'red';
+            dv[fixingKey] = val;
+            lastPlacedKey = fixingKey;
+            // Restore all pocket opacity
+            allPockets.forEach(function(p) {
+                p.style.opacity = '';
+                p.style.pointerEvents = '';
+            });
+            // Update die face
+            var vEl = document.getElementById('dval-'+fixingKey);
+            if (vEl) {
+                vEl.innerHTML = dieFaceSVG(val, color, false);
+                vEl.classList.remove('empty');
+            }
+            // Refade buttons
+            var ab = document.querySelectorAll('[data-key="'+fixingKey+'"]');
+            ab.forEach(function(b){
+                if (parseInt(b.dataset.val)===val) { b.classList.add('selected'); b.classList.remove('faded'); }
+                else { b.classList.add('faded'); b.classList.remove('selected'); }
+            });
+            // Re-trigger round complete
+            updateDiceTotals();
+            finalizeRound();
+        };
+    });
 }
 
 // == Save / New game ================================================
