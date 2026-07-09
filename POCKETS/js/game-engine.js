@@ -355,13 +355,12 @@ function restoreGameFromSave(saved) {
         if (typeof brightenPlaceholderDice === 'function') { brightenPlaceholderDice(); }
         var blueRollBtn = document.getElementById('blueRoll');
         var redRollBtn  = document.getElementById('redRoll');
-        var humanIsRed  = (gameState.humanColor === 'red');
+        var humanIsRed  = (gameMode === 'ai' && gameState.humanColor === 'red');
         if (blueRollBtn) {
             blueRollBtn.disabled = !!gameState.blueRolled;
             blueRollBtn.classList.remove('roll-prompt-pulse');
             blueRollBtn.classList.remove('hidden');
             if (gameMode === 'ai' && humanIsRed) {
-                // Human is red, so blue button is the AI
                 blueRollBtn.textContent = gameState.blueRolled ? '🤖 AI Rolled' : '🤖 AI Will Roll';
             } else {
                 blueRollBtn.textContent = gameState.blueRolled
@@ -374,7 +373,6 @@ function restoreGameFromSave(saved) {
             redRollBtn.classList.remove('roll-prompt-pulse');
             redRollBtn.classList.remove('hidden');
             if (gameMode === 'ai' && !humanIsRed) {
-                // Human is blue, so red button is the AI
                 redRollBtn.textContent = gameState.redRolled ? '🤖 AI Rolled' : '🤖 AI Will Roll';
             } else {
                 redRollBtn.textContent = gameState.redRolled
@@ -382,11 +380,11 @@ function restoreGameFromSave(saved) {
                     : (colorEmoji('red') + ' ' + colorLabel('red') + ' Roll Dice');
             }
         }
+        // Pulse the human's button, not the AI's
+        var aiColor    = humanIsRed ? 'blue' : 'red';
         var pulseColor = (gameState.currentPlayer === 'blue' && !gameState.blueRolled) ? 'blue'
                         : (gameState.currentPlayer === 'red'  && !gameState.redRolled)  ? 'red' : null;
-        // Don't pulse the AI's button
-        var aiColor = gameMode === 'ai' ? (humanIsRed ? 'blue' : 'red') : null;
-        if (pulseColor && pulseColor !== aiColor) {
+        if (pulseColor && !(gameMode === 'ai' && pulseColor === aiColor)) {
             var pulseBtn = document.getElementById(pulseColor + 'Roll');
             if (pulseBtn) { pulseBtn.classList.add('roll-prompt-pulse'); }
         }
@@ -452,7 +450,7 @@ function setPlayerColor(color) {
     if (blueDieBtn) { blueDieBtn.setAttribute('aria-label', colorLabel('blue') + ': roll for first player'); }
     if (redDieBtn)  { redDieBtn.setAttribute('aria-label',  color === 'red' ? 'AI: roll for first player' : colorLabel('red') + ': roll for first player'); }
 
-    // Re-render rolloff dice with correct colors for this color assignment
+    // Re-render rolloff dice with correct colors
     if (blueDieBtn && blueDieBtn.innerHTML) { setRolloffDieFadedInPlace(blueDieBtn); }
     if (redDieBtn  && redDieBtn.innerHTML)  { setRolloffDieFadedInPlace(redDieBtn);  }
 
@@ -464,13 +462,12 @@ function setPlayerColor(color) {
     if (cPlayEl) { cPlayEl.value = color; }
     var uPlayEl = document.getElementById('uPlay');
     if (uPlayEl) { uPlayEl.value = color; }
-    // Update headers — clean, no "(You)" or "(Blue)" appended
+    // Blue area is always human's area (left), visually swapped to red when playing as red
     var is2p = (gameMode === '2player');
     document.getElementById('bluePlayerHeader').textContent =
         is2p ? 'BLUE PLAYER' : (color === 'red' ? 'RED PLAYER' : 'BLUE PLAYER');
     document.getElementById('redPlayerHeader').textContent  =
-        is2p ? 'RED PLAYER'  : (color === 'red' ? 'AI PLAYER'  : 'AI PLAYER');
-    // Update score area labels
+        is2p ? 'RED PLAYER'  : 'AI PLAYER';
     var blueScoreLabel = document.getElementById('blueScoreLabel');
     var redScoreLabel  = document.getElementById('redScoreLabel');
     if (blueScoreLabel) {
@@ -478,8 +475,7 @@ function setPlayerColor(color) {
             (color === 'red' ? 'Red Player Score' : 'Blue Player Score');
     }
     if (redScoreLabel) {
-        redScoreLabel.textContent  = is2p ? 'Red Player Score'  :
-            (color === 'red' ? 'AI Score'         : 'Red Player Score');
+        redScoreLabel.textContent  = is2p ? 'Red Player Score' : 'AI Score';
     }
 
     // Force-refresh rolloff dice with correct visual colors immediately
@@ -493,14 +489,14 @@ function setPlayerColor(color) {
 
 // Returns the DISPLAY name for an internal color, respecting visual swap
 function colorLabel(internalColor) {
-    if (gameMode === 'ai' && gameState.humanColor === 'red') {
+    if (gameState.humanColor === 'red') {
         return internalColor === 'blue' ? 'Red' : 'Blue';
     }
     return internalColor === 'blue' ? 'Blue' : 'Red';
 }
 function colorLabelUpper(internalColor) { return colorLabel(internalColor).toUpperCase(); }
 function colorEmoji(internalColor) {
-    var isRed = (gameMode === 'ai' && gameState.humanColor === 'red')
+    var isRed = (gameState.humanColor === 'red')
         ? (internalColor === 'blue')   // swapped
         : (internalColor === 'red');
     return isRed ? '🔴' : '🔵';
@@ -781,18 +777,11 @@ function startFirstPlayerRolloff() {
     redDie.classList.remove('spinning-right');
     redDie.classList.remove('spinning-in-place');
 
-    // Only the AI's die should appear faded/non-interactive. #blueRolloffDie
-    // is always the human's button and #redRolloffDie is always the AI's,
-    // structurally - this matches the same "AI is always internally red"
-    // convention used everywhere else in the codebase. The humanColor swap
-    // only changes which COLORS are painted onto these two buttons; it never
-    // changes which one is actually the human's. No color-conditional logic
-    // is needed here at all - that was the bug.
     var isAIMode = (gameMode === 'ai');
     setRolloffDieFaded(blueDie, false);
     setRolloffDieFaded(redDie, isAIMode);
     blueDie.disabled = false;
-    redDie.disabled  = (gameMode === 'ai');
+    redDie.disabled  = isAIMode;
 
     var vsEl = document.querySelector('.rolloff-vs');
     if (vsEl) { vsEl.classList.remove('hidden'); }
@@ -804,11 +793,9 @@ function startFirstPlayerRolloff() {
     document.getElementById('firstPlayerRolloff').classList.remove('hidden');
     document.getElementById('playerRolls').classList.add('hidden');
 
-    // Always set from current gameMode — fixes the AI->2player bug
     if (gameMode === 'ai') {
-        var humanLabel = (gameState.humanColor === 'red') ? 'red' : 'blue';
         document.getElementById('rolloffPrompt').textContent =
-            'Tap your ' + humanLabel + ' die — AI will roll right after.';
+            'Tap your ' + colorLabel('blue').toLowerCase() + ' die — AI will roll right after.';
     } else {
         document.getElementById('rolloffPrompt').textContent =
             'Tap your die — higher number goes first!';
@@ -824,24 +811,23 @@ function setRolloffDieFaded(buttonEl, shouldFade) {
     var svg = createDieSVG(1, 'rolloff-' + buttonEl.id, false);
     buttonEl.appendChild(svg);
 
-    // Force face+dot colors when swapped — reads theme CSS vars so each theme looks right
+    // Force face+dot colors when swapped
     if (gameState.humanColor === 'red') {
         var cs        = getComputedStyle(document.body);
         var isBitmap  = document.body.classList.contains('theme-bitmap');
         var humanFace, aiFace, humanDot, aiDot;
         if (isBitmap) {
-            humanFace = '#f4dddd';
-            aiFace    = '#dde4f4';
-            humanDot  = '#800000';
-            aiDot     = '#000080';
+            humanFace = '#f4dddd'; aiFace = '#dde4f4';
+            humanDot  = '#800000'; aiDot  = '#000080';
         } else {
             humanFace = cs.getPropertyValue('--burgundy').trim() || '#6e3030';
             aiFace    = cs.getPropertyValue('--navy').trim()     || '#2a3559';
             humanDot  = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
             aiDot     = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
         }
+        // Blue button = human when playing as red
         var faceFill   = isBlueButton ? humanFace : aiFace;
-        var faceStroke = isBlueButton ? humanDot  : aiDot;  // stroke matches dot color
+        var faceStroke = isBlueButton ? humanDot  : aiDot;
         var dotFill    = isBlueButton ? humanDot  : aiDot;
         var face = svg.querySelector('.dice-face');
         if (face) {
@@ -924,6 +910,7 @@ function rolloffRollDie(player) {
             humanDot  = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
             aiDot     = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
         }
+        // Blue button = human when playing as red
         var isHuman    = (player === 'blue');
         var faceFill   = isHuman ? humanFace : aiFace;
         var faceStroke = isHuman ? humanDot  : aiDot;
@@ -994,11 +981,6 @@ function resolveRolloff() {
             var rd = document.getElementById('redRolloffDie');
             bd.disabled = false;
             rd.disabled = (gameMode === 'ai');
-            // Keep dice showing their actual tied values — just re-fade the AI's
-            // die (the human's stays clickable AND visually active). Resetting
-            // to placeholder 1s caused the "Tied at X but I see 1s" confusion,
-            // so the values stay as-is here. #blueRolloffDie is always the
-            // human's button structurally, regardless of the color swap.
             var isAIModeNow = (gameMode === 'ai');
             bd.classList.remove('faded');
             if (isAIModeNow) { rd.classList.add('faded'); } else { rd.classList.remove('faded'); }
@@ -1029,7 +1011,7 @@ function resolveRolloff() {
         winnerColor = (gameState.humanColor === 'red') ? '#4a90e2' : '#e24a4a';
     } else {
         winnerName  = colorLabelUpper('red');
-        winnerColor = (gameState.humanColor === 'red') ? '#4a90e2' : '#e24a4a';
+        winnerColor = '#e24a4a';
     }
 
     result.classList.add('winner');
@@ -1055,11 +1037,17 @@ function resolveRolloff() {
         }
 
         if (gameMode === 'ai') {
-            var aiRollId = humanIsRed ? 'blueRoll' : 'redRoll';
-            document.getElementById(aiRollId).textContent = '🤖 AI Will Roll';
-            if (winner === 'red') {
-                setTimeout(function() { rollPlayerDice('red'); }, 500);
+            var aiRollId    = humanIsRed ? 'blueRoll' : 'redRoll';
+            var humanRollId = humanIsRed ? 'redRoll'  : 'blueRoll';
+            var humanColor  = humanIsRed ? 'red' : 'blue';
+            document.getElementById(aiRollId).textContent    = '🤖 AI Will Roll';
+            document.getElementById(humanRollId).textContent = colorEmoji(humanColor) + ' ' + colorLabel(humanColor) + ' Roll Dice';
+            if (winner === aiColor) {
+                setTimeout(function() { rollPlayerDice(aiColor); }, 500);
             }
+        } else {
+            document.getElementById('blueRoll').textContent = '🔵 Blue Roll Dice';
+            document.getElementById('redRoll').textContent  = '🔴 Red Roll Dice';
         }
         updateGameStatus();
         autosaveGame();
@@ -1585,9 +1573,9 @@ function startFinale() {
             : colorLabel('red')  + "'s Finale roll";
 
     var humanIsRed = (gameState.humanColor === 'red');
-    var aiFinaleColor = (gameMode === 'ai') ? (humanIsRed ? 'blue' : 'red') : null;
-    if (gameMode === 'ai' && gameState.finaleCurrentPlayer === aiFinaleColor) {
-        setTimeout(function() { rollFinale(aiFinaleColor); }, 1200);
+    var aiFinaleColor = 'red';
+    if (gameMode === 'ai' && gameState.finaleCurrentPlayer === 'red') {
+        setTimeout(function() { rollFinale('red'); }, 1200);
     }
 }
 
@@ -1670,10 +1658,8 @@ function rollFinale(player) {
     gameState.finaleCurrentPlayer = next;
     updateFinaleUI();
 
-    var humanIsRed2 = (gameState.humanColor === 'red');
-    var aiColor2 = gameMode === 'ai' ? (humanIsRed2 ? 'blue' : 'red') : null;
-    if (gameMode === 'ai' && next === aiColor2) {
-        setTimeout(function() { rollFinale(aiColor2); }, 1100);
+    if (gameMode === 'ai' && next === 'red') {
+        setTimeout(function() { rollFinale('red'); }, 1100);
     }
 }
 
@@ -1693,20 +1679,9 @@ function updateFinaleUI() {
     blueBtn.textContent = blueDone ? colorLabel('blue') + ' Done' : colorLabel('blue') + ' Roll ' + blueNum + ' of 4';
     blueBtn.disabled    = (player !== 'blue') || blueDone;
 
-    var humanIsRed = (gameState.humanColor === 'red');
     if (gameMode === 'ai') {
-        var aiBtn    = humanIsRed ? blueBtn : redBtn;
-        var humanBtn = humanIsRed ? redBtn  : blueBtn;
-        var aiRolls  = humanIsRed ? gameState.finaleRolls.blue.length : gameState.finaleRolls.red.length;
-        aiBtn.textContent = (aiRolls >= 4) ? '🤖 AI Done' : '🤖 AI Rolling...';
-        aiBtn.disabled    = true;
-        var humanColor = humanIsRed ? 'red' : 'blue';
-        var humanRolls = humanIsRed ? gameState.finaleRolls.red.length : gameState.finaleRolls.blue.length;
-        var humanDone  = humanIsRed ? redDone : blueDone;
-        humanBtn.textContent = humanDone
-            ? colorLabel(humanColor) + ' Done'
-            : colorLabel(humanColor) + ' Roll ' + (humanRolls + 1) + ' of 4';
-        humanBtn.disabled = (player !== humanColor) || humanDone;
+        redBtn.textContent = (gameState.finaleRolls.red.length >= 4) ? '🤖 AI Done' : '🤖 AI Rolling...';
+        redBtn.disabled    = true;
     } else {
         redBtn.textContent = redDone ? colorLabel('red') + ' Done' : colorLabel('red') + ' Roll ' + redNum + ' of 4';
         redBtn.disabled    = (player !== 'red') || redDone;
@@ -1876,7 +1851,7 @@ function resetRollButtons() {
     blueBtn.classList.add('hidden');
 
     redBtn.disabled    = false;
-    redBtn.textContent = colorEmoji('red') + ' ' + colorLabel('red') + ' Roll Dice';
+    redBtn.textContent = (gameMode === 'ai') ? '🤖 AI Will Roll' : colorEmoji('red') + ' ' + colorLabel('red') + ' Roll Dice';
     redBtn.classList.add('hidden');
 }
 
