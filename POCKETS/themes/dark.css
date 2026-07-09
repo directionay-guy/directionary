@@ -436,7 +436,7 @@ body.theme-dark {
     border-color: var(--dim);
 }
 .theme-dark .dice.selected {
-    transform: translateY(-6px) !important;
+    transform: translateY(-12px) !important;
     opacity: 1;
     border: 2px solid var(--green);
     box-shadow: 0 0 12px var(--green-dim), 0 0 0 2px rgba(34, 197, 94, 0.3);
@@ -444,7 +444,7 @@ body.theme-dark {
     animation: none !important;
 }
 .theme-dark .dice.selected:hover {
-    transform: translateY(-6px) !important;
+    transform: translateY(-12px) !important;
     box-shadow: 0 0 12px var(--green-dim), 0 0 0 2px rgba(34, 197, 94, 0.3) !important;
 }
 
