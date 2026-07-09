@@ -768,16 +768,3 @@ body.has-css-fullscreen { overflow: hidden; }
 /* ==========================================================
    PLAYING AS RED — swap blue/red panels
    ========================================================== */
-.game-container.playing-as-red .player-area.blue { background: var(--bm-red-panel) !important; }
-.game-container.playing-as-red .player-area.red  { background: var(--bm-blue-panel) !important; }
-.game-container.playing-as-red .player-area.blue .player-header,
-.game-container.playing-as-red .player-area.blue .player-name { color: var(--bm-red) !important; }
-.game-container.playing-as-red .player-area.red  .player-header,
-.game-container.playing-as-red .player-area.red  .player-name { color: var(--bm-blue) !important; }
-/* Small dice color swap */
-.game-container.playing-as-red .player-area.blue svg.dice .dice-face { fill: var(--bm-red-panel) !important; stroke: var(--bm-red) !important; }
-.game-container.playing-as-red .player-area.blue svg.dice .dice-dot  { fill: var(--bm-red) !important; }
-.game-container.playing-as-red .player-area.red  svg.dice .dice-face { fill: var(--bm-blue-panel) !important; stroke: var(--bm-blue) !important; }
-.game-container.playing-as-red .player-area.red  svg.dice .dice-dot  { fill: var(--bm-blue) !important; }
-.game-container.playing-as-red #blueScoreArea { background: var(--bm-red-panel) !important; }
-.game-container.playing-as-red #redScoreArea  { background: var(--bm-blue-panel) !important; }
