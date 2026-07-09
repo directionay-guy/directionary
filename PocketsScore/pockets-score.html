@@ -430,7 +430,17 @@ tfoot td:nth-child(3) { background: rgba(80,22,22,0.9); }
 .kp-newround:active { background:#b0d0a0; }
 .kp-newround:disabled { opacity:0.35; cursor:default; }
 
-/* Block taps on dice board while flash overlay is showing */
+#pinch-hint {
+    display: none;
+    text-align: center;
+    font-size: 0.78em;
+    color: rgba(144,192,255,0.45);
+    letter-spacing: 0.04em;
+    padding: 10px 8px;
+    pointer-events: none;
+    transition: opacity 0.6s;
+}
+#pinch-hint.visible { display: block; }
 #dice-wrap.flash-blocking { pointer-events:none; }
 #flash { pointer-events:none; }
 #flash.flash-active { pointer-events:auto; }
@@ -633,6 +643,7 @@ tbody tr.placeholder-row td { border-bottom: 1px solid rgba(255,255,255,0.03); }
               <tbody id="dtbody"></tbody>
             </table>
           </div>
+          <div id="pinch-hint">Pinch to zoom — fit real dice on pockets</div>
           <div id="take-pocket"></div>
         </div>
         <div id="red-keeps"></div>
@@ -789,7 +800,18 @@ function kpInit() {
 }
 
 function kpFocus(input) {
-    if (kpActiveInput) kpActiveInput.classList.remove('kp-active-cell');
+    if (kpActiveInput && kpActiveInput !== input) {
+        // Enforce minimum on the previous cell before moving on
+        var prevIsRD = kpActiveInput.dataset.isrd === '1';
+        var prevMin  = prevIsRD ? 11 : 2;
+        var prevCap  = prevIsRD ? 40 : 23;
+        var prevV    = parseInt(kpActiveInput.value);
+        if (!isNaN(prevV)) {
+            if (prevV < prevMin) { kpActiveInput.value = String(prevMin); kpActiveInput.dispatchEvent(new Event('input')); }
+            if (prevV > prevCap) { kpActiveInput.value = String(prevCap); kpActiveInput.dispatchEvent(new Event('input')); }
+        }
+        kpActiveInput.classList.remove('kp-active-cell');
+    }
     kpActiveInput = input;
     if (input) {
         input.classList.add('kp-active-cell');
@@ -1655,7 +1677,9 @@ function renderDiceSheet() {
         tbody.appendChild(detr);
     }
 
-    // Running totals
+    // Show pinch-zoom hint — hides on first die placement
+    var ph = document.getElementById('pinch-hint');
+    if (ph) ph.classList.add('visible');
     var t1=0,t2=0;
     rounds.forEach(function(r){if(r.p1!==null)t1+=r.p1;if(r.p2!==null)t2+=r.p2;});
     var dt1=document.getElementById('dt1'); var dt2=document.getElementById('dt2');
@@ -1667,6 +1691,9 @@ var lastPlacedKey = null;
 function tapDie(key, val, color, btn) {
     dv[key] = val;
     lastPlacedKey = key;
+    // Hide pinch hint on first placement
+    var ph = document.getElementById('pinch-hint');
+    if (ph) ph.classList.remove('visible');
     // Update value display for non-take pockets
     var valEl = document.getElementById('dval-'+key);
     if (valEl) {
@@ -1918,15 +1945,8 @@ function finalizeRound() {
 
 function correctLastScore() {
     if (!lastPlacedKey) return;
-    // Hide the flash overlay but keep board state
+    // Hide the flash overlay but keep board state and rounds intact
     hideFlashCard();
-    // Remove the last round from rounds (we'll re-add when done)
-    if (rounds.length > 0 && rounds[rounds.length-1].p1 !== null) {
-        rounds.pop();
-        saveCur();
-        renderSheet();
-        renderDiceSheet();
-    }
     // Dim all pockets except the last placed one
     var allPockets = document.querySelectorAll('.dice-pocket');
     allPockets.forEach(function(p) {
@@ -1982,6 +2002,10 @@ function correctLastScore() {
                 if (parseInt(b.dataset.val)===val) { b.classList.add('selected'); b.classList.remove('faded'); }
                 else { b.classList.add('faded'); b.classList.remove('selected'); }
             });
+            // Clear last row so finalizeRound updates it in place rather than adding a new one
+            if (rounds.length > 0) {
+                rounds[rounds.length-1] = {p1:null, p2:null};
+            }
             // Re-trigger round complete
             updateDiceTotals();
             finalizeRound();
