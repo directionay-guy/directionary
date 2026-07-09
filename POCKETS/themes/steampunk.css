@@ -437,8 +437,10 @@
             sepia(0.5) hue-rotate(18deg) saturate(1.2) brightness(0.78);
 }
 .theme-steampunk .dice.selected {
-    transform: none; opacity: 0.55;
+    transform: translateY(-12px) !important; opacity: 0.55;
     filter: drop-shadow(0 0 4px rgba(205,127,50,0.25));
+    transition: transform 0.15s ease !important;
+    animation: none !important;
 }
 .theme-steampunk .dice-face { fill: #f2e8d0; stroke: #1c1008; stroke-width: 2; }
 .theme-steampunk .dice-dot  { fill: #181008; }
