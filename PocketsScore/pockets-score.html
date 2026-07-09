@@ -928,6 +928,7 @@ function toast(msg) {
     setTimeout(function(){ t.classList.remove('on'); }, 4000);
 }
 var flashTimer = null;
+var roundFinalizeTimer = null;
 function showFlash(msg, dur) {
     var f=document.getElementById('flash');
     if (flashTimer) { clearTimeout(flashTimer); flashTimer=null; }
@@ -1817,7 +1818,8 @@ function checkRoundComplete() {
             unset(dv.rk1)||unset(dv.rk2)||unset(dv.rsave)||
             unset(dv.takeB)||unset(dv.takeR)) return;
     }
-    setTimeout(finalizeRound, 700);
+    if (roundFinalizeTimer) { clearTimeout(roundFinalizeTimer); }
+    roundFinalizeTimer = setTimeout(finalizeRound, 700);
 }
 
 // ---- Flash card handlers (module-level, no closure traps) ----
@@ -1945,6 +1947,8 @@ function finalizeRound() {
 
 function correctLastScore() {
     if (!lastPlacedKey) return;
+    // Cancel any pending finalizeRound timeout
+    if (roundFinalizeTimer) { clearTimeout(roundFinalizeTimer); roundFinalizeTimer = null; }
     // Hide the flash overlay but keep board state and rounds intact
     hideFlashCard();
     // Dim all pockets except the last placed one
@@ -2007,14 +2011,12 @@ function correctLastScore() {
             for (var ri = rounds.length - 1; ri >= 0; ri--) {
                 if (rounds[ri].p1 !== null || rounds[ri].p2 !== null) {
                     rounds[ri] = {p1:null, p2:null};
-                    // Remove any trailing empty rows after it
                     while (rounds.length > ri + 1) { rounds.pop(); }
                     break;
                 }
             }
-            // Re-trigger round complete
+            // updateDiceTotals → checkRoundComplete → finalizeRound handles re-scoring
             updateDiceTotals();
-            finalizeRound();
         };
     });
 }
