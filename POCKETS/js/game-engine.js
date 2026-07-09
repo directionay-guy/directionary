@@ -440,10 +440,11 @@ function setPlayerColor(color) {
     var blueRollBtn = document.getElementById('blueRoll');
     var redRollBtn  = document.getElementById('redRoll');
     if (blueRollBtn && redRollBtn) {
-        blueRollBtn.classList.toggle('blue-btn', color === 'blue');
-        blueRollBtn.classList.toggle('red-btn',  color === 'red');
-        redRollBtn.classList.toggle('red-btn',   color === 'blue');
-        redRollBtn.classList.toggle('blue-btn',  color === 'red');
+        // Keep natural color classes — CSS order property + playing-as-red handles visual swap
+        blueRollBtn.classList.add('blue-btn');
+        blueRollBtn.classList.remove('red-btn');
+        redRollBtn.classList.add('red-btn');
+        redRollBtn.classList.remove('blue-btn');
     }
 
     // Update rolloff die aria-labels for accessibility
@@ -464,22 +465,22 @@ function setPlayerColor(color) {
     if (cPlayEl) { cPlayEl.value = color; }
     var uPlayEl = document.getElementById('uPlay');
     if (uPlayEl) { uPlayEl.value = color; }
-    // Update headers — clean, no "(You)" or "(Blue)" appended
+    // Update headers — no position swap: blue area always left, red area always right
     var is2p = (gameMode === '2player');
     document.getElementById('bluePlayerHeader').textContent =
-        is2p ? 'BLUE PLAYER' : (color === 'red' ? 'RED PLAYER' : 'BLUE PLAYER');
+        is2p ? 'BLUE PLAYER' : (color === 'red' ? 'AI PLAYER'  : 'BLUE PLAYER');
     document.getElementById('redPlayerHeader').textContent  =
-        is2p ? 'RED PLAYER'  : (color === 'red' ? 'AI PLAYER'  : 'AI PLAYER');
+        is2p ? 'RED PLAYER'  : (color === 'red' ? 'RED PLAYER' : 'AI PLAYER');
     // Update score area labels
     var blueScoreLabel = document.getElementById('blueScoreLabel');
     var redScoreLabel  = document.getElementById('redScoreLabel');
     if (blueScoreLabel) {
         blueScoreLabel.textContent = is2p ? 'Blue Player Score' :
-            (color === 'red' ? 'Red Player Score' : 'Blue Player Score');
+            (color === 'red' ? 'AI Score'          : 'Blue Player Score');
     }
     if (redScoreLabel) {
         redScoreLabel.textContent  = is2p ? 'Red Player Score'  :
-            (color === 'red' ? 'AI Score'         : 'Red Player Score');
+            (color === 'red' ? 'Red Player Score'  : 'Red Player Score');
     }
 
     // Force-refresh rolloff dice with correct visual colors immediately
@@ -491,19 +492,13 @@ function setPlayerColor(color) {
 }
 
 
-// Returns the DISPLAY name for an internal color, respecting visual swap
+// Returns the DISPLAY name for an internal color — no swap needed since Red always plays on the right
 function colorLabel(internalColor) {
-    if (gameMode === 'ai' && gameState.humanColor === 'red') {
-        return internalColor === 'blue' ? 'Red' : 'Blue';
-    }
     return internalColor === 'blue' ? 'Blue' : 'Red';
 }
 function colorLabelUpper(internalColor) { return colorLabel(internalColor).toUpperCase(); }
 function colorEmoji(internalColor) {
-    var isRed = (gameMode === 'ai' && gameState.humanColor === 'red')
-        ? (internalColor === 'blue')   // swapped
-        : (internalColor === 'red');
-    return isRed ? '🔴' : '🔵';
+    return internalColor === 'red' ? '🔴' : '🔵';
 }
 // Mode button click — shows confirm modal so the new mode is always visible
 // and clearly applied before the new game starts.
@@ -1057,8 +1052,8 @@ function resolveRolloff() {
         if (gameMode === 'ai') {
             var aiRollId = humanIsRed ? 'blueRoll' : 'redRoll';
             document.getElementById(aiRollId).textContent = '🤖 AI Will Roll';
-            if (winner === 'red') {
-                setTimeout(function() { rollPlayerDice('red'); }, 500);
+            if (winner === aiColor) {
+                setTimeout(function() { rollPlayerDice(aiColor); }, 500);
             }
         }
         updateGameStatus();
@@ -1131,8 +1126,13 @@ function rollPlayerDice(player) {
         }
     }
 
-    if (gameMode === 'ai' && player === 'blue' && !gameState.redRolled) {
-        setTimeout(function() { rollPlayerDice('red'); }, 1500);
+    if (gameMode === 'ai') {
+        var humanIsRedNow = (gameState.humanColor === 'red');
+        var aiColorNow    = humanIsRedNow ? 'blue' : 'red';
+        var humanColorNow = humanIsRedNow ? 'red'  : 'blue';
+        if (player === humanColorNow && !gameState[aiColorNow + 'Rolled']) {
+            setTimeout(function() { rollPlayerDice(aiColorNow); }, 1500);
+        }
     }
 
     if (gameState.blueRolled && gameState.redRolled) {
@@ -1863,20 +1863,30 @@ function nextRound() {
 function resetRollButtons() {
     var blueBtn    = document.getElementById('blueRoll');
     var redBtn     = document.getElementById('redRoll');
-    var humanIsRed = (gameState.humanColor === 'red');
+    var humanIsRed = (gameMode === 'ai' && gameState.humanColor === 'red');
 
-    // Enforce correct color classes every round
-    blueBtn.classList.toggle('blue-btn', !humanIsRed);
-    blueBtn.classList.toggle('red-btn',   humanIsRed);
-    redBtn.classList.toggle('red-btn',   !humanIsRed);
-    redBtn.classList.toggle('blue-btn',   humanIsRed);
+    // Always keep natural color classes — blue button stays blue, red button stays red
+    blueBtn.classList.add('blue-btn');    blueBtn.classList.remove('red-btn');
+    redBtn.classList.add('red-btn');      redBtn.classList.remove('blue-btn');
 
-    blueBtn.disabled    = false;
-    blueBtn.textContent = colorEmoji('blue') + ' ' + colorLabel('blue') + ' Roll Dice';
+    blueBtn.disabled = false;
+    redBtn.disabled  = false;
+
+    if (humanIsRed) {
+        // Human plays Red (right side) — blue button (left) is AI
+        blueBtn.textContent = '🤖 AI Will Roll';
+        redBtn.textContent  = '🔴 Red Roll Dice';
+    } else if (gameMode === 'ai') {
+        // Human plays Blue (left side) — red button (right) is AI
+        blueBtn.textContent = '🔵 Blue Roll Dice';
+        redBtn.textContent  = '🤖 AI Will Roll';
+    } else {
+        // 2-player
+        blueBtn.textContent = '🔵 Blue Roll Dice';
+        redBtn.textContent  = '🔴 Red Roll Dice';
+    }
+
     blueBtn.classList.add('hidden');
-
-    redBtn.disabled    = false;
-    redBtn.textContent = colorEmoji('red') + ' ' + colorLabel('red') + ' Roll Dice';
     redBtn.classList.add('hidden');
 }
 
