@@ -493,14 +493,14 @@ function setPlayerColor(color) {
 
 // Returns the DISPLAY name for an internal color, respecting visual swap
 function colorLabel(internalColor) {
-    if (gameState.humanColor === 'red') {
+    if (gameMode === 'ai' && gameState.humanColor === 'red') {
         return internalColor === 'blue' ? 'Red' : 'Blue';
     }
     return internalColor === 'blue' ? 'Blue' : 'Red';
 }
 function colorLabelUpper(internalColor) { return colorLabel(internalColor).toUpperCase(); }
 function colorEmoji(internalColor) {
-    var isRed = (gameState.humanColor === 'red')
+    var isRed = (gameMode === 'ai' && gameState.humanColor === 'red')
         ? (internalColor === 'blue')   // swapped
         : (internalColor === 'red');
     return isRed ? '🔴' : '🔵';
@@ -1580,10 +1580,14 @@ function startFinale() {
     updateFinaleUI();
 
     document.getElementById('turnInfo').textContent =
-        gameState.finaleCurrentPlayer === 'blue' ? "Blue's Finale roll" : "Red's Finale roll";
+        gameState.finaleCurrentPlayer === 'blue'
+            ? colorLabel('blue') + "'s Finale roll"
+            : colorLabel('red')  + "'s Finale roll";
 
-    if (gameMode === 'ai' && gameState.finaleCurrentPlayer === 'red') {
-        setTimeout(function() { rollFinale('red'); }, 1200);
+    var humanIsRed = (gameState.humanColor === 'red');
+    var aiFinaleColor = (gameMode === 'ai') ? (humanIsRed ? 'blue' : 'red') : null;
+    if (gameMode === 'ai' && gameState.finaleCurrentPlayer === aiFinaleColor) {
+        setTimeout(function() { rollFinale(aiFinaleColor); }, 1200);
     }
 }
 
@@ -1666,8 +1670,10 @@ function rollFinale(player) {
     gameState.finaleCurrentPlayer = next;
     updateFinaleUI();
 
-    if (gameMode === 'ai' && next === 'red') {
-        setTimeout(function() { rollFinale('red'); }, 1100);
+    var humanIsRed2 = (gameState.humanColor === 'red');
+    var aiColor2 = gameMode === 'ai' ? (humanIsRed2 ? 'blue' : 'red') : null;
+    if (gameMode === 'ai' && next === aiColor2) {
+        setTimeout(function() { rollFinale(aiColor2); }, 1100);
     }
 }
 
@@ -1687,9 +1693,20 @@ function updateFinaleUI() {
     blueBtn.textContent = blueDone ? colorLabel('blue') + ' Done' : colorLabel('blue') + ' Roll ' + blueNum + ' of 4';
     blueBtn.disabled    = (player !== 'blue') || blueDone;
 
+    var humanIsRed = (gameState.humanColor === 'red');
     if (gameMode === 'ai') {
-        document.getElementById('redRoll').textContent = (gameState.finaleRolls.red.length >= 4) ? 'AI Done' : 'AI Rolling...';
-        redBtn.disabled    = true;
+        var aiBtn    = humanIsRed ? blueBtn : redBtn;
+        var humanBtn = humanIsRed ? redBtn  : blueBtn;
+        var aiRolls  = humanIsRed ? gameState.finaleRolls.blue.length : gameState.finaleRolls.red.length;
+        aiBtn.textContent = (aiRolls >= 4) ? '🤖 AI Done' : '🤖 AI Rolling...';
+        aiBtn.disabled    = true;
+        var humanColor = humanIsRed ? 'red' : 'blue';
+        var humanRolls = humanIsRed ? gameState.finaleRolls.red.length : gameState.finaleRolls.blue.length;
+        var humanDone  = humanIsRed ? redDone : blueDone;
+        humanBtn.textContent = humanDone
+            ? colorLabel(humanColor) + ' Done'
+            : colorLabel(humanColor) + ' Roll ' + (humanRolls + 1) + ' of 4';
+        humanBtn.disabled = (player !== humanColor) || humanDone;
     } else {
         redBtn.textContent = redDone ? colorLabel('red') + ' Done' : colorLabel('red') + ' Roll ' + redNum + ' of 4';
         redBtn.disabled    = (player !== 'red') || redDone;
@@ -1697,7 +1714,8 @@ function updateFinaleUI() {
 
     document.getElementById('turnInfo').textContent =
         blueDone && redDone ? 'Calculating final scores...' :
-        player === 'blue'   ? "Blue's Rolldown roll" : "Red's Rolldown roll";
+        player === 'blue'   ? colorLabel('blue') + "'s Rolldown roll"
+                            : colorLabel('red')  + "'s Rolldown roll";
 }
 
 function finalizeFinale() {
