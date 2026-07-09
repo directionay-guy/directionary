@@ -976,7 +976,9 @@ body.theme-cosmic::after {
         0 4px 8px rgba(0, 0, 0, 0.5),
         0 0 16px var(--teal-glow),
         inset 0 1px 1px rgba(255, 255, 255, 0.7);
-    transform: translateY(-2px);
+    transform: translateY(-12px) !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+    animation: none !important;
 }
 .theme-cosmic .dice-face {
     fill: transparent;   /* show cream CSS background through the SVG rect */
