@@ -438,10 +438,11 @@ function setPlayerColor(color) {
     var blueRollBtn = document.getElementById('blueRoll');
     var redRollBtn  = document.getElementById('redRoll');
     if (blueRollBtn && redRollBtn) {
-        blueRollBtn.classList.toggle('blue-btn', color === 'blue');
-        blueRollBtn.classList.toggle('red-btn',  color === 'red');
-        redRollBtn.classList.toggle('red-btn',   color === 'blue');
-        redRollBtn.classList.toggle('blue-btn',  color === 'red');
+        // Natural classes - CSS order swap positions them correctly when playing as Red
+        blueRollBtn.classList.add('blue-btn');
+        blueRollBtn.classList.remove('red-btn');
+        redRollBtn.classList.add('red-btn');
+        redRollBtn.classList.remove('blue-btn');
     }
 
     // Update rolloff die aria-labels for accessibility
@@ -1840,18 +1841,27 @@ function resetRollButtons() {
     var redBtn     = document.getElementById('redRoll');
     var humanIsRed = (gameState.humanColor === 'red');
 
-    // Enforce correct color classes every round
-    blueBtn.classList.toggle('blue-btn', !humanIsRed);
-    blueBtn.classList.toggle('red-btn',   humanIsRed);
-    redBtn.classList.toggle('red-btn',   !humanIsRed);
-    redBtn.classList.toggle('blue-btn',   humanIsRed);
+    // Natural classes - CSS order swap handles visual position when playing as Red
+    blueBtn.classList.add('blue-btn');    blueBtn.classList.remove('red-btn');
+    redBtn.classList.add('red-btn');      redBtn.classList.remove('blue-btn');
 
-    blueBtn.disabled    = false;
-    blueBtn.textContent = colorEmoji('blue') + ' ' + colorLabel('blue') + ' Roll Dice';
+    blueBtn.disabled = false;
+    redBtn.disabled  = false;
+
+    if (gameMode === 'ai' && gameState.humanColor === 'red') {
+        // CSS order swap: blueRoll on RIGHT (AI), redRoll on LEFT (human)
+        blueBtn.textContent = '🤖 AI Will Roll';
+        redBtn.textContent  = colorEmoji('red') + ' ' + colorLabel('red') + ' Roll Dice';
+    } else if (gameMode === 'ai') {
+        // Normal: blueRoll on LEFT (human), redRoll on RIGHT (AI)
+        blueBtn.textContent = colorEmoji('blue') + ' ' + colorLabel('blue') + ' Roll Dice';
+        redBtn.textContent  = '🤖 AI Will Roll';
+    } else {
+        blueBtn.textContent = colorEmoji('blue') + ' ' + colorLabel('blue') + ' Roll Dice';
+        redBtn.textContent  = colorEmoji('red')  + ' ' + colorLabel('red')  + ' Roll Dice';
+    }
+
     blueBtn.classList.add('hidden');
-
-    redBtn.disabled    = false;
-    redBtn.textContent = (gameMode === 'ai') ? '🤖 AI Will Roll' : colorEmoji('red') + ' ' + colorLabel('red') + ' Roll Dice';
     redBtn.classList.add('hidden');
 }
 
