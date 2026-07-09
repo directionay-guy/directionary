@@ -919,10 +919,3 @@ body.has-css-fullscreen {
    PLAYING AS RED — visual color swap
    Human plays Blue internally; visual colors swapped so human sees Red
    ========================================================== */
-/* Rolloff die color swap when playing as Red */
-.game-container.playing-as-red #blueRolloffDie svg.dice .dice-face {
-    fill: var(--burgundy) !important; stroke: var(--gold) !important;
-}
-.game-container.playing-as-red #redRolloffDie svg.dice .dice-face {
-    fill: var(--navy) !important; stroke: var(--gold) !important;
-}
