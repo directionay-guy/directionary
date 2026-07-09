@@ -417,7 +417,7 @@ body.theme-bitmap {
     padding: 2px 6px; width: 100%;
     font-family: inherit; flex-basis: 100%;
 }
-.theme-bitmap .dice-area svg.dice { width: 26px !important; height: 26px !important; }
+.theme-bitmap .dice-area svg.dice { width: 30px !important; height: 30px !important; }
 .theme-bitmap .player-area.blue svg.dice .dice-face {
     fill: var(--bm-blue-panel); stroke: var(--bm-blue); stroke-width: 1.5;
 }
