@@ -353,7 +353,7 @@ body.theme-compact {
 /* Scale dice down slightly */
 .theme-compact .dice-area svg.dice { width: 33px !important; height: 33px !important; }
 .theme-compact .dice.selected {
-    transform: translateY(-8px) !important;
+    transform: translateY(-14px) !important;
     filter: none !important;
     box-shadow:
         0 0 4px rgba(255,235,150,0.95),
@@ -468,6 +468,7 @@ body.theme-compact {
     overflow: hidden;
     gap: 2px;
     flex-shrink: 0;
+    padding-top: 6px;
 }
 .theme-compact .pocket-dice svg.dice {
     width: 28px !important;
