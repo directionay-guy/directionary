@@ -1058,8 +1058,3 @@ body.has-css-fullscreen { overflow: hidden; }
 /* ==========================================================
    PLAYING AS RED — visual color swap
    ========================================================== */
-/* Rolloff die color swap when playing as Red */
-.game-container.playing-as-red #blueRolloffDie .dice-face { fill: #501a1a !important; stroke: #cc4848 !important; }
-.game-container.playing-as-red #blueRolloffDie .dice-dot  { fill: #f0a8a8 !important; }
-.game-container.playing-as-red #redRolloffDie  .dice-face { fill: #1a3050 !important; stroke: #6a9ad8 !important; }
-.game-container.playing-as-red #redRolloffDie  .dice-dot  { fill: #a8d0f0 !important; }
