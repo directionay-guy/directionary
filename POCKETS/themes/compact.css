@@ -368,9 +368,7 @@ body.theme-compact {
 /* Saved die: tiny bit lighter than the other 3, white pips always - normal (non-swapped) state */
 .theme-compact .player-area.blue .dice.saved-tint .dice-face { fill: #3d4b71 !important; }
 .theme-compact .player-area.red  .dice.saved-tint .dice-face { fill: #874949 !important; }
-/* Saved die - playing-as-red swapped state: lighter tone matches whichever color is now showing */
-.game-container.playing-as-red .player-area.blue .dice.saved-tint .dice-face { fill: #874949 !important; }
-.game-container.playing-as-red .player-area.red  .dice.saved-tint .dice-face { fill: #3d4b71 !important; }
+
 /* Pips always white/cream, regardless of swap state */
 .theme-compact .dice.saved-tint .dice-dot { fill: var(--cream) !important; }
 /* Round score summary shown in dice area after scoring */
@@ -698,40 +696,3 @@ body.has-css-fullscreen { overflow: hidden; }
 /* ==========================================================
    PLAYING AS RED
    ========================================================== */
-.game-container.playing-as-red .player-area.blue {
-    background: linear-gradient(180deg, var(--burgundy-deep) 0%, #3a1818 100%) !important;
-}
-.game-container.playing-as-red .player-area.red {
-    background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy) 100%) !important;
-}
-.game-container.playing-as-red #blueScoreArea {
-    background: linear-gradient(180deg, var(--burgundy-deep) 0%, #3a1818 100%) !important;
-}
-.game-container.playing-as-red #redScoreArea {
-    background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy) 100%) !important;
-}
-/* Title text swaps to match the new background tone */
-.game-container.playing-as-red .player-header.blue-player,
-.game-container.playing-as-red .blue-player {
-    color: #e07070 !important;
-}
-.game-container.playing-as-red .player-header.red-player,
-.game-container.playing-as-red .red-player {
-    color: #7090e0 !important;
-}
-/* Main dice fill colors swap to match */
-.game-container.playing-as-red .player-area.blue svg.dice .dice-face {
-    fill: var(--burgundy) !important;
-}
-.game-container.playing-as-red .player-area.red svg.dice .dice-face {
-    fill: var(--navy-mid) !important;
-}
-/* Pocket active-highlight swaps to match */
-.game-container.playing-as-red .player-area.blue .pocket.active {
-    background: rgba(180,60,60,0.25) !important;
-    border-color: #cc6666 !important;
-}
-.game-container.playing-as-red .player-area.red .pocket.active {
-    background: rgba(100,130,220,0.25) !important;
-    border-color: #6699dd !important;
-}
