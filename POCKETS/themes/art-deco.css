@@ -1453,23 +1453,6 @@ body.has-css-fullscreen { overflow: hidden; }
 /* ==========================================================
    PLAYING AS RED — visual color swap
    ========================================================== */
-.game-container.playing-as-red .player-area.blue {
-    background: linear-gradient(180deg, #2a0f0f 0%, var(--bg-panel-soft) 100%) !important;
-    border-left-color: #e87a7a !important;
-    border-top-color: rgba(220, 80, 80, 0.35) !important;
-}
-.game-container.playing-as-red .player-area.blue::before {
-    background: rgba(220, 80, 80, 0.55) !important;
-}
-.game-container.playing-as-red .player-area.red {
-    background: linear-gradient(180deg, #0f2340 0%, var(--bg-panel-soft) 100%) !important;
-    border-left-color: #5fa8e8 !important;
-    border-top-color: rgba(80, 150, 220, 0.35) !important;
-}
-.game-container.playing-as-red .player-area.red::before {
-    background: rgba(80, 150, 220, 0.55) !important;
-}
-
 /* Rolloff die color swap when playing as Red */
 .game-container.playing-as-red #blueRolloffDie .dice { background: linear-gradient(145deg, #501a1a, #380e0e) !important; border-color: #cc4848 !important; }
 .game-container.playing-as-red #blueRolloffDie .dice-dot { fill: #f0a8a8 !important; }
