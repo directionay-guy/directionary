@@ -2002,9 +2002,15 @@ function correctLastScore() {
                 if (parseInt(b.dataset.val)===val) { b.classList.add('selected'); b.classList.remove('faded'); }
                 else { b.classList.add('faded'); b.classList.remove('selected'); }
             });
-            // Clear last row so finalizeRound updates it in place rather than adding a new one
-            if (rounds.length > 0) {
-                rounds[rounds.length-1] = {p1:null, p2:null};
+            // Clear the last SCORED row so finalizeRound updates it in place
+            // (rounds may have a trailing empty placeholder row after finalizeRound)
+            for (var ri = rounds.length - 1; ri >= 0; ri--) {
+                if (rounds[ri].p1 !== null || rounds[ri].p2 !== null) {
+                    rounds[ri] = {p1:null, p2:null};
+                    // Remove any trailing empty rows after it
+                    while (rounds.length > ri + 1) { rounds.pop(); }
+                    break;
+                }
             }
             // Re-trigger round complete
             updateDiceTotals();
