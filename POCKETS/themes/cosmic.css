@@ -1651,13 +1651,7 @@ body.has-css-fullscreen { overflow: hidden; }
 /* ==========================================================
    PLAYING AS RED — visual color swap
    ========================================================== */
-/* Rolloff die color swap when playing as Red */
-.game-container.playing-as-red #blueRolloffDie .dice { background: linear-gradient(145deg, #281808, #180e04) !important; border-color: var(--orange) !important; }
-.game-container.playing-as-red #blueRolloffDie .dice-dot { fill: var(--orange) !important; }
-.game-container.playing-as-red #blueRolloffDie::before { border-color: rgba(255,126,62,0.65) !important; box-shadow: 0 0 10px rgba(255,126,62,0.25) !important; }
-.game-container.playing-as-red #redRolloffDie  .dice { background: linear-gradient(145deg, #0a2830, #061820) !important; border-color: var(--teal) !important; }
-.game-container.playing-as-red #redRolloffDie  .dice-dot { fill: var(--teal) !important; }
-.game-container.playing-as-red #redRolloffDie::before  { border-color: rgba(61,214,196,0.65) !important; box-shadow: 0 0 10px rgba(61,214,196,0.25) !important; }
+
 /* ==========================================================
    COSMIC ACTION PANEL — Starfield, Nebula & Planets
    Pure CSS — all decorative layers behind game content
