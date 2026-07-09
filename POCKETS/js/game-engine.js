@@ -440,10 +440,10 @@ function setPlayerColor(color) {
     var blueRollBtn = document.getElementById('blueRoll');
     var redRollBtn  = document.getElementById('redRoll');
     if (blueRollBtn && redRollBtn) {
-        blueRollBtn.classList.toggle('blue-btn', true);
-        blueRollBtn.classList.toggle('red-btn',  false);
-        redRollBtn.classList.toggle('red-btn',   true);
-        redRollBtn.classList.toggle('blue-btn',  false);
+        blueRollBtn.classList.toggle('blue-btn', color === 'blue');
+        blueRollBtn.classList.toggle('red-btn',  color === 'red');
+        redRollBtn.classList.toggle('red-btn',   color === 'blue');
+        redRollBtn.classList.toggle('blue-btn',  color === 'red');
     }
 
     // Update rolloff die aria-labels for accessibility
@@ -1863,12 +1863,13 @@ function nextRound() {
 function resetRollButtons() {
     var blueBtn    = document.getElementById('blueRoll');
     var redBtn     = document.getElementById('redRoll');
+    var humanIsRed = (gameState.humanColor === 'red');
 
-    // Keep natural color classes — CSS order property handles visual swap when playing as Red
-    blueBtn.classList.toggle('blue-btn', true);
-    blueBtn.classList.toggle('red-btn',  false);
-    redBtn.classList.toggle('red-btn',   true);
-    redBtn.classList.toggle('blue-btn',  false);
+    // Enforce correct color classes every round
+    blueBtn.classList.toggle('blue-btn', !humanIsRed);
+    blueBtn.classList.toggle('red-btn',   humanIsRed);
+    redBtn.classList.toggle('red-btn',   !humanIsRed);
+    redBtn.classList.toggle('blue-btn',   humanIsRed);
 
     blueBtn.disabled    = false;
     blueBtn.textContent = colorEmoji('blue') + ' ' + colorLabel('blue') + ' Roll Dice';
