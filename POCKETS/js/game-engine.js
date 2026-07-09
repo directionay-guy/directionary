@@ -776,18 +776,19 @@ function startFirstPlayerRolloff() {
     redDie.classList.remove('spinning-right');
     redDie.classList.remove('spinning-in-place');
 
-    // Only the AI's die should appear faded/non-interactive. #blueRolloffDie
-    // is always the human's button and #redRolloffDie is always the AI's,
-    // structurally - this matches the same "AI is always internally red"
-    // convention used everywhere else in the codebase. The humanColor swap
-    // only changes which COLORS are painted onto these two buttons; it never
-    // changes which one is actually the human's. No color-conditional logic
-    // is needed here at all - that was the bug.
-    var isAIMode = (gameMode === 'ai');
-    setRolloffDieFaded(blueDie, false);
-    setRolloffDieFaded(redDie, isAIMode);
-    blueDie.disabled = false;
-    redDie.disabled  = (gameMode === 'ai');
+    var isAIMode   = (gameMode === 'ai');
+    var humanIsRed = isAIMode && (gameState.humanColor === 'red');
+
+    // Human's die = clickable/unfaded, AI's die = faded/disabled
+    // When playing as Blue: blue die = human, red die = AI
+    // When playing as Red:  red die = human, blue die = AI
+    var humanDie = humanIsRed ? redDie  : blueDie;
+    var aiDie    = humanIsRed ? blueDie : redDie;
+
+    setRolloffDieFaded(humanDie, false);
+    setRolloffDieFaded(aiDie, isAIMode);
+    humanDie.disabled = false;
+    aiDie.disabled    = isAIMode;
 
     var vsEl = document.querySelector('.rolloff-vs');
     if (vsEl) { vsEl.classList.remove('hidden'); }
@@ -962,8 +963,13 @@ function rolloffRollDie(player) {
 
 function afterRolloffDieSettled(player) {
     autosaveGame();
-    if (gameMode === 'ai' && player === 'blue' && rolloffState.red === null) {
-        setTimeout(function() { rolloffRollDie('red'); }, 400);
+    if (gameMode === 'ai') {
+        var humanIsRed  = (gameState.humanColor === 'red');
+        var humanColor  = humanIsRed ? 'red'  : 'blue';
+        var aiColor     = humanIsRed ? 'blue' : 'red';
+        if (player === humanColor && rolloffState[aiColor] === null) {
+            setTimeout(function() { rolloffRollDie(aiColor); }, 400);
+        }
     }
     if (rolloffState.blue !== null && rolloffState.red !== null) {
         setTimeout(resolveRolloff, 400);
@@ -987,16 +993,14 @@ function resolveRolloff() {
             rolloffState = { blue: null, red: null, locked: false };
             var bd = document.getElementById('blueRolloffDie');
             var rd = document.getElementById('redRolloffDie');
-            bd.disabled = false;
-            rd.disabled = (gameMode === 'ai');
-            // Keep dice showing their actual tied values — just re-fade the AI's
-            // die (the human's stays clickable AND visually active). Resetting
-            // to placeholder 1s caused the "Tied at X but I see 1s" confusion,
-            // so the values stay as-is here. #blueRolloffDie is always the
-            // human's button structurally, regardless of the color swap.
-            var isAIModeNow = (gameMode === 'ai');
-            bd.classList.remove('faded');
-            if (isAIModeNow) { rd.classList.add('faded'); } else { rd.classList.remove('faded'); }
+            var isAIModeNow  = (gameMode === 'ai');
+            var humanIsRedNow = isAIModeNow && (gameState.humanColor === 'red');
+            var humanDieNow  = humanIsRedNow ? rd : bd;
+            var aiDieNow     = humanIsRedNow ? bd : rd;
+            humanDieNow.disabled = false;
+            aiDieNow.disabled    = isAIModeNow;
+            humanDieNow.classList.remove('faded');
+            if (isAIModeNow) { aiDieNow.classList.add('faded'); } else { aiDieNow.classList.remove('faded'); }
             var vsElAgain = document.querySelector('.rolloff-vs');
             if (vsElAgain) { vsElAgain.classList.remove('hidden'); }
         }, 1200);
@@ -1016,15 +1020,19 @@ function resolveRolloff() {
     gameState.currentPlayer = winner;
 
     var winnerName, winnerColor;
-    if (winner === 'blue') {
-        winnerName  = colorLabelUpper('blue');
-        winnerColor = (gameState.humanColor === 'red') ? '#e24a4a' : '#4a90e2';
-    } else if (gameMode === 'ai') {
-        winnerName  = 'AI';
-        winnerColor = (gameState.humanColor === 'red') ? '#4a90e2' : '#e24a4a';
+    var humanIsRed = (gameState.humanColor === 'red');
+    if (gameMode === 'ai') {
+        var aiInternalColor = humanIsRed ? 'blue' : 'red';
+        if (winner === aiInternalColor) {
+            winnerName  = 'AI';
+            winnerColor = humanIsRed ? '#4a90e2' : '#e24a4a';
+        } else {
+            winnerName  = humanIsRed ? 'Red' : 'Blue';
+            winnerColor = humanIsRed ? '#e24a4a' : '#4a90e2';
+        }
     } else {
-        winnerName  = colorLabelUpper('red');
-        winnerColor = (gameState.humanColor === 'red') ? '#4a90e2' : '#e24a4a';
+        winnerName  = winner === 'blue' ? 'Blue' : 'Red';
+        winnerColor = winner === 'blue' ? '#4a90e2' : '#e24a4a';
     }
 
     result.classList.add('winner');
