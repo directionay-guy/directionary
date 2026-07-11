@@ -57,29 +57,49 @@ class PocketsStats {
     }
 
     saveGameResult(gameResult) {
-        const hc     = gameResult.humanColor || 'blue';    // human's color
-        const oc     = (hc === 'blue') ? 'red' : 'blue';  // opponent's color
-        const hScore = (hc === 'blue') ? gameResult.blueScore : gameResult.redScore;
-        const oScore = (hc === 'blue') ? gameResult.redScore  : gameResult.blueScore;
-        const hWon   = (hc === 'blue') ? gameResult.winner === 'Blue' : gameResult.winner === 'Red';
-        const oWon   = (hc === 'blue') ? gameResult.winner === 'Red'  : gameResult.winner === 'Blue';
-        const tied   = gameResult.winner === 'Tie' || gameResult.winner === 'tie';
+        const mode = gameResult.gameMode;
+        const tied = gameResult.winner === 'Tie' || gameResult.winner === 'tie';
 
-        // Save to human's profile
-        this.recordGame(this.data[hc], gameResult, hScore, oScore, hWon, tied, gameResult.gameMode, gameResult.aiDifficulty);
+        if (mode === 'ai') {
+            // INTERNALLY the human is ALWAYS Blue and the AI ALWAYS Red.
+            // "Play as Red" only swaps the visuals — it never swaps the internal
+            // sides — so the human's real score and result ALWAYS come from the
+            // BLUE side, no matter which colour they chose to look like.
+            //
+            // The old code derived these from humanColor, which silently
+            // inverted every Play-as-Red game: an AI win (winner === 'Red')
+            // matched humanColor === 'red' and got filed as a HUMAN win. That's
+            // the "AI tab says the human won" bug. Reading the result from the
+            // fixed internal side removes the inversion entirely.
+            const humanScore = gameResult.blueScore;
+            const aiScore    = gameResult.redScore;
+            const humanWon   = gameResult.winner === 'Blue';
 
-        // In 2-player, save to opponent's profile too (their perspective)
-        if (gameResult.gameMode === '2player') {
-            this.recordGame(this.data[oc], gameResult, oScore, hScore, oWon, tied, '2player', null);
-        }
+            // Which PROFILE the game is filed under is a separate question from
+            // who won: file it under the colour the human is PLAYING AS, so a
+            // Play-as-Red game still shows up in the Red profile. Only the
+            // win/score determination above must use the internal side.
+            const profileColor = gameResult.humanColor || 'blue';
+            this.recordGame(this.data[profileColor], gameResult, humanScore, aiScore, humanWon, tied, 'ai', gameResult.aiDifficulty);
 
-        // AI record tab
-        if (gameResult.gameMode === 'ai') {
+            // AI record tab. Field meaning (matches the AI-tab display below):
+            //   .wins   = HUMAN wins vs AI at this difficulty
+            //   .losses = AI wins (i.e. human losses)
+            //   .ties   = ties
             const diff = gameResult.aiDifficulty || 'easy';
             this.data.ai.totalGames++;
-            if (hWon)        { this.data.ai.byDifficulty[diff].wins++; }
-            else if (tied)   { this.data.ai.byDifficulty[diff].ties = (this.data.ai.byDifficulty[diff].ties || 0) + 1; }
-            else             { this.data.ai.byDifficulty[diff].losses++; }
+            if (humanWon)      { this.data.ai.byDifficulty[diff].wins++; }
+            else if (tied)     { this.data.ai.byDifficulty[diff].ties = (this.data.ai.byDifficulty[diff].ties || 0) + 1; }
+            else               { this.data.ai.byDifficulty[diff].losses++; }
+        } else {
+            // 2-player: record BOTH players' perspectives. There's no visual
+            // swap in 2-player (humanColor is forced to blue), so the internal
+            // Blue/Red sides map straight to the Blue/Red profiles — no
+            // humanColor juggling needed or wanted here.
+            const blueWon = gameResult.winner === 'Blue';
+            const redWon  = gameResult.winner === 'Red';
+            this.recordGame(this.data.blue, gameResult, gameResult.blueScore, gameResult.redScore, blueWon, tied, '2player', null);
+            this.recordGame(this.data.red,  gameResult, gameResult.redScore,  gameResult.blueScore, redWon,  tied, '2player', null);
         }
 
         this.saveData();
