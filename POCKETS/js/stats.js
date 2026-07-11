@@ -3,6 +3,40 @@
 // Blue and Red each have own stats, achievements, clear button
 // AI tab is permanent — no clear button
 
+// =============================================================================
+// ACHIEVEMENT CATALOG — single source of truth.
+// Both the awarding logic (checkAchievements) and the gallery read from here,
+// so adding a new achievement is a one-line entry plus (for profile-scoped
+// ones) a single trigger line in checkAchievements.
+//
+//   scope: 'profile'  earned by Blue and/or Red individually (stored per color)
+//   scope: 'global'   evaluated live across both colors + the AI record
+//                     (has a check(data) function; never "stored")
+// =============================================================================
+const ACHIEVEMENTS = [
+    { id:'first-game',   icon:'🎲', title:'First Roll',    desc:'Played your first game.',                         scope:'profile' },
+    { id:'first-win',    icon:'🎯', title:'First Win',     desc:'Won your first game.',                            scope:'profile' },
+    { id:'nail-biter',   icon:'😅', title:'Nail-Biter',    desc:'Won a game by exactly 1 point.',                  scope:'profile' },
+    { id:'perfect',      icon:'✨', title:'Perfect Game',  desc:'Won by 30 or more points.',                       scope:'profile' },
+    { id:'blowout',      icon:'💥', title:'Blowout',       desc:'Won by 50 or more points.',                       scope:'profile' },
+    { id:'iron-defense', icon:'🛡️', title:'Iron Defense',  desc:'Won while holding the opponent under 50.',        scope:'profile' },
+    { id:'streak-3',     icon:'🔥', title:'Hot Streak',    desc:'Won 3 games in a row.',                           scope:'profile' },
+    { id:'streak-5',     icon:'🌟', title:'Unstoppable',   desc:'Won 5 games in a row.',                           scope:'profile' },
+    { id:'streak-7',     icon:'🚀', title:'Juggernaut',    desc:'Won 7 games in a row.',                           scope:'profile' },
+    { id:'score-150',    icon:'💎', title:'High Roller',   desc:'Scored 150+ in a single game.',                   scope:'profile' },
+    { id:'score-200',    icon:'👑', title:'Dice Master',   desc:'Scored 200+ in a single game.',                   scope:'profile' },
+    { id:'score-250',    icon:'🌋', title:'Legendary',     desc:'Scored 250+ in a single game.',                   scope:'profile' },
+    { id:'wins-10',      icon:'🏆', title:'Veteran',       desc:'Won 10 games.',                                   scope:'profile' },
+    { id:'games-25',     icon:'🎖️', title:'Marathoner',    desc:'Played 25 games.',                                scope:'profile' },
+    { id:'games-100',    icon:'🏅', title:'Centurion',     desc:'Played 100 games.',                               scope:'profile' },
+    { id:'beat-hard-ai', icon:'🤖', title:'AI Slayer',     desc:'Beat the Hard AI.',                               scope:'profile' },
+    { id:'giant-slayer', icon:'⚔️', title:'Giant Slayer',  desc:'Beat the Hard AI by 30 or more.',                 scope:'profile' },
+    { id:'ambidextrous', icon:'🎭', title:'Ambidextrous',  desc:'Won at least one game as Blue and one as Red.',   scope:'global',
+      check: (d) => d.blue.stats.gamesWon > 0 && d.red.stats.gamesWon > 0 },
+    { id:'clean-sweep',  icon:'🧹', title:'Clean Sweep',   desc:'Beat Easy, Medium, and Hard at least once each.', scope:'global',
+      check: (d) => { const b = d.ai.byDifficulty; return b.easy.wins > 0 && b.medium.wins > 0 && b.hard.wins > 0; } }
+];
+
 class PocketsStats {
     constructor() {
         this.storageKey = 'pockets-stats-v2';
@@ -141,20 +175,38 @@ class PocketsStats {
 
     checkAchievements(profile, ctx) {
         const s    = profile.stats;
-        const add  = (id, title, desc) => {
+        const add  = (id) => {
             if (!profile.achievements.find(a => a.id === id)) {
-                profile.achievements.push({ id, title, description: desc, timestamp: Date.now() });
+                const def = ACHIEVEMENTS.find(a => a.id === id);
+                if (def) {
+                    profile.achievements.push({
+                        id,
+                        title:       def.icon + ' ' + def.title,
+                        description: def.desc,
+                        timestamp:   Date.now()
+                    });
+                }
             }
         };
-        if (s.totalGames === 1)              add('first-game',   '🎲 First Roll',    'Played your first game!');
-        if (s.currentWinStreak === 3)        add('streak-3',     '🔥 Hot Streak',    'Won 3 games in a row!');
-        if (s.currentWinStreak === 5)        add('streak-5',     '🌟 Unstoppable',   'Won 5 games in a row!');
-        if (ctx.myScore >= 150)              add('score-150',    '💎 High Roller',   'Scored 150+ in a game!');
-        if (ctx.myScore >= 200)              add('score-200',    '👑 Dice Master',   'Scored 200+ in a game!');
-        if (s.perfectGames >= 1)             add('perfect',      '✨ Perfect Game',  'Won by 30+ points!');
-        if (s.gamesWon >= 10)                add('wins-10',      '🏆 Veteran',       'Won 10 games!');
-        if (ctx.mode === 'ai' && ctx.won &&
-            ctx.diff === 'hard')             add('beat-hard-ai', '🤖 AI Slayer',     'Beat the Hard AI!');
+        const margin = (ctx.myScore != null && ctx.theirScore != null) ? (ctx.myScore - ctx.theirScore) : 0;
+
+        if (s.totalGames === 1)                                    add('first-game');
+        if (ctx.won && s.gamesWon === 1)                           add('first-win');
+        if (ctx.won && margin === 1)                               add('nail-biter');
+        if (s.perfectGames >= 1)                                   add('perfect');
+        if (ctx.won && margin >= 50)                               add('blowout');
+        if (ctx.won && ctx.theirScore != null && ctx.theirScore < 50) add('iron-defense');
+        if (s.currentWinStreak === 3)                              add('streak-3');
+        if (s.currentWinStreak === 5)                              add('streak-5');
+        if (s.currentWinStreak >= 7)                               add('streak-7');
+        if (ctx.myScore >= 150)                                    add('score-150');
+        if (ctx.myScore >= 200)                                    add('score-200');
+        if (ctx.myScore >= 250)                                    add('score-250');
+        if (s.gamesWon >= 10)                                      add('wins-10');
+        if (s.totalGames >= 25)                                    add('games-25');
+        if (s.totalGames >= 100)                                   add('games-100');
+        if (ctx.mode === 'ai' && ctx.won && ctx.diff === 'hard')   add('beat-hard-ai');
+        if (ctx.mode === 'ai' && ctx.won && ctx.diff === 'hard' && margin >= 30) add('giant-slayer');
     }
 
     clearProfile(color) {
@@ -204,11 +256,11 @@ function generateStatsHTML(tab) {
             <button class="stats-tab-btn ${tab==='blue'?'active':''}" onclick="switchStatsTab('blue')">🔵 Blue</button>
             <button class="stats-tab-btn ${tab==='red'?'active':''}"  onclick="switchStatsTab('red')">🔴 Red</button>
             <button class="stats-tab-btn ${tab==='ai'?'active':''}"   onclick="switchStatsTab('ai')">🤖 AI</button>
-            <button class="stats-tab-btn ${tab==='game'||tab==='trivia'?'active':''}" onclick="switchStatsTab('game')">🎲 Game</button>
+            <button class="stats-tab-btn ${tab==='game'||tab==='trivia'||tab==='achievements'?'active':''}" onclick="switchStatsTab('game')">🎲 Game</button>
         </div>`;
 
     if (tab === 'ai')    { return tabs + generateAITabHTML(); }
-    if (tab === 'game' || tab === 'trivia')  { return tabs + generateGameTabHTML(tab); }
+    if (tab === 'game' || tab === 'trivia' || tab === 'achievements')  { return tabs + generateGameTabHTML(tab); }
     return tabs + generatePlayerTabHTML(tab);
 }
 
@@ -246,6 +298,39 @@ function generatePlayerTabHTML(color) {
         ? '<div class="no-achievements">No achievements yet — keep playing!</div>'
         : achievements.map(a => `<div class="achievement-item"><strong>${a.title}</strong><div class="achievement-description">${a.description}</div></div>`).join('');
 
+    // Margin & defense stats — derived live from stored game history
+    // (myScore/theirScore are recorded per game), so no new tracking needed.
+    const hist = profile.gameHistory || [];
+    let biggestWin = 0;
+    let closestWin = null;
+    const winMargins  = [];
+    const lossMargins = [];
+    const oppScores   = [];
+    hist.forEach(g => {
+        const my = (g.myScore != null) ? g.myScore : null;
+        const th = (g.theirScore != null) ? g.theirScore : null;
+        if (my == null || th == null) { return; }
+        oppScores.push(th);
+        if (my > th) {
+            const m = my - th;
+            winMargins.push(m);
+            if (m > biggestWin) { biggestWin = m; }
+            if (closestWin === null || m < closestWin) { closestWin = m; }
+        } else if (th > my) {
+            lossMargins.push(th - my);
+        }
+    });
+    const avg = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
+    const marginCard = hist.length ? `
+        <div class="stat-card">
+            <h4>📐 Margins &amp; Defense</h4>
+            <div class="stat-row"><span>Biggest Win:</span><span class="stat-value">${winMargins.length ? '+' + biggestWin : '—'}</span></div>
+            <div class="stat-row"><span>Closest Win:</span><span class="stat-value">${closestWin !== null ? '+' + closestWin : '—'}</span></div>
+            <div class="stat-row"><span>Avg Win Margin:</span><span class="stat-value">${winMargins.length ? '+' + avg(winMargins) : '—'}</span></div>
+            <div class="stat-row"><span>Avg Loss Margin:</span><span class="stat-value">${lossMargins.length ? '−' + avg(lossMargins) : '—'}</span></div>
+            <div class="stat-row"><span>Avg Points Allowed:</span><span class="stat-value">${oppScores.length ? avg(oppScores) : '—'}</span></div>
+        </div>` : '';
+
     const allAchHTML = profile.achievements.length === 0
         ? '<div class="no-achievements">No achievements yet</div>'
         : profile.achievements.slice().reverse().map(a =>
@@ -266,6 +351,7 @@ function generatePlayerTabHTML(color) {
                 <div class="stat-row"><span>Best Streak:</span><span class="stat-value">${s.bestWinStreak}</span></div>
             </div>
             ${vsAI}
+            ${marginCard}
             <div class="stat-card">
                 <h4>🏅 Special Stats</h4>
                 <div class="stat-row"><span>Achievements:</span><span class="stat-value">${profile.achievements.length}</span></div>
@@ -293,8 +379,38 @@ function generateAITabHTML() {
         return g > 0 ? Math.round((byD[d].losses / g) * 100) : 0; // AI wins = human losses
     };
 
+    // Rank: driven by the human's win rate at Hard, once there's a sample.
+    const hardGames  = byD.hard.wins + byD.hard.losses;
+    const hardWinPct = hardGames ? Math.round((byD.hard.wins / hardGames) * 100) : 0;
+    function aiRank() {
+        if (hardGames < 3)     { return { t: '🎲 Challenger',   d: 'Play a few Hard games to earn a rank' }; }
+        if (hardWinPct >= 60)  { return { t: '🏆 AI Nemesis',   d: 'You own the Hard AI' }; }
+        if (hardWinPct >= 40)  { return { t: '⚔️ Pocket Sharp', d: 'Holding your own against Hard' }; }
+        if (hardWinPct >= 20)  { return { t: '🎯 Contender',    d: 'Closing the gap on Hard' }; }
+        return { t: '🌱 Rolldown Rookie', d: 'The Hard AI has your number… for now' };
+    }
+    const rank = aiRank();
+    // Nemesis: the difficulty that beats you most often (needs ≥2 games there).
+    function nemesis() {
+        let worst = null, worstRate = -1;
+        ['easy','medium','hard'].forEach(dd => {
+            const g = byD[dd].wins + byD[dd].losses;
+            if (g >= 2) {
+                const lossRate = byD[dd].losses / g;
+                if (lossRate > worstRate) { worstRate = lossRate; worst = dd; }
+            }
+        });
+        return worst ? worst.charAt(0).toUpperCase() + worst.slice(1) : '—';
+    }
+
     return `
         <div class="stats-grid">
+            <div class="stat-card">
+                <h4>🎖️ Your AI Rank</h4>
+                <div class="stat-row"><span class="stat-value" style="font-size:1.05em;">${rank.t}</span></div>
+                <div class="stat-row" style="opacity:0.72;font-size:0.85em;"><span>${rank.d}</span></div>
+                <div class="stat-row"><span>Toughest for you:</span><span class="stat-value">${nemesis()}</span></div>
+            </div>
             <div class="stat-card">
                 <h4>🤖 AI Record</h4>
                 <div class="stat-row"><span>Total Games:</span><span class="stat-value">${total}</span></div>
@@ -318,10 +434,62 @@ function generateGameTabHTML(inner) {
     inner = inner || 'game';
     const innerTabs = `
         <div class="stats-tabs" style="margin-bottom:10px;">
-            <button class="stats-tab-btn ${inner==='game'?'active':''}" onclick="switchStatsTab('game')" style="font-size:0.85em;padding:6px 12px;">📊 Game Odds</button>
-            <button class="stats-tab-btn ${inner==='trivia'?'active':''}" onclick="switchStatsTab('trivia')" style="font-size:0.85em;padding:6px 12px;">✨ Did You Know?</button>
+            <button class="stats-tab-btn ${inner==='game'?'active':''}" onclick="switchStatsTab('game')" style="font-size:0.8em;padding:6px 10px;">📊 Odds</button>
+            <button class="stats-tab-btn ${inner==='trivia'?'active':''}" onclick="switchStatsTab('trivia')" style="font-size:0.8em;padding:6px 10px;">✨ Did You Know?</button>
+            <button class="stats-tab-btn ${inner==='achievements'?'active':''}" onclick="switchStatsTab('achievements')" style="font-size:0.8em;padding:6px 10px;">🏅 Awards</button>
         </div>`;
-    return innerTabs + (inner === 'trivia' ? generateTriviaHTML() : generateGameOddsHTML());
+    let body;
+    if (inner === 'trivia')            { body = generateTriviaHTML(); }
+    else if (inner === 'achievements') { body = generateAchievementsGalleryHTML(); }
+    else                               { body = generateGameOddsHTML(); }
+    return innerTabs + body;
+}
+
+// =============================================================================
+// ACHIEVEMENT GALLERY — the full catalog, lit if earned, locked if not.
+// Profile achievements show 🔵 / 🔴 for who earned them; global ones show 🌐.
+// =============================================================================
+function generateAchievementsGalleryHTML() {
+    const d = pocketsStats.data;
+    const blueHas = id => (d.blue.achievements || []).some(a => a.id === id);
+    const redHas  = id => (d.red.achievements  || []).some(a => a.id === id);
+    let unlocked = 0;
+
+    const rows = ACHIEVEMENTS.map(def => {
+        let earned = false, who = '';
+        if (def.scope === 'global') {
+            earned = !!(def.check && def.check(d));
+            who = earned ? '🌐' : '';
+        } else {
+            const b = blueHas(def.id), r = redHas(def.id);
+            earned = b || r;
+            who = (b && r) ? '🔵🔴' : b ? '🔵' : r ? '🔴' : '';
+        }
+        if (earned) { unlocked++; }
+        const op   = earned ? '1' : '0.42';
+        const icon = earned ? def.icon : '🔒';
+        const whoTag = (earned && who) ? ' <span style="font-size:0.85em;opacity:0.9;">' + who + '</span>' : '';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid rgba(200,168,75,0.12);opacity:${op};">
+            <div style="font-size:1.5em;width:34px;text-align:center;flex-shrink:0;">${icon}</div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-weight:bold;font-size:0.95em;">${def.title}${whoTag}</div>
+                <div style="font-size:0.8em;opacity:0.75;line-height:1.35;">${def.desc}</div>
+            </div>
+        </div>`;
+    }).join('');
+
+    const total = ACHIEVEMENTS.length;
+    const pct   = Math.round((unlocked / total) * 100);
+    return `
+    <div class="stat-card" style="text-align:center;">
+        <h4 style="margin-bottom:6px;">🏅 Achievement Gallery</h4>
+        <p style="font-size:0.95em;margin:0 0 8px;"><strong>${unlocked}</strong> of <strong>${total}</strong> unlocked</p>
+        <div style="height:9px;background:rgba(0,0,0,0.28);border-radius:5px;overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#a08540,#e8d8a0);border-radius:5px;transition:width 0.5s ease;"></div>
+        </div>
+        <p style="font-size:0.72em;opacity:0.6;margin:8px 0 0;">🔵 / 🔴 shows who earned it · 🌐 spans both colours</p>
+    </div>
+    <div class="stat-card" style="padding-top:2px;padding-bottom:2px;">${rows}</div>`;
 }
 
 function generateGameOddsHTML() {
@@ -364,6 +532,7 @@ function generateGameOddsHTML() {
         <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>The randomness is symmetric. The decisions aren't.</span></div>
         <div class="stat-row"><span>Win by exactly 1 pip:</span><span class="stat-value">~14%</span></div>
         <div class="stat-row"><span>Win by 5 (the biggest possible margin):</span><span class="stat-value">~3%</span></div>
+        <div class="stat-row" style="opacity:0.7;font-size:0.82em;padding-top:4px;"><span>Strategy: a bare Take win (no combo) averages ~2.3 pts — less than an average Keep die (3.5). The combo bonus is the real reason to fight for the Take.</span></div>
     </div>
 
     <div class="stat-card">
@@ -430,6 +599,24 @@ function generateTriviaHTML() {
         <div class="stat-row"><span>Expected Keep score per round (avg 2 dice):</span><span class="stat-value">~7 pts</span></div>
         <div class="stat-row"><span>Expected Take win margin, when you win (random dice):</span><span class="stat-value">~2.3 pips</span></div>
         <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>A 2-pip Take win with no combo is worth less than either Keep die on average. Choose your fights.</span></div>
+    </div>
+
+    <div class="stat-card">
+        <h4>⏱️ Tempo &amp; Fate</h4>
+        <div class="stat-row"><span>Fastest possible game:</span><span class="stat-value">5 rounds</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>You'd need a near-perfect 23 every single round to trigger the Rolldown that fast.</span></div>
+        <div class="stat-row"><span>A 5-of-a-kind Rolldown:</span><span class="stat-value">~once every 21 years</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>1 in 7,776 — at one game a day, roughly once every two decades.</span></div>
+        <div class="stat-row"><span>If everyone on Earth played one game right now, both-roll-all-6s would happen:</span><span class="stat-value">~4,700 times</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>1 in 1.68 million per game. Somewhere, someone would be framing a screenshot.</span></div>
+    </div>
+
+    <div class="stat-card">
+        <h4>🧠 The Deciding Truth</h4>
+        <div class="stat-row"><span>The Take is a coin flip.</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>Over a full game you'll win and lose almost exactly as many Take battles. Games are decided by Keep choices and combos — not by the Take itself.</span></div>
+        <div class="stat-row"><span>The dice have no memory.</span></div>
+        <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>Just rolled four 1s? Your next roll is exactly as likely to be four 1s again. The dice don't owe you a thing.</span></div>
     </div>
 
     <div class="stat-card" style="text-align:center;">
