@@ -919,3 +919,46 @@ body.has-css-fullscreen {
    PLAYING AS RED — visual color swap
    Human plays Blue internally; visual colors swapped so human sees Red
    ========================================================== */
+
+/* When playing as Red: the human is internally Blue and stays on the LEFT.
+   Nothing moves — we only recolor. The human's (.blue) side becomes burgundy,
+   the AI's (.red) side becomes navy, across areas, pockets, scores, and the
+   two roll buttons (#blueRoll = human, #redRoll = AI). */
+
+/* Player areas */
+.theme-victorian .playing-as-red .player-area.blue {
+    background: linear-gradient(180deg, var(--burgundy) 0%, var(--burgundy-deep) 100%);
+}
+.theme-victorian .playing-as-red .player-area.red {
+    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+}
+
+/* Pockets */
+.theme-victorian .playing-as-red .player-area.blue .pocket {
+    background: linear-gradient(180deg, rgba(85,38,38,0.95) 0%, rgba(112,56,56,0.85) 100%);
+}
+.theme-victorian .playing-as-red .player-area.red .pocket {
+    background: linear-gradient(180deg, rgba(40,56,92,0.95) 0%, rgba(58,76,116,0.85) 100%);
+}
+.theme-victorian .playing-as-red .player-area.blue .pocket.active {
+    background: linear-gradient(180deg, rgba(115,55,55,1) 0%, rgba(150,78,78,0.95) 100%);
+}
+.theme-victorian .playing-as-red .player-area.red .pocket.active {
+    background: linear-gradient(180deg, rgba(58,80,130,1) 0%, rgba(86,110,168,0.95) 100%);
+}
+
+/* Score cards (winner green always wins via :not(.winner)) */
+.theme-victorian .playing-as-red #blueScoreArea:not(.winner) {
+    background: linear-gradient(180deg, var(--burgundy) 0%, var(--burgundy-deep) 100%);
+}
+.theme-victorian .playing-as-red #redScoreArea:not(.winner) {
+    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+}
+
+/* Roll buttons — #blueRoll is the human, #redRoll is the AI */
+.theme-victorian .playing-as-red #blueRoll {
+    background: linear-gradient(180deg, var(--burgundy) 0%, var(--burgundy-deep) 100%);
+}
+.theme-victorian .playing-as-red #redRoll {
+    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+}
