@@ -35,6 +35,7 @@ let gameState = {
     finaleMode: false,
     finaleRolls: { blue: [], red: [] },
     finaleCurrentPlayer: 'blue',
+    rolloffInProgress: false,
     humanColor: 'blue'
 };
 
@@ -302,6 +303,71 @@ function restoreBoardPlacements(board) {
     });
 }
 
+// Rebuilds the Rolldown (Finale) screen after a reload, from saved gameState.
+// Mirrors startFinale()'s visual setup, but uses the dice ALREADY rolled this
+// Finale (gameState.finaleRolls) instead of resetting them, so play resumes
+// exactly where it left off. Without this, a reload during Rolldown fell
+// through to a dead Start Round button and the game became unwinnable.
+function restoreFinaleState() {
+    document.getElementById('startFinale').classList.add('hidden');
+    document.getElementById('startRound').classList.add('hidden');
+    document.getElementById('currentRound').textContent = 'Rolldown';
+    var suffix = document.getElementById('roundSuffix');
+    if (suffix) { suffix.classList.add('hidden'); }
+    hidePanelBottom(true);
+
+    // Hide Keep/Take pockets, show the Finale pockets (same as startFinale)
+    var keepTake = document.querySelectorAll(
+        '.pocket[data-pocket="keep1"], .pocket[data-pocket="keep2"], .pocket[data-pocket="take"]'
+    );
+    keepTake.forEach(function(p) { p.classList.add('finale-hidden'); });
+    document.getElementById('blueFinale').classList.remove('hidden');
+    document.getElementById('redFinale').classList.remove('hidden');
+    document.getElementById('blueFinaleBonus').textContent = '';
+    document.getElementById('redFinaleBonus').textContent  = '';
+
+    // Rebuild each roll bar: solid dice for rolls already made, dimmed
+    // placeholders for the rolls still to come, and the running total
+    // (saved die + rolls so far) — matching what rollFinale() shows live.
+    ['blue', 'red'].forEach(function(color) {
+        var area  = document.getElementById(color + 'DiceArea');
+        area.innerHTML = '';
+        var rolls = (gameState.finaleRolls && gameState.finaleRolls[color]) ? gameState.finaleRolls[color] : [];
+        for (var i = 0; i < rolls.length; i++) {
+            area.appendChild(createDieSVG(rolls[i], color + '-finale-' + i, false));
+        }
+        for (var j = rolls.length; j < 4; j++) {
+            var dim = createDieSVG(1, color + '-finale-dim-' + j, false);
+            dim.classList.add('dimmed-die');
+            area.appendChild(dim);
+        }
+        var savedDie = (color === 'blue') ? (gameState.blueSavedDie || 0) : (gameState.redSavedDie || 0);
+        var rollSum  = rolls.reduce(function(a, b) { return a + b; }, 0);
+        document.getElementById(color + 'FinaleTotal').textContent = savedDie + rollSum;
+    });
+
+    setActionPanelView('rolls');
+
+    var blueDone = (gameState.finaleRolls.blue.length >= 4);
+    var redDone  = (gameState.finaleRolls.red.length  >= 4);
+
+    // If both players had already finished all four rolls when the reload hit,
+    // the only step left was to tally — do it now. finalizeFinale() adds the
+    // Finale points to the scores exactly once (they aren't added until it
+    // runs), so this can't double-count.
+    if (blueDone && redDone) {
+        finalizeFinale();
+        return;
+    }
+
+    updateFinaleUI();
+
+    // If it's the AI's turn to roll, resume its automatic rolling.
+    if (gameMode === 'ai' && gameState.finaleCurrentPlayer === 'red' && !redDone) {
+        setTimeout(function() { rollFinale('red'); }, 900);
+    }
+}
+
 // Restores everything: data (gameState itself, mode, difficulty, rolloff
 // state) AND the visual board (placed dice, unplaced dice still waiting to be
 // placed, and whichever action-panel view matches where the game actually
@@ -348,6 +414,12 @@ function restoreGameFromSave(saved) {
     } else if (gameState.phase === 'placing') {
         // Matches startPlacement()'s own setActionPanelView('status') call.
         setActionPanelView('status');
+    } else if (gameState.phase === 'finale') {
+        // Reload during the Rolldown/Finale. Previously there was NO branch for
+        // this phase, so it fell through to a dead Start Round button and the
+        // game became unwinnable. Rebuild the Finale screen from saved state
+        // and resume exactly where it left off.
+        restoreFinaleState();
     } else if (gameState.phase === 'rolling' && gameState.firstPlayer) {
         // Rolloff already resolved this round - show the roll-dice buttons,
         // correctly reflecting who's already rolled.
@@ -383,11 +455,17 @@ function restoreGameFromSave(saved) {
             var pulseBtn = document.getElementById(pulseColor + 'Roll');
             if (pulseBtn) { pulseBtn.classList.add('roll-prompt-pulse'); }
         }
+    } else if (gameState.phase === 'rolling' && !gameState.firstPlayer && gameState.rolloffInProgress) {
+        // Reload landed in the middle of the first-player rolloff (including a
+        // tie waiting for a re-tap). Re-present the rolloff cleanly so the round
+        // continues in place instead of bouncing the player back to Start Round.
+        // Re-tapping the rolloff die costs nothing — no score or placement is
+        // lost at this point in the round.
+        showPlaceholderDice();
+        startFirstPlayerRolloff();
+        gameState.rolloffInProgress = true;
     } else {
-        // Either between rounds (Start Round button) or caught mid-rolloff-tap
-        // (a 1-2 second window) - both fall back to the Start Round screen,
-        // a deliberate simplification since precisely replaying an in-progress
-        // rolloff tap isn't worth the complexity for something that brief.
+        // Genuinely between rounds — show the Start Round button.
         setActionPanelView('start');
     }
 
@@ -717,6 +795,9 @@ function startRound() {
     hidePanelBottom(false);
     showPlaceholderDice();
     startFirstPlayerRolloff();
+    // From here until the rolloff resolves (a winner is set), a reload should
+    // re-present the rolloff rather than dumping the player to Start Round.
+    gameState.rolloffInProgress = true;
     autosaveGame();
 }
 
@@ -999,6 +1080,9 @@ function resolveRolloff() {
 
     gameState.firstPlayer   = winner;
     gameState.currentPlayer = winner;
+    // Rolloff is resolved — from here the normal 'rolling' restore branch
+    // (which keys off firstPlayer) takes over, so this flag goes back down.
+    gameState.rolloffInProgress = false;
 
     var winnerName, winnerColor;
     if (winner === 'blue') {
@@ -1566,6 +1650,7 @@ function startFinale() {
 
     var humanIsRed = (gameState.humanColor === 'red');
     var aiFinaleColor = 'red';
+    autosaveGame();
     if (gameMode === 'ai' && gameState.finaleCurrentPlayer === 'red') {
         setTimeout(function() { rollFinale('red'); }, 1200);
     }
@@ -1633,6 +1718,7 @@ function rollFinale(player) {
     var redDone  = (gameState.finaleRolls.red.length  >= 4);
 
     if (blueDone && redDone) {
+        autosaveGame();
         setTimeout(function() { finalizeFinale(); }, 900);
         return;
     }
@@ -1649,6 +1735,7 @@ function rollFinale(player) {
 
     gameState.finaleCurrentPlayer = next;
     updateFinaleUI();
+    autosaveGame();
 
     if (gameMode === 'ai' && next === 'red') {
         setTimeout(function() { rollFinale('red'); }, 1100);
@@ -1943,6 +2030,7 @@ function newGame() {
         finaleMode: false,
         finaleRolls: { blue: [], red: [] },
         finaleCurrentPlayer: 'blue',
+        rolloffInProgress: false,
         humanColor: gameState.humanColor || 'blue'
     };
 
@@ -2151,9 +2239,19 @@ function initializeGame() {
     });
 
     function isDifficultyChangeSafe() {
-        return gameState.phase === 'placing' ||
+        // "Safe" here means "a real game is under way, so a change must warn
+        // and start a new game" — matching how mode and colour are guarded.
+        // The old version only inspected the CURRENT round's roll/placement
+        // state, so the window BEFORE rolling in any later round (e.g. Round 7
+        // pre-roll) slipped through and silently changed difficulty with no
+        // confirm modal. Anything past a fresh, untouched Round 1 now counts.
+        return gameState.round > 1 ||
+               gameState.blueRolled || gameState.redRolled ||
+               gameState.phase === 'placing' ||
                gameState.phase === 'scoring' ||
-               gameState.blueRolled || gameState.redRolled;
+               gameState.phase === 'finale' ||
+               gameState.phase === 'gameOver' ||
+               gameState.blueScore > 0 || gameState.redScore > 0;
     }
     function changeDifficultyGuarded(difficulty, revertEl) {
         if (isDifficultyChangeSafe()) {
