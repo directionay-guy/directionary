@@ -1334,6 +1334,7 @@ body.theme-art-deco::before {
     color: var(--pearl);
     box-shadow: 0 0 8px var(--emerald-glow);
 }
+.theme-art-deco .copyright {
     text-align: center;
     color: var(--chrome-dark);
     font-family: 'Poiret One', sans-serif;
@@ -1451,5 +1452,63 @@ body.theme-art-deco::before {
 body.has-css-fullscreen { overflow: hidden; }
 
 /* ==========================================================
-   PLAYING AS RED — visual color swap
+   PLAYING AS RED — visual colour swap
+   Human is internally Blue (left) → recolour RED. AI is internally Red
+   (right) → recolour BLUE. Nothing moves; colour only.
    ========================================================== */
+
+/* Player areas — background gradient, accent border, top rule */
+.theme-art-deco .playing-as-red .player-area.blue {
+    background: linear-gradient(180deg, #2a0f0f 0%, var(--bg-panel-soft) 100%);
+    border-left: 3px solid #e87a7a;
+    border-top: 1px solid rgba(220, 80, 80, 0.35);
+}
+.theme-art-deco .playing-as-red .player-area.red {
+    background: linear-gradient(180deg, #0f2340 0%, var(--bg-panel-soft) 100%);
+    border-left: 3px solid #5fa8e8;
+    border-top: 1px solid rgba(80, 150, 220, 0.35);
+}
+
+/* Top chrome rule tint follows the swap */
+.theme-art-deco .playing-as-red .player-area.blue::before { background: rgba(220, 80, 80, 0.55);  opacity: 1; }
+.theme-art-deco .playing-as-red .player-area.red::before  { background: rgba(80, 150, 220, 0.55); opacity: 1; }
+
+/* Player names */
+.theme-art-deco .playing-as-red .blue-player { color: #ff8870; }
+.theme-art-deco .playing-as-red .red-player  { color: #7ab8f0; }
+
+/* Winner panel fills — human win reads red, AI win reads blue */
+.theme-art-deco .playing-as-red #blueScoreArea.winner {
+    background: rgba(232, 122, 122, 0.14);
+    border-color: #e87a7a;
+    box-shadow: 0 0 18px rgba(232, 122, 122, 0.25), var(--shadow-inset);
+}
+.theme-art-deco .playing-as-red #redScoreArea.winner {
+    background: rgba(95, 168, 232, 0.14);
+    border-color: #5fa8e8;
+    box-shadow: 0 0 18px rgba(95, 168, 232, 0.25), var(--shadow-inset);
+}
+
+/* Roll buttons — #blueRoll is the human, #redRoll is the AI */
+.theme-art-deco .playing-as-red #blueRoll { border-left: 3px solid #e87a7a; }
+.theme-art-deco .playing-as-red #blueRoll:hover { border-color: #e87a7a; box-shadow: 0 0 12px rgba(232,122,122,0.4); }
+.theme-art-deco .playing-as-red #redRoll { border-left: 3px solid #5fa8e8; }
+.theme-art-deco .playing-as-red #redRoll:hover { border-color: #5fa8e8; box-shadow: 0 0 12px rgba(95,168,232,0.4); }
+
+/* Rolldown modal — final score cards + roll-my-die buttons follow the swap */
+.theme-art-deco .playing-as-red #blueFinalCard {
+    background: linear-gradient(180deg, #2a0f0f 0%, var(--bg-panel) 100%);
+    border-left: 3px solid #e87a7a;
+    border-top: 1px solid rgba(220, 80, 80, 0.4);
+}
+.theme-art-deco .playing-as-red #redFinalCard {
+    background: linear-gradient(180deg, #0f2340 0%, var(--bg-panel) 100%);
+    border-left: 3px solid #5fa8e8;
+    border-top: 1px solid rgba(80, 150, 220, 0.4);
+}
+.theme-art-deco .playing-as-red #blueFinalCard.active-turn { box-shadow: 0 0 22px rgba(232, 122, 122, 0.35); border-color: #e87a7a; }
+.theme-art-deco .playing-as-red #redFinalCard.active-turn  { box-shadow: 0 0 22px rgba(95, 168, 232, 0.35); border-color: #5fa8e8; }
+.theme-art-deco .playing-as-red #blueRollFinalDie { border-left: 3px solid #e87a7a; }
+.theme-art-deco .playing-as-red #redRollFinalDie  { border-left: 3px solid #5fa8e8; }
+.theme-art-deco .playing-as-red #blueRollFinalDie:not(:disabled):hover { border-color: #e87a7a; box-shadow: 0 0 14px rgba(232, 122, 122, 0.4); }
+.theme-art-deco .playing-as-red #redRollFinalDie:not(:disabled):hover  { border-color: #5fa8e8; box-shadow: 0 0 14px rgba(95, 168, 232, 0.4); }
