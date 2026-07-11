@@ -355,24 +355,20 @@ function restoreGameFromSave(saved) {
         if (typeof brightenPlaceholderDice === 'function') { brightenPlaceholderDice(); }
         var blueRollBtn = document.getElementById('blueRoll');
         var redRollBtn  = document.getElementById('redRoll');
-        var humanIsRed  = (gameMode === 'ai' && gameState.humanColor === 'red');
+        // #blueRoll is ALWAYS the human; #redRoll is ALWAYS the AI in AI mode.
         if (blueRollBtn) {
             blueRollBtn.disabled = !!gameState.blueRolled;
             blueRollBtn.classList.remove('roll-prompt-pulse');
             blueRollBtn.classList.remove('hidden');
-            if (gameMode === 'ai' && humanIsRed) {
-                blueRollBtn.textContent = gameState.blueRolled ? '🤖 AI Rolled' : '🤖 AI Will Roll';
-            } else {
-                blueRollBtn.textContent = gameState.blueRolled
-                    ? (colorEmoji('blue') + ' ' + colorLabel('blue') + ' Rolled')
-                    : (colorEmoji('blue') + ' ' + colorLabel('blue') + ' Roll Dice');
-            }
+            blueRollBtn.textContent = gameState.blueRolled
+                ? (colorEmoji('blue') + ' ' + colorLabel('blue') + ' Rolled')
+                : (colorEmoji('blue') + ' ' + colorLabel('blue') + ' Roll Dice');
         }
         if (redRollBtn) {
             redRollBtn.disabled = !!gameState.redRolled;
             redRollBtn.classList.remove('roll-prompt-pulse');
             redRollBtn.classList.remove('hidden');
-            if (gameMode === 'ai' && !humanIsRed) {
+            if (gameMode === 'ai') {
                 redRollBtn.textContent = gameState.redRolled ? '🤖 AI Rolled' : '🤖 AI Will Roll';
             } else {
                 redRollBtn.textContent = gameState.redRolled
@@ -380,11 +376,10 @@ function restoreGameFromSave(saved) {
                     : (colorEmoji('red') + ' ' + colorLabel('red') + ' Roll Dice');
             }
         }
-        // Pulse the human's button, not the AI's
-        var aiColor    = humanIsRed ? 'blue' : 'red';
+        // Pulse the human's button, not the AI's (AI is always red)
         var pulseColor = (gameState.currentPlayer === 'blue' && !gameState.blueRolled) ? 'blue'
                         : (gameState.currentPlayer === 'red'  && !gameState.redRolled)  ? 'red' : null;
-        if (pulseColor && !(gameMode === 'ai' && pulseColor === aiColor)) {
+        if (pulseColor && !(gameMode === 'ai' && pulseColor === 'red')) {
             var pulseBtn = document.getElementById(pulseColor + 'Roll');
             if (pulseBtn) { pulseBtn.classList.add('roll-prompt-pulse'); }
         }
@@ -434,11 +429,13 @@ function setPlayerColor(color) {
         container.classList.toggle('playing-as-red', color === 'red');
     }
 
-    // Swap roll dice button colors
+    // Roll dice buttons keep their natural classes: #blueRoll is always the
+    // human (blue-btn), #redRoll is always the AI (red-btn). The visual color
+    // swap for playing-as-red is handled entirely in CSS (.playing-as-red),
+    // and the label swap by colorLabel/colorEmoji — never by swapping IDs.
     var blueRollBtn = document.getElementById('blueRoll');
     var redRollBtn  = document.getElementById('redRoll');
     if (blueRollBtn && redRollBtn) {
-        // Natural classes - CSS order swap positions them correctly when playing as Red
         blueRollBtn.classList.add('blue-btn');
         blueRollBtn.classList.remove('red-btn');
         redRollBtn.classList.add('red-btn');
@@ -1031,20 +1028,18 @@ function resolveRolloff() {
         // Dim non-first player's button — winner of rolloff goes first
         var secondColor = (winner === 'blue') ? 'red' : 'blue';
         document.getElementById(secondColor + 'Roll').disabled = true;
-        var humanIsRed = (gameState.humanColor === 'red');
-        var aiColor = gameMode === 'ai' ? (humanIsRed ? 'blue' : 'red') : null;
-        if (!(gameMode === 'ai' && winner === aiColor)) {
+        // AI is ALWAYS internally red (#redRoll); human ALWAYS internally blue
+        // (#blueRoll). Only the visible LABEL/COLOR changes when playing as Red,
+        // via colorLabel/colorEmoji + CSS. Never swap which button ID is the AI's.
+        if (!(gameMode === 'ai' && winner === 'red')) {
             document.getElementById(winner + 'Roll').classList.add('roll-prompt-pulse');
         }
 
         if (gameMode === 'ai') {
-            var aiRollId    = humanIsRed ? 'blueRoll' : 'redRoll';
-            var humanRollId = humanIsRed ? 'redRoll'  : 'blueRoll';
-            var humanColor  = humanIsRed ? 'red' : 'blue';
-            document.getElementById(aiRollId).textContent    = '🤖 AI Will Roll';
-            document.getElementById(humanRollId).textContent = colorEmoji(humanColor) + ' ' + colorLabel(humanColor) + ' Roll Dice';
-            if (winner === aiColor) {
-                setTimeout(function() { rollPlayerDice(aiColor); }, 500);
+            document.getElementById('redRoll').textContent  = '🤖 AI Will Roll';
+            document.getElementById('blueRoll').textContent = colorEmoji('blue') + ' ' + colorLabel('blue') + ' Roll Dice';
+            if (winner === 'red') {
+                setTimeout(function() { rollPlayerDice('red'); }, 500);
             }
         } else {
             document.getElementById('blueRoll').textContent = '🔵 Blue Roll Dice';
@@ -1093,13 +1088,11 @@ function rollPlayerDice(player) {
     renderDiceWithAnimation(player, dice);
 
     if (player === 'blue') {
-        if (gameMode === 'ai' && gameState.humanColor === 'red') {
-            btn.textContent = '🤖 AI Rolled';
-        } else {
-            btn.textContent = colorEmoji('blue') + ' ' + colorLabel('blue') + ' Rolled';
-        }
+        // #blueRoll is ALWAYS the human — never the AI, regardless of humanColor
+        btn.textContent = colorEmoji('blue') + ' ' + colorLabel('blue') + ' Rolled';
     } else {
-        if (gameMode === 'ai' && gameState.humanColor !== 'red') {
+        // #redRoll is ALWAYS the AI in AI mode
+        if (gameMode === 'ai') {
             btn.textContent = '🤖 AI Rolled';
         } else {
             btn.textContent = colorEmoji('red') + ' ' + colorLabel('red') + ' Rolled';
@@ -1109,10 +1102,8 @@ function rollPlayerDice(player) {
     // Enable the other player's button now it's their turn to roll
     var otherColor = (player === 'blue') ? 'red' : 'blue';
     var otherBtn   = document.getElementById(otherColor + 'Roll');
-    var otherIsAI  = (gameMode === 'ai') && (
-        (otherColor === 'red'  && gameState.humanColor !== 'red') ||
-        (otherColor === 'blue' && gameState.humanColor === 'red')
-    );
+    // The AI is always the red button; only pulse the other button if it's human
+    var otherIsAI  = (gameMode === 'ai') && (otherColor === 'red');
     if (otherBtn && !gameState[otherColor + 'Rolled']) {
         otherBtn.disabled = false;
         if (!otherIsAI) {
@@ -1837,23 +1828,19 @@ function nextRound() {
 }
 
 function resetRollButtons() {
-    var blueBtn    = document.getElementById('blueRoll');
-    var redBtn     = document.getElementById('redRoll');
-    var humanIsRed = (gameState.humanColor === 'red');
+    var blueBtn = document.getElementById('blueRoll');
+    var redBtn  = document.getElementById('redRoll');
 
-    // Natural classes - CSS order swap handles visual position when playing as Red
+    // Human is ALWAYS #blueRoll, AI is ALWAYS #redRoll. Positions and button
+    // IDs never swap. Color reflects humanColor via CSS (.playing-as-red);
+    // label reflects it via colorLabel/colorEmoji.
     blueBtn.classList.add('blue-btn');    blueBtn.classList.remove('red-btn');
     redBtn.classList.add('red-btn');      redBtn.classList.remove('blue-btn');
 
     blueBtn.disabled = false;
     redBtn.disabled  = false;
 
-    if (gameMode === 'ai' && gameState.humanColor === 'red') {
-        // CSS order swap: blueRoll on RIGHT (AI), redRoll on LEFT (human)
-        blueBtn.textContent = '🤖 AI Will Roll';
-        redBtn.textContent  = colorEmoji('red') + ' ' + colorLabel('red') + ' Roll Dice';
-    } else if (gameMode === 'ai') {
-        // Normal: blueRoll on LEFT (human), redRoll on RIGHT (AI)
+    if (gameMode === 'ai') {
         blueBtn.textContent = colorEmoji('blue') + ' ' + colorLabel('blue') + ' Roll Dice';
         redBtn.textContent  = '🤖 AI Will Roll';
     } else {
