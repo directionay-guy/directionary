@@ -1391,6 +1391,7 @@ body.theme-cosmic::after {
     opacity: 1;
     box-shadow: 0 0 10px var(--mustard-glow);
 }
+.theme-cosmic .copyright {
     text-align: center;
     color: var(--cream);
     font-family: 'Comfortaa', sans-serif;
@@ -1649,8 +1650,63 @@ body.theme-cosmic::after {
 body.has-css-fullscreen { overflow: hidden; }
 
 /* ==========================================================
-   PLAYING AS RED — visual color swap
+   PLAYING AS RED — visual colour swap
+   "Blue" = teal, "Red" = orange in Cosmic. Human is internally Blue
+   (left) → recolour orange. AI is internally Red (right) → recolour teal.
+   Nothing moves; colour only.
    ========================================================== */
+
+/* Player areas — top accent border + ambient glow */
+.theme-cosmic .playing-as-red .player-area.blue {
+    border-top: 3px solid var(--orange);
+    box-shadow:
+        var(--shadow-soft),
+        0 0 20px rgba(255, 126, 62, 0.1),
+        inset 0 1px 0 rgba(245, 233, 208, 0.04);
+}
+.theme-cosmic .playing-as-red .player-area.red {
+    border-top: 3px solid var(--teal);
+    box-shadow:
+        var(--shadow-soft),
+        0 0 20px rgba(61, 214, 196, 0.1),
+        inset 0 1px 0 rgba(245, 233, 208, 0.04);
+}
+
+/* Player-header names (Cosmic tints these via the area, not .blue-player) */
+.theme-cosmic .playing-as-red .player-area.blue .player-header { color: var(--orange); text-shadow: 0 0 8px var(--orange-glow); }
+.theme-cosmic .playing-as-red .player-area.red  .player-header { color: var(--teal);   text-shadow: 0 0 8px var(--teal-glow); }
+
+/* Winner score panels + their sputnik orb accents */
+.theme-cosmic .playing-as-red #blueScoreArea.winner {
+    border-color: var(--orange);
+    background: linear-gradient(180deg, rgba(255,126,62,0.16) 0%, var(--bg-panel) 100%);
+    box-shadow: 0 0 22px rgba(255,126,62,0.30), var(--shadow-soft), inset 0 1px 0 rgba(245,233,208,0.05);
+}
+.theme-cosmic .playing-as-red #blueScoreArea.winner::before,
+.theme-cosmic .playing-as-red #blueScoreArea.winner::after { background: var(--orange); box-shadow: 0 0 10px var(--orange); opacity: 1; }
+.theme-cosmic .playing-as-red #redScoreArea.winner {
+    border-color: var(--teal);
+    background: linear-gradient(180deg, rgba(61,214,196,0.16) 0%, var(--bg-panel) 100%);
+    box-shadow: 0 0 22px rgba(61,214,196,0.30), var(--shadow-soft), inset 0 1px 0 rgba(245,233,208,0.05);
+}
+.theme-cosmic .playing-as-red #redScoreArea.winner::before,
+.theme-cosmic .playing-as-red #redScoreArea.winner::after { background: var(--teal); box-shadow: 0 0 10px var(--teal); opacity: 1; }
+
+/* Roll buttons — #blueRoll is the human, #redRoll is the AI */
+.theme-cosmic .playing-as-red #blueRoll { background: linear-gradient(135deg, var(--orange) 0%, var(--orange-bright) 100%); }
+.theme-cosmic .playing-as-red #blueRoll:hover { box-shadow: 0 5px 12px rgba(0,0,0,0.5), 0 0 16px var(--orange-glow), inset 0 1px 0 rgba(255,255,255,0.35); }
+.theme-cosmic .playing-as-red #redRoll { background: linear-gradient(135deg, var(--teal) 0%, var(--teal-bright) 100%); }
+.theme-cosmic .playing-as-red #redRoll:hover { box-shadow: 0 5px 12px rgba(0,0,0,0.5), 0 0 16px var(--teal-glow), inset 0 1px 0 rgba(255,255,255,0.35); }
+
+/* Rolldown modal — final score cards follow the swap (roll button is neutral mustard) */
+.theme-cosmic .playing-as-red .player-final-score.blue {
+    border-color: var(--orange);
+    background: linear-gradient(180deg, rgba(255, 126, 62, 0.08) 0%, var(--bg-mid) 100%);
+}
+.theme-cosmic .playing-as-red .player-final-score.red {
+    border-color: var(--teal);
+    background: linear-gradient(180deg, rgba(61, 214, 196, 0.08) 0%, var(--bg-mid) 100%);
+}
 
 /* ==========================================================
    COSMIC ACTION PANEL — Starfield, Nebula & Planets
