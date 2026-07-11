@@ -1671,9 +1671,13 @@ function renderDiceSheet() {
         tbody.appendChild(detr);
     }
 
-    // Show pinch-zoom hint — hides on first die placement
+   // Show pinch-zoom hint on Round 1 only — hides on first die placement,
+    // and never reappears on later rounds.
     var ph = document.getElementById('pinch-hint');
-    if (ph) ph.classList.add('visible');
+    if (ph) {
+        if (rounds.length === 1) { ph.classList.add('visible'); }
+        else { ph.classList.remove('visible'); }
+    }
     var t1=0,t2=0;
     rounds.forEach(function(r){if(r.p1!==null)t1+=r.p1;if(r.p2!==null)t2+=r.p2;});
     var dt1=document.getElementById('dt1'); var dt2=document.getElementById('dt2');
