@@ -332,22 +332,25 @@ function generateGameOddsHTML() {
     </div>
 
     <div class="stat-card">
-        <h4>🎯 Combo Odds — 4 Dice</h4>
-        <div class="stat-row"><span>At least one pair:</span><span class="stat-value">~77%</span></div>
-        <div class="stat-row"><span>Two pair:</span><span class="stat-value">~12%</span></div>
-        <div class="stat-row"><span>3 of a kind:</span><span class="stat-value">~10%</span></div>
-        <div class="stat-row"><span>A straight (any 4 in sequence):</span><span class="stat-value">~5.6%</span></div>
+        <h4>🎯 Combo Odds — 4 Dice (all random)</h4>
+        <p style="font-size:0.8em;opacity:0.7;margin:0 0 8px;">These treat all four dice as fresh random rolls — exactly true in Round 1. From Round 2 on, one of your four is your <em>known</em> saved die, which shifts the numbers below (in your favour if you saved high).</p>
+        <div class="stat-row"><span>Any scoring combo (pair or better):</span><span class="stat-value">~78%</span></div>
+        <div class="stat-row"><span>Exactly one pair:</span><span class="stat-value">~56%</span></div>
+        <div class="stat-row"><span>Two pair:</span><span class="stat-value">~7%</span></div>
+        <div class="stat-row"><span>3 of a kind:</span><span class="stat-value">~9%</span></div>
+        <div class="stat-row"><span>A straight (4 in sequence):</span><span class="stat-value">~5.6%</span></div>
         <div class="stat-row"><span>4 of a kind:</span><span class="stat-value">~0.46%</span></div>
-        <div class="stat-row"><span>No combo at all:</span><span class="stat-value">~23%</span></div>
-        <div class="stat-row"><span>Max score — regular round (two 6s Keep + win Take by 5 + straight bonus):</span><span class="stat-value">22 pts</span></div>
-        <div class="stat-row"><span>Min score — regular round (two 1s Keep, lose Take, no combo):</span><span class="stat-value">2 pts</span></div>
+        <div class="stat-row"><span>No combo at all:</span><span class="stat-value">~22%</span></div>
+        <div class="stat-row"><span>Max score — regular round (four 6s: Keep two + win Take by 5 + four-of-a-kind bonus):</span><span class="stat-value">23 pts</span></div>
+        <div class="stat-row"><span>Min score — regular round (two 1s Keep, lose the Take):</span><span class="stat-value">2 pts</span></div>
     </div>
 
     <div class="stat-card">
         <h4>🌌 Combo Odds — Rolldown (5 Dice)</h4>
+        <p style="font-size:0.8em;opacity:0.7;margin:0 0 8px;">Your Rolldown hand is 4 fresh dice plus your saved die. These treat all five as random; a high saved die tilts them your way.</p>
         <div class="stat-row"><span>Full house:</span><span class="stat-value">~3.9%</span></div>
-        <div class="stat-row"><span>Straight (5 in sequence):</span><span class="stat-value">~7.7%</span></div>
-        <div class="stat-row"><span>4 of a kind:</span><span class="stat-value">~2.3%</span></div>
+        <div class="stat-row"><span>Straight (5 in sequence):</span><span class="stat-value">~3.1%</span></div>
+        <div class="stat-row"><span>4 of a kind:</span><span class="stat-value">~1.9%</span></div>
         <div class="stat-row"><span>5 of a kind:</span><span class="stat-value">~0.08%</span></div>
         <div class="stat-row"><span>Max score — Rolldown (five 6s + 5-of-a-kind bonus):</span><span class="stat-value">40 pts</span></div>
         <div class="stat-row"><span>Min score — Rolldown (e.g. 1,1,1,2,2 = full house = 11 pts):</span><span class="stat-value">11 pts</span></div>
@@ -359,8 +362,8 @@ function generateGameOddsHTML() {
         <div class="stat-row"><span>Tie Take (zero points both):</span><span class="stat-value">~17%</span></div>
         <div class="stat-row"><span>Lose Take:</span><span class="stat-value">~42%</span></div>
         <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>The randomness is symmetric. The decisions aren't.</span></div>
-        <div class="stat-row"><span>Win by 5+ pips:</span><span class="stat-value">~14%</span></div>
         <div class="stat-row"><span>Win by exactly 1 pip:</span><span class="stat-value">~14%</span></div>
+        <div class="stat-row"><span>Win by 5 (the biggest possible margin):</span><span class="stat-value">~3%</span></div>
     </div>
 
     <div class="stat-card">
@@ -404,15 +407,15 @@ function generateTriviaHTML() {
         <h4>💡 The Saved 6 Insight</h4>
         <div class="stat-row"><span>Chance none of 3 new dice equal or beat a saved 6:</span><span class="stat-value">57.9%</span></div>
         <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>More than half the time, your saved 6 is the best die in your hand before the roll is even finished.</span></div>
-        <div class="stat-row"><span>Chance of rolling another 6 to pair with it:</span><span class="stat-value">~42% per die</span></div>
+        <div class="stat-row"><span>Chance of rolling another 6 across your 3 new dice:</span><span class="stat-value">~42%</span></div>
         <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>Feels rarer than it is. Save more 6s.</span></div>
     </div>
 
     <div class="stat-card">
         <h4>🎲 Things That Surprise Everyone</h4>
-        <div class="stat-row"><span>You'll have NO combo about this often:</span><span class="stat-value">1 in 4 rounds</span></div>
+        <div class="stat-row"><span>You'll have NO combo about this often:</span><span class="stat-value">~1 in 4–5 rounds</span></div>
         <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>Feels like it happens more. It doesn't. You just remember it more.</span></div>
-        <div class="stat-row"><span>Winning Take with a 1 (opponent also plays 1):</span><span class="stat-value">1 in 6</span></div>
+        <div class="stat-row"><span>Tie the Take on a 1 (both play a 1 — a 1 can't win):</span><span class="stat-value">1 in 6</span></div>
         <div class="stat-row"><span>Your best of 3 dice averages almost exactly:</span><span class="stat-value">5</span></div>
         <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>Every round your top die is nearly a 5. Plan around it.</span></div>
         <div class="stat-row"><span>A saved 4 will be beaten by a new die:</span><span class="stat-value">7 in 10 rounds</span></div>
@@ -421,11 +424,11 @@ function generateTriviaHTML() {
 
     <div class="stat-card">
         <h4>📐 The Keep Math Nobody Does</h4>
-        <div class="stat-row"><span>Two 6s in Keep every round for 8 rounds:</span><span class="stat-value">96 pts</span></div>
-        <div class="stat-row"><span>That's almost the whole game. Without a single Take fight.</span></div>
+        <div class="stat-row"><span>Two 6s in Keep every round:</span><span class="stat-value">12 pts/round</span></div>
+        <div class="stat-row"><span>That reaches 100+ in about 9 rounds — on Keep alone, no Take fights.</span></div>
         <div class="stat-row" style="opacity:0.65;font-size:0.82em;padding-bottom:6px;"><span>Keep is underrated. Not every round needs a Take battle.</span></div>
         <div class="stat-row"><span>Expected Keep score per round (avg 2 dice):</span><span class="stat-value">~7 pts</span></div>
-        <div class="stat-row"><span>Expected Take win margin (random dice):</span><span class="stat-value">~2.1 pips</span></div>
+        <div class="stat-row"><span>Expected Take win margin, when you win (random dice):</span><span class="stat-value">~2.3 pips</span></div>
         <div class="stat-row" style="opacity:0.65;font-size:0.82em;"><span>A 2-pip Take win with no combo is worth less than either Keep die on average. Choose your fights.</span></div>
     </div>
 
