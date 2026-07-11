@@ -725,6 +725,7 @@
     color: #140c04;
     border-color: var(--sp-brass-hi);
 }
+.theme-steampunk .copyright {
     text-align: center; font-size: 0.78em; color: var(--sp-dim);
     margin-top: 6px; padding: 6px;
     border-top: 1px solid var(--sp-brass-lo); font-style: italic;
@@ -1056,5 +1057,65 @@
 body.has-css-fullscreen { overflow: hidden; }
 
 /* ==========================================================
-   PLAYING AS RED — visual color swap
+   PLAYING AS RED — visual colour swap
+   Human is internally Blue (left) → recolour RED. AI is internally Red
+   (right) → recolour BLUE. Nothing moves; colour only.
    ========================================================== */
+
+/* Player areas */
+.theme-steampunk .playing-as-red .player-area.blue {
+    background:
+        repeating-linear-gradient(-55deg, transparent 0, transparent 2px, rgba(255,100,80,0.012) 2px, rgba(255,100,80,0.012) 3px),
+        linear-gradient(150deg, var(--sp-red-mid) 0%, var(--sp-red) 60%, #0e0404 100%);
+    border-color: var(--sp-red-edge);
+    border-top-color: var(--sp-red-hi); border-left-color: var(--sp-red-hi);
+    border-bottom-color: var(--sp-red-lo); border-right-color: var(--sp-red-lo);
+    box-shadow:
+        0 4px 8px rgba(0,0,0,0.40),
+        inset 0 2px 4px rgba(255,100,80,0.07),
+        inset 0 -2px 4px rgba(0,0,0,0.35),
+        0 0 18px var(--sp-red-glow);
+}
+.theme-steampunk .playing-as-red .player-area.red {
+    background:
+        repeating-linear-gradient(-55deg, transparent 0, transparent 2px, rgba(100,180,255,0.012) 2px, rgba(100,180,255,0.012) 3px),
+        linear-gradient(150deg, var(--sp-blue-mid) 0%, var(--sp-blue) 60%, #0a1828 100%);
+    border-color: var(--sp-blue-edge);
+    border-top-color: var(--sp-blue-hi); border-left-color: var(--sp-blue-hi);
+    border-bottom-color: var(--sp-blue-lo); border-right-color: var(--sp-blue-lo);
+    box-shadow:
+        0 4px 8px rgba(0,0,0,0.40),
+        inset 0 2px 4px rgba(100,180,255,0.07),
+        inset 0 -2px 4px rgba(0,0,0,0.35),
+        0 0 18px var(--sp-blue-glow);
+}
+
+/* Corner rivet halos follow the swapped area colour */
+.theme-steampunk .playing-as-red .player-area.blue::after { box-shadow: 0 0 0 2px var(--sp-red),  0 0 0 3px var(--sp-brass); }
+.theme-steampunk .playing-as-red .player-area.red::after  { box-shadow: 0 0 0 2px var(--sp-blue), 0 0 0 3px var(--sp-brass); }
+
+/* Winner glow — swap so the human's win flashes red, the AI's blue.
+   (Steampunk's non-winner score cards are neutral dark, so only the
+   winner state carries a blue/red colour that needs swapping.) */
+.theme-steampunk .playing-as-red #blueScoreArea.winner {
+    border-color: var(--sp-red-edge);
+    background: linear-gradient(180deg, rgba(30,8,8,0.95) 0%, var(--sp-red) 100%);
+    box-shadow: 0 0 22px rgba(168,48,48,0.45), inset 0 1px 0 rgba(220,100,100,0.15);
+}
+.theme-steampunk .playing-as-red #redScoreArea.winner {
+    border-color: var(--sp-blue-edge);
+    background: linear-gradient(180deg, rgba(22,36,56,0.95) 0%, var(--sp-blue) 100%);
+    box-shadow: 0 0 22px rgba(74,122,184,0.45), inset 0 1px 0 rgba(100,160,220,0.15);
+}
+
+/* Roll buttons — #blueRoll is the human, #redRoll is the AI */
+.theme-steampunk .playing-as-red #blueRoll {
+    background: linear-gradient(145deg, #dc143c, #cc1029);
+    border: 2px solid #dc143c; border-top-color: #e5475a; color: var(--sp-cream);
+}
+.theme-steampunk .playing-as-red #blueRoll:hover { background: linear-gradient(145deg, #e5475a, #dc143c); }
+.theme-steampunk .playing-as-red #redRoll {
+    background: linear-gradient(145deg, #4169e1, #2952cc);
+    border: 2px solid #4169e1; border-top-color: #5a7ae5; color: var(--sp-cream);
+}
+.theme-steampunk .playing-as-red #redRoll:hover { background: linear-gradient(145deg, #5a7ae5, #4169e1); }
