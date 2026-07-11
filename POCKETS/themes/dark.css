@@ -330,9 +330,10 @@ body.theme-dark {
 .theme-dark .rolloff-side-label.red-text  { color: var(--red);  }
 .theme-dark .player-rolls { background: transparent; border: none; }
 
-/* Rolloff dice — blue/red faces */
-.theme-dark .rolloff-die { width: 72px; height: 72px; }
-.theme-dark .rolloff-die svg.dice { width: 64px !important; height: 64px !important; }
+/* Rolloff dice — blue/red faces. Noticeably larger than the base size,
+   with a thin 1px white outline (was the heavier 1.5px .dice border). */
+.theme-dark .rolloff-die { width: 96px; height: 96px; }
+.theme-dark .rolloff-die svg.dice { width: 84px !important; height: 84px !important; border: 1px solid var(--white); }
 .theme-dark #blueRolloffDie .dice-face { fill: #0a1a38; stroke: var(--blue); stroke-width: 1; }
 .theme-dark #blueRolloffDie .dice-dot  { fill: var(--blue); }
 .theme-dark #redRolloffDie  .dice-face { fill: #380a0a; stroke: var(--red);  stroke-width: 1; }
@@ -933,5 +934,63 @@ body.theme-dark {
 body.has-css-fullscreen { overflow: hidden; }
 
 /* ==========================================================
-   PLAYING AS RED — visual color swap
+   PLAYING AS RED — visual colour swap
+   Human is internally Blue (left) → recolour RED. AI is internally Red
+   (right) → recolour BLUE. Nothing moves; colour only.
    ========================================================== */
+
+/* Player areas — left accent border */
+.theme-dark .playing-as-red .player-area.blue { border-left: 3px solid var(--red); }
+.theme-dark .playing-as-red .player-area.red  { border-left: 3px solid var(--blue); }
+
+/* Diamond corner ornaments follow the swap */
+.theme-dark .playing-as-red .player-area.blue::before,
+.theme-dark .playing-as-red .player-area.blue::after { color: rgba(239, 68, 68, 0.35); }
+.theme-dark .playing-as-red .player-area.red::before,
+.theme-dark .playing-as-red .player-area.red::after  { color: rgba(59, 130, 246, 0.35); }
+
+/* Player names */
+.theme-dark .playing-as-red .blue-player { color: var(--red); }
+.theme-dark .playing-as-red .red-player  { color: var(--blue); }
+
+/* Pocket fills + labels */
+.theme-dark .playing-as-red .player-area.blue .pocket { background: var(--red-dim); border-color: rgba(239, 68, 68, 0.35); }
+.theme-dark .playing-as-red .player-area.red  .pocket { background: rgba(59, 130, 246, 0.28); border-color: rgba(59, 130, 246, 0.50); }
+.theme-dark .playing-as-red .player-area.blue .pocket-label { color: rgba(239, 68, 68, 0.70); }
+.theme-dark .playing-as-red .player-area.red  .pocket-label { color: rgba(59, 130, 246, 0.90); }
+
+/* Score area accent borders + diamond ornaments */
+.theme-dark .playing-as-red #blueScoreArea { border-left: 3px solid var(--red); }
+.theme-dark .playing-as-red #redScoreArea  { border-left: 3px solid var(--blue); }
+.theme-dark .playing-as-red #blueScoreArea::before,
+.theme-dark .playing-as-red #blueScoreArea::after { color: rgba(239, 68, 68, 0.35); }
+.theme-dark .playing-as-red #redScoreArea::before,
+.theme-dark .playing-as-red #redScoreArea::after  { color: rgba(59, 130, 246, 0.35); }
+
+/* Winner glow — human win reads red, AI win reads blue */
+.theme-dark .playing-as-red #blueScoreArea.winner {
+    border-color: var(--red) !important;
+    background: rgba(239, 68, 68, 0.25);
+    box-shadow: 0 0 28px var(--red-glow), inset 0 0 16px rgba(239, 68, 68, 0.10);
+}
+.theme-dark .playing-as-red #redScoreArea.winner {
+    border-color: var(--blue) !important;
+    background: rgba(59, 130, 246, 0.25);
+    box-shadow: 0 0 28px var(--blue-glow), inset 0 0 16px rgba(59, 130, 246, 0.10);
+}
+
+/* Roll buttons — #blueRoll is the human, #redRoll is the AI */
+.theme-dark .playing-as-red #blueRoll { color: var(--red); border-color: var(--red); }
+.theme-dark .playing-as-red #blueRoll:hover { background: var(--red-dim); }
+.theme-dark .playing-as-red #redRoll { color: var(--blue); border-color: var(--blue); }
+.theme-dark .playing-as-red #redRoll:hover { background: var(--blue-dim); }
+
+/* Rolldown modal — final score cards + roll-my-die buttons follow the swap */
+.theme-dark .playing-as-red #blueFinalCard { border-left: 3px solid var(--red); }
+.theme-dark .playing-as-red #redFinalCard  { border-left: 3px solid var(--blue); }
+.theme-dark .playing-as-red #blueFinalCard.active-turn { box-shadow: 0 0 18px var(--red-glow); border-color: var(--red); }
+.theme-dark .playing-as-red #redFinalCard.active-turn  { box-shadow: 0 0 18px var(--blue-glow); border-color: var(--blue); }
+.theme-dark .playing-as-red #blueRollFinalDie { color: var(--red); border-color: var(--red); }
+.theme-dark .playing-as-red #redRollFinalDie  { color: var(--blue); border-color: var(--blue); }
+.theme-dark .playing-as-red #blueRollFinalDie:not(:disabled):hover { background: var(--red-dim); }
+.theme-dark .playing-as-red #redRollFinalDie:not(:disabled):hover  { background: var(--blue-dim); }
