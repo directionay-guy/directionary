@@ -1094,6 +1094,10 @@ body.has-css-fullscreen { overflow: hidden; }
 .theme-steampunk .playing-as-red .player-area.blue::after { box-shadow: 0 0 0 2px var(--sp-red),  0 0 0 3px var(--sp-brass); }
 .theme-steampunk .playing-as-red .player-area.red::after  { box-shadow: 0 0 0 2px var(--sp-blue), 0 0 0 3px var(--sp-brass); }
 
+/* Player names — human reads red-orange, AI reads cyan */
+.theme-steampunk .playing-as-red .blue-player { color: #ffa07a; text-shadow: 0 0 8px rgba(230,100,80,0.40), 2px 2px 3px rgba(0,0,0,0.70); }
+.theme-steampunk .playing-as-red .red-player  { color: #87ceeb; text-shadow: 0 0 8px rgba(100,180,240,0.40), 2px 2px 3px rgba(0,0,0,0.70); }
+
 /* Winner glow — swap so the human's win flashes red, the AI's blue.
    (Steampunk's non-winner score cards are neutral dark, so only the
    winner state carries a blue/red colour that needs swapping.) */
