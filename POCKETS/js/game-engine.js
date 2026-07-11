@@ -424,6 +424,14 @@ function restoreGameFromSave(saved) {
         // Rolloff already resolved this round - show the roll-dice buttons,
         // correctly reflecting who's already rolled.
         setActionPanelView('rolls');
+        // renderDiceWithAnimation above cleared both trays. The dull placeholder
+        // dice are purely visual and aren't stored in the save, so without this
+        // a reload in the post-rolloff / pre-roll window leaves the board
+        // looking empty until Roll Dice is pressed. Repaint placeholders for any
+        // player who hasn't rolled yet; a player who HAS rolled already had
+        // their real dice re-rendered above, so leave that tray alone.
+        if (!gameState.blueRolled) { showPlaceholderDiceForPlayer('blue'); }
+        if (!gameState.redRolled)  { showPlaceholderDiceForPlayer('red'); }
         if (typeof brightenPlaceholderDice === 'function') { brightenPlaceholderDice(); }
         var blueRollBtn = document.getElementById('blueRoll');
         var redRollBtn  = document.getElementById('redRoll');
@@ -801,29 +809,30 @@ function startRound() {
     autosaveGame();
 }
 
-function showPlaceholderDice() {
-    var players = ['blue', 'red'];
-    for (var p = 0; p < players.length; p++) {
-        var player  = players[p];
-        var area    = document.getElementById(player + 'DiceArea');
-        area.innerHTML = '';
+function showPlaceholderDiceForPlayer(player) {
+    var area    = document.getElementById(player + 'DiceArea');
+    area.innerHTML = '';
 
-        var numNew  = (gameState.round === 1) ? 4 : 3;
-        var savedDie = (player === 'blue') ? gameState.blueSavedDie : gameState.redSavedDie;
+    var numNew  = (gameState.round === 1) ? 4 : 3;
+    var savedDie = (player === 'blue') ? gameState.blueSavedDie : gameState.redSavedDie;
 
-        for (var i = 0; i < numNew; i++) {
-            var die = createDieSVG(1, player + '-ph-' + i, false);
-            die.style.opacity       = '0.35';
-            die.style.pointerEvents = 'none';
-            area.appendChild(die);
-        }
-
-        if (gameState.round > 1 && savedDie) {
-            var saved = createDieSVG(savedDie, player + '-ph-saved', true);
-            saved.style.pointerEvents = 'none';
-            area.appendChild(saved);
-        }
+    for (var i = 0; i < numNew; i++) {
+        var die = createDieSVG(1, player + '-ph-' + i, false);
+        die.style.opacity       = '0.35';
+        die.style.pointerEvents = 'none';
+        area.appendChild(die);
     }
+
+    if (gameState.round > 1 && savedDie) {
+        var saved = createDieSVG(savedDie, player + '-ph-saved', true);
+        saved.style.pointerEvents = 'none';
+        area.appendChild(saved);
+    }
+}
+
+function showPlaceholderDice() {
+    showPlaceholderDiceForPlayer('blue');
+    showPlaceholderDiceForPlayer('red');
 }
 
 function resetRoundUI() {
