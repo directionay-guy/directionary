@@ -923,10 +923,12 @@ function setRolloffDieFaded(buttonEl, shouldFade) {
             aiDot     = cs.getPropertyValue('--rolloff-ai-dot').trim() || cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
         }
         // Blue button = human when playing as red
-        var strokeVar  = cs.getPropertyValue('--rolloff-stroke').trim();
-        var faceFill   = isBlueButton ? humanFace : aiFace;
-        var dotFill    = isBlueButton ? humanDot  : aiDot;
-        var faceStroke = strokeVar || dotFill;
+        var strokeBoth   = cs.getPropertyValue('--rolloff-stroke').trim();
+        var humanStroke  = cs.getPropertyValue('--rolloff-human-stroke').trim() || strokeBoth;
+        var aiStroke     = cs.getPropertyValue('--rolloff-ai-stroke').trim()    || strokeBoth;
+        var faceFill     = isBlueButton ? humanFace   : aiFace;
+        var dotFill      = isBlueButton ? humanDot    : aiDot;
+        var faceStroke   = (isBlueButton ? humanStroke : aiStroke) || dotFill;
         var face = svg.querySelector('.dice-face');
         if (face) {
             face.setAttribute('style', 'fill: ' + faceFill + ' !important; stroke: ' + faceStroke + ' !important;');
@@ -953,8 +955,11 @@ function setRolloffDieFadedInPlace(buttonEl) {
         var aiDot     = isBitmap ? '#000080' : (cs.getPropertyValue('--rolloff-ai-dot').trim() || cs.getPropertyValue('--gold-pale').trim() || '#c8a84b');
         var svg = buttonEl.querySelector('svg');
         if (svg) {
-            var strokeVar = cs.getPropertyValue('--rolloff-stroke').trim();
-            var dotFill   = (isBlueButton ? humanDot : aiDot);
+            var strokeBoth  = cs.getPropertyValue('--rolloff-stroke').trim();
+            var humanStroke = cs.getPropertyValue('--rolloff-human-stroke').trim() || strokeBoth;
+            var aiStroke    = cs.getPropertyValue('--rolloff-ai-stroke').trim()    || strokeBoth;
+            var dotFill     = (isBlueButton ? humanDot : aiDot);
+            var strokeVar   = (isBlueButton ? humanStroke : aiStroke);
             var face = svg.querySelector('.dice-face');
             if (face) {
                 face.setAttribute('style', 'fill:' + (isBlueButton ? humanFace : aiFace) + ' !important; stroke:' + (strokeVar || dotFill) + ' !important;');
@@ -1013,11 +1018,13 @@ function rolloffRollDie(player) {
             aiDot     = cs.getPropertyValue('--rolloff-ai-dot').trim() || cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
         }
         // Blue button = human when playing as red
-        var isHuman    = (player === 'blue');
-        var strokeVar  = cs.getPropertyValue('--rolloff-stroke').trim();
-        var faceFill   = isHuman ? humanFace : aiFace;
-        var dotFill    = isHuman ? humanDot  : aiDot;
-        var faceStroke = strokeVar || dotFill;
+        var isHuman      = (player === 'blue');
+        var strokeBoth   = cs.getPropertyValue('--rolloff-stroke').trim();
+        var humanStroke  = cs.getPropertyValue('--rolloff-human-stroke').trim() || strokeBoth;
+        var aiStroke     = cs.getPropertyValue('--rolloff-ai-stroke').trim()    || strokeBoth;
+        var faceFill     = isHuman ? humanFace   : aiFace;
+        var dotFill      = isHuman ? humanDot    : aiDot;
+        var faceStroke   = (isHuman ? humanStroke : aiStroke) || dotFill;
         var face = rollSvg.querySelector('.dice-face');
         if (face) {
             face.setAttribute('style', 'fill: ' + faceFill + ' !important; stroke: ' + faceStroke + ' !important;');
