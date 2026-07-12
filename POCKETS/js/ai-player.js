@@ -1,4 +1,4 @@
-// POCKETS AI PLAYER MODULE — v3.1
+// POCKETS AI PLAYER MODULE — v4.0
 // AI always plays as Red. Human always plays as Blue internally.
 // If human chose "Play as Red," that's a visual/stats swap only — game logic unchanged.
 //
@@ -7,38 +7,66 @@
 // Write one statement per line. Readability = reliability here (see game-engine.js
 // for the same standing instruction — it applies equally here).
 //
-// TIER ARCHITECTURE (v3.1 — one shared engine, three lenses):
+// ─────────────────────────────────────────────────────────────────────────────
+// WHAT CHANGED IN v4.0 — READ THIS BEFORE TOUCHING THE SCORING
+//
+// v3.1's architecture was sound: one shared scoring engine, three lenses, and a
+// full-arrangement search. The BUG was in the numbers.
+//
+// Every score function invented its own currency. Keep paid dieValue*2 (+4 for a
+// high die). Take paid dieValue*3 going first, or margin*5 when answering. Save
+// paid dieValue*1.5. These units were not comparable to one another, and Take's
+// was simply the most inflated — so for ANY 5 or 6, Take outscored Keep before a
+// combo or an opponent was even considered:
+//
+//        die   KEEP   TAKE      the AI would...
+//          5     14     15      ...always fight
+//          6     16     18      ...always fight
+//
+// That is why the AI seemed to have exactly one idea: WIN THE TAKE. It wasn't
+// choosing to. It was compelled to, every round, at every difficulty, because
+// Take was simply the biggest number on its own scoreboard.
+//
+// v4.0 fixes this by putting every pocket in the SAME unit: REAL EXPECTED POINTS.
+//   - Keep pays the die's face value, because that is literally what it scores.
+//   - Take pays the expected MARGIN plus the combo, and only when it wins.
+//   - Save pays the die's edge over the ~3.5 the AI would have re-rolled anyway.
+//
+// Crucially, the opportunity cost of a Take fight now falls out FOR FREE. The
+// search already compares complete four-die arrangements, so sending the best die
+// to Take automatically demotes both Keep dice inside the very same comparison.
+// No special rule was needed — the old numbers were just drowning the signal.
+//
+// The upshot: the AI now fights for Take when the margin plus combo is worth more
+// than the Keep points it gives up, and concedes gracefully when it isn't —
+// which is exactly what a good human does.
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// TIER ARCHITECTURE (one shared engine, three lenses):
 // All three difficulties run through the SAME scorePlacement()/scoreKeep()/
 // scoreTake()/scoreSave() logic. What differs between tiers is what each one is
 // ALLOWED TO SEE, via the "context" object built per-turn in buildContext().
 // A tier that can't see a signal just gets a neutral default for it, which makes
-// that part of the scoring math a no-op for that tier. This means a future tweak
-// to how Take or Save is scored improves all three tiers at once, instead of
-// needing to be re-derived three separate times.
+// that part of the scoring math a no-op for that tier.
 //
 //   - Hard:   full context. Own hand quality, the opponent's round-so-far signal,
-//             a REAL calculated rounds-to-close-the-gap (recomputed fresh from the
-//             live score every decision, never a stored counter), and Rolldown
-//             proximity. No deliberate mistakes — natural dice variance is what
-//             keeps Hard beatable, not artificial sandbagging.
-//   - Medium: a genuine middle lens, not "old buggy Hard." Sees its own hand
-//             quality and Rolldown proximity, same as Hard. Does NOT read the
-//             opponent's placed dice at all. Its gap-awareness uses a CRUDER,
-//             coarse-step approximation instead of Hard's real calculation —
-//             principled simplification, not leftover bugs.
-//   - Easy:   tutorial tier. Sees only the Rolldown-imminent flag (just "is the
-//             score getting close to 100" — the kind of thing even a brand new
-//             player notices on screen) and raw die values. No hand-quality
-//             awareness, no opponent awareness, no gap calculation at all. On top
-//             of that limited lens, it has a real chance each turn of making a
-//             RECOGNIZABLE beginner mistake (wasting a strong die in Save, or
-//             risking Take with the weak die while a strong one sits unused) —
-//             that part is an intentional add-on, not something to remove.
+//             a REAL calculated rounds-to-close-the-gap, Rolldown proximity, and
+//             — new in v4.0 — the opponent's UNPLACED dice. POCKETS is an open-
+//             information game: both players' dice sit face-up all round long.
+//             Hard now actually looks. That lets it know whether a Take fight is
+//             winnable at all before committing a die to it, and to win the
+//             pocket with the CHEAPEST die that does the job instead of
+//             overpaying with its 6.
+//   - Medium: sees its own hand quality and Rolldown proximity. Does NOT read the
+//             opponent's dice or pockets at all. Its gap-awareness uses a cruder,
+//             coarse-step approximation instead of Hard's real calculation.
+//   - Easy:   tutorial tier. Sees only the Rolldown-imminent flag and raw die
+//             values, plus a real chance each turn of a recognizable beginner
+//             mistake. That mistake layer is intentional — do not remove it.
 //
-// One piece of game-state awareness is universal across ALL tiers, not gated by
-// difficulty at all: knowing whether the human has already placed a die in Take.
-// That's not a strategic skill, it's just visible board state — any player at
-// any skill level can see it, so every tier gets it.
+// One piece of game-state awareness is universal across ALL tiers: knowing
+// whether the human has already placed a die in Take. That's not a strategic
+// skill, it's just visible board state.
 
 class PocketsAI {
     constructor(difficulty = 'medium') {
@@ -91,11 +119,12 @@ class PocketsAI {
         const humanTakeDie  = (humanPockets.take && humanPockets.take.length > 0)
             ? humanPockets.take[0] : null;
 
-        // Neutral defaults — a tier that doesn't earn a signal below just keeps these,
-        // which makes the corresponding scoring adjustments no-ops for that tier.
+        // Neutral defaults — a tier that doesn't earn a signal below just keeps
+        // these, which makes the corresponding scoring adjustments no-ops for it.
         const context = {
             aiCombo:          calculateBonusPoints(gameState.redOriginalRoll || []),
             humanTakeDie:     humanTakeDie, // universal: visible board state, not a skill
+            humanUnplaced:    null,         // Hard only — see note below
             ownHandQuality:   3.5,
             opponentSignal:   3.5,
             roundsToClose:    0,
@@ -107,13 +136,19 @@ class PocketsAI {
             context.opponentSignal   = this.getOpponentRoundSignal(humanPockets);
             context.roundsToClose    = this.estimateRoundsToCloseGap(scoreDiff);
             context.rolldownImminent = Math.max(aiScore, humanScore) >= 80;
+            // POCKETS is an open-information game — the human's unplaced dice are
+            // face-up on the board all round long. Hard is the tier that actually
+            // reads them. This is not cheating: it is looking at what any player
+            // can already see, and what a good human absolutely does look at.
+            context.humanUnplaced    = [...(gameState.blueDice || [])];
         } else if (this.difficulty === 'medium') {
             context.ownHandQuality   = this.getHandQuality(availDice);
-            // opponentSignal stays neutral — Medium doesn't read the opponent's pockets.
+            // opponentSignal stays neutral — Medium doesn't read the opponent.
             context.roundsToClose    = this.estimateRoundsToCloseGapCrude(scoreDiff);
             context.rolldownImminent = Math.max(aiScore, humanScore) >= 80;
         } else {
-            // Easy: only the simple Rolldown flag, same as a beginner glancing at the score.
+            // Easy: only the simple Rolldown flag, same as a beginner glancing
+            // at the score.
             context.rolldownImminent = Math.max(aiScore, humanScore) >= 80;
         }
 
@@ -139,18 +174,14 @@ class PocketsAI {
     }
 
     // HARD's real calculation — how many "typical good rounds" would close the
-    // current gap. Recomputed fresh from the live score every single call, never
-    // stored, so one big round that closes the gap reduces this back toward zero
-    // on the very next decision with no separate "stop now" rule needed.
+    // current gap. Recomputed fresh from the live score every single call.
     estimateRoundsToCloseGap(scoreDiff) {
         if (scoreDiff >= 0) { return 0; }
         const TYPICAL_ROUND_GAIN = 16; // internal yardstick only, not a game rule
         return (-scoreDiff) / TYPICAL_ROUND_GAIN;
     }
 
-    // MEDIUM's cruder lens on the same idea — recognizes being behind only in
-    // coarse steps rather than Hard's smooth calculation. A real simplification,
-    // not a stand-in for a bug.
+    // MEDIUM's cruder lens on the same idea — coarse steps, not a smooth curve.
     estimateRoundsToCloseGapCrude(scoreDiff) {
         if (scoreDiff >= 0) { return 0; }
         const deficit = -scoreDiff;
@@ -161,8 +192,10 @@ class PocketsAI {
     }
 
     // =============================================================================
-    // SHARED SCORING ENGINE — identical for every tier. Tier differences come
-    // entirely from what's in `context`, never from branching on difficulty here.
+    // SHARED SCORING ENGINE — every function below returns REAL EXPECTED POINTS.
+    // That single common unit is what makes the pockets comparable to each other,
+    // and it is what lets the arrangement search price a Take fight's true cost
+    // without ever being told about it.
     // =============================================================================
 
     scorePlacement(dieValue, pocket, context) {
@@ -178,79 +211,100 @@ class PocketsAI {
         return 0;
     }
 
+    // A Keep die scores its face value. Exactly that. No multiplier, no high-die
+    // bonus — inflating this was half of what made the old numbers incomparable.
     scoreKeep(dieValue, context) {
-        let score = dieValue * 2;
-        if (dieValue >= 5) { score += 4; }
+        let score = dieValue;
 
-        // Opponent appears to be having a strong round — guaranteed points matter
-        // more (race dynamic). No-op for tiers without opponentSignal access.
-        if (context.opponentSignal >= 4.5) { score += 2; }
-
-        // Meaningfully behind and this die is modest — worth slightly less here
-        // than it would be banked toward closing the gap.
-        if (context.roundsToClose > 1.5 && dieValue <= 3) { score -= 1; }
+        // Opponent looks to be having a strong round — guaranteed points matter a
+        // little more. A nudge, not a thumb on the scale. (No-op without the signal.)
+        if (context.opponentSignal >= 4.5) { score += 0.4; }
 
         return score;
     }
 
+    // Take pays the MARGIN you win by, plus your combo — and only if you win.
+    // Lose it and the pocket scores nothing at all. That's the real rule, and now
+    // it is finally the real number.
     scoreTake(dieValue, context) {
-        // Universal: if the human has already committed to Take, the outcome is
-        // knowable to any player at any skill level — this isn't gated by tier.
+        // ── Answering: the human has already committed a die to Take. ──
+        // Universal across tiers — plain visible board state, not a skill.
         if (context.humanTakeDie !== null) {
-            if (dieValue > context.humanTakeDie) {
-                const diff = dieValue - context.humanTakeDie;
-                return diff * 5 + context.aiCombo * 3.5;
+            const diff = dieValue - context.humanTakeDie;
+            if (diff > 0) {
+                return diff + context.aiCombo;   // won: margin + combo, in points
             }
-            if (dieValue === context.humanTakeDie) { return 0; }
-            return -4 - (context.humanTakeDie - dieValue) * 2;
+            return 0;                            // tied or lost: Take pays nothing
         }
 
-        // Going first — no flat "always favor the high die" rule. Weighed against
-        // hand quality and opponent signal, where the current tier has access to them.
-        let base;
-        if (dieValue >= 5)       { base = dieValue * 3; }
-        else if (dieValue === 4) { base = dieValue * 1.5; }
-        else                     { base = dieValue - 4; }
+        // ── Going first: the outcome isn't known yet, so estimate it. ──
 
-        // Own hand this round is weak overall — a strong die is worth more kept
-        // safe than risked on a Take battle with thin backup. No-op without
-        // ownHandQuality access (stays at the neutral 3.5 default).
-        if (context.ownHandQuality < 3 && dieValue >= 5) { base -= 4; }
+        // HARD: it can see the human's unplaced dice, so it doesn't have to guess.
+        if (context.humanUnplaced !== null && context.humanUnplaced.length > 0) {
+            const theirBest  = Math.max.apply(null, context.humanUnplaced);
+            const theirWorst = Math.min.apply(null, context.humanUnplaced);
 
-        // Opponent's round looks weak so far — Take is a safer bet even with a
-        // modest die. No-op without opponentSignal access.
-        if (context.opponentSignal < 3 && dieValue >= 4) { base += 3; }
+            if (dieValue > theirBest) {
+                // Unbeatable. They cannot answer this die, so they will concede
+                // with their worst one. That margin isn't a hope — it's arithmetic.
+                return (dieValue - theirWorst) + context.aiCombo;
+            }
+            // They still hold something that beats or ties this. Assume they'll use
+            // it if it's worth their while, so this Take is probably dead. Value it
+            // near zero — which quietly lets the search prefer parking a LOW die
+            // here and banking the good ones, exactly as a strong human would.
+            return 0.3;
+        }
+
+        // MEDIUM / EASY: no read on the opponent, so fall back to honest
+        // probability against a uniform 1–6 answer.
+        //   P(win)                    = (d − 1) / 6
+        //   E[margin], summed over all = d(d − 1) / 12
+        const pWin      = (dieValue - 1) / 6;
+        const expMargin = (dieValue * (dieValue - 1)) / 12;
+        let   base      = expMargin + (context.aiCombo * pWin);
+
+        // Own hand is weak overall — a strong die is worth more banked than risked
+        // on a Take battle with thin backup. (No-op without ownHandQuality.)
+        if (context.ownHandQuality < 3 && dieValue >= 5) { base -= 1.5; }
 
         return base;
     }
 
+    // A saved die replaces a die the AI would otherwise have ROLLED next round,
+    // and a rolled die averages 3.5. So the true value of saving is the EDGE over
+    // that 3.5 — which is precisely why saving a 2 is genuinely bad and saving a
+    // 6 is genuinely good.
     scoreSave(dieValue, context) {
-        let score = dieValue * 1.5;
+        let score = dieValue - 3.5;
 
-        // Calculated banking — value scales with how far behind the AI actually
-        // is right now (using whichever gap-estimate this tier has access to).
-        if (context.roundsToClose > 0) {
-            score += Math.min(context.roundsToClose, 3) * dieValue * 1.2;
+        // Behind — a guaranteed strong die next round is worth more when there's
+        // ground to make up. Scales with how far behind this tier thinks it is.
+        if (context.roundsToClose > 0 && dieValue >= 4) {
+            score += Math.min(context.roundsToClose, 3) * 0.5;
         }
 
-        // Rolldown approaching — a saved die becomes a guaranteed-scoring 5th die
-        // there. Available to all three tiers, including Easy's simple flag version.
-        if (context.rolldownImminent && dieValue >= 4) {
-            score += dieValue * 1.5;
+        // The Rolldown is close, and whatever sits in Save when it triggers becomes
+        // a guaranteed-scoring 5th die there. Worth real points — and all three
+        // tiers can see this one.
+        if (context.rolldownImminent) {
+            score += (dieValue - 3.5) * 1.2;
         }
-
-        // Already ahead or even — no reason to over-bank a weak die.
-        if (context.roundsToClose === 0 && dieValue <= 3) { score -= 2; }
 
         return score;
     }
 
     // =============================================================================
-    // SEARCH STRATEGIES — Easy reasons greedily (one die at a time, no lookahead
-    // across its own remaining dice); Medium and Hard both search every possible
-    // full arrangement and play the first move of the best one. This is a second,
-    // separate axis from the context lenses above — "how hard does it think,"
-    // not "what does it see."
+    // SEARCH STRATEGIES — Easy reasons greedily (one die at a time, no lookahead);
+    // Medium and Hard both search every possible full arrangement and play the
+    // first move of the best one. This is a second, separate axis from the context
+    // lenses above — "how hard does it think," not "what does it see."
+    //
+    // This search is also what prices the cost of a Take fight. Because it totals
+    // a COMPLETE arrangement, sending the best die to Take is automatically
+    // compared against the Keep points that same die would have earned instead.
+    // Now that every pocket finally speaks in points, that comparison means
+    // something.
     // =============================================================================
 
     calculateGreedyMove(availDice, emptyPockets, context) {
