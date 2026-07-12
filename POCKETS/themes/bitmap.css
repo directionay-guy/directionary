@@ -768,3 +768,46 @@ body.has-css-fullscreen { overflow: hidden; }
 /* ==========================================================
    PLAYING AS RED — swap blue/red panels
    ========================================================== */
+
+/* When playing as Red: the human is internally Blue and stays on the LEFT.
+   Nothing moves — only colour swaps. The human's (.blue) side becomes the red
+   panel, the AI's (.red) side becomes the blue panel, across areas, headers,
+   dice, scores and the two roll buttons (#blueRoll = human, #redRoll = AI).
+   Pockets are deliberately left alone — they are always plain white.
+   The rolloff dice are recoloured by the game engine, not here. */
+
+/* Player area panels */
+.theme-bitmap .playing-as-red .player-area.blue { background: var(--bm-red-panel); }
+.theme-bitmap .playing-as-red .player-area.red  { background: var(--bm-blue-panel); }
+
+/* Player headers / names */
+.theme-bitmap .playing-as-red .player-area.blue .player-header,
+.theme-bitmap .playing-as-red .player-area.blue .player-name { color: var(--bm-red); }
+.theme-bitmap .playing-as-red .player-area.red  .player-header,
+.theme-bitmap .playing-as-red .player-area.red  .player-name { color: var(--bm-blue); }
+
+/* Board dice — faces, strokes and pips follow the swapped side */
+.theme-bitmap .playing-as-red .player-area.blue svg.dice .dice-face {
+    fill: var(--bm-red-panel); stroke: var(--bm-red); stroke-width: 1.5;
+}
+.theme-bitmap .playing-as-red .player-area.blue svg.dice .dice-dot { fill: var(--bm-red); }
+.theme-bitmap .playing-as-red .player-area.red  svg.dice .dice-face {
+    fill: var(--bm-blue-panel); stroke: var(--bm-blue); stroke-width: 1.5;
+}
+.theme-bitmap .playing-as-red .player-area.red  svg.dice .dice-dot { fill: var(--bm-blue); }
+
+/* Saved die — same swap, keeping the bolder stroke that marks it as saved */
+.theme-bitmap .playing-as-red .player-area.blue .dice.saved-tint .dice-face { fill: var(--bm-red-panel);  stroke: var(--bm-red);  stroke-width: 2.5; }
+.theme-bitmap .playing-as-red .player-area.red  .dice.saved-tint .dice-face { fill: var(--bm-blue-panel); stroke: var(--bm-blue); stroke-width: 2.5; }
+.theme-bitmap .playing-as-red .player-area.blue .dice.saved-tint .dice-dot  { fill: var(--bm-red); }
+.theme-bitmap .playing-as-red .player-area.red  .dice.saved-tint .dice-dot  { fill: var(--bm-blue); }
+
+/* Score panels */
+.theme-bitmap .playing-as-red #blueScoreArea { background: var(--bm-red-panel); }
+.theme-bitmap .playing-as-red #redScoreArea  { background: var(--bm-blue-panel); }
+.theme-bitmap .playing-as-red .blue-player { color: var(--bm-red); }
+.theme-bitmap .playing-as-red .red-player  { color: var(--bm-blue); }
+
+/* Roll buttons — #blueRoll is the human, #redRoll is the AI */
+.theme-bitmap .playing-as-red #blueRoll { border-color: var(--bm-red);  color: var(--bm-red);  }
+.theme-bitmap .playing-as-red #redRoll  { border-color: var(--bm-blue); color: var(--bm-blue); }
