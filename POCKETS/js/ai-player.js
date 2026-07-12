@@ -1,4 +1,4 @@
-// POCKETS AI PLAYER MODULE — v4.0
+// POCKETS AI PLAYER MODULE — v4.1
 // AI always plays as Red. Human always plays as Blue internally.
 // If human chose "Play as Red," that's a visual/stats swap only — game logic unchanged.
 //
@@ -125,6 +125,7 @@ class PocketsAI {
             aiCombo:          calculateBonusPoints(gameState.redOriginalRoll || []),
             humanTakeDie:     humanTakeDie, // universal: visible board state, not a skill
             humanUnplaced:    null,         // Hard only — see note below
+            humanCombo:       1.5,          // neutral estimate; Hard reads the real one
             ownHandQuality:   3.5,
             opponentSignal:   3.5,
             roundsToClose:    0,
@@ -141,6 +142,7 @@ class PocketsAI {
             // reads them. This is not cheating: it is looking at what any player
             // can already see, and what a good human absolutely does look at.
             context.humanUnplaced    = [...(gameState.blueDice || [])];
+            context.humanCombo       = calculateBonusPoints(gameState.blueOriginalRoll || []);
         } else if (this.difficulty === 'medium') {
             context.ownHandQuality   = this.getHandQuality(availDice);
             // opponentSignal stays neutral — Medium doesn't read the opponent.
@@ -227,17 +229,27 @@ class PocketsAI {
     // Lose it and the pocket scores nothing at all. That's the real rule, and now
     // it is finally the real number.
     scoreTake(dieValue, context) {
+        // ── THE DENIAL TERM — the thing v4.0 originally missed. ──
+        // Take is CONTESTED. Losing it doesn't merely forgo points, it HANDS them
+        // over: the opponent collects the margin PLUS their combo. And the lower
+        // the die you concede with, the bigger the margin you're gifting. So the
+        // value of a Take die is a DIFFERENCE — what I score minus what they score
+        // — not just what I stand to gain. Scoring it as a solo decision made the
+        // AI concede far too readily and cost it games.
+
         // ── Answering: the human has already committed a die to Take. ──
-        // Universal across tiers — plain visible board state, not a skill.
         if (context.humanTakeDie !== null) {
             const diff = dieValue - context.humanTakeDie;
             if (diff > 0) {
-                return diff + context.aiCombo;   // won: margin + combo, in points
+                // Won: I take the margin and my combo, AND they get nothing.
+                return diff + context.aiCombo;
             }
-            return 0;                            // tied or lost: Take pays nothing
+            if (diff === 0) { return 0; }
+            // Lost: they collect the margin I handed them, plus their combo.
+            return -(context.humanTakeDie - dieValue) - context.humanCombo;
         }
 
-        // ── Going first: the outcome isn't known yet, so estimate it. ──
+        // ── Going first. ──
 
         // HARD: it can see the human's unplaced dice, so it doesn't have to guess.
         if (context.humanUnplaced !== null && context.humanUnplaced.length > 0) {
@@ -245,30 +257,28 @@ class PocketsAI {
             const theirWorst = Math.min.apply(null, context.humanUnplaced);
 
             if (dieValue > theirBest) {
-                // Unbeatable. They cannot answer this die, so they will concede
-                // with their worst one. That margin isn't a hope — it's arithmetic.
+                // Unbeatable. They can't answer, so they'll concede with their
+                // worst die. That margin isn't a hope — it's arithmetic.
                 return (dieValue - theirWorst) + context.aiCombo;
             }
-            // They still hold something that beats or ties this. Assume they'll use
-            // it if it's worth their while, so this Take is probably dead. Value it
-            // near zero — which quietly lets the search prefer parking a LOW die
-            // here and banking the good ones, exactly as a strong human would.
-            return 0.3;
+            // They hold an answer. Assume they use it: they win by the margin I
+            // leave them, plus their combo. Conceding low is EXPENSIVE.
+            return -(theirBest - dieValue) - context.humanCombo;
         }
 
-        // MEDIUM / EASY: no read on the opponent, so fall back to honest
-        // probability against a uniform 1–6 answer.
-        //   P(win)                    = (d − 1) / 6
-        //   E[margin], summed over all = d(d − 1) / 12
-        const pWin      = (dieValue - 1) / 6;
-        const expMargin = (dieValue * (dieValue - 1)) / 12;
-        let   base      = expMargin + (context.aiCombo * pWin);
+        // MEDIUM / EASY: no read on the opponent — average over a uniform 1–6 answer,
+        // counting both what I'd win and what I'd hand over.
+        let ev = 0;
+        for (let o = 1; o <= 6; o++) {
+            if (dieValue > o)      { ev += (dieValue - o) + context.aiCombo; }
+            else if (dieValue < o) { ev += -(o - dieValue) - context.humanCombo; }
+        }
+        ev = ev / 6;
 
-        // Own hand is weak overall — a strong die is worth more banked than risked
-        // on a Take battle with thin backup. (No-op without ownHandQuality.)
-        if (context.ownHandQuality < 3 && dieValue >= 5) { base -= 1.5; }
+        // Own hand is weak overall — a strong die is worth a little more banked.
+        if (context.ownHandQuality < 3 && dieValue >= 5) { ev -= 1.0; }
 
-        return base;
+        return ev;
     }
 
     // A saved die replaces a die the AI would otherwise have ROLLED next round,
