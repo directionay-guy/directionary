@@ -31,6 +31,14 @@ body.theme-dark {
     --line-mid:   1px solid var(--white);
     --line-dim:   1px solid rgba(255, 255, 255, 0.35);
 
+    /* Rolloff dice colours when PLAYING AS RED. The game engine repaints the
+       rolloff dice in JS, and without these it falls back to another theme's
+       burgundy/navy faces and gold pips. Human = red, AI = blue. */
+    --rolloff-human-face: #380a0a;
+    --rolloff-ai-face:    #0a1a38;
+    --rolloff-human-dot:  #ef4444;
+    --rolloff-ai-dot:     #3b82f6;
+
     background: var(--black);
     color: var(--white);
     font-family: system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
@@ -330,10 +338,18 @@ body.theme-dark {
 .theme-dark .rolloff-side-label.red-text  { color: var(--red);  }
 .theme-dark .player-rolls { background: transparent; border: none; }
 
-/* Rolloff dice — blue/red faces. Noticeably larger than the base size,
-   with a thin 1px white outline (was the heavier 1.5px .dice border). */
+/* Rolloff dice — blue/red faces, noticeably larger than the base dice.
+   The base .dice has a white BACKGROUND, which on these dark-faced rolloff
+   dice showed through as a thick white frame around the face — that was the
+   "fat outline". Background off, thin 1px white outline on instead. */
 .theme-dark .rolloff-die { width: 96px; height: 96px; }
-.theme-dark .rolloff-die svg.dice { width: 84px !important; height: 84px !important; border: 1px solid var(--white); }
+.theme-dark .rolloff-die svg.dice {
+    width: 84px !important;
+    height: 84px !important;
+    background: transparent;
+    border: 1px solid var(--white);
+    border-radius: 3px;
+}
 .theme-dark #blueRolloffDie .dice-face { fill: #0a1a38; stroke: var(--blue); stroke-width: 1; }
 .theme-dark #blueRolloffDie .dice-dot  { fill: var(--blue); }
 .theme-dark #redRolloffDie  .dice-face { fill: #380a0a; stroke: var(--red);  stroke-width: 1; }
