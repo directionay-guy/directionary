@@ -49,6 +49,18 @@ body.theme-art-deco {
         #e8e8ee 0%, #c8cad2 30%, #f0f0f4 50%, #c8cad2 70%, #e8e8ee 100%
     );
 
+    /* Rolloff dice when PLAYING AS RED — the engine repaints these in JS.
+       This theme draws the die face as a CSS background, not an SVG fill, so
+       the engine is told to leave the face alone (transparent / no stroke)
+       and only recolour the pips. The face + border swap happens in the
+       PLAYING AS RED section at the foot of this file. */
+    --rolloff-human-face:   transparent;
+    --rolloff-ai-face:      transparent;
+    --rolloff-human-stroke: none;
+    --rolloff-ai-stroke:    none;
+    --rolloff-human-dot:    #f0a8a8;
+    --rolloff-ai-dot:       #87ceeb;
+
     background: var(--bg-deep);
     color: var(--pearl);
     font-family: 'Poiret One', 'Avenir Next', 'Helvetica Neue', sans-serif;
@@ -1512,3 +1524,15 @@ body.has-css-fullscreen { overflow: hidden; }
 .theme-art-deco .playing-as-red #redRollFinalDie  { border-left: 3px solid #5fa8e8; }
 .theme-art-deco .playing-as-red #blueRollFinalDie:not(:disabled):hover { border-color: #e87a7a; box-shadow: 0 0 14px rgba(232, 122, 122, 0.4); }
 .theme-art-deco .playing-as-red #redRollFinalDie:not(:disabled):hover  { border-color: #5fa8e8; box-shadow: 0 0 14px rgba(95, 168, 232, 0.4); }
+
+/* Rolloff dice — this theme draws the face as a CSS background and border, so
+   the swap has to happen here (the engine only recolours the pips).
+   #blueRolloffDie is the human, #redRolloffDie is the AI. */
+.theme-art-deco .playing-as-red #blueRolloffDie .dice {
+    background: linear-gradient(145deg, #501a1a, #380e0e);
+    border-color: #cc4848;
+}
+.theme-art-deco .playing-as-red #redRolloffDie .dice {
+    background: linear-gradient(145deg, #1a3050, #0e1c38);
+    border-color: #4a90e2;
+}
