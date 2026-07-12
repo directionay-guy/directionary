@@ -101,6 +101,12 @@ function refreshDiePips(svgEl, value) {
         5: [[20, 20], [40, 20], [30, 30], [20, 40], [40, 40]],
         6: [[20, 17], [40, 17], [20, 30], [40, 30], [20, 43], [40, 43]]
     };
+    // A die whose pips were force-coloured (the rolloff dice, when playing as
+    // Red) records that colour on itself. This function DESTROYS and rebuilds
+    // every pip, so without re-applying it the new pips would come back with
+    // no colour and fall back to the stylesheet - which is why a swapped die
+    // used to show the wrong-coloured pips the instant it started spinning.
+    var forcedDot = svgEl.getAttribute('data-dot-fill');
     var existing = svgEl.querySelectorAll('.dice-dot');
     for (var i = existing.length - 1; i >= 0; i--) {
         existing[i].parentNode.removeChild(existing[i]);
@@ -112,6 +118,9 @@ function refreshDiePips(svgEl, value) {
         dot.setAttribute('cx', positions[j][0]);
         dot.setAttribute('cy', positions[j][1]);
         dot.setAttribute('r', '4');
+        if (forcedDot) {
+            dot.setAttribute('style', 'fill: ' + forcedDot + ' !important;');
+        }
         svgEl.appendChild(dot);
     }
 }
@@ -914,13 +923,15 @@ function setRolloffDieFaded(buttonEl, shouldFade) {
             aiDot     = cs.getPropertyValue('--rolloff-ai-dot').trim() || cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
         }
         // Blue button = human when playing as red
+        var strokeVar  = cs.getPropertyValue('--rolloff-stroke').trim();
         var faceFill   = isBlueButton ? humanFace : aiFace;
-        var faceStroke = isBlueButton ? humanDot  : aiDot;
         var dotFill    = isBlueButton ? humanDot  : aiDot;
+        var faceStroke = strokeVar || dotFill;
         var face = svg.querySelector('.dice-face');
         if (face) {
             face.setAttribute('style', 'fill: ' + faceFill + ' !important; stroke: ' + faceStroke + ' !important;');
         }
+        svg.setAttribute('data-dot-fill', dotFill);   // survives pip rebuilds mid-spin
         svg.querySelectorAll('.dice-dot').forEach(function(d) {
             d.setAttribute('style', 'fill: ' + dotFill + ' !important;');
         });
@@ -942,10 +953,13 @@ function setRolloffDieFadedInPlace(buttonEl) {
         var aiDot     = isBitmap ? '#000080' : (cs.getPropertyValue('--rolloff-ai-dot').trim() || cs.getPropertyValue('--gold-pale').trim() || '#c8a84b');
         var svg = buttonEl.querySelector('svg');
         if (svg) {
+            var strokeVar = cs.getPropertyValue('--rolloff-stroke').trim();
+            var dotFill   = (isBlueButton ? humanDot : aiDot);
             var face = svg.querySelector('.dice-face');
             if (face) {
-                face.setAttribute('style', 'fill:' + (isBlueButton ? humanFace : aiFace) + ' !important; stroke:' + (isBlueButton ? humanDot : aiDot) + ' !important;');
+                face.setAttribute('style', 'fill:' + (isBlueButton ? humanFace : aiFace) + ' !important; stroke:' + (strokeVar || dotFill) + ' !important;');
             }
+            svg.setAttribute('data-dot-fill', (isBlueButton ? humanDot : aiDot));   // survives pip rebuilds
             svg.querySelectorAll('.dice-dot').forEach(function(d) {
                 d.setAttribute('style', 'fill:' + (isBlueButton ? humanDot : aiDot) + ' !important;');
             });
@@ -1000,13 +1014,15 @@ function rolloffRollDie(player) {
         }
         // Blue button = human when playing as red
         var isHuman    = (player === 'blue');
+        var strokeVar  = cs.getPropertyValue('--rolloff-stroke').trim();
         var faceFill   = isHuman ? humanFace : aiFace;
-        var faceStroke = isHuman ? humanDot  : aiDot;
         var dotFill    = isHuman ? humanDot  : aiDot;
+        var faceStroke = strokeVar || dotFill;
         var face = rollSvg.querySelector('.dice-face');
         if (face) {
             face.setAttribute('style', 'fill: ' + faceFill + ' !important; stroke: ' + faceStroke + ' !important;');
         }
+        rollSvg.setAttribute('data-dot-fill', dotFill);   // survives pip rebuilds mid-spin
         rollSvg.querySelectorAll('.dice-dot').forEach(function(d) {
             d.setAttribute('style', 'fill: ' + dotFill + ' !important;');
         });
