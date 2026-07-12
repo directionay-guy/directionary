@@ -9,6 +9,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POCKETS — Keep. Take. Save. Win.</title>
 
+    <!-- Favicon — a die, drawn inline as SVG so there's no image file to host. -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='4' width='56' height='56' rx='10' fill='%23f0e6cc' stroke='%233a2516' stroke-width='4'/%3E%3Ccircle cx='19' cy='19' r='5' fill='%233a2516'/%3E%3Ccircle cx='45' cy='19' r='5' fill='%233a2516'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%233a2516'/%3E%3Ccircle cx='19' cy='45' r='5' fill='%233a2516'/%3E%3Ccircle cx='45' cy='45' r='5' fill='%233a2516'/%3E%3C/svg%3E">
+
+    <!-- Link previews. Without these, sharing the URL in a text, on Facebook,
+         Discord, etc. shows a bare link with no title, blurb or picture. -->
+    <meta name="description" content="POCKETS is a strategic dice game for two players. Keep. Take. Save. Win. Play a friend or take on the AI.">
+    <meta property="og:title" content="POCKETS — Keep. Take. Save. Win.">
+    <meta property="og:description" content="An original strategy dice game. Four dice, four pockets, one decision that decides the round. Play a friend or take on the AI.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary">
+
     <!-- Google Analytics — replace G-XXXXXXXXXX with your measurement ID -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
     <script>
@@ -140,6 +151,39 @@
             background: transparent !important;
             border-color: #ddd !important;
         }
+
+        /* ── Guide data tables (roll reading, placement signals, save priority) ──
+           These replaced three hand-drawn SVGs that hardcoded cream text and so
+           were near-invisible on the light modal background. As real tables they
+           inherit the modal's colours in every theme, reflow on a phone, and the
+           text can be selected. */
+        .guide-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.94em; }
+        .guide-table caption {
+            caption-side: top; text-align: left;
+            font-weight: bold; padding: 0 0 6px; opacity: 0.85;
+            letter-spacing: 0.03em;
+        }
+        .guide-table th {
+            text-align: left; padding: 6px 10px;
+            border-bottom: 2px solid currentColor;
+            font-size: 0.92em; letter-spacing: 0.04em;
+            opacity: 0.85;
+        }
+        .guide-table td {
+            padding: 7px 10px; vertical-align: top;
+            border-bottom: 1px solid rgba(128,128,128,0.28);
+            line-height: 1.5;
+        }
+        .guide-table tr:last-child td { border-bottom: none; }
+        .guide-table .gt-verdict { font-weight: bold; }
+        @media (max-width: 560px) {
+            .guide-table, .guide-table tbody, .guide-table tr, .guide-table td { display: block; width: 100%; }
+            .guide-table thead { display: none; }
+            .guide-table tr { border-bottom: 1px solid rgba(128,128,128,0.35); padding: 6px 0; }
+            .guide-table td { border-bottom: none; padding: 3px 0; }
+            .guide-table td::before { content: attr(data-label) ": "; font-weight: bold; opacity: 0.75; }
+        }
+
         .theme-selector-wrap {
             display: inline-flex; align-items: center; gap: 4px; vertical-align: middle;
         }
@@ -870,7 +914,7 @@ select.theme-subtitle {
             <div class="pre-final-inner">
                 <div class="pre-final-ornament">⚜</div>
                 <h2 class="pre-final-title">The Rolldown Approaches</h2>
-                <p class="pre-final-flavour">Ten rounds of cunning play draw to a close.<br>Now comes the final reckoning — your saved die enters the arena.</p>
+                <p class="pre-final-flavour">The race to 100 is over.<br>Now comes the final reckoning — your saved die enters the arena.</p>
                 <div class="pre-final-saved-reminder">💎 Your <strong>Save One</strong> die carries forward into the Rolldown</div>
                 <button class="btn proceed-btn" id="proceedFinalBtn">Proceed to the Rolldown →</button>
             </div>
@@ -995,14 +1039,19 @@ select.theme-subtitle {
             </div>
         </div>
 
-        <div class="stats-panel hidden" id="statsPanel">
-            <h3>Player Statistics</h3>
-            <div id="statsContent"></div>
-        </div>
-
+        <!-- Buttons sit ABOVE the stats panel on purpose. When the panel was
+             above them, opening it pushed the buttons far down the page — you
+             clicked View Stats and the button ran away from you. Compact theme
+             was the only one that escaped this, because its CSS reorders the
+             two; now the markup itself does it for every theme. -->
         <div class="new-game-section">
             <button class="btn action-btn" id="newGame">New Game</button>
             <button class="btn action-btn" id="viewStats">View Stats</button>
+        </div>
+
+        <div class="stats-panel hidden" id="statsPanel">
+            <h3>Player Statistics</h3>
+            <div id="statsContent"></div>
         </div>
 
         <!-- Confirm Modal -->
@@ -1090,7 +1139,9 @@ const themeSelector = document.getElementById('themeSelector');
   <nav style="margin-bottom:18px;line-height:2.4;">
     <strong>Jump to:</strong><br>
     <a class="guide-nav-btn" href="#sg-short">The Short Version</a>
+    <a class="guide-nav-btn" href="#sg-open">Everything Is Visible</a>
     <a class="guide-nav-btn" href="#sg-rules-note">One Rule Worth Knowing</a>
+    <a class="guide-nav-btn" href="#sg-cost">What a Take Fight Costs</a>
     <a class="guide-nav-btn" href="#sg-before">Before the Round</a>
     <a class="guide-nav-btn" href="#sg-rff">Roll For First</a>
     <a class="guide-nav-btn" href="#sg-yourroll">Reading Your Roll</a>
@@ -1115,6 +1166,18 @@ const themeSelector = document.getElementById('themeSelector');
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
+<div class="help-section" id="sg-open">
+  <h3>Everything Is Visible — Including Their Dice</h3>
+  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"You are not guessing what they hold. You are guessing what they'll <em>do</em> with it."</p>
+  <p>This is the single most important thing to understand about POCKETS, and it's the thing new players take longest to trust:</p>
+  <p><strong>The moment both players roll, all four of their dice are face-up in front of you.</strong> Nothing is hidden. Not their hand, not their combo, not the die they're about to fight you with. It's all sitting there on the board, in plain sight, all round long — in the digital game and in the physical game alike.</p>
+  <p>So there is no bluffing about <em>what you have</em>. There's no hiding a strong hand or disguising a weak one. If they hold a 6, you can see the 6. If they hold three 4s, you know their combo before they place a single die.</p>
+  <p><strong>What <em>is</em> hidden is intent.</strong> You can see their 6. You cannot see whether they mean to spend it on Take, bank it in Keep, or carry it forward in Save. That decision lives in their head until the die touches a pocket — and <em>that</em> is where the real game is played.</p>
+  <p>Once you internalise this, POCKETS gets sharper, not simpler. Before you commit a die to Take, you can look across the board and know <em>exactly</em> what their best possible answer is. If their highest unplaced die is a 3, your 4 wins Take and cannot be beaten. That's not a read or a hunch — it's arithmetic. Use it.</p>
+  <p><em>The players who lose to this game are the ones who play their own four dice and never look up.</em></p>
+  <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
+</div>
+
 <div class="help-section" id="sg-rules-note">
   <h3>One Rule Worth Knowing Before You Play</h3>
   <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"In chess, touching a piece means you must move it. POCKETS is the opposite."</p>
@@ -1122,7 +1185,28 @@ const themeSelector = document.getElementById('themeSelector');
   <p><strong>But once you place a die in a pocket, it is there for good.</strong> No take-backs. No adjustments. That pocket is closed.</p>
   <p>In the digital game: tap a die to highlight it, tap another die to change your selection, tap a pocket to lock it in permanently.</p>
   <p>In the physical game: handle the dice freely, but the moment a die touches a pocket and you release it, the placement stands.</p>
-  <p>This matters strategically. You can <em>pick up</em> your strongest die and hover it over Take — watching your opponent sweat — and then put it in Keep instead. Mind games are legal. Permanent placements are not reversible.</p>
+  <p>This matters strategically. Your opponent can see your dice — but not your intentions. You can <em>pick up</em> your strongest die and hover it over Take, watching them sweat, and then put it in Keep instead. Bluffing about intent is entirely legal. Placements are not reversible.</p>
+  <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
+</div>
+
+<div class="help-section" id="sg-cost">
+  <h3>What a Take Fight Actually Costs You</h3>
+  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Take doesn't cost you nothing. It costs you the Keep points you gave up to fight there."</p>
+  <p>This is the piece of arithmetic that separates good POCKETS players from everyone else, and almost nobody works it out on their own.</p>
+  <p>Here's the thing: <strong>you never choose <em>whether</em> to contest Take. You only choose <em>which die</em> goes there.</strong> All four pockets get filled, every round, no matter what. So sending your best die into Take doesn't cost you nothing — it quietly demotes both of your Keep dice.</p>
+  <p>Line your four dice up from best to worst and call them <strong>A, B, C, D</strong>:</p>
+  <ul>
+    <li><strong>If you fight:</strong> your best die (A) goes to Take. Your Keeps are then <strong>B and C</strong>.</li>
+    <li><strong>If you concede:</strong> your worst die (D) goes to Take. Your Keeps are then <strong>A and B</strong>.</li>
+  </ul>
+  <p>Compare those and the cost falls right out. Fighting swaps a C into your Keep pockets where an A used to be. So:</p>
+  <p style="text-align:center;font-weight:bold;font-size:1.08em;margin:14px 0;">Fighting for Take costs you exactly <strong>A − C</strong> in guaranteed Keep points.</p>
+  <p>Which gives you the only Take rule you really need:</p>
+  <p style="text-align:center;font-style:italic;margin:14px 0;">Fight for Take only when your <strong>winning margin + combo bonus</strong> is bigger than <strong>A − C</strong>.</p>
+  <p><strong>Run it on a real hand.</strong> You roll <strong>6 6 3 1</strong>. Tempting — you've got a pair of 6s! But: A = 6, C = 3, so fighting costs you <strong>3</strong> guaranteed points. And a pair only pays <strong>+1</strong>. So you'd need to win Take by 3 or more <em>just to break even</em>. That "combo" is not a reason to fight. It's a trap.</p>
+  <p><strong>Now a hand that looks worse and plays better.</strong> You roll <strong>5 5 5 2</strong>. A = 5, C = 5 — the gap is <strong>zero</strong>. Fighting costs you literally nothing, because your third-best die is just as good as your best one. Plus a +3 combo waiting. <em>Commit without hesitating.</em></p>
+  <p>That's the whole insight: <strong>matched dice make Take cheap.</strong> It isn't the size of your combo that licenses the fight — it's how little you give up in Keep to have it. Three 5s beats two 6s here, and now you know why.</p>
+  <p><em>And because you can see their dice too, you can run the same sum on their hand. You'll often find their "strong" Take die is costing them more than it's worth.</em></p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
@@ -1133,34 +1217,34 @@ const themeSelector = document.getElementById('themeSelector');
   <p><strong>The Save pocket — the most misunderstood rule in the game.</strong></p>
   <p>The saved die carries forward exactly one round. That's it. It becomes your fourth die for the next round — meaning you roll only three new dice. After that round, the saved die is used up, gone, scored or not. If you want to carry a die forward again, you have to actively choose to save again. Nothing happens automatically. Nothing compounds on its own.</p>
 
-  <svg viewBox="0 0 480 120" style="width:100%;max-width:480px;display:block;margin:14px auto;" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="480" height="120" rx="8" fill="rgba(0,0,0,0.15)"/>
-    <rect x="20" y="28" width="88" height="62" rx="6" fill="rgba(100,160,100,0.3)" stroke="rgba(200,168,75,0.6)" stroke-width="1.5"/>
-    <text x="64" y="48" text-anchor="middle" fill="#f5f0e4" font-size="11" font-family="serif">Round 4</text>
-    <text x="64" y="67" text-anchor="middle" fill="#c8a84b" font-size="20" font-weight="bold" font-family="serif">6</text>
-    <text x="64" y="82" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">you save it</text>
-    <line x1="112" y1="59" x2="152" y2="59" stroke="#c8a84b" stroke-width="2" marker-end="url(#arv3a)"/>
-    <rect x="157" y="28" width="88" height="62" rx="6" fill="rgba(100,160,100,0.3)" stroke="rgba(200,168,75,0.6)" stroke-width="1.5"/>
-    <text x="201" y="48" text-anchor="middle" fill="#f5f0e4" font-size="11" font-family="serif">Round 5</text>
-    <text x="201" y="67" text-anchor="middle" fill="#c8a84b" font-size="20" font-weight="bold" font-family="serif">6</text>
-    <text x="201" y="82" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">4th die</text>
-    <text x="258" y="52" text-anchor="middle" fill="#f5f0e4" font-size="9" font-family="serif">save</text>
-    <text x="258" y="64" text-anchor="middle" fill="#f5f0e4" font-size="9" font-family="serif">again?</text>
-    <line x1="251" y1="72" x2="291" y2="72" stroke="rgba(200,168,75,0.45)" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arv3b)"/>
-    <rect x="296" y="28" width="88" height="62" rx="6" fill="rgba(100,160,100,0.12)" stroke="rgba(200,168,75,0.25)" stroke-width="1.5" stroke-dasharray="5,3"/>
-    <text x="340" y="48" text-anchor="middle" fill="#f5f0e4" font-size="11" font-family="serif">Round 6</text>
-    <text x="340" y="67" text-anchor="middle" fill="#c8a84b" font-size="16" font-weight="bold" font-family="serif">?</text>
-    <text x="340" y="82" text-anchor="middle" fill="#f5f0e4" font-size="9" opacity="0.6" font-family="serif">your choice</text>
-    <text x="415" y="55" text-anchor="middle" fill="#f5f0e4" font-size="9" opacity="0.6" font-family="serif">NOT</text>
-    <text x="415" y="67" text-anchor="middle" fill="#f5f0e4" font-size="9" opacity="0.6" font-family="serif">automatic</text>
+  <svg viewBox="0 0 480 120" style="width:100%;max-width:480px;display:block;margin:14px auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A saved 6 from round 4 becomes your fourth die in round 5, and then it is spent — carrying it into round 6 is a fresh choice, not automatic.">
+    <rect x="0" y="0" width="480" height="120" rx="8" fill="rgba(128,128,128,0.10)"/>
+    <rect x="20" y="28" width="88" height="62" rx="6" fill="rgba(120,170,120,0.22)" stroke="currentColor" stroke-opacity="0.5" stroke-width="1.5"/>
+    <text x="64" y="48" text-anchor="middle" fill="currentColor" font-size="11" font-family="serif">Round 4</text>
+    <text x="64" y="67" text-anchor="middle" fill="currentColor" font-size="20" font-weight="bold" font-family="serif">6</text>
+    <text x="64" y="82" text-anchor="middle" fill="currentColor" font-size="10" font-family="serif" opacity="0.8">you save it</text>
+    <line x1="112" y1="59" x2="152" y2="59" stroke="currentColor" stroke-width="2" marker-end="url(#arv3a)"/>
+    <rect x="157" y="28" width="88" height="62" rx="6" fill="rgba(120,170,120,0.22)" stroke="currentColor" stroke-opacity="0.5" stroke-width="1.5"/>
+    <text x="201" y="48" text-anchor="middle" fill="currentColor" font-size="11" font-family="serif">Round 5</text>
+    <text x="201" y="67" text-anchor="middle" fill="currentColor" font-size="20" font-weight="bold" font-family="serif">6</text>
+    <text x="201" y="82" text-anchor="middle" fill="currentColor" font-size="10" font-family="serif" opacity="0.8">your 4th die</text>
+    <text x="258" y="52" text-anchor="middle" fill="currentColor" font-size="9" font-family="serif" opacity="0.8">save</text>
+    <text x="258" y="64" text-anchor="middle" fill="currentColor" font-size="9" font-family="serif" opacity="0.8">again?</text>
+    <line x1="251" y1="72" x2="291" y2="72" stroke="currentColor" stroke-opacity="0.45" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arv3b)"/>
+    <rect x="296" y="28" width="88" height="62" rx="6" fill="rgba(128,128,128,0.08)" stroke="currentColor" stroke-opacity="0.28" stroke-width="1.5" stroke-dasharray="5,3"/>
+    <text x="340" y="48" text-anchor="middle" fill="currentColor" font-size="11" font-family="serif">Round 6</text>
+    <text x="340" y="67" text-anchor="middle" fill="currentColor" font-size="16" font-weight="bold" font-family="serif">?</text>
+    <text x="340" y="82" text-anchor="middle" fill="currentColor" font-size="9" opacity="0.65" font-family="serif">your choice</text>
+    <text x="418" y="55" text-anchor="middle" fill="currentColor" font-size="9" opacity="0.65" font-family="serif">NOT</text>
+    <text x="418" y="67" text-anchor="middle" fill="currentColor" font-size="9" opacity="0.65" font-family="serif">automatic</text>
     <defs>
-      <marker id="arv3a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="#c8a84b" stroke-width="1.5"/></marker>
-      <marker id="arv3b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="rgba(200,168,75,0.45)" stroke-width="1.5"/></marker>
+      <marker id="arv3a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="currentColor" stroke-width="1.5"/></marker>
+      <marker id="arv3b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="currentColor" stroke-opacity="0.45" stroke-width="1.5"/></marker>
     </defs>
   </svg>
 
   <p>Why does this matter so much? Because a saved 6 isn't a permanent weapon — it's a very good die you've guaranteed yourself for one more round. After that, you decide again. Sometimes the right answer is to save it again. Sometimes it's to finally fight with it in Take. The decision is always fresh.</p>
-  <p><strong>What your opponent's Save pocket tells you right now:</strong> Whatever die is sitting in their Save pocket is their guaranteed fourth die this round. A saved 6 means they're walking into this round with a 6 already in hand. Factor that into your Take calculus before you roll.</p>
+  <p><strong>What their Save pocket tells you right now:</strong> the die they saved <em>last</em> round is their fourth die <em>this</em> round — they're walking in with it already in hand. If it's a 6, they have a 6 before they roll a thing. Factor that in before you commit anything to Take.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
@@ -1168,206 +1252,213 @@ const themeSelector = document.getElementById('themeSelector');
   <h3>Roll For First</h3>
   <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Going first lets you set the agenda. Going second lets you answer it."</p>
   <p>Each round, both players roll a single separate die. Higher number goes first in the placement sequence that round. Ties re-roll. This die is <em>not</em> one of your four placement dice — it's purely for determining order. (In the physical game, it becomes your fifth die in the Rolldown. In the digital game, the Rolldown's fifth die comes from your Save pocket.)</p>
-  <p><strong>What "going first" actually means:</strong> You place one die first. Then your opponent places one die. Then you place one die. Then your opponent. You alternate, one die at a time, until all pockets are filled. Nobody places two dice in a row. Nobody sees all of anyone's dice before placing their own. You simply place die #1 before your opponent places die #1.</p>
-  <p><strong>Going first — the opportunity:</strong> You set the tone. You can place aggressively in Take immediately, forcing your opponent to react to your commitment rather than making their own independent choice. A 6 placed in Take before your opponent has shown anything is genuine pressure — they now have to decide whether to fight it or concede, and that decision constrains everything else they do this round.</p>
-  <p><strong>Going first — the risk:</strong> Your opponent sees your first placement before they make theirs. You've shown something; they've shown nothing. If your first placement is in Keep or Save, you've revealed that you're not immediately threatening Take — your opponent can relax slightly. If your first placement is in Take, you've committed that die publicly.</p>
-  <p><strong>Going second — the power:</strong> You see their first placement before making yours. That's real information. If they placed in Take, you know what you're fighting. If they placed in Keep, you know they're not (yet) threatening Take. You can directly counter their opening move. You can also use your placement to <em>force them onto the defensive</em> — a well-placed die after seeing their first move can box them into a corner. With the right dice, going second and placing aggressively puts the first player in a position they didn't expect to be in.</p>
-  <p><strong>A concrete example:</strong> They go first and place a 3 in Take. You're going second and you have a 6. You can now place your 6 in Take, win by 3 points plus your combo, and the first player is stuck. Or you can place your 6 in Keep, beat their 3 in Take with a lesser die, and bank the 6 safely. Going second gave you that choice. Going first would have meant committing blind.</p>
-  <p><em>Note: the Roll For First die itself is visible to both players. Your opponent rolled a 5 to beat your 4? That 5 is now in their hand for this round. Watch where it goes.</em></p>
+  <p><strong>What "going first" actually means:</strong> You place one die first. Then your opponent places one die. Then you place one die. Then your opponent. You alternate, one die at a time, until all pockets are filled. Nobody places two dice in a row.</p>
+  <p><strong>Both of you can already see all eight dice.</strong> Order doesn't decide who has information — you both have all of it. What order decides is <strong>who has to reveal their intentions first.</strong> That's the whole prize.</p>
+  <p><strong>Going first — the opportunity:</strong> You set the tone. Putting a 6 into Take before your opponent has committed anything is real pressure: they must now decide to fight or fold, and that decision shapes everything else they do this round. You've made them react.</p>
+  <p><strong>Going first — the cost:</strong> Every die you place is a commitment they get to answer. They know exactly what they need to beat, and they still have all four of their dice free to do it with.</p>
+  <p><strong>Going second — the power:</strong> You see their commitment before you make yours. If they put a 4 in Take and you're holding a 5, you can take that pocket and they have no recourse — they've already spent it. If they put a 6 in Take, you can decline the fight cheaply and bank your good dice while they win a small margin.</p>
+  <p><strong>A concrete example:</strong> They go first and place a 3 in Take. You have a 6. Now run the cost rule: if your dice are 6 4 4 2, then A − C = 6 − 4 = 2, and beating their 3 with your 6 wins you 3 pips. Worth it — barely. But if your dice are 6 5 5 1, your 5 beats their 3 for 2 pips and costs you only 1 in Keep. <em>Send the 5, not the 6.</em> Win the pocket with the cheapest die that does the job. That's what going second buys you.</p>
+  <p><em>Note: the Roll For First die is visible too. They rolled a 5 to beat your 4? Watch where that 5 goes.</em></p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
 <div class="help-section" id="sg-yourroll">
   <h3>Reading Your Own Roll</h3>
   <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Before you place a single die, the roll already has opinions about what you should do. Listen to them."</p>
-  <p>You just rolled. Four dice are in front of you (or three, plus your saved die). Before you look at your opponent, look at what you have. Two questions settle most decisions:</p>
-  <p><strong>Question 1: Do I have a combo?</strong> Your combo bonus is locked the moment you finish rolling — it's based on your full four-die hand including any saved die. Rolling three 5s with a saved 5 in your pocket gives you four 5s — that's a 4-of-a-kind bonus (+6) waiting to cash in, but only if you win Take. Matching dice dramatically increase your urgency to win Take. No combo at all? Your urgency drops considerably.</p>
-  <p><strong>Question 2: What did I save last round, and is it still the right die to save again?</strong> Your saved die is in your hand right now. A saved 6 plus a rolled 6 is a pair — a combo that cost you nothing new. A saved 4 that sits next to two rolled 6s is probably ready to retire — save one of the 6s instead.</p>
+  <p>You just rolled. Four dice are in front of you (or three, plus your saved die). Two questions settle most decisions:</p>
+  <p><strong>Question 1: What does a Take fight cost me?</strong> That's <strong>A − C</strong> — your best die minus your third-best. Small gap, Take is cheap. Big gap, Take is expensive, and your combo had better be paying for it.</p>
+  <p><strong>Question 2: Do I have a combo, and is it big enough to cover that cost?</strong> Your combo is locked the moment you finish rolling — it's based on your full four-die hand, saved die included — but it only pays if you <em>win</em> Take.</p>
 
-  <svg viewBox="0 0 480 205" style="width:100%;max-width:480px;display:block;margin:14px auto;" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="480" height="205" rx="8" fill="rgba(0,0,0,0.15)"/>
-    <text x="240" y="20" text-anchor="middle" fill="#c8a84b" font-size="12" font-family="serif" font-weight="bold">WHAT DOES YOUR ROLL SUGGEST?</text>
-    <rect x="10" y="30" width="222" height="78" rx="5" fill="rgba(80,130,80,0.2)" stroke="rgba(200,168,75,0.3)" stroke-width="1"/>
-    <text x="121" y="48" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">6 6 3 1 — Pair of 6s</text>
-    <text x="121" y="63" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">One 6 → Take (pair bonus waiting)</text>
-    <text x="121" y="77" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">Other 6 → Keep. 3 → Keep. 1 → Save.</text>
-    <text x="121" y="96" text-anchor="middle" fill="rgba(160,220,140,0.9)" font-size="10" font-family="serif">Fight Take hard — combo justifies it</text>
-    <rect x="248" y="30" width="222" height="78" rx="5" fill="rgba(80,80,130,0.2)" stroke="rgba(200,168,75,0.3)" stroke-width="1"/>
-    <text x="359" y="48" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">3 4 5 2 — Straight!</text>
-    <text x="359" y="63" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">5 → Take (+5 bonus locked in)</text>
-    <text x="359" y="77" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">4 → Keep. 3 → Keep. 2 → Save.</text>
-    <text x="359" y="96" text-anchor="middle" fill="rgba(150,150,220,0.9)" font-size="10" font-family="serif">Win Take at almost any cost</text>
-    <rect x="10" y="118" width="222" height="78" rx="5" fill="rgba(130,80,80,0.2)" stroke="rgba(200,168,75,0.3)" stroke-width="1"/>
-    <text x="121" y="136" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">6 4 2 1 — No combo</text>
-    <text x="121" y="151" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">6 → Keep. 4 → Keep.</text>
-    <text x="121" y="165" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">2 → Take (concede). 1 → Save? No.</text>
-    <text x="121" y="184" text-anchor="middle" fill="rgba(220,160,140,0.9)" font-size="10" font-family="serif">Bank points. Take isn't worth fighting.</text>
-    <rect x="248" y="118" width="222" height="78" rx="5" fill="rgba(110,100,60,0.2)" stroke="rgba(200,168,75,0.3)" stroke-width="1"/>
-    <text x="359" y="136" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">5 5 5 2 — 3 of a kind</text>
-    <text x="359" y="151" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">One 5 → Take. Two 5s → Keep.</text>
-    <text x="359" y="165" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">2 → Save (no better option)</text>
-    <text x="359" y="184" text-anchor="middle" fill="rgba(210,200,140,0.9)" font-size="10" font-family="serif">Commit to Take — +3 bonus waiting</text>
-  </svg>
+  <table class="guide-table">
+    <caption>What does your roll suggest?</caption>
+    <thead>
+      <tr><th>Your roll</th><th>Cost to fight (A − C)</th><th>Combo pays</th><th>Verdict</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td data-label="Roll"><strong>5 5 5 2</strong><br><span style="opacity:0.75">Three of a kind</span></td>
+        <td data-label="Cost to fight">5 − 5 = <strong>0</strong><br><span style="opacity:0.75">Fighting is free</span></td>
+        <td data-label="Combo pays">+3</td>
+        <td data-label="Verdict" class="gt-verdict">Commit. One 5 to Take, two to Keep, the 2 to Save. Nothing is given up.</td>
+      </tr>
+      <tr>
+        <td data-label="Roll"><strong>3 4 5 2</strong><br><span style="opacity:0.75">Straight</span></td>
+        <td data-label="Cost to fight">5 − 3 = <strong>2</strong></td>
+        <td data-label="Combo pays">+5</td>
+        <td data-label="Verdict" class="gt-verdict">Fight. The combo alone more than covers the cost. 5 to Take, 4 and 3 to Keep, 2 to Save.</td>
+      </tr>
+      <tr>
+        <td data-label="Roll"><strong>6 6 3 1</strong><br><span style="opacity:0.75">Pair of 6s</span></td>
+        <td data-label="Cost to fight">6 − 3 = <strong>3</strong></td>
+        <td data-label="Combo pays">+1 only</td>
+        <td data-label="Verdict" class="gt-verdict">Don't be fooled. A pair is the weakest combo there is. Fight only if their best answer is low enough that you win by 3+. Otherwise bank both 6s in Keep and concede with the 1.</td>
+      </tr>
+      <tr>
+        <td data-label="Roll"><strong>6 4 2 1</strong><br><span style="opacity:0.75">No combo</span></td>
+        <td data-label="Cost to fight">6 − 2 = <strong>4</strong></td>
+        <td data-label="Combo pays">nothing</td>
+        <td data-label="Verdict" class="gt-verdict">Concede. 6 and 4 to Keep (10 guaranteed), 2 to Take, 1 to Save. Fighting here spends 4 points to chase at most 5.</td>
+      </tr>
+    </tbody>
+  </table>
 
-  <p>No combo and mediocre numbers? Your roll is telling you this isn't a Take round. Place your two best dice in Keep, concede Take with something low, save a reasonable die, and come back swinging next round. Forcing Take with no combo and no dominant die is the most common way to throw a round away.</p>
+  <p><em>A note on that last row: with four dice and four pockets, the 1 goes to Save whether you like it or not — there's nowhere else left. Save isn't always a decision. Sometimes it's just the last chair.</em></p>
+  <p>No combo and mediocre numbers? Your roll is telling you this isn't a Take round. Bank your two best in Keep, concede Take with something low, and come back swinging next round. Forcing Take with no combo and no dominant die is the most common way to throw a round away.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
 <div class="help-section" id="sg-placement">
-  <h3>The Placement Game — Information, Sequence, and Misdirection</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Every placement is a move. Every move reveals something. Choose what you reveal."</p>
-  <p>This is where POCKETS gets genuinely deep and most beginners don't realize it yet.</p>
-  <p>On your turn, you pick any one of your remaining unplaced dice and put it in any available pocket. There's no required order. You can place in Take first, Save first, Keep first — any die, any pocket, any sequence. Then your opponent does the same. You alternate, one die per turn, until all four pockets are filled.</p>
-  <p><strong>This means placement order is a strategic choice, not just a mechanical one.</strong></p>
-  <p><strong>Placing in Take early</strong> is a declaration. You're committing a die publicly and telling your opponent: "I'm fighting for this pocket. React to that." A 6 in Take before your opponent has placed anything forces them into a difficult decision — fight it and burn their best die, or concede and let you collect the combo payout unopposed. Either way, you're shaping how they use the rest of their dice.</p>
-  <p><strong>Placing in Keep first</strong> reveals almost nothing. Your opponent sees that you're not immediately threatening Take, but doesn't know your Take die or your intention. You're giving away less information while still advancing your position. A player who places in Keep first and then reveals a surprising Take die later has successfully hidden their hand.</p>
-  <p><strong>Placing in Save first</strong> is a signal — but what it signals depends on context. Early game it might mean you have a strong die worth banking. Late game it might mean your roll is weak and you're trying to salvage something. A savvy opponent reads it differently at different score states.</p>
-  <p><strong>Misdirection is legal.</strong> You can select a die — highlighting it in the digital game, picking it up physically — and then put it back and choose a different one. You can hover over Take before placing in Keep. Mind games within the selection phase are entirely within the rules. Only a completed placement is final.</p>
+  <h3>The Placement Game — Sequence and Intent</h3>
+  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"They can see your dice. They cannot see your plan. That gap is the game."</p>
+  <p>On your turn, you pick any one of your remaining unplaced dice and put it in any available pocket. There's no required order — any die, any pocket, any sequence. Then your opponent does the same. You alternate until all four pockets are filled.</p>
+  <p><strong>Placement order is therefore a strategic choice, not a mechanical one.</strong> But be clear about <em>what</em> it's hiding. It isn't hiding your dice — those are face-up. It's hiding <strong>which die you intend to send where</strong>, and for exactly as long as you can keep them guessing.</p>
 
-  <svg viewBox="0 0 480 145" style="width:100%;max-width:480px;display:block;margin:14px auto;" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="480" height="145" rx="8" fill="rgba(0,0,0,0.15)"/>
-    <text x="240" y="18" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">WHAT YOUR FIRST PLACEMENT SIGNALS</text>
-    <rect x="10" y="26" width="140" height="108" rx="5" fill="rgba(180,140,40,0.15)" stroke="rgba(200,168,75,0.3)" stroke-width="1"/>
-    <text x="80" y="44" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">Take first</text>
-    <text x="80" y="60" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">"I'm fighting this pocket."</text>
-    <text x="80" y="74" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Forces opponent to react.</text>
-    <text x="80" y="88" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">High risk, high info.</text>
-    <text x="80" y="106" text-anchor="middle" fill="rgba(200,210,150,0.85)" font-size="9" font-family="serif">Best with combo or 6.</text>
-    <text x="80" y="120" text-anchor="middle" fill="rgba(200,210,150,0.85)" font-size="9" font-family="serif">Risky without either.</text>
-    <rect x="170" y="26" width="140" height="108" rx="5" fill="rgba(80,100,160,0.15)" stroke="rgba(200,168,75,0.3)" stroke-width="1"/>
-    <text x="240" y="44" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">Keep first</text>
-    <text x="240" y="60" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">"I'm banking points."</text>
-    <text x="240" y="74" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Reveals little. Keeps</text>
-    <text x="240" y="88" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Take intentions hidden.</text>
-    <text x="240" y="106" text-anchor="middle" fill="rgba(150,170,220,0.85)" font-size="9" font-family="serif">Best with mediocre roll.</text>
-    <text x="240" y="120" text-anchor="middle" fill="rgba(150,170,220,0.85)" font-size="9" font-family="serif">Also good for misdirection.</text>
-    <rect x="330" y="26" width="140" height="108" rx="5" fill="rgba(80,140,80,0.15)" stroke="rgba(200,168,75,0.3)" stroke-width="1"/>
-    <text x="400" y="44" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">Save first</text>
-    <text x="400" y="60" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">"I'm playing long game."</text>
-    <text x="400" y="74" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">May signal weak roll.</text>
-    <text x="400" y="88" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Or a disciplined player.</text>
-    <text x="400" y="106" text-anchor="middle" fill="rgba(140,200,140,0.85)" font-size="9" font-family="serif">Read by score context.</text>
-    <text x="400" y="120" text-anchor="middle" fill="rgba(140,200,140,0.85)" font-size="9" font-family="serif">Late game: Rolldown prep.</text>
-  </svg>
+  <table class="guide-table">
+    <caption>What your first placement signals</caption>
+    <thead>
+      <tr><th>You place first in…</th><th>What it says</th><th>Best when</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td data-label="Pocket"><strong>Take</strong></td>
+        <td data-label="Signal">"I'm fighting for this pocket." A public commitment. They must now decide to fight or fold, and that decision constrains their whole round.</td>
+        <td data-label="Best when" class="gt-verdict">Your combo covers the A − C cost, and you can see they can't comfortably beat you.</td>
+      </tr>
+      <tr>
+        <td data-label="Pocket"><strong>Keep</strong></td>
+        <td data-label="Signal">"I'm banking." Says nothing about your Take die — they still don't know which of your remaining dice is headed there.</td>
+        <td data-label="Best when" class="gt-verdict">Your roll is middling, or you want them to commit to Take first so you can answer cheaply.</td>
+      </tr>
+      <tr>
+        <td data-label="Pocket"><strong>Save</strong></td>
+        <td data-label="Signal">"I'm playing the long game." Reads as discipline early, and as Rolldown prep late.</td>
+        <td data-label="Best when" class="gt-verdict">You have a clear 5 or 6 to bank forward and no urgent Take fight to win.</td>
+      </tr>
+    </tbody>
+  </table>
 
-  <p><strong>Reacting to your opponent's first placement:</strong> This is where going second becomes genuinely powerful. They placed in Take first with a 4. Now you know their Take die is a 4. You can beat it with a 5, collect whatever margin and combo applies, and your opponent has no recourse — they committed first. Or you can place your 5 in Keep, concede Take with your 1 or 2, bank 5 guaranteed points, and watch them "win" Take by beating your 1 for a single pip. Sometimes giving someone a small Take win is better than fighting them for it.</p>
-  <p><strong>The constraint cascade:</strong> Every placement narrows both players' remaining options. The last die placed is the least free — by then, only one pocket remains and one die remains. The whole game is a narrowing of choices, which is why early placements carry the most strategic weight. Think forward: if I place this die here now, what will be left for my final placement?</p>
+  <p><strong>The cheapest-winner principle.</strong> Because you can see their dice, you can often work out the <em>smallest</em> die that still wins Take. If their best unplaced die is a 3, don't send your 6 — send your 4. You win the pocket, collect the same combo, and your 6 stays in Keep earning full value. Winning Take with your best die when a lesser one would have done is simply money left on the table.</p>
+  <p><strong>The bait play.</strong> Put a 4 in Take early. They may spend a 5 to beat you by a single pip, no combo, for 1 point — while you quietly bank your 6 and 5 in Keep for 11. They "won" Take. You won the round.</p>
+  <p><strong>The constraint cascade.</strong> Every placement narrows what's left. The last die you place isn't a decision at all — one die, one pocket, no choice. So the early placements carry all the weight. Think forward: if this die goes here now, what am I forced into later?</p>
+  <p><strong>Misdirection is legal.</strong> Select a die, hover it over Take, then put it in Keep instead. You can't hide your hand — but you can absolutely mislead them about your plan. Only a completed placement is final.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
 <div class="help-section" id="sg-take">
   <h3>The Take Decision — Full Picture</h3>
   <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Take is the most exciting pocket and the most misused one. Usually by the same player."</p>
-  <p>Take is the only pocket where both players compete directly. Higher die wins the pip difference plus combo bonus. Loser scores zero from Take. It's high-stakes and it should be — but most beginners overvalue it.</p>
+  <p>Take is the only pocket where both players compete directly. Higher die wins the pip difference plus combo bonus. Loser scores zero from Take. It's high-stakes and it should be — but most players overvalue it badly.</p>
+  <p><strong>Here's the sobering arithmetic.</strong> A Take win with no combo pays you the <em>margin</em>, and the margin averages about 2 points and can never exceed 5. Meanwhile an average die sitting in Keep is worth 3.5 points, and a 6 is worth 6. So a bare Take win — no combo — is frequently worth <em>less than the die you spent to win it</em>. Read that again, because it's why "I HAD to put my 6 in Take" loses games.</p>
+  <p><strong>The combo bonus is the real reason to fight for Take.</strong> It's the only thing that can pay more than the die is worth in Keep. Note that it's a flat bonus, not a multiplier — a straight is +5 whether you win Take by 1 pip or 5.</p>
   <p><strong>When Take is worth fighting for:</strong></p>
   <ul>
-    <li>You have a combo of +3 or better — the multiplier makes Take worth significantly more than the raw pip margin</li>
-    <li>You can win by 3 or more pips — even without a combo, a large margin is meaningful</li>
-    <li>You're going second and opponent placed a low die first — easy wins are still wins, take them</li>
-    <li>You're behind in score and need to make ground — a +5 swing in one round is one of the fastest ways to close a gap</li>
-    <li>Your combo is big enough that winning Take is worth burning your best die to do it</li>
+    <li><strong>Your A − C cost is low.</strong> Matched dice (5 5 5, 6 6 6) make the fight nearly free. This is the single best reason.</li>
+    <li><strong>Your combo is +3 or better</strong> — 3-of-a-kind, straight, 4-of-a-kind — and it exceeds the A − C cost.</li>
+    <li><strong>You can see they can't beat you.</strong> Their dice are face-up. If their best remaining die is a 3, your 4 wins uncontested — take the pocket with the cheapest die that does it.</li>
+    <li><strong>You're behind late.</strong> When patience has run out, a swing is worth a risk it wouldn't be at 30–30.</li>
   </ul>
   <p><strong>When to let Take go:</strong></p>
   <ul>
-    <li>You'd win by 1 or 2 pips with no combo — you're risking your best die for 1–2 points</li>
-    <li>Opponent placed a 6 in Take and you don't also have a 6 — send a 1 or 2, keep your strong dice in Keep</li>
-    <li>Your roll is mediocre and no combo exists — Keep is your friend this round</li>
-    <li>You're comfortably ahead — grinding safe Keep rounds lets the opponent take the risks</li>
+    <li><strong>You'd win by 1 or 2 with no combo.</strong> You're spending a good die to earn less than it's worth in Keep.</li>
+    <li><strong>They've committed a 6 and you can't beat it.</strong> Send a 1 or 2, keep your strong dice earning.</li>
+    <li><strong>A pair is your whole combo.</strong> +1 almost never covers the cost of fighting. A pair is not a reason.</li>
+    <li><strong>You're comfortably ahead.</strong> Grind safe Keep rounds and make <em>them</em> take the risks.</li>
   </ul>
-  <p><strong>The "concede with intent" play:</strong> Deliberately sending a 1 or 2 to Take isn't giving up — it's a choice. You let your opponent "win" Take for a small margin while you bank your 5 and 6 in Keep for 11 guaranteed points. They win Take by 3 with no combo: that's 3 points. You scored 11. The math often favors graceful concession over desperate fighting.</p>
-  <p><strong>The "bait" play:</strong> Place a middling die — a 4 — in Take first. Your opponent may have a 5 and commit it to beat you by 1, no combo, for a single point. Meanwhile you banked your 6 and 5 in Keep. They "won" Take. You won the round.</p>
-  <p><strong>The "informational" Take:</strong> Sometimes you place in Take not to win it, but to force a decision. A 5 placed in Take before your opponent has committed forces them to decide whether to fight or concede before they've seen your other dice. That decision constrains everything else they do. You might not win Take — but you've already changed how they play the round.</p>
+  <p><strong>The "concede with intent" play:</strong> Deliberately sending a 1 or 2 to Take isn't surrender — it's a decision about where to score. They win Take by 3 with no combo: 3 points. You banked your 6 and 5 in Keep: 11 points. You didn't lose that pocket. You bought it cheaply.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
 <div class="help-section" id="sg-save">
   <h3>The Save Decision — Round by Round</h3>
   <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Save isn't a vault. It's a courier — it hands one die forward, and then it's done."</p>
-  <p>The Save pocket scores nothing this round. In exchange, your saved die becomes your fourth die next round — meaning you roll only three new dice instead of four. After that round, the saved die is finished unless you choose to save it again. Every round is a fresh decision.</p>
+  <p>The Save pocket scores nothing this round. In exchange, your saved die becomes your fourth die next round — meaning you roll only three new dice. After that round the saved die is finished, unless you choose to save again. Every round is a fresh decision.</p>
   <p><strong>What's worth saving?</strong></p>
   <ul>
-    <li><strong>6:</strong> Almost always. A guaranteed 6 in your hand next round is powerful — it may pair with a rolled 6 for a combo, and it's a strong Take die whenever you need it. At 57.9% probability that none of your three new dice will even match it, a saved 6 is almost certainly the best die in your next hand before you even roll.</li>
-    <li><strong>5:</strong> Usually. Solid and flexible. The odds of rolling a new 5 or 6 to replace it are less than even, so a saved 5 holds real value.</li>
-    <li><strong>4:</strong> Situational. Early game with plenty of rounds ahead, fine. Late game when you could be saving a 5 or 6, questionable. Near Rolldown, almost certainly replace it.</li>
-    <li><strong>3 or lower:</strong> Rarely justified. You're locking in a weak die when you need a strong Rolldown die. The exception: your entire roll is garbage and even a 3 guaranteed beats the risk of rolling another 1.</li>
+    <li><strong>6:</strong> Almost always. Only a fresh 6 can match it, and rolling at least one 6 in three dice happens just <strong>42%</strong> of the time — so more often than not, a saved 6 is the best die in next round's hand before you've even rolled.</li>
+    <li><strong>5:</strong> Usually — but know what you're buying. You'll roll at least one 5-or-6 in three dice about <strong>70%</strong> of the time, so a saved 5 often gets matched or beaten by a new die anyway. It's solid, not sacred. Its real value is that it's <em>guaranteed</em>.</li>
+    <li><strong>4:</strong> Situational. Fine early. Questionable once you could be banking a 5 or 6 instead. Near the Rolldown, replace it.</li>
+    <li><strong>3 or lower:</strong> Rarely justified — you're locking a weak die into next round's hand, and possibly into the Rolldown. The exception is a genuinely dreadful roll where even a 3 beats what you'd likely re-roll.</li>
   </ul>
-  <p><strong>Replacing your saved die:</strong> If you saved a 4 two rounds ago and this round you rolled a 6 that doesn't have a better home, replace it. Your Save pocket is not a commitment — it's a choice you make fresh every round. The 6 becomes your new courier; the 4 retires.</p>
-  <p><strong>Save and combos:</strong> The saved die is part of your four-die hand. A saved 5 plus a rolled 5 is a pair. A saved 6 plus two rolled 6s is three-of-a-kind. These aren't lucky accidents — they're the reward for disciplined Save decisions compounding over multiple rounds.</p>
+  <p><strong>Save and combos:</strong> Your saved die is part of your four-die hand, so it counts toward your combo. A saved 5 next to a rolled 5 is a pair. A saved 6 next to two rolled 6s is 3-of-a-kind — and, per the cost rule, three matched high dice make a Take fight almost free. This is the real payoff of disciplined saving: not that the die "builds up" (it never does — each save lasts exactly one round), but that a guaranteed high die gives every future hand a better shot at a cheap combo.</p>
 
-  <svg viewBox="0 0 480 135" style="width:100%;max-width:480px;display:block;margin:14px auto;" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="480" height="135" rx="8" fill="rgba(0,0,0,0.15)"/>
-    <text x="240" y="18" text-anchor="middle" fill="#c8a84b" font-size="11" font-family="serif" font-weight="bold">SAVE PRIORITY BY GAME STAGE</text>
-    <text x="80" y="38" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">Early (&lt;50 pts)</text>
-    <text x="240" y="38" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">Mid (50–80 pts)</text>
-    <text x="400" y="38" text-anchor="middle" fill="#f5f0e4" font-size="10" font-family="serif">Late (80+ pts)</text>
-    <line x1="10" y1="46" x2="470" y2="46" stroke="rgba(200,168,75,0.2)" stroke-width="1"/>
-    <text x="80" y="65" text-anchor="middle" fill="#90c870" font-size="13" font-family="serif" font-weight="bold">5 or 6</text>
-    <text x="80" y="80" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">4 is acceptable.</text>
-    <text x="80" y="94" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Many rounds ahead.</text>
-    <text x="80" y="108" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Build the habit early.</text>
-    <text x="240" y="65" text-anchor="middle" fill="#c8a040" font-size="13" font-family="serif" font-weight="bold">5 or 6</text>
-    <text x="240" y="80" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Replace a 4 if you have 6.</text>
-    <text x="240" y="94" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">If trailing, push Take</text>
-    <text x="240" y="108" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">instead of banking.</text>
-    <text x="400" y="65" text-anchor="middle" fill="#d06040" font-size="13" font-family="serif" font-weight="bold">6 only</text>
-    <text x="400" y="80" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Rolldown approaches.</text>
-    <text x="400" y="94" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">This IS your 5th die.</text>
-    <text x="400" y="108" text-anchor="middle" fill="#f5f0e4" font-size="9.5" font-family="serif">Do not compromise.</text>
-  </svg>
+  <table class="guide-table">
+    <caption>Save priority by game stage</caption>
+    <thead>
+      <tr><th>Stage</th><th>Save</th><th>Why</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td data-label="Stage"><strong>Early</strong><br><span style="opacity:0.75">under 50 pts</span></td>
+        <td data-label="Save" class="gt-verdict">5 or 6<br><span style="opacity:0.75;font-weight:normal">(a 4 is acceptable)</span></td>
+        <td data-label="Why">Plenty of rounds ahead. Build the habit — a good saved die makes cheap combos more likely all game.</td>
+      </tr>
+      <tr>
+        <td data-label="Stage"><strong>Mid</strong><br><span style="opacity:0.75">50–80 pts</span></td>
+        <td data-label="Save" class="gt-verdict">5 or 6</td>
+        <td data-label="Why">Replace a saved 4 the moment you roll a 6 with no better home. If you're trailing, push Take rather than banking.</td>
+      </tr>
+      <tr>
+        <td data-label="Stage"><strong>Late</strong><br><span style="opacity:0.75">80+ pts</span></td>
+        <td data-label="Save" class="gt-verdict">6 only</td>
+        <td data-label="Why">The Rolldown could trigger at the end of any round, and whatever's sitting in Save at that moment <em>is</em> your fifth die. Don't compromise.</td>
+      </tr>
+    </tbody>
+  </table>
 
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
 <div class="help-section" id="sg-reading">
   <h3>Reading Your Opponent</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Every die they place is a fact. Accumulate them."</p>
-  <p>POCKETS is an open-information game. Every die both players place is visible to both players. This is an enormous amount of strategic data that beginners consistently underuse.</p>
-  <p><strong>Their Save pocket is the most important thing on the board.</strong> It tells you their Rolldown die — whatever is there when scores hit 100 becomes their fifth die in the finale. A player who has saved 6s for several rounds walks into the Rolldown with a 6 already locked in. A player with a 2 saved has squandered their preparation. Watch it every round. Note when it changes.</p>
-  <p><strong>Their first placement each round is their opening statement.</strong></p>
+  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"You don't need to read their hand. You can just look at it."</p>
+  <p>POCKETS is an open-information game. Both players' dice — rolled and unplaced, placed and locked — are visible the entire round. Beginners consistently ignore this and play only their own four dice. Don't be that player.</p>
+  <p><strong>Their unplaced dice are the whole ballgame.</strong> Not "inferred" — <em>read</em>. Before you commit anything to Take, scan what they still hold. Their best remaining die is exactly what you have to beat, and there is no mystery about what it is. If it's a 2, your 3 wins Take and they can do nothing. Send the 3, not the 6.</p>
+  <p><strong>Their Save pocket is the second-most important thing on the board.</strong> Whatever is sitting there when someone crosses 100 becomes their fifth Rolldown die. A player who's been banking 6s walks into the finale with a 6 locked in. A player sitting on a 2 has squandered their preparation. Watch it change every round.</p>
+  <p><strong>Their combo is visible too.</strong> They rolled three 4s? You know they have +3 waiting, and you know it only pays if they win Take. That tells you exactly how hard they're going to fight for that pocket — and whether it's cheaper to let them have it than to spend your best die denying them.</p>
+  <p><strong>Their first placement is their opening statement.</strong></p>
   <ul>
-    <li><strong>They place in Take first with a 6:</strong> They're committed and probably have a combo. Concede with a low die unless you also have a 6 and a reason to fight it.</li>
-    <li><strong>They place in Take first with a 4 or 5:</strong> They're confident but not dominant. Fight it if your combo justifies the cost. Don't fight it if you'd win by 1 pip with no combo.</li>
-    <li><strong>They place in Take first with a 1 or 2:</strong> They're conceding Take. Their roll is probably mediocre. Beat it with any reasonable die, collect the margin plus combo, and move on.</li>
-    <li><strong>They place in Keep first:</strong> Their Take intentions are hidden. Don't assume they're conceding — they may be setting up misdirection. Watch the next placement carefully.</li>
-    <li><strong>They place in Save first:</strong> Read against the score. Early game it's discipline. Late game with scores near 80, it's Rolldown preparation. Near 100 with a weak saved die, it might be desperation.</li>
+    <li><strong>A 6 into Take:</strong> committed, probably combo-backed. Check whether you can beat it. If not, concede cheaply — don't burn a good die losing.</li>
+    <li><strong>A 4 or 5 into Take:</strong> confident, not dominant. Beat it with the <em>cheapest</em> die that does the job.</li>
+    <li><strong>A 1 or 2 into Take:</strong> they're conceding. Take the pocket with a modest die — no need to overpay.</li>
+    <li><strong>Keep first:</strong> intentions still hidden. Look at what they're <em>holding</em> — that tells you what's still coming.</li>
+    <li><strong>Save first:</strong> read it against the score. Discipline early, Rolldown prep late.</li>
   </ul>
-  <p><strong>The score gap is your risk barometer.</strong> If you're 20 points ahead with scores below 70, conservative Keep rounds and disciplined Saves are correct — let your opponent take the risks. If you're 20 points behind with scores above 70, you cannot afford conservative play. Every round you don't close the gap is a round closer to losing the Rolldown from behind.</p>
-  <p><strong>Their unplaced dice.</strong> As a round progresses, you can sometimes infer what's left. If they've placed their 6 in Keep and their 4 in Take, and they have two more placements to make, the remaining dice are probably their weaker ones. You can relax about their Take threat — it's already on the board.</p>
+  <p><strong>The score gap is your risk barometer.</strong> Twenty ahead with scores under 70? Grind safe Keep rounds and let them gamble. Twenty behind with scores over 70? You cannot afford patience — every quiet round is a round closer to losing.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
 <div class="help-section" id="sg-late">
   <h3>Late Game — When the Rules Change</h3>
   <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"When either score crosses 80, you're no longer playing for points. You're playing for Rolldown position."</p>
-  <p>The early and mid game are about accumulating points efficiently. The late game is about something different: getting your Save pocket right before the Rolldown triggers, and managing the score gap so the Rolldown works in your favor.</p>
+  <p>The early and mid game are about accumulating points efficiently. The late game is about something different: getting your Save pocket right before the Rolldown triggers, and managing the score gap so the Rolldown works in your favour.</p>
   <p><strong>The Rolldown can come at any moment once scores pass 80.</strong> Any round where either player crosses 100 triggers it. You might have one more regular round, or you might not — and whatever is in your Save pocket at that moment is your Rolldown die. There is no adjustment window. Plan accordingly.</p>
-  <p><strong>If your current saved die is weak (4 or below) and scores are above 80:</strong> This may be your last chance to replace it. A 3 saved in round 6 might have been defensible then. A 3 as your Rolldown die in round 9 is a problem. Fix it before the Rolldown takes the choice away from you.</p>
-  <p><strong>If you're ahead near 100:</strong> Check your saved die. Is it a 5 or 6? Hold it. Don't let the excitement of being ahead make you careless about the Rolldown setup.</p>
-  <p><strong>If you're behind near 100:</strong> You need Take wins and you need a strong saved die. Risky Take plays that would have been wrong at round 4 may be entirely correct at round 9 — you don't have the luxury of patience anymore. A 15–20 point deficit is closeable in the Rolldown, but only with a good fifth die and some luck on new dice. Give yourself the best possible chance.</p>
-  <p><strong>The Rolldown can close surprising gaps.</strong> Five 6s plus a 5-of-a-kind bonus is 40 points. Five 5s plus 5-of-a-kind is 35 points. A player who is 18 points behind walking into the Rolldown is not out of the game. Do not concede. Calculate first.</p>
+  <p><strong>If your saved die is weak (4 or below) and scores are above 80:</strong> this may be your last chance to replace it. A 3 saved in round 6 might have been defensible then. A 3 as your Rolldown die is a problem. Fix it before the Rolldown takes the choice away from you.</p>
+  <p><strong>If you're ahead near 100:</strong> check your saved die. Is it a 5 or 6? Hold it. Don't let the comfort of a lead make you careless about the finale.</p>
+  <p><strong>If you're behind near 100:</strong> you need Take wins and a strong saved die. Risky Take plays that would have been wrong at round 4 may be entirely correct now — you don't have the luxury of patience. A 15–20 point deficit is closeable in the Rolldown, but only with a good fifth die and some luck. Give yourself the best possible chance.</p>
+  <p><strong>The Rolldown can close surprising gaps.</strong> Five 6s plus the 5-of-a-kind bonus is 40 points. A player 18 points behind walking into the Rolldown is not out of the game. Do not concede. Calculate first.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
 <div class="help-section" id="sg-rolldown">
   <h3>The Rolldown</h3>
   <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"All five dice score. No Take battle. No bluffing. Just roll and add — with the biggest combo possible."</p>
-  <p>When either player crosses 100 at the end of a regular round, the next round is the Rolldown. The player who triggered it clicks Start Rolldown.</p>
+  <p>When either player crosses 100 at the end of a regular round, the next round is the Rolldown.</p>
   <p><strong>How it works:</strong></p>
   <ul>
     <li>Your saved die from the previous round is already locked in its pocket.</li>
-    <li>Both players roll four new dice. All five dice — the four new ones plus the saved one — score directly as their face values added together.</li>
+    <li>Both players roll four new dice. All five — the four new plus the saved one — score directly at face value.</li>
     <li>No pockets, no Take battle, no conceding with a low die. Everything scores.</li>
-    <li>Combo bonuses apply across all five dice. This is the only round where Full House (+4) and 5-of-a-kind (+10) are achievable.</li>
+    <li>Combo bonuses apply across all five dice. This is the only round where Full House (+4) and 5-of-a-kind (+10) are possible.</li>
   </ul>
-  <p><strong>In the physical game:</strong> The Roll For First die that was used at the start of each round becomes the fifth Rolldown die. It's the reason that separate die exists — it has a purpose in the finale.</p>
-  <p><strong>In the digital game:</strong> The fifth die is your saved die from the previous round. Both players roll four new dice in the roll area.</p>
-  <p><strong>Rolldown strategy is mostly decided before the Rolldown begins.</strong> The die you saved is locked. The only choice left is to roll and hope. That said:</p>
+  <p><strong>In the physical game:</strong> the Roll For First die becomes the fifth Rolldown die — that's why that separate die exists.</p>
+  <p><strong>In the digital game:</strong> the fifth die is your saved die from the previous round.</p>
+  <p><strong>Rolldown strategy is decided before the Rolldown begins.</strong> The die you saved is locked. All that's left is to roll. That said:</p>
   <ul>
-    <li>Add up the actual numbers before reacting emotionally. Gaps that feel insurmountable often aren't when the math runs.</li>
-    <li>If you're behind: you need high numbers on all four new dice, and you need a combo. Five 6s is the dream. Five of anything is still +10. Root for matching numbers above all else.</li>
-    <li>If you're ahead: your saved die is earning its keep. A 6 in Save means you walk in with one 6 guaranteed. Relax — but don't stop paying attention until the final tally.</li>
+    <li>Add up the actual numbers before reacting. Gaps that feel hopeless often aren't when the math runs.</li>
+    <li>Behind? You need high numbers <em>and</em> a combo. Root for matching numbers above all — five of anything is +10.</li>
+    <li>Ahead? Your saved die is earning its keep. Don't stop paying attention until the final tally.</li>
   </ul>
-  <p><em>The highest possible Rolldown score: five 6s (30 pts) + 5-of-a-kind bonus (10 pts) = 40 points total. The lowest: 1,1,1,2,2 (full house) = 7 + 4 = 11 points — because with 5 dice you almost always hit some combo. The game is genuinely capable of wild reversals right to the end. Don't give up and don't get cocky.</em></p>
+  <p><em>Highest possible Rolldown: five 6s (30) + 5-of-a-kind (10) = <strong>40 points</strong>. Lowest: 1,1,1,2,2 — a full house — scores 7 + 4 = <strong>11 points</strong>, because with five dice you almost always land some combo. The game is genuinely capable of wild reversals right to the end. Don't give up, and don't get cocky.</em></p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
@@ -1375,31 +1466,31 @@ const themeSelector = document.getElementById('themeSelector');
   <h3>Common Mistakes — Yes, You're Probably Making Some</h3>
   <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Every mistake in POCKETS has a name. Most of them have a player who makes it every single game."</p>
   <ul>
-    <li><strong>Treating Save as permanent.</strong> The most common misunderstanding in the game. The saved die lasts one round. Then you choose again. It does not compound, stack, or persist on its own.</li>
-    <li><strong>Saving weak dice.</strong> A saved 2 is your guaranteed fourth die next round. You've locked in a liability. Save 5s and 6s whenever possible.</li>
-    <li><strong>Not replacing a weak saved die late game.</strong> You saved a 3 in round 5. It's round 9, scores are 88–75. That 3 is your Rolldown die unless you fix it right now. Fix it.</li>
-    <li><strong>Fighting every Take battle.</strong> Some Take battles should be conceded gracefully. A 1 in Take while you bank your 6 and 5 in Keep is often the better round. Conceding isn't losing — it's choosing where to score.</li>
-    <li><strong>Ignoring the combo bonus.</strong> You rolled three 4s. You're about to just... bank them all in Keep? Your combo is +3 and it only pays if you win Take. Fight Take this round.</li>
-    <li><strong>Ignoring the score context.</strong> The same placement decision that's correct at 30–30 can be completely wrong at 85–70. Check the scores before every placement.</li>
-    <li><strong>Never using misdirection.</strong> Selecting a die and then changing to a different one is legal and effective. Pick up your 6, hover it over Take, put it in Keep. Watch what your opponent does in response.</li>
-    <li><strong>Assuming going first is always worse.</strong> Going first with a strong combo and a 6 to commit is often the better position — you set the agenda and your opponent reacts. Going second is only an advantage if you use the information it gives you.</li>
-    <li><strong>Conceding in the Rolldown.</strong> Count the numbers. A 20-point gap with five dice yet to score can absolutely close. The game isn't over until the math says it is.</li>
+    <li><strong>Never pricing the Take fight.</strong> The big one. Sending your best die to Take demotes both Keep dice — it costs you A − C. If you've never run that subtraction, you have been overpaying for Take your entire POCKETS career.</li>
+    <li><strong>Thinking a pair justifies a fight.</strong> A pair pays +1. It almost never covers the cost. A pair of 6s in a 6 6 3 1 hand is a trap, not an opportunity.</li>
+    <li><strong>Winning Take with your best die when a cheaper one would do.</strong> Their dice are face-up. If a 4 beats their best, send the 4 and leave the 6 in Keep.</li>
+    <li><strong>Not looking at their dice at all.</strong> You can see their entire hand, all round. Playing your four dice in isolation throws away half the game.</li>
+    <li><strong>Treating Save as permanent.</strong> The saved die lasts one round. Then you choose again. It does not compound, stack, or persist on its own.</li>
+    <li><strong>Saving weak dice.</strong> A saved 2 is a guaranteed liability in next round's hand. Save 5s and 6s.</li>
+    <li><strong>Not replacing a weak saved die late.</strong> That 3 you saved in round 5 becomes your Rolldown die if someone crosses 100. Fix it now.</li>
+    <li><strong>Ignoring the score context.</strong> The placement that's right at 30–30 can be dead wrong at 85–70. Check the scores before every placement.</li>
+    <li><strong>Conceding in the Rolldown.</strong> Count the numbers. A 20-point gap with five dice yet to score can absolutely close.</li>
   </ul>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
 <div class="help-section" id="sg-ai">
   <h3>vs. the AI</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"The AI doesn't get nervous. But a patient human who reads the board has a real shot."</p>
-  <p>All three AI difficulty levels share the same underlying approach — what changes is how much information each one uses when making decisions.</p>
+  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"The AI doesn't get nervous. But it does have habits — and habits can be exploited."</p>
+  <p>All three difficulty levels share the same underlying approach. What changes is how much information each one uses.</p>
   <ul>
-    <li><strong>Easy:</strong> Makes decisions with limited awareness — it sees whether scores are near 100, but has no read on hand strength or your placements. On top of that, it deliberately makes recognizable beginner mistakes: saving weak dice, committing to Take with its worst die. A player applying this guide should beat Easy consistently.</li>
-    <li><strong>Medium:</strong> Reads its own hand quality each round and has a rough sense of how far behind it is — but never looks at what you've placed. It plays its own dice reasonably well but can't fully react to you. Expect more competitive rounds, but exploitable blind spots late in close games.</li>
-    <li><strong>Hard:</strong> Full picture — its own hand quality, a live read on your placements so far this round, and a precise calculation of the score gap. It weighs every placement against Keep vs Take vs Save vs what you've already shown. It will walk away from a Take battle the math doesn't favor. It will replace a weak saved die the moment a better one is available. It plays the way this guide recommends — and it doesn't get distracted, emotional, or impatient. A patient human using everything in this guide has a genuine chance. A human on autopilot doesn't.</li>
+    <li><strong>Easy:</strong> Plays with limited awareness and makes deliberate beginner-style mistakes. A player applying this guide should beat it consistently.</li>
+    <li><strong>Medium:</strong> Reads its own hand and roughly how far behind it is, but doesn't fully react to what you've placed.</li>
+    <li><strong>Hard:</strong> Uses the most information — its own hand, your placements, and the score gap — and is the most consistent of the three.</li>
   </ul>
-  <p>The AI's real advantage isn't seeing further into the future than you. It's making the correct decision in the moment, consistently, using the same open information you have access to. The information is equal. The consistency is what's hard to match.</p>
+  <p><strong>The exploit that works on all three:</strong> the AI loves the Take pocket. It will often commit a high die to Take when the Keep points it gives up are worth more — precisely the mistake this guide's cost rule exists to prevent. Let it. When it spends a 6 to win Take by 2, it has traded 6 guaranteed points for 2. Bank your good dice in Keep, concede Take cheaply with a 1, and let it "win" that pocket all game long while you out-score it.</p>
+  <p>Play the arithmetic, not the drama. That's the whole trick.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
-</div>
 </div>`;
         }
 
@@ -1412,6 +1503,16 @@ const themeSelector = document.getElementById('themeSelector');
         });
         document.getElementById('helpModal').addEventListener('click', e => {
             if (e.target.id === 'helpModal') document.getElementById('helpModal').classList.add('hidden');
+        });
+
+        // Escape closes whichever modal is open — previously the only way out
+        // was to hunt for the ✕.
+        document.addEventListener('keydown', e => {
+            if (e.key !== 'Escape') return;
+            ['helpModal', 'strategyModal'].forEach(id => {
+                const m = document.getElementById(id);
+                if (m && !m.classList.contains('hidden')) m.classList.add('hidden');
+            });
         });
 
         function loadGameRules() {
@@ -1431,10 +1532,11 @@ const themeSelector = document.getElementById('themeSelector');
     <a class="guide-nav-btn" href="#rules-themes">Themes</a>
   </nav>
 </div>
+
 <div class="help-section" id="rules-honest">
   <h3>🎲 The Dice Are Honest</h3>
-  <p><strong>Every roll in POCKETS is truly random.</strong> Each die has an equal 1-in-6 chance of landing on any face, every single time — nothing is weighted, nudged, or adjusted. Not for the AI, not against you, not to keep a game close, and not to make a finish more dramatic.</p>
-  <p>The AI rolls from the same honest dice you do. It has no luck advantage — only consistency. And the dice have no memory: a run of bad rolls never makes you "due" for a good one.</p>
+  <p><strong>Every roll in POCKETS is truly random.</strong> Each die has an equal 1-in-6 chance of landing on any face, every single time. Nothing is weighted, nudged, or adjusted — not for the AI, not against you, not to keep a game close, and not to manufacture a dramatic finish.</p>
+  <p>The AI rolls from the same honest dice you do. It gets no luck advantage — only consistency. And the dice have no memory: a run of terrible rolls never makes you "due" for a good one.</p>
   <p><em>Whatever happens on the board, the dice didn't decide it. Your placements did.</em></p>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
 </div>
@@ -1514,9 +1616,10 @@ const themeSelector = document.getElementById('themeSelector');
   <h3>🧠 Strategy Tips (Short Version)</h3>
   <ul>
     <li><strong>Keep:</strong> Your safe floor. Both dice score, no opposition. A reasonable destination for any die that doesn't have a stronger case elsewhere.</li>
-    <li><strong>Take:</strong> The leverage play. Win for the difference plus your combo bonus; lose and the die scores nothing. Push hard with a real combo or a dominant high die.</li>
-    <li><strong>Save:</strong> Investment. Scores 0 this round but carries forward as your fourth die each round, then becomes your fifth die in the Rolldown. Save 5s and 6s when you can.</li>
-    <li><strong>Watch your opponent's Save pocket and the score</strong> — when either player nears 100, the Rolldown is imminent.</li>
+    <li><strong>Take:</strong> The leverage play — but it isn't free. Sending your best die to Take pushes both Keep dice down a rank, so it costs you the gap between your best die and your third-best. Fight only when your margin plus combo beats that gap.</li>
+    <li><strong>Save:</strong> Investment. Scores 0 this round but carries forward as your fourth die next round, then becomes your fifth die in the Rolldown. Save 5s and 6s when you can.</li>
+    <li><strong>You can see your opponent's dice all round.</strong> Use them. Win Take with the cheapest die that beats their best — don't overpay.</li>
+    <li><strong>Watch their Save pocket and the score</strong> — when either player nears 100, the Rolldown is imminent.</li>
   </ul>
   <p>See the full <strong>Strategy Guide</strong> button for deeper play.</p>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
@@ -1525,10 +1628,11 @@ const themeSelector = document.getElementById('themeSelector');
 <div class="help-section" id="rules-ai">
   <h3>🤖 AI Opponents</h3>
   <ul>
-    <li><strong>Easy:</strong> Sees only the score, not your pockets or its own hand strength — good for learning the ropes, with the occasional beginner-style mistake built in.</li>
-    <li><strong>Medium:</strong> Reads its own hand and roughly how far behind it is, but never looks at your placements.</li>
-    <li><strong>Hard:</strong> Full picture — reads your placements too, and weighs every Take fight rather than chasing it by default.</li>
+    <li><strong>Easy:</strong> Limited awareness, with the occasional beginner-style mistake built in — good for learning the ropes.</li>
+    <li><strong>Medium:</strong> Reads its own hand and roughly how far behind it is.</li>
+    <li><strong>Hard:</strong> Uses the most information — its own hand, your placements, and the score gap.</li>
   </ul>
+  <p><em>All three are fond of the Take pocket. Watch how often they spend a good die to win it by a little.</em></p>
   <p><a class="guide-back-top" href="#helpContent">↑ Back to top</a></p>
 </div>
 
