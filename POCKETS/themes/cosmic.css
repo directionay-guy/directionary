@@ -47,6 +47,17 @@ body.theme-cosmic {
     --boomerang: 22px 6px 22px 6px;
     --boomerang-r: 6px 22px 6px 22px;
 
+    /* Rolloff dice when PLAYING AS RED — the engine repaints these in JS.
+       Like Art Deco, the die face here is a CSS background rather than an SVG
+       fill, so the engine leaves the face alone and only recolours the pips;
+       the face, border and Saturn ring swap in the PLAYING AS RED section. */
+    --rolloff-human-face:   transparent;
+    --rolloff-ai-face:      transparent;
+    --rolloff-human-stroke: none;
+    --rolloff-ai-stroke:    none;
+    --rolloff-human-dot:    #ff7e3e;   /* orange — the human */
+    --rolloff-ai-dot:       #3dd6c4;   /* teal — the AI */
+
     background: var(--bg-deep);
     color: var(--cream);
     font-family: 'Comfortaa', 'Avenir', 'Helvetica Neue', sans-serif;
@@ -454,7 +465,12 @@ body.theme-cosmic::after {
     border-radius: 12px;
     margin-bottom: 18px;
     box-shadow: 0 0 16px rgba(240, 193, 75, 0.08);
+    position: relative;   /* anchors the shooting stars; NO overflow:hidden — it would clip the spinning dice */
 }
+/* Dice and text sit above the shooting stars */
+.theme-cosmic .rolloff-arena,
+.theme-cosmic .rolloff-prompt,
+.theme-cosmic .rolloff-result { position: relative; z-index: 2; }
 .theme-cosmic .rolloff-prompt {
     color: var(--cream);
     font-family: 'Comfortaa', sans-serif;
@@ -1810,4 +1826,90 @@ body.has-css-fullscreen { overflow: hidden; }
     50%  { opacity: 0.60; }
     75%  { opacity: 0.95; }
     100% { opacity: 0.55; }
+}
+
+/* Rolloff dice — as in Art Deco, the face is a CSS background + border rather
+   than an SVG fill, so it swaps here; the engine only recolours the pips.
+   The Saturn ring around each die swaps with it.
+   #blueRolloffDie is the human (orange), #redRolloffDie is the AI (teal). */
+.theme-cosmic .playing-as-red #blueRolloffDie .dice {
+    background: linear-gradient(145deg, #281808, #180e04);
+    border-color: var(--orange);
+}
+.theme-cosmic .playing-as-red #blueRolloffDie::before {
+    border-color: rgba(255, 126, 62, 0.65);
+    box-shadow: 0 0 10px rgba(255, 126, 62, 0.25);
+}
+.theme-cosmic .playing-as-red #redRolloffDie .dice {
+    background: linear-gradient(145deg, #0a2830, #061820);
+    border-color: var(--teal);
+}
+.theme-cosmic .playing-as-red #redRolloffDie::before {
+    border-color: rgba(61, 214, 196, 0.65);
+    box-shadow: 0 0 10px rgba(61, 214, 196, 0.25);
+}
+
+/* ==========================================================
+   SHOOTING STARS — Roll-for-First panel
+   Two comets on different cycles, so they never quite repeat.
+   Each is a tapered streak with a bright head, dark for most of
+   its cycle and streaking across in under a second — rare enough
+   to feel like a lucky catch rather than decoration.
+   Purely decorative: pointer-events off, and painted beneath the
+   dice. Does not touch the Saturn rings (.rolloff-die::before)
+   or the drifting space dust (.rolloff-arena::before).
+   ========================================================== */
+.theme-cosmic .first-player-rolloff::before,
+.theme-cosmic .first-player-rolloff::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 84px;
+    height: 2px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    border-radius: 2px;
+    /* tail fades out behind a bright head on the right */
+    background: linear-gradient(90deg,
+        rgba(255,255,255,0) 0%,
+        rgba(180, 220, 255, 0.35) 45%,
+        rgba(255,255,255,0.95) 100%);
+    box-shadow: 0 0 6px rgba(200, 230, 255, 0.7);
+}
+
+/* Comet 1 — sweeps down-right across the upper half */
+.theme-cosmic .first-player-rolloff::before {
+    animation: cosmic-comet-a 13s linear infinite;
+}
+/* Comet 2 — shallower, lower, warmer, on a different cycle so the two drift
+   in and out of phase instead of pulsing together */
+.theme-cosmic .first-player-rolloff::after {
+    background: linear-gradient(90deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255, 210, 150, 0.30) 45%,
+        rgba(255, 245, 220, 0.95) 100%);
+    box-shadow: 0 0 6px rgba(255, 220, 170, 0.65);
+    animation: cosmic-comet-b 19s linear infinite;
+    animation-delay: 5s;
+}
+
+@keyframes cosmic-comet-a {
+    /* dark for most of the cycle, parked off the left edge */
+    0%, 92%   { transform: translate(-14%, 12%) rotate(21deg) scaleX(0.35); opacity: 0; }
+    93%       { opacity: 0.9; }
+    98%       { opacity: 0.9; }
+    100%      { transform: translate(102%, 74%) rotate(21deg) scaleX(1);    opacity: 0; }
+}
+@keyframes cosmic-comet-b {
+    0%, 94%   { transform: translate(-12%, 128%) rotate(-13deg) scaleX(0.35); opacity: 0; }
+    95%       { opacity: 0.85; }
+    99%       { opacity: 0.85; }
+    100%      { transform: translate(100%, 46%)  rotate(-13deg) scaleX(1);    opacity: 0; }
+}
+
+/* Respect a reduced-motion preference — hold the comets still */
+@media (prefers-reduced-motion: reduce) {
+    .theme-cosmic .first-player-rolloff::before,
+    .theme-cosmic .first-player-rolloff::after { animation: none; opacity: 0; }
 }
