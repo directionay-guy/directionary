@@ -908,10 +908,10 @@ function setRolloffDieFaded(buttonEl, shouldFade) {
             humanFace = '#f4dddd'; aiFace = '#dde4f4';
             humanDot  = '#800000'; aiDot  = '#000080';
         } else {
-            humanFace = cs.getPropertyValue('--burgundy').trim() || '#6e3030';
-            aiFace    = cs.getPropertyValue('--navy').trim()     || '#2a3559';
-            humanDot  = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
-            aiDot     = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
+            humanFace = cs.getPropertyValue('--rolloff-human-face').trim() || cs.getPropertyValue('--burgundy').trim() || '#6e3030';
+            aiFace    = cs.getPropertyValue('--rolloff-ai-face').trim() || cs.getPropertyValue('--navy').trim() || '#2a3559';
+            humanDot  = cs.getPropertyValue('--rolloff-human-dot').trim() || cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
+            aiDot     = cs.getPropertyValue('--rolloff-ai-dot').trim() || cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
         }
         // Blue button = human when playing as red
         var faceFill   = isBlueButton ? humanFace : aiFace;
@@ -936,10 +936,10 @@ function setRolloffDieFadedInPlace(buttonEl) {
         var isBlueButton = (buttonEl.id === 'blueRolloffDie');
         var cs = getComputedStyle(document.body);
         var isBitmap = document.body.classList.contains('theme-bitmap');
-        var humanFace = isBitmap ? '#f4dddd' : (cs.getPropertyValue('--burgundy').trim() || '#6e3030');
-        var aiFace    = isBitmap ? '#dde4f4' : (cs.getPropertyValue('--navy').trim()     || '#2a3559');
-        var humanDot  = isBitmap ? '#800000' : (cs.getPropertyValue('--gold-pale').trim() || '#c8a84b');
-        var aiDot     = isBitmap ? '#000080' : (cs.getPropertyValue('--gold-pale').trim() || '#c8a84b');
+        var humanFace = isBitmap ? '#f4dddd' : (cs.getPropertyValue('--rolloff-human-face').trim() || cs.getPropertyValue('--burgundy').trim() || '#6e3030');
+        var aiFace    = isBitmap ? '#dde4f4' : (cs.getPropertyValue('--rolloff-ai-face').trim() || cs.getPropertyValue('--navy').trim() || '#2a3559');
+        var humanDot  = isBitmap ? '#800000' : (cs.getPropertyValue('--rolloff-human-dot').trim() || cs.getPropertyValue('--gold-pale').trim() || '#c8a84b');
+        var aiDot     = isBitmap ? '#000080' : (cs.getPropertyValue('--rolloff-ai-dot').trim() || cs.getPropertyValue('--gold-pale').trim() || '#c8a84b');
         var svg = buttonEl.querySelector('svg');
         if (svg) {
             var face = svg.querySelector('.dice-face');
@@ -993,10 +993,10 @@ function rolloffRollDie(player) {
             humanFace = '#f4dddd'; aiFace = '#dde4f4';
             humanDot  = '#800000'; aiDot  = '#000080';
         } else {
-            humanFace = cs.getPropertyValue('--burgundy').trim() || '#6e3030';
-            aiFace    = cs.getPropertyValue('--navy').trim()     || '#2a3559';
-            humanDot  = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
-            aiDot     = cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
+            humanFace = cs.getPropertyValue('--rolloff-human-face').trim() || cs.getPropertyValue('--burgundy').trim() || '#6e3030';
+            aiFace    = cs.getPropertyValue('--rolloff-ai-face').trim() || cs.getPropertyValue('--navy').trim() || '#2a3559';
+            humanDot  = cs.getPropertyValue('--rolloff-human-dot').trim() || cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
+            aiDot     = cs.getPropertyValue('--rolloff-ai-dot').trim() || cs.getPropertyValue('--gold-pale').trim() || '#c8a84b';
         }
         // Blue button = human when playing as red
         var isHuman    = (player === 'blue');
