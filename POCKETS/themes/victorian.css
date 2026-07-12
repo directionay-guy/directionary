@@ -41,6 +41,17 @@ body.theme-victorian {
     --shadow-soft:    0 3px 8px rgba(0, 0, 0, 0.3);
     --shadow-emboss:  inset 0 1px 0 rgba(255, 240, 210, 0.15),
                       inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+
+    /* Rolloff dice when PLAYING AS RED. The game engine repaints these dice in
+       JS; without these it had to guess, and the pips came out gold instead of
+       cream. Human = burgundy face, AI = navy face, cream pips on both, and the
+       gold edge preserved on both. */
+    --rolloff-human-face: #6e3030;   /* burgundy — the human */
+    --rolloff-ai-face:    #2a3559;   /* navy — the AI */
+    --rolloff-human-dot:  #e8d8b0;   /* cream pips, both dice */
+    --rolloff-ai-dot:     #e8d8b0;
+    --rolloff-stroke:     #a08540;   /* gold edge, both dice */
+
     background: var(--bg-deep);
     color: var(--cream);
     font-family: 'Cormorant Garamond', 'Garamond', 'Hoefler Text', serif;
@@ -534,7 +545,11 @@ body.theme-victorian::before {
    ========================================================== */
 .theme-victorian .finale-pocket {
     grid-column: span 2;
-    background: linear-gradient(180deg, var(--navy-deep) 0%, var(--navy-mid) 100%);
+    /* BUG FIX: this gradient previously ended on var(--navy-mid), a variable
+       this theme never defines. One undefined variable invalidates the WHOLE
+       background declaration, so the Rolldown pocket was rendering with no
+       background at all. --navy is the defined lighter navy. */
+    background: linear-gradient(180deg, var(--navy-deep) 0%, var(--navy) 100%);
     border: 2px solid var(--gold);
     border-radius: 4px;
     padding: 10px 14px;
@@ -566,7 +581,10 @@ body.theme-victorian::before {
 .theme-victorian .finale-running-total.bumped { transform: scale(1.25); }
 .theme-victorian .finale-bonus {
     font-size: 1.05em;
-    color: var(--gold-pale);
+    /* BUG FIX: was var(--gold-pale), a variable this theme never defines, so
+       the colour was invalid and the Rolldown bonus text fell back to plain
+       inherited cream instead of reading as gold. */
+    color: var(--gold-bright);
     font-style: italic;
     min-height: 1.4em;
 }
@@ -923,7 +941,9 @@ body.has-css-fullscreen {
 /* When playing as Red: the human is internally Blue and stays on the LEFT.
    Nothing moves — we only recolor. The human's (.blue) side becomes burgundy,
    the AI's (.red) side becomes navy, across areas, pockets, scores, and the
-   two roll buttons (#blueRoll = human, #redRoll = AI). */
+   two roll buttons (#blueRoll = human, #redRoll = AI).
+   The two ROLLOFF dice are recoloured by the game engine, using the
+   --rolloff-* variables declared at the top of this file. */
 
 /* Player areas */
 .theme-victorian .playing-as-red .player-area.blue {
