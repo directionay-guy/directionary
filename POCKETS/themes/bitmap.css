@@ -811,3 +811,41 @@ body.has-css-fullscreen { overflow: hidden; }
 /* Roll buttons — #blueRoll is the human, #redRoll is the AI */
 .theme-bitmap .playing-as-red #blueRoll { border-color: var(--bm-red);  color: var(--bm-red);  }
 .theme-bitmap .playing-as-red #redRoll  { border-color: var(--bm-blue); color: var(--bm-blue); }
+
+/* ================================================================
+   RESPONSIVE DICE — phones keep the compact 30px dice; tablets and
+   desktops, which have room to spare, get larger ones.
+
+   The dice tray is a FIXED height with overflow:hidden, so the tray
+   has to grow with the dice or they'd simply be clipped. Both are
+   stepped up together at each breakpoint.
+
+   Phones (default, under 700px) are deliberately left exactly as
+   they were: 30px dice in a 68px tray.
+   ================================================================ */
+
+/* ── Tablets — iPad portrait and up ─────────────────────────────── */
+@media (min-width: 700px) {
+    .theme-bitmap .dice-area {
+        height: 80px;
+        min-height: 80px;
+        max-height: 80px;
+    }
+    .theme-bitmap .dice-area svg.dice {
+        width: 38px !important;
+        height: 38px !important;
+    }
+}
+
+/* ── Desktop / large tablet landscape ───────────────────────────── */
+@media (min-width: 1000px) {
+    .theme-bitmap .dice-area {
+        height: 88px;
+        min-height: 88px;
+        max-height: 88px;
+    }
+    .theme-bitmap .dice-area svg.dice {
+        width: 44px !important;
+        height: 44px !important;
+    }
+}
