@@ -24,6 +24,16 @@ body.theme-compact {
     --ink:            #2a1508;
     --cream:          #f5f0e4;
 
+    /* Rolloff dice colours when PLAYING AS RED. The game engine repaints the
+       rolloff dice in JS; without these it guesses, and the pips came out gold
+       instead of cream. Human = burgundy face, AI = navy face, cream pips on
+       both, and the gold outline is preserved via --rolloff-stroke. */
+    --rolloff-human-face: #6e3030;
+    --rolloff-ai-face:    #243258;
+    --rolloff-human-dot:  #f5f0e4;
+    --rolloff-ai-dot:     #f5f0e4;
+    --rolloff-stroke:     #c8a84b;
+
     background: var(--navy);
     color: var(--ink);
     font-family: Georgia, 'Times New Roman', serif;
@@ -696,3 +706,60 @@ body.has-css-fullscreen { overflow: hidden; }
 /* ==========================================================
    PLAYING AS RED
    ========================================================== */
+
+/* When playing as Red: the human is internally Blue and stays on the LEFT.
+   Nothing moves — only colour swaps. The human's (.blue) side becomes
+   burgundy, the AI's (.red) side becomes navy, across areas, dice, saved
+   dice, active pockets, score panels and the two roll buttons
+   (#blueRoll = human, #redRoll = AI).
+   Pips are cream on BOTH sides in this theme, so they need no swap.
+   The rolloff dice are recoloured by the game engine, using the
+   --rolloff-* variables declared at the top of this file. */
+
+/* Player areas */
+.theme-compact .playing-as-red .player-area.blue {
+    background: linear-gradient(180deg, var(--burgundy-deep) 0%, #3a1818 100%);
+}
+.theme-compact .playing-as-red .player-area.red {
+    background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy) 100%);
+}
+
+/* Board dice faces (pips stay cream on both sides) */
+.theme-compact .playing-as-red .player-area.blue svg.dice .dice-face {
+    fill: var(--burgundy); stroke: var(--gold); stroke-width: 1.5;
+}
+.theme-compact .playing-as-red .player-area.red  svg.dice .dice-face {
+    fill: var(--navy-light); stroke: var(--gold); stroke-width: 1.5;
+}
+
+/* Saved die — the slightly lighter face follows the swap */
+.theme-compact .playing-as-red .player-area.blue .dice.saved-tint .dice-face { fill: #874949 !important; }
+.theme-compact .playing-as-red .player-area.red  .dice.saved-tint .dice-face { fill: #3d4b71 !important; }
+
+/* Active pocket highlight */
+.theme-compact .playing-as-red .player-area.blue .pocket.active {
+    background: rgba(180,60,60,0.25);
+    border-color: #cc6666;
+}
+.theme-compact .playing-as-red .player-area.red .pocket.active {
+    background: rgba(100,130,220,0.25);
+    border-color: #6699dd;
+}
+
+/* Score panels */
+.theme-compact .playing-as-red #blueScoreArea {
+    background: linear-gradient(180deg, #8a3838 0%, #6e2828 100%);
+}
+.theme-compact .playing-as-red #redScoreArea {
+    background: linear-gradient(180deg, #3a4e7a 0%, #2e4068 100%);
+}
+.theme-compact .playing-as-red .blue-player { color: #e07070; }
+.theme-compact .playing-as-red .red-player  { color: #7090e0; }
+
+/* Roll buttons — #blueRoll is the human, #redRoll is the AI */
+.theme-compact .playing-as-red #blueRoll {
+    background: linear-gradient(180deg, var(--burgundy) 0%, var(--burgundy-deep) 100%);
+}
+.theme-compact .playing-as-red #redRoll {
+    background: linear-gradient(180deg, #2a3a6a 0%, #1a2550 100%);
+}
