@@ -1876,32 +1876,32 @@ body.has-css-fullscreen { overflow: hidden; }
 /* A comet is a tapered streak with a bright head. --a is its heading. */
 .c-comet {
     position: absolute;
-    width: 78px;
-    height: 2px;
+    width: 96px;
+    height: 3px;
     opacity: 0;
-    border-radius: 2px;
+    border-radius: 3px;
     background: linear-gradient(90deg,
         rgba(255,255,255,0) 0%,
-        rgba(180, 220, 255, 0.30) 45%,
-        rgba(255,255,255,0.95) 100%);
-    box-shadow: 0 0 6px rgba(200, 230, 255, 0.7);
+        rgba(180, 220, 255, 0.55) 40%,
+        rgba(255,255,255,1) 100%);
+    box-shadow: 0 0 10px rgba(210, 235, 255, 0.95), 0 0 22px rgba(150, 200, 255, 0.55);
     will-change: transform, opacity;
 }
 
 /* ── 1 · long diagonal, upper-left to lower-right, cool white ─────────── */
-.c-comet-1 { top: 8%;  left: -12%; animation: c-drift-1 14s linear infinite; }
+.c-comet-1 { top: 8%;  left: -12%; animation: c-drift-1 7s linear infinite; }
 @keyframes c-drift-1 {
-    0%, 88%  { transform: translate(0, 0) rotate(24deg) scaleX(.3);   opacity: 0; }
-    89%      { opacity: .9; }
-    97%      { opacity: .9; }
+    0%, 78%  { transform: translate(0, 0) rotate(24deg) scaleX(.3);   opacity: 0; }
+    80%      { opacity: 1; }
+    97%      { opacity: 1; }
     100%     { transform: translate(60vw, 130px) rotate(24deg) scaleX(1); opacity: 0; }
 }
 
 /* ── 2 · steep dive, top edge down through the bottom-left corner ─────── */
-.c-comet-2 { top: -8%; left: 62%; animation: c-drift-2 23s linear infinite; animation-delay: 6s; }
+.c-comet-2 { top: -8%; left: 62%; animation: c-drift-2 11s linear infinite; animation-delay: 2.5s; }
 @keyframes c-drift-2 {
-    0%, 91%  { transform: translate(0, 0) rotate(118deg) scaleX(.3);  opacity: 0; }
-    92%      { opacity: .85; }
+    0%, 82%  { transform: translate(0, 0) rotate(118deg) scaleX(.3);  opacity: 0; }
+    84%      { opacity: .95; }
     98%      { opacity: .85; }
     100%     { transform: translate(-120px, 150px) rotate(118deg) scaleX(1); opacity: 0; }
 }
@@ -1912,11 +1912,11 @@ body.has-css-fullscreen { overflow: hidden; }
     background: linear-gradient(90deg,
         rgba(255,255,255,0) 0%, rgba(255, 210, 150, 0.28) 45%, rgba(255, 245, 220, 0.95) 100%);
     box-shadow: 0 0 6px rgba(255, 220, 170, 0.65);
-    animation: c-drift-3 31s linear infinite; animation-delay: 13s;
+    animation: c-drift-3 13s linear infinite; animation-delay: 6s;
 }
 @keyframes c-drift-3 {
-    0%, 93%  { transform: translate(0, 0) rotate(196deg) scaleX(.3);  opacity: 0; }
-    94%      { opacity: .8; }
+    0%, 84%  { transform: translate(0, 0) rotate(196deg) scaleX(.3);  opacity: 0; }
+    86%      { opacity: .9; }
     99%      { opacity: .8; }
     100%     { transform: translate(-55vw, -90px) rotate(196deg) scaleX(1); opacity: 0; }
 }
@@ -1927,20 +1927,20 @@ body.has-css-fullscreen { overflow: hidden; }
     background: linear-gradient(90deg,
         rgba(255,255,255,0) 0%, rgba(120, 240, 225, 0.30) 45%, rgba(230, 255, 252, 0.95) 100%);
     box-shadow: 0 0 6px rgba(120, 240, 225, 0.6);
-    animation: c-drift-4 19s linear infinite; animation-delay: 3s;
+    animation: c-drift-4 9s linear infinite; animation-delay: 4.5s;
 }
 @keyframes c-drift-4 {
-    0%, 94%  { transform: translate(0, 0) rotate(7deg) scaleX(.3);    opacity: 0; }
-    95%      { opacity: .9; }
+    0%, 85%  { transform: translate(0, 0) rotate(7deg) scaleX(.3);    opacity: 0; }
+    87%      { opacity: 1; }
     99%      { opacity: .9; }
     100%     { transform: translate(70vw, 22px) rotate(7deg) scaleX(1); opacity: 0; }
 }
 
 /* ── 5 · rises out through the top-right corner ───────────────────────── */
-.c-comet-5 { bottom: -6%; left: 18%; animation: c-drift-5 27s linear infinite; animation-delay: 17s; }
+.c-comet-5 { bottom: -6%; left: 18%; animation: c-drift-5 17s linear infinite; animation-delay: 8s; }
 @keyframes c-drift-5 {
-    0%, 92%  { transform: translate(0, 0) rotate(-38deg) scaleX(.3);  opacity: 0; }
-    93%      { opacity: .85; }
+    0%, 83%  { transform: translate(0, 0) rotate(-38deg) scaleX(.3);  opacity: 0; }
+    85%      { opacity: .95; }
     98%      { opacity: .85; }
     100%     { transform: translate(240px, -150px) rotate(-38deg) scaleX(1); opacity: 0; }
 }
@@ -1948,11 +1948,11 @@ body.has-css-fullscreen { overflow: hidden; }
 /* ── 6 · rare, slow, long — the one you're lucky to catch ─────────────── */
 .c-comet-6 {
     top: 44%; right: -14%; width: 110px;
-    animation: c-drift-6 47s linear infinite; animation-delay: 29s;
+    animation: c-drift-6 29s linear infinite; animation-delay: 14s;
 }
 @keyframes c-drift-6 {
-    0%, 95%  { transform: translate(0, 0) rotate(154deg) scaleX(.3);  opacity: 0; }
-    96%      { opacity: .95; }
+    0%, 86%  { transform: translate(0, 0) rotate(154deg) scaleX(.3);  opacity: 0; }
+    88%      { opacity: 1; }
     99.4%    { opacity: .95; }
     100%     { transform: translate(-70vw, 120px) rotate(154deg) scaleX(1); opacity: 0; }
 }
