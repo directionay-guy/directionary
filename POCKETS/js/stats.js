@@ -74,7 +74,8 @@ class PocketsStats {
                 bestWinStreak: 0, currentWinStreak: 0,
                 perfectGames: 0, comebackWins: 0,
                 vsAIWon: { easy:0, medium:0, hard:0 },
-                vsAILost: { easy:0, medium:0, hard:0 }
+                vsAILost: { easy:0, medium:0, hard:0 },
+                vsAITied: { easy:0, medium:0, hard:0 }
             }
         };
     }
@@ -164,6 +165,13 @@ class PocketsStats {
         } else if (tied) {
             s.gamesTied++;
             s.currentWinStreak = 0;
+            // BUG FIX: ties vs the AI were never stored on the profile at all, so
+            // the display had to borrow the GLOBAL tie count — which meant the Red
+            // tab showed Blue's ties and vice versa. Each profile now keeps its own.
+            if (mode === 'ai' && diff) {
+                if (!s.vsAITied) { s.vsAITied = { easy:0, medium:0, hard:0 }; }
+                s.vsAITied[diff] = (s.vsAITied[diff] || 0) + 1;
+            }
         } else {
             s.gamesLost++;
             s.currentWinStreak = 0;
@@ -282,8 +290,10 @@ function generatePlayerTabHTML(color) {
         <div class="stat-card">
             <h4>🤖 vs AI Record</h4>
             ${['easy','medium','hard'].map(d => {
-                const byD = pocketsStats.data.ai.byDifficulty[d];
-                const t = byD ? (byD.ties || 0) : 0;
+                // BUG FIX: this used to read pocketsStats.data.ai.byDifficulty[d].ties,
+                // which is the GLOBAL record shared by both colours — so Blue's ties
+                // showed up on the Red tab and vice versa. Read the profile's own.
+                const t = (s.vsAITied && s.vsAITied[d]) ? s.vsAITied[d] : 0;
                 const tieStr = t > 0 ? `-${t}T` : '';
                 return `
             <div class="stat-row">
