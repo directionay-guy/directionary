@@ -459,18 +459,20 @@ body.theme-cosmic::after {
 /* ==========================================================
    FIRST-PLAYER ROLLOFF
    ========================================================== */
+/* The rolloff no longer draws a box of its own — the dice and the VS float
+   directly on the action panel's starfield, which is where they belong.
+   NOTE: this rule deliberately carries NO position/z-index. An earlier version
+   set `position: relative; z-index: 2` on .rolloff-arena to layer comets behind
+   the dice, and that new stacking context stopped the Saturn rings rotating on
+   alternate rounds (the rounds where a die starts already parked and spins in
+   place). The comets now live on the action panel instead, so nothing here
+   needs a stacking context. Don't reintroduce one. */
 .theme-cosmic .first-player-rolloff {
-    background: var(--bg-panel);
-    border: 1px solid rgba(240, 193, 75, 0.3);
-    border-radius: 12px;
-    margin-bottom: 18px;
-    box-shadow: 0 0 16px rgba(240, 193, 75, 0.08);
-    position: relative;   /* anchors the shooting stars; NO overflow:hidden — it would clip the spinning dice */
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    margin-bottom: 0;
 }
-/* Dice and text sit above the shooting stars */
-.theme-cosmic .rolloff-arena,
-.theme-cosmic .rolloff-prompt,
-.theme-cosmic .rolloff-result { position: relative; z-index: 2; }
 .theme-cosmic .rolloff-prompt {
     color: var(--cream);
     font-family: 'Comfortaa', sans-serif;
@@ -1850,66 +1852,111 @@ body.has-css-fullscreen { overflow: hidden; }
 }
 
 /* ==========================================================
-   SHOOTING STARS — Roll-for-First panel
-   Two comets on different cycles, so they never quite repeat.
-   Each is a tapered streak with a bright head, dark for most of
-   its cycle and streaking across in under a second — rare enough
-   to feel like a lucky catch rather than decoration.
-   Purely decorative: pointer-events off, and painted beneath the
-   dice. Does not touch the Saturn rings (.rolloff-die::before)
-   or the drifting space dust (.rolloff-arena::before).
+   COMETS — action panel
+   Built like Steampunk's gear train: a dedicated container div in the HTML,
+   absolutely positioned behind all content, holding one element per comet.
+   That's what lets each one have its OWN path — the action panel's two
+   pseudo-element slots are already spent on the nebula and the starfield.
+
+   There is no UP in space, so these don't share a grammar. They arrive from
+   different edges, travel at different angles and speeds, and some leave
+   through a corner. The durations are deliberately awkward numbers so no two
+   ever fall into step.
    ========================================================== */
-.theme-cosmic .first-player-rolloff::before,
-.theme-cosmic .first-player-rolloff::after {
-    content: '';
+.cosmic-comets {
     position: absolute;
-    top: 0; left: 0;
-    width: 84px;
-    height: 2px;
+    inset: 0;
     pointer-events: none;
+    overflow: hidden;      /* comets clip to the panel; the dice are siblings, so they never clip */
     z-index: 0;
+    display: none;         /* hidden in every non-cosmic theme */
+}
+.theme-cosmic .cosmic-comets { display: block; }
+
+/* A comet is a tapered streak with a bright head. --a is its heading. */
+.c-comet {
+    position: absolute;
+    width: 78px;
+    height: 2px;
     opacity: 0;
     border-radius: 2px;
-    /* tail fades out behind a bright head on the right */
     background: linear-gradient(90deg,
         rgba(255,255,255,0) 0%,
-        rgba(180, 220, 255, 0.35) 45%,
+        rgba(180, 220, 255, 0.30) 45%,
         rgba(255,255,255,0.95) 100%);
     box-shadow: 0 0 6px rgba(200, 230, 255, 0.7);
+    will-change: transform, opacity;
 }
 
-/* Comet 1 — sweeps down-right across the upper half */
-.theme-cosmic .first-player-rolloff::before {
-    animation: cosmic-comet-a 13s linear infinite;
+/* ── 1 · long diagonal, upper-left to lower-right, cool white ─────────── */
+.c-comet-1 { top: 8%;  left: -12%; animation: c-drift-1 14s linear infinite; }
+@keyframes c-drift-1 {
+    0%, 88%  { transform: translate(0, 0) rotate(24deg) scaleX(.3);   opacity: 0; }
+    89%      { opacity: .9; }
+    97%      { opacity: .9; }
+    100%     { transform: translate(60vw, 130px) rotate(24deg) scaleX(1); opacity: 0; }
 }
-/* Comet 2 — shallower, lower, warmer, on a different cycle so the two drift
-   in and out of phase instead of pulsing together */
-.theme-cosmic .first-player-rolloff::after {
+
+/* ── 2 · steep dive, top edge down through the bottom-left corner ─────── */
+.c-comet-2 { top: -8%; left: 62%; animation: c-drift-2 23s linear infinite; animation-delay: 6s; }
+@keyframes c-drift-2 {
+    0%, 91%  { transform: translate(0, 0) rotate(118deg) scaleX(.3);  opacity: 0; }
+    92%      { opacity: .85; }
+    98%      { opacity: .85; }
+    100%     { transform: translate(-120px, 150px) rotate(118deg) scaleX(1); opacity: 0; }
+}
+
+/* ── 3 · CLIMBING right to left, warm gold — nothing else goes this way ─ */
+.c-comet-3 {
+    bottom: 12%; right: -12%;
     background: linear-gradient(90deg,
-        rgba(255,255,255,0) 0%,
-        rgba(255, 210, 150, 0.30) 45%,
-        rgba(255, 245, 220, 0.95) 100%);
+        rgba(255,255,255,0) 0%, rgba(255, 210, 150, 0.28) 45%, rgba(255, 245, 220, 0.95) 100%);
     box-shadow: 0 0 6px rgba(255, 220, 170, 0.65);
-    animation: cosmic-comet-b 19s linear infinite;
-    animation-delay: 5s;
+    animation: c-drift-3 31s linear infinite; animation-delay: 13s;
+}
+@keyframes c-drift-3 {
+    0%, 93%  { transform: translate(0, 0) rotate(196deg) scaleX(.3);  opacity: 0; }
+    94%      { opacity: .8; }
+    99%      { opacity: .8; }
+    100%     { transform: translate(-55vw, -90px) rotate(196deg) scaleX(1); opacity: 0; }
 }
 
-@keyframes cosmic-comet-a {
-    /* dark for most of the cycle, parked off the left edge */
-    0%, 92%   { transform: translate(-14%, 12%) rotate(21deg) scaleX(0.35); opacity: 0; }
-    93%       { opacity: 0.9; }
-    98%       { opacity: 0.9; }
-    100%      { transform: translate(102%, 74%) rotate(21deg) scaleX(1);    opacity: 0; }
+/* ── 4 · quick shallow skim across the very top, teal-tinted ──────────── */
+.c-comet-4 {
+    top: 6%; left: -10%; width: 58px;
+    background: linear-gradient(90deg,
+        rgba(255,255,255,0) 0%, rgba(120, 240, 225, 0.30) 45%, rgba(230, 255, 252, 0.95) 100%);
+    box-shadow: 0 0 6px rgba(120, 240, 225, 0.6);
+    animation: c-drift-4 19s linear infinite; animation-delay: 3s;
 }
-@keyframes cosmic-comet-b {
-    0%, 94%   { transform: translate(-12%, 128%) rotate(-13deg) scaleX(0.35); opacity: 0; }
-    95%       { opacity: 0.85; }
-    99%       { opacity: 0.85; }
-    100%      { transform: translate(100%, 46%)  rotate(-13deg) scaleX(1);    opacity: 0; }
+@keyframes c-drift-4 {
+    0%, 94%  { transform: translate(0, 0) rotate(7deg) scaleX(.3);    opacity: 0; }
+    95%      { opacity: .9; }
+    99%      { opacity: .9; }
+    100%     { transform: translate(70vw, 22px) rotate(7deg) scaleX(1); opacity: 0; }
 }
 
-/* Respect a reduced-motion preference — hold the comets still */
+/* ── 5 · rises out through the top-right corner ───────────────────────── */
+.c-comet-5 { bottom: -6%; left: 18%; animation: c-drift-5 27s linear infinite; animation-delay: 17s; }
+@keyframes c-drift-5 {
+    0%, 92%  { transform: translate(0, 0) rotate(-38deg) scaleX(.3);  opacity: 0; }
+    93%      { opacity: .85; }
+    98%      { opacity: .85; }
+    100%     { transform: translate(240px, -150px) rotate(-38deg) scaleX(1); opacity: 0; }
+}
+
+/* ── 6 · rare, slow, long — the one you're lucky to catch ─────────────── */
+.c-comet-6 {
+    top: 44%; right: -14%; width: 110px;
+    animation: c-drift-6 47s linear infinite; animation-delay: 29s;
+}
+@keyframes c-drift-6 {
+    0%, 95%  { transform: translate(0, 0) rotate(154deg) scaleX(.3);  opacity: 0; }
+    96%      { opacity: .95; }
+    99.4%    { opacity: .95; }
+    100%     { transform: translate(-70vw, 120px) rotate(154deg) scaleX(1); opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-    .theme-cosmic .first-player-rolloff::before,
-    .theme-cosmic .first-player-rolloff::after { animation: none; opacity: 0; }
+    .c-comet { animation: none !important; opacity: 0; }
 }
