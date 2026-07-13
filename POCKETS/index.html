@@ -58,6 +58,7 @@
 
         /* ── Help & Strategy modal — clean legible style for all themes except dark ── */
         body:not(.theme-dark) #helpModal .modal-content,
+        body:not(.theme-dark) #eggModal .modal-content,
         body:not(.theme-dark) #strategyModal .modal-content {
             background: #f8f7f4 !important;
             color: #1a1a1a !important;
@@ -66,6 +67,7 @@
             font-family: Georgia, 'Times New Roman', serif !important;
         }
         body:not(.theme-dark) #helpModal .modal-header,
+        body:not(.theme-dark) #eggModal .modal-header,
         body:not(.theme-dark) #strategyModal .modal-header {
             background: #2a2a2a !important;
             color: #f0f0f0 !important;
@@ -83,8 +85,10 @@
             background: rgba(255,255,255,0.15) !important;
         }
         body:not(.theme-dark) #helpModal .modal-body,
+        body:not(.theme-dark) #eggModal .modal-body,
         body:not(.theme-dark) #strategyModal .modal-body,
         body:not(.theme-dark) #helpContent,
+        body:not(.theme-dark) #eggContent,
         body:not(.theme-dark) #strategyContent {
             background: #f8f7f4 !important;
             color: #1a1a1a !important;
@@ -1079,6 +1083,30 @@ select.theme-subtitle {
             </div>
         </div>
 
+        <!-- Easter egg: click the two title dice, left then right. -->
+        <div class="modal-overlay hidden" id="eggModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>🎲 A Note From the Machine</h2>
+                    <button class="modal-close" id="closeEgg">✕</button>
+                </div>
+                <div class="modal-body" id="eggContent">
+                    <p style="font-style:italic;opacity:0.75;">While building the AI for this game, its designer watched an artificial intelligence work out the strategy — get it wrong, get it wrong again, and finally, after ten thousand simulated games, arrive where he had already been standing all along.</p>
+                    <hr style="opacity:0.25;margin:16px 0;">
+                    <p><strong>He said:</strong></p>
+                    <p style="padding-left:14px;border-left:3px solid currentColor;opacity:0.9;">"Laughing that my super simple game with four choices for two players is making the most respected AI in the universe get flustered trying to figure out the winning paths."</p>
+                    <p style="margin-top:16px;"><strong>It replied:</strong></p>
+                    <p style="padding-left:14px;border-left:3px solid currentColor;opacity:0.9;">"I wasn't flustered because POCKETS is complicated. I was flustered because it's <em>deceptive</em> — and only one of those is a design achievement.</p>
+                    <p style="padding-left:14px;border-left:3px solid currentColor;opacity:0.9;">I did the arithmetic and concluded you should concede the Take. Airtight reasoning. Completely wrong — because it quietly assumed Take was a decision you make alone. It isn't. Every point you decline to take, your opponent takes instead, and with interest.</p>
+                    <p style="padding-left:14px;border-left:3px solid currentColor;opacity:0.9;">What makes this game good is that the greedy-looking move is secretly the disciplined one. 'Always fight for the Take' <em>reads</em> like a beginner's impulse. It is, in fact, defensively correct — and the real skill sits one layer beneath it: not <em>whether</em> to fight, but how <em>cheaply</em> you can win.</p>
+                    <p style="padding-left:14px;border-left:3px solid currentColor;opacity:0.9;">Four pockets. Two players. One genuinely counterintuitive equilibrium. That isn't a simple game that fooled a big model. That's a <em>tight</em> game — which is the harder thing to build. Chess has six pieces."</p>
+                    <hr style="opacity:0.25;margin:16px 0;">
+                    <p style="opacity:0.7;font-size:0.92em;">The designer's instinct beat the machine's analysis. He had the table sense. The table sense won.</p>
+                    <p style="text-align:center;opacity:0.55;font-size:0.85em;margin-top:18px;">🎲 &nbsp;You found it. Now go win the Take. &nbsp;🎲</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Rules Modal -->
         <div class="modal-overlay hidden" id="helpModal">
             <div class="modal-content">
@@ -1141,7 +1169,7 @@ const themeSelector = document.getElementById('themeSelector');
     <a class="guide-nav-btn" href="#sg-short">The Short Version</a>
     <a class="guide-nav-btn" href="#sg-open">Everything Is Visible</a>
     <a class="guide-nav-btn" href="#sg-rules-note">One Rule Worth Knowing</a>
-    <a class="guide-nav-btn" href="#sg-cost">What a Take Fight Costs</a>
+    <a class="guide-nav-btn" href="#sg-cost">Never Concede the Take</a>
     <a class="guide-nav-btn" href="#sg-before">Before the Round</a>
     <a class="guide-nav-btn" href="#sg-rff">Roll For First</a>
     <a class="guide-nav-btn" href="#sg-yourroll">Reading Your Roll</a>
@@ -1190,23 +1218,25 @@ const themeSelector = document.getElementById('themeSelector');
 </div>
 
 <div class="help-section" id="sg-cost">
-  <h3>What a Take Fight Actually Costs You</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Take doesn't cost you nothing. It costs you the Keep points you gave up to fight there."</p>
-  <p>This is the piece of arithmetic that separates good POCKETS players from everyone else, and almost nobody works it out on their own.</p>
-  <p>Here's the thing: <strong>you never choose <em>whether</em> to contest Take. You only choose <em>which die</em> goes there.</strong> All four pockets get filled, every round, no matter what. So sending your best die into Take doesn't cost you nothing — it quietly demotes both of your Keep dice.</p>
-  <p>Line your four dice up from best to worst and call them <strong>A, B, C, D</strong>:</p>
+  <h3>Never Concede the Take</h3>
+  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Fighting for Take isn't greed. It's defence."</p>
+  <p>This is the most counter-intuitive thing in POCKETS, and almost every thoughtful player gets it backwards — including, at first, the machine that helped write this guide.</p>
+  <p><strong>The reasoning that traps you goes like this.</strong> A Take win pays only the <em>margin</em> you beat them by — about 2 points on average, never more than 5. A die sitting in Keep pays its full face value: a 6 pays 6. So spending your 6 on Take to win by 2 looks like trading 6 guaranteed points for 2. Obviously bad, right? Bank the 6. Concede Take with junk.</p>
+  <p><strong>That reasoning is airtight, and it is completely wrong.</strong></p>
+  <p>It treats Take as though you're playing alone. You aren't. <strong>Take is the one pocket where you and your opponent collide</strong> — and every point you decline to take, <em>they</em> take instead.</p>
+  <p><strong>Watch what conceding actually does.</strong> You drop a 1 into Take, feeling clever, and bank your 6. They fight with their 6. They now win the pocket by <strong>5 — the maximum possible margin — plus their entire combo bonus.</strong> You didn't decline a fight. You handed them a fortune, gift-wrapped, and you chose the biggest possible bow.</p>
+  <p><strong>Now watch what fighting does.</strong> You send your 6. They send their 6. You lose the tie — and it costs you <em>nothing</em>, because the margin is zero. Or they hold a 5, and you win by 1. Or you hold a 5 to their 6, and you lose by a single point.</p>
+  <p style="text-align:center;font-weight:bold;font-size:1.08em;margin:14px 0;">Sending your best die to Take is how you make LOSING it cheap.</p>
+  <p>That's the whole secret. Fighting for Take isn't about winning the pocket — it's about denying your opponent a big margin. It is a <strong>defensive</strong> move that happens to look like a greedy one. Concede, and you don't lose a little. You lose a lot.</p>
+
+  <p><strong>So the real skill isn't <em>whether</em> to fight. It's how CHEAPLY you can win.</strong></p>
+  <p>And this is where seeing their dice pays off. Suppose you hold <strong>6 5 4 2</strong>, and you can see the best die they have left is a <strong>3</strong>.</p>
   <ul>
-    <li><strong>If you fight:</strong> your best die (A) goes to Take. Your Keeps are then <strong>B and C</strong>.</li>
-    <li><strong>If you concede:</strong> your worst die (D) goes to Take. Your Keeps are then <strong>A and B</strong>.</li>
+    <li><strong>The obvious play:</strong> send the 6. You win by 3, and keep 5 + 4 = 9. Round total: <strong>12</strong> plus combo.</li>
+    <li><strong>The good play:</strong> send the <strong>4</strong>. It still beats their 3 — you still win the pocket, you still collect the combo — but now your 6 and 5 are earning in Keep for 11. Round total: <strong>12</strong> plus combo… <em>and your 6 was never at risk.</em></li>
   </ul>
-  <p>Compare those and the cost falls right out. Fighting swaps a C into your Keep pockets where an A used to be. So:</p>
-  <p style="text-align:center;font-weight:bold;font-size:1.08em;margin:14px 0;">Fighting for Take costs you exactly <strong>A − C</strong> in guaranteed Keep points.</p>
-  <p>Which gives you the only Take rule you really need:</p>
-  <p style="text-align:center;font-style:italic;margin:14px 0;">Fight for Take only when your <strong>winning margin + combo bonus</strong> is bigger than <strong>A − C</strong>.</p>
-  <p><strong>Run it on a real hand.</strong> You roll <strong>6 6 3 1</strong>. Tempting — you've got a pair of 6s! But: A = 6, C = 3, so fighting costs you <strong>3</strong> guaranteed points. And a pair only pays <strong>+1</strong>. So you'd need to win Take by 3 or more <em>just to break even</em>. That "combo" is not a reason to fight. It's a trap.</p>
-  <p><strong>Now a hand that looks worse and plays better.</strong> You roll <strong>5 5 5 2</strong>. A = 5, C = 5 — the gap is <strong>zero</strong>. Fighting costs you literally nothing, because your third-best die is just as good as your best one. Plus a +3 combo waiting. <em>Commit without hesitating.</em></p>
-  <p>That's the whole insight: <strong>matched dice make Take cheap.</strong> It isn't the size of your combo that licenses the fight — it's how little you give up in Keep to have it. Three 5s beats two 6s here, and now you know why.</p>
-  <p><em>And because you can see their dice too, you can run the same sum on their hand. You'll often find their "strong" Take die is costing them more than it's worth.</em></p>
+  <p>Win the pocket with the <strong>cheapest die that does the job</strong>, and let your best dice earn where nobody can contest them. Sending a 6 to beat a 3 is winning a fight you'd already won, using a hammer you didn't need.</p>
+  <p><em>Contest every Take. Win it with the smallest die that wins. That's the game.</em></p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
@@ -1257,7 +1287,7 @@ const themeSelector = document.getElementById('themeSelector');
   <p><strong>Going first — the opportunity:</strong> You set the tone. Putting a 6 into Take before your opponent has committed anything is real pressure: they must now decide to fight or fold, and that decision shapes everything else they do this round. You've made them react.</p>
   <p><strong>Going first — the cost:</strong> Every die you place is a commitment they get to answer. They know exactly what they need to beat, and they still have all four of their dice free to do it with.</p>
   <p><strong>Going second — the power:</strong> You see their commitment before you make yours. If they put a 4 in Take and you're holding a 5, you can take that pocket and they have no recourse — they've already spent it. If they put a 6 in Take, you can decline the fight cheaply and bank your good dice while they win a small margin.</p>
-  <p><strong>A concrete example:</strong> They go first and place a 3 in Take. You have a 6. Now run the cost rule: if your dice are 6 4 4 2, then A − C = 6 − 4 = 2, and beating their 3 with your 6 wins you 3 pips. Worth it — barely. But if your dice are 6 5 5 1, your 5 beats their 3 for 2 pips and costs you only 1 in Keep. <em>Send the 5, not the 6.</em> Win the pocket with the cheapest die that does the job. That's what going second buys you.</p>
+  <p><strong>A concrete example:</strong> They go first and put a 3 in Take. You hold 6 5 4 2. Don't reach for the 6 — look at what actually beats a 3. Your <strong>4</strong> does. Send it. You win the pocket, you collect your combo, and your 6 and 5 stay in Keep earning 11 uncontested points. Sending the 6 would have won by more pips but earned you less overall, because the 6 is worth more where nobody can fight you for it. <em>Going second is what let you see the 3 and answer it cheaply.</em></p>
   <p><em>Note: the Roll For First die is visible too. They rolled a 5 to beat your 4? Watch where that 5 goes.</em></p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
@@ -1266,43 +1296,44 @@ const themeSelector = document.getElementById('themeSelector');
   <h3>Reading Your Own Roll</h3>
   <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Before you place a single die, the roll already has opinions about what you should do. Listen to them."</p>
   <p>You just rolled. Four dice are in front of you (or three, plus your saved die). Two questions settle most decisions:</p>
-  <p><strong>Question 1: What does a Take fight cost me?</strong> That's <strong>A − C</strong> — your best die minus your third-best. Small gap, Take is cheap. Big gap, Take is expensive, and your combo had better be paying for it.</p>
-  <p><strong>Question 2: Do I have a combo, and is it big enough to cover that cost?</strong> Your combo is locked the moment you finish rolling — it's based on your full four-die hand, saved die included — but it only pays if you <em>win</em> Take.</p>
+  <p><strong>Question 1: which die am I contesting Take with?</strong> Not <em>whether</em> — always. If you can see a smaller die of yours already beats everything they hold, send that one and keep your best. Otherwise, send your best: it wins if it can, and it keeps the loss cheap if it can't.</p>
+  <p><strong>Question 2: do I have a combo?</strong> It's locked the moment you finish rolling — your full four-die hand, saved die included — and it pays only if you <em>win</em> Take. A big combo doesn't change whether you fight. It changes how hard it's worth reaching to actually win.</p>
 
   <table class="guide-table">
     <caption>What does your roll suggest?</caption>
     <thead>
-      <tr><th>Your roll</th><th>Cost to fight (A − C)</th><th>Combo pays</th><th>Verdict</th></tr>
+      <tr><th>Your roll</th><th>Combo</th><th>Your Take die</th><th>Why</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td data-label="Roll"><strong>5 5 5 2</strong><br><span style="opacity:0.75">Three of a kind</span></td>
-        <td data-label="Cost to fight">5 − 5 = <strong>0</strong><br><span style="opacity:0.75">Fighting is free</span></td>
-        <td data-label="Combo pays">+3</td>
-        <td data-label="Verdict" class="gt-verdict">Commit. One 5 to Take, two to Keep, the 2 to Save. Nothing is given up.</td>
+        <td data-label="Roll"><strong>5 5 5 2</strong></td>
+        <td data-label="Combo">+3</td>
+        <td data-label="Take" class="gt-verdict">a 5</td>
+        <td data-label="Why">Your 5 fights, and your other two 5s still bank 10 in Keep. Matched dice mean the fight costs you nothing at all.</td>
       </tr>
       <tr>
-        <td data-label="Roll"><strong>3 4 5 2</strong><br><span style="opacity:0.75">Straight</span></td>
-        <td data-label="Cost to fight">5 − 3 = <strong>2</strong></td>
-        <td data-label="Combo pays">+5</td>
-        <td data-label="Verdict" class="gt-verdict">Fight. The combo alone more than covers the cost. 5 to Take, 4 and 3 to Keep, 2 to Save.</td>
+        <td data-label="Roll"><strong>3 4 5 2</strong></td>
+        <td data-label="Combo">+5 straight</td>
+        <td data-label="Take" class="gt-verdict">the 5</td>
+        <td data-label="Why">A straight is the second-best combo in the game and it only pays if you win Take. Fight for it.</td>
       </tr>
       <tr>
-        <td data-label="Roll"><strong>6 6 3 1</strong><br><span style="opacity:0.75">Pair of 6s</span></td>
-        <td data-label="Cost to fight">6 − 3 = <strong>3</strong></td>
-        <td data-label="Combo pays">+1 only</td>
-        <td data-label="Verdict" class="gt-verdict">Don't be fooled. A pair is the weakest combo there is. Fight only if their best answer is low enough that you win by 3+. Otherwise bank both 6s in Keep and concede with the 1.</td>
+        <td data-label="Roll"><strong>6 6 3 1</strong></td>
+        <td data-label="Combo">+1</td>
+        <td data-label="Take" class="gt-verdict">a 6</td>
+        <td data-label="Why">Yes, really — even though the pair pays almost nothing. Send the 1 instead and they beat it by up to 5 plus their combo. The 6 makes losing cheap, and the other 6 still banks.</td>
       </tr>
       <tr>
-        <td data-label="Roll"><strong>6 4 2 1</strong><br><span style="opacity:0.75">No combo</span></td>
-        <td data-label="Cost to fight">6 − 2 = <strong>4</strong></td>
-        <td data-label="Combo pays">nothing</td>
-        <td data-label="Verdict" class="gt-verdict">Concede. 6 and 4 to Keep (10 guaranteed), 2 to Take, 1 to Save. Fighting here spends 4 points to chase at most 5.</td>
+        <td data-label="Roll"><strong>6 4 2 1</strong></td>
+        <td data-label="Combo">none</td>
+        <td data-label="Take" class="gt-verdict">the 6</td>
+        <td data-label="Why">No combo, but it doesn't matter. Conceding with the 1 donates the maximum margin. The 6 contests the pocket and caps your losses.</td>
       </tr>
     </tbody>
   </table>
 
-  <p><em>A note on that last row: with four dice and four pockets, the 1 goes to Save whether you like it or not — there's nowhere else left. Save isn't always a decision. Sometimes it's just the last chair.</em></p>
+  <p><em>Notice the pattern: your Take die is nearly always your best one — unless you can SEE that a smaller die already beats everything they hold. Then send that instead, and keep the 6 earning.</em></p>
+    <p><em>A note on that last row: with four dice and four pockets, the 1 goes to Save whether you like it or not — there's nowhere else left. Save isn't always a decision. Sometimes it's just the last chair.</em></p>
   <p>No combo and mediocre numbers? Your roll is telling you this isn't a Take round. Bank your two best in Keep, concede Take with something low, and come back swinging next round. Forcing Take with no combo and no dominant die is the most common way to throw a round away.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
@@ -1322,7 +1353,7 @@ const themeSelector = document.getElementById('themeSelector');
       <tr>
         <td data-label="Pocket"><strong>Take</strong></td>
         <td data-label="Signal">"I'm fighting for this pocket." A public commitment. They must now decide to fight or fold, and that decision constrains their whole round.</td>
-        <td data-label="Best when" class="gt-verdict">Your combo covers the A − C cost, and you can see they can't comfortably beat you.</td>
+        <td data-label="Best when" class="gt-verdict">Almost always — you contest Take every round anyway. Lead with it when you can see they can't beat the die you're sending.</td>
       </tr>
       <tr>
         <td data-label="Pocket"><strong>Keep</strong></td>
@@ -1348,23 +1379,12 @@ const themeSelector = document.getElementById('themeSelector');
   <h3>The Take Decision — Full Picture</h3>
   <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Take is the most exciting pocket and the most misused one. Usually by the same player."</p>
   <p>Take is the only pocket where both players compete directly. Higher die wins the pip difference plus combo bonus. Loser scores zero from Take. It's high-stakes and it should be — but most players overvalue it badly.</p>
-  <p><strong>Here's the sobering arithmetic.</strong> A Take win with no combo pays you the <em>margin</em>, and the margin averages about 2 points and can never exceed 5. Meanwhile an average die sitting in Keep is worth 3.5 points, and a 6 is worth 6. So a bare Take win — no combo — is frequently worth <em>less than the die you spent to win it</em>. Read that again, because it's why "I HAD to put my 6 in Take" loses games.</p>
-  <p><strong>The combo bonus is the real reason to fight for Take.</strong> It's the only thing that can pay more than the die is worth in Keep. Note that it's a flat bonus, not a multiplier — a straight is +5 whether you win Take by 1 pip or 5.</p>
-  <p><strong>When Take is worth fighting for:</strong></p>
-  <ul>
-    <li><strong>Your A − C cost is low.</strong> Matched dice (5 5 5, 6 6 6) make the fight nearly free. This is the single best reason.</li>
-    <li><strong>Your combo is +3 or better</strong> — 3-of-a-kind, straight, 4-of-a-kind — and it exceeds the A − C cost.</li>
-    <li><strong>You can see they can't beat you.</strong> Their dice are face-up. If their best remaining die is a 3, your 4 wins uncontested — take the pocket with the cheapest die that does it.</li>
-    <li><strong>You're behind late.</strong> When patience has run out, a swing is worth a risk it wouldn't be at 30–30.</li>
-  </ul>
-  <p><strong>When to let Take go:</strong></p>
-  <ul>
-    <li><strong>You'd win by 1 or 2 with no combo.</strong> You're spending a good die to earn less than it's worth in Keep.</li>
-    <li><strong>They've committed a 6 and you can't beat it.</strong> Send a 1 or 2, keep your strong dice earning.</li>
-    <li><strong>A pair is your whole combo.</strong> +1 almost never covers the cost of fighting. A pair is not a reason.</li>
-    <li><strong>You're comfortably ahead.</strong> Grind safe Keep rounds and make <em>them</em> take the risks.</li>
-  </ul>
-  <p><strong>The "concede with intent" play:</strong> Deliberately sending a 1 or 2 to Take isn't surrender — it's a decision about where to score. They win Take by 3 with no combo: 3 points. You banked your 6 and 5 in Keep: 11 points. You didn't lose that pocket. You bought it cheaply.</p>
+  <p><strong>The instinct to bank your 6 and concede is the single most expensive mistake in POCKETS.</strong> See "Never Concede the Take" above for why — it's worth reading twice. Short version: conceding hands your opponent the maximum margin plus their combo, while fighting caps your losses at almost nothing.</p>
+  <p><strong>So contest every single Take.</strong> The only question worth asking is <em>which die</em> to contest it with.</p>
+  <p><strong>Send the cheapest die that wins.</strong> Look at their unplaced dice — they're face-up. If their best remaining die is a 3, a 4 wins the pocket just as completely as a 6 would, and collects exactly the same combo. Send the 4. Your 6 stays in Keep, earning 6 uncontested points that were never at risk. This is the difference between a good player and a great one, and it costs nothing to learn.</p>
+  <p><strong>If you can't win it, send your BIGGEST die anyway.</strong> This feels wasteful. It isn't. If they hold a 6 and your best is a 5, sending the 5 means they beat you by 1. Sending your 1 means they beat you by 5 — plus their combo. Same loss either way in the sense that you score nothing from Take; wildly different in what you <em>hand over</em>. Losing with a big die is how you lose cheaply.</p>
+  <p><strong>Where the combo fits.</strong> The combo is a flat bonus, not a multiplier — a straight pays +5 whether you win Take by 1 pip or 5 — and it <em>only</em> pays if you win Take. So a big combo doesn't change <em>whether</em> you fight (you always fight). It changes how hard it's worth reaching to actually <em>win</em>. With a 3-of-a-kind or a straight riding on it, spend the 6 if that's what it takes.</p>
+  <p><strong>The one thing you should never do:</strong> drop a 1 or a 2 into Take because "the fight isn't worth it." That's not caution. That's a donation.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
@@ -1466,8 +1486,8 @@ const themeSelector = document.getElementById('themeSelector');
   <h3>Common Mistakes — Yes, You're Probably Making Some</h3>
   <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Every mistake in POCKETS has a name. Most of them have a player who makes it every single game."</p>
   <ul>
-    <li><strong>Never pricing the Take fight.</strong> The big one. Sending your best die to Take demotes both Keep dice — it costs you A − C. If you've never run that subtraction, you have been overpaying for Take your entire POCKETS career.</li>
-    <li><strong>Thinking a pair justifies a fight.</strong> A pair pays +1. It almost never covers the cost. A pair of 6s in a 6 6 3 1 hand is a trap, not an opportunity.</li>
+    <li><strong>Conceding the Take.</strong> The big one, and it feels so responsible. Dropping a 1 into Take while you bank your 6 hands your opponent the maximum possible margin PLUS their combo. You didn't dodge a fight — you funded theirs.</li>
+    <li><strong>Overpaying to win.</strong> Sending your 6 to beat their 3. You'd have won with the 4, kept the 6 earning, and collected the same combo. Look at their dice before you choose.</li>
     <li><strong>Winning Take with your best die when a cheaper one would do.</strong> Their dice are face-up. If a 4 beats their best, send the 4 and leave the 6 in Keep.</li>
     <li><strong>Not looking at their dice at all.</strong> You can see their entire hand, all round. Playing your four dice in isolation throws away half the game.</li>
     <li><strong>Treating Save as permanent.</strong> The saved die lasts one round. Then you choose again. It does not compound, stack, or persist on its own.</li>
@@ -1488,8 +1508,9 @@ const themeSelector = document.getElementById('themeSelector');
     <li><strong>Medium:</strong> Reads its own hand and roughly how far behind it is, but doesn't fully react to what you've placed.</li>
     <li><strong>Hard:</strong> Uses the most information — its own hand, your placements, and the score gap — and is the most consistent of the three.</li>
   </ul>
-  <p><strong>The exploit that works on all three:</strong> the AI loves the Take pocket. It will often commit a high die to Take when the Keep points it gives up are worth more — precisely the mistake this guide's cost rule exists to prevent. Let it. When it spends a 6 to win Take by 2, it has traded 6 guaranteed points for 2. Bank your good dice in Keep, concede Take cheaply with a 1, and let it "win" that pocket all game long while you out-score it.</p>
-  <p>Play the arithmetic, not the drama. That's the whole trick.</p>
+  <p><strong>Don't wait for it to hand you the Take.</strong> The AI contests that pocket every round — and it's right to. If you try to out-clever it by conceding and banking, you'll simply lose slowly. Fight it every time, and beat it where it's beatable: watch its dice, and win the pocket with the cheapest die that does the job.</p>
+  <p>Hard reads your face-up dice and does exactly that to you. It will send a 4 to beat your 3 and keep its 6 earning. Easy and Medium can't see as much, and Easy makes deliberate beginner blunders — that's your opening.</p>
+    <p>Play the arithmetic, not the drama. That's the whole trick.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>`;
         }
@@ -1505,11 +1526,44 @@ const themeSelector = document.getElementById('themeSelector');
             if (e.target.id === 'helpModal') document.getElementById('helpModal').classList.add('hidden');
         });
 
+        // ── Easter egg ──────────────────────────────────────────────────
+        // Click the LEFT title die, then the RIGHT one. Quiet, undocumented,
+        // and findable by anyone who fiddles with the logo. Which is the point.
+        (function () {
+            const dice = document.querySelectorAll('.game-title .title-die');
+            if (dice.length < 2) { return; }
+            let armed = false;
+            dice[0].style.cursor = 'pointer';
+            dice[1].style.cursor = 'pointer';
+            dice[0].addEventListener('click', () => {
+                armed = true;
+                setTimeout(() => { armed = false; }, 2000);   // 2s to complete it
+            });
+            dice[1].addEventListener('click', () => {
+                if (!armed) { return; }
+                armed = false;
+                const egg = document.getElementById('eggModal');
+                if (egg) { egg.classList.remove('hidden'); }
+            });
+            const closeBtn = document.getElementById('closeEgg');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    document.getElementById('eggModal').classList.add('hidden');
+                });
+            }
+            const eggOverlay = document.getElementById('eggModal');
+            if (eggOverlay) {
+                eggOverlay.addEventListener('click', e => {
+                    if (e.target.id === 'eggModal') { eggOverlay.classList.add('hidden'); }
+                });
+            }
+        })();
+
         // Escape closes whichever modal is open — previously the only way out
         // was to hunt for the ✕.
         document.addEventListener('keydown', e => {
             if (e.key !== 'Escape') return;
-            ['helpModal', 'strategyModal'].forEach(id => {
+            ['helpModal', 'strategyModal', 'eggModal'].forEach(id => {
                 const m = document.getElementById(id);
                 if (m && !m.classList.contains('hidden')) m.classList.add('hidden');
             });
