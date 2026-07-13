@@ -760,6 +760,98 @@ select.theme-subtitle {
         .stats-clear-btn { font-size: 0.85em; opacity: 0.7; }
         .stats-clear-btn:hover { opacity: 1; }
 
+        /* ── Print / Save PDF button, beside the ✕ ── */
+        .modal-header-btns { display: flex; align-items: center; gap: 8px; }
+        .modal-print {
+            background: transparent;
+            border: 1px solid currentColor;
+            color: inherit;
+            font: inherit;
+            font-size: 0.72em;
+            letter-spacing: 0.06em;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 0.75;
+            white-space: nowrap;
+            transition: opacity 0.2s ease, background 0.2s ease;
+        }
+        .modal-print:hover { opacity: 1; background: rgba(255,255,255,0.14); }
+        @media (max-width: 420px) { .modal-print { font-size: 0.66em; padding: 4px 7px; } }
+
+        /* ══════════════════════════════════════════════════════════════════
+           PRINT — print ONLY the open panel, on white paper.
+           Without this, printing a modal prints the whole game board beneath
+           it too. So: hide everything, then walk back up from the panel being
+           printed and re-show just its ancestors.
+           ══════════════════════════════════════════════════════════════════ */
+        @media print {
+            /* white paper, black ink, whatever the theme */
+            body, body * {
+                background: #fff !important;
+                color: #000 !important;
+                box-shadow: none !important;
+                text-shadow: none !important;
+                filter: none !important;
+                animation: none !important;
+            }
+            /* hide the lot... */
+            body > *, .game-container > * { display: none !important; }
+
+            /* ...then re-show the chain down to the panel being printed */
+            body.printing-modal,
+            body.printing-modal .game-container { display: block !important; }
+            body.printing-modal .modal-overlay.print-me {
+                display: block !important;
+                position: static !important;
+                padding: 0 !important;
+                background: #fff !important;
+                z-index: auto !important;
+            }
+            body.printing-modal .print-me .modal-content {
+                display: block !important;
+                max-height: none !important;
+                overflow: visible !important;
+                width: 100% !important;
+                border: none !important;
+                border-radius: 0 !important;
+            }
+            body.printing-modal .print-me .modal-header {
+                position: static !important;
+                display: block !important;
+                border-bottom: 2px solid #000 !important;
+                padding: 0 0 8px !important;
+                margin-bottom: 14px !important;
+            }
+            body.printing-modal .print-me .modal-body { display: block !important; padding: 0 !important; }
+            body.printing-modal .print-me .help-section { display: block !important; }
+            body.printing-modal .print-me .help-section * { display: revert !important; }
+            body.printing-modal .print-me table { display: table !important; }
+            body.printing-modal .print-me thead { display: table-header-group !important; }
+            body.printing-modal .print-me tr { display: table-row !important; }
+            body.printing-modal .print-me td,
+            body.printing-modal .print-me th { display: table-cell !important; }
+            body.printing-modal .print-me svg { display: block !important; }
+
+            /* on paper these are dead weight — you can't tap a link on a page */
+            .modal-header-btns,
+            .print-me nav,
+            .print-me .guide-nav-btn,
+            .print-me .guide-back-top { display: none !important; }
+
+            /* readable, and don't split things across pages badly */
+            .print-me .modal-body { font-size: 11pt; line-height: 1.55; }
+            .print-me h2 { font-size: 20pt; }
+            .print-me h3 { font-size: 13pt; margin-top: 16pt; page-break-after: avoid; }
+            .print-me p, .print-me li { orphans: 3; widows: 3; }
+            .print-me .help-section { page-break-inside: auto; margin-bottom: 14pt; }
+            .print-me table, .print-me svg { page-break-inside: avoid; max-width: 100%; }
+            .print-me .guide-table th { border-bottom: 1.5pt solid #000 !important; }
+            .print-me .guide-table td { border-bottom: 0.5pt solid #999 !important; }
+            .print-me .help-combo-table td { border-bottom: 0.5pt solid #999 !important; }
+            @page { margin: 16mm; }
+        }
+
         /* ── Play As toggle ── */
         .play-as-toggle { display: flex; align-items: center; gap: 8px; }
         .play-as-toggle.hidden { display: none; }
@@ -869,6 +961,19 @@ select.theme-subtitle {
                 <div class="sp-gear sp-gear-3"></div>
                 <div class="sp-gear sp-gear-4"></div>
                 <div class="sp-gear sp-gear-5"></div>
+            </div>
+
+            <!-- Cosmic comets — hidden in all other themes via CSS. Same idea as
+                 the gear train above: the action panel's own two pseudo-element
+                 slots are already spent on the nebula and the starfield, so each
+                 comet needs a real element to fly its own path. -->
+            <div class="cosmic-comets" aria-hidden="true">
+                <div class="c-comet c-comet-1"></div>
+                <div class="c-comet c-comet-2"></div>
+                <div class="c-comet c-comet-3"></div>
+                <div class="c-comet c-comet-4"></div>
+                <div class="c-comet c-comet-5"></div>
+                <div class="c-comet c-comet-6"></div>
             </div>
 
             <!-- State A: Start Round / Start Rolldown -->
@@ -1077,7 +1182,10 @@ select.theme-subtitle {
             <div class="modal-content">
                 <div class="modal-header">
                     <h2>Strategy Guide</h2>
-                    <button class="modal-close" id="closeStrategy">✕</button>
+                    <div class="modal-header-btns">
+                        <button class="modal-print" id="printStrategy">Print / Save PDF</button>
+                        <button class="modal-close" id="closeStrategy">✕</button>
+                    </div>
                 </div>
                 <div class="modal-body" id="strategyContent"></div>
             </div>
@@ -1118,7 +1226,10 @@ select.theme-subtitle {
             <div class="modal-content">
                 <div class="modal-header">
                     <h2>How to Play Pockets</h2>
-                    <button class="modal-close" id="closeHelp">✕</button>
+                    <div class="modal-header-btns">
+                        <button class="modal-print" id="printHelp">Print / Save PDF</button>
+                        <button class="modal-close" id="closeHelp">✕</button>
+                    </div>
                 </div>
                 <div class="modal-body" id="helpContent"></div>
             </div>
@@ -1531,6 +1642,31 @@ const themeSelector = document.getElementById('themeSelector');
         document.getElementById('helpModal').addEventListener('click', e => {
             if (e.target.id === 'helpModal') document.getElementById('helpModal').classList.add('hidden');
         });
+
+        // ── Print / Save PDF ────────────────────────────────────────────
+        // Printing a modal normally prints the whole page underneath it. So we
+        // tag the panel we want, flag the body, print, then clean up. The print
+        // stylesheet does the rest: hide everything, re-show just this chain.
+        function printPanel(modalId) {
+            const modal = document.getElementById(modalId);
+            if (!modal) { return; }
+            modal.classList.add('print-me');
+            document.body.classList.add('printing-modal');
+            const cleanup = () => {
+                modal.classList.remove('print-me');
+                document.body.classList.remove('printing-modal');
+            };
+            // afterprint is the reliable signal in every current browser; the
+            // timeout is a belt-and-braces fallback so the page can never get
+            // stuck in print mode if the event doesn't land.
+            window.addEventListener('afterprint', cleanup, { once: true });
+            setTimeout(cleanup, 3000);
+            window.print();
+        }
+        const pS = document.getElementById('printStrategy');
+        if (pS) { pS.addEventListener('click', () => printPanel('strategyModal')); }
+        const pH = document.getElementById('printHelp');
+        if (pH) { pH.addEventListener('click', () => printPanel('helpModal')); }
 
         // ── Easter egg ──────────────────────────────────────────────────
         // Click the LEFT title die, then the RIGHT one. Quiet, undocumented,
