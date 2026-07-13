@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POCKETS Lab — Strategy Ledger</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='4' width='56' height='56' rx='10' fill='%23e8ede6' stroke='%231b2b2a' stroke-width='4'/%3E%3Ccircle cx='19' cy='19' r='5' fill='%231b2b2a'/%3E%3Ccircle cx='45' cy='19' r='5' fill='%231b2b2a'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%231b2b2a'/%3E%3Ccircle cx='19' cy='45' r='5' fill='%231b2b2a'/%3E%3Ccircle cx='45' cy='45' r='5' fill='%231b2b2a'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#e6ebe4;         /* ledger stock */
+  --paper-hi:#f0f4ee;
+  --rule:#b9c7bd;          /* ruled lines */
+  --rule-red:#c98b84;      /* the red margin rule */
+  --ink:#1b2b2a;           /* iron-gall ink */
+  --ink-soft:#4d605d;
+  --oxblood:#7a2e2e;       /* the stamp */
+  --brass:#8a6f2e;
+  --green:#2f6b4f;
+  --sheet-w:min(980px,100%);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#cfd6cd;
+  color:var(--ink);
+  font-family:'IBM Plex Sans',system-ui,sans-serif;
+  padding:28px 16px 80px;
+  display:flex;justify-content:center;
+}
+.sheet{
+  width:var(--sheet-w);
+  background:
+    /* horizontal ruling, like a real ledger */
+    repeating-linear-gradient(180deg, transparent 0 31px, var(--rule) 31px 32px),
+    var(--paper);
+  border:1px solid #a9b6ac;
+  box-shadow:0 1px 0 #fff inset, 0 14px 40px rgba(0,0,0,.22);
+  position:relative;
+  padding:0 34px 42px 62px;
+}
+/* the red margin rule down the left, as on every ledger ever printed */
+.sheet::before{
+  content:'';position:absolute;top:0;bottom:0;left:46px;width:1px;
+  background:var(--rule-red);opacity:.75;
+}
+header{padding:34px 0 18px;position:relative}
+.eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:.72rem;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px;
+}
+h1{
+  font-family:'Playfair Display',serif;font-weight:900;
+  font-size:clamp(1.9rem,4.4vw,2.9rem);line-height:1.05;margin:0 0 8px;
+  letter-spacing:-.01em;
+}
+h1 em{font-style:italic;font-weight:700;color:var(--oxblood)}
+.dek{max-width:60ch;margin:0;color:var(--ink-soft);line-height:1.6;font-size:.98rem}
+
+h2{
+  font-family:'Playfair Display',serif;font-size:1.18rem;margin:34px 0 4px;
+  border-bottom:2px solid var(--ink);padding-bottom:5px;display:flex;
+  justify-content:space-between;align-items:baseline;
+}
+h2 span{font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-soft);font-weight:400}
+.note{font-size:.9rem;color:var(--ink-soft);margin:10px 0 16px;line-height:1.6;max-width:66ch}
+
+/* ── controls ─────────────────────────────────────────── */
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:16px 22px;margin:18px 0 4px}
+@media(max-width:680px){.controls{grid-template-columns:1fr}}
+label{display:block;font-family:'IBM Plex Mono',monospace;font-size:.68rem;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px}
+select,input[type=number]{
+  width:100%;padding:9px 10px;background:var(--paper-hi);border:1px solid #9aa89d;
+  color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:.92rem;border-radius:0;
+}
+select:focus,input:focus,button:focus-visible{outline:2px solid var(--oxblood);outline-offset:1px}
+.run{
+  margin-top:20px;width:100%;padding:14px;cursor:pointer;
+  background:var(--ink);color:var(--paper);border:none;
+  font-family:'IBM Plex Mono',monospace;font-weight:600;
+  letter-spacing:.2em;text-transform:uppercase;font-size:.82rem;
+}
+.run:hover{background:var(--oxblood)}
+.run:disabled{opacity:.5;cursor:progress}
+
+/* ── the verdict stamp: the one bold moment ───────────── */
+.stampwrap{min-height:0;position:relative}
+.stamp{
+  position:absolute;right:2px;top:-6px;
+  border:3px double var(--oxblood);color:var(--oxblood);
+  font-family:'IBM Plex Mono',monospace;font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;font-size:.82rem;
+  padding:8px 14px;transform:rotate(-4deg) scale(.6);opacity:0;
+  transition:transform .34s cubic-bezier(.2,1.6,.5,1),opacity .2s;
+  pointer-events:none;text-align:center;line-height:1.25;
+}
+.stamp.show{transform:rotate(-4deg) scale(1);opacity:.92}
+.stamp small{display:block;font-size:.62rem;letter-spacing:.1em;opacity:.8;font-weight:400}
+@media(prefers-reduced-motion:reduce){.stamp{transition:none}}
+
+/* ── figures ──────────────────────────────────────────── */
+.headline{display:flex;gap:28px;align-items:flex-end;flex-wrap:wrap;margin:22px 0 6px}
+.big{font-family:'Playfair Display',serif;font-weight:900;font-size:4rem;line-height:.9}
+.big small{font-size:1.1rem;font-weight:700;opacity:.5}
+.bigcap{font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px}
+
+table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:.86rem}
+caption{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:.68rem;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);padding-bottom:6px}
+th{text-align:left;font-weight:600;border-bottom:1.5px solid var(--ink);padding:6px 8px;font-size:.72rem;
+  letter-spacing:.08em;text-transform:uppercase}
+td{padding:6px 8px;border-bottom:1px solid var(--rule)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+.win{color:var(--green);font-weight:600}
+.lose{color:var(--oxblood);font-weight:600}
+
+.bar{height:8px;background:#cfd8cf;position:relative;margin-top:3px}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--ink);display:block}
+.bar i.a{background:var(--oxblood)}
+
+.hidden{display:none}
+footer{margin-top:38px;padding-top:14px;border-top:1px solid var(--rule);
+  font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--ink-soft);
+  display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pips{letter-spacing:.18em}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<header>
+  <p class="eyebrow">Pockets · Workbench No. 1</p>
+  <h1>The Strategy <em>Ledger</em></h1>
+  <p class="dek">Play a strategy against another ten thousand times and read what actually happens, rather than what feels true. This is the instrument that proved conceding the Take is a losing habit — after two confident, wrong answers had already been given.</p>
+</header>
+
+<h2>Duel <span>Two strategies · many games</span></h2>
+<p class="note">Each side plays every round: roll, fill all four pockets, contest the Take. Games run to 100 points and then the Rolldown. Strategies differ only in <em>where the dice go</em>.</p>
+
+<div class="controls">
+  <div>
+    <label for="pa">Strategy A</label>
+    <select id="pa"></select>
+  </div>
+  <div>
+    <label for="pb">Strategy B</label>
+    <select id="pb"></select>
+  </div>
+  <div>
+    <label for="n">Games</label>
+    <input id="n" type="number" value="5000" min="200" max="200000" step="500">
+  </div>
+  <div>
+    <label for="seedy">Also run the mirror (A and B swapped)</label>
+    <select id="seedy">
+      <option value="1">Yes — cancels any positional bias</option>
+      <option value="0">No</option>
+    </select>
+  </div>
+</div>
+<button class="run" id="run">Run the duel</button>
+
+<div id="out" class="hidden">
+  <div class="stampwrap"><div class="stamp" id="stamp"></div></div>
+  <div class="headline">
+    <div>
+      <div class="bigcap">Strategy A wins</div>
+      <div class="big"><span id="rate">—</span><small>%</small></div>
+    </div>
+    <div style="flex:1;min-width:200px">
+      <div class="bar"><i class="a" id="barA"></i></div>
+      <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:.7rem;margin-top:4px;color:var(--ink-soft)">
+        <span id="lblA">A</span><span id="lblB">B</span>
+      </div>
+    </div>
+  </div>
+  <table>
+    <caption>Per-game averages</caption>
+    <thead><tr><th>Measure</th><th class="num">Strategy A</th><th class="num">Strategy B</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <p class="note" id="verdictNote"></p>
+</div>
+
+<h2>Scoring audit <span>Every hand that exists</span></h2>
+<p class="note">Checks the combo table against all 1,296 four-die rolls and all 7,776 five-die rolls, then derives the game's four limits from scratch. If a rule ever changes, run this first.</p>
+<button class="run" id="audit">Audit the scoring</button>
+<div id="auditOut" class="hidden">
+  <table>
+    <caption>Findings</caption>
+    <thead><tr><th>Check</th><th class="num">Result</th></tr></thead>
+    <tbody id="auditBody"></tbody>
+  </table>
+</div>
+
+<h2>Combo frequency <span>How often the dice oblige</span></h2>
+<p class="note">Exact probabilities, counted rather than estimated — every possible roll, weighted equally.</p>
+<button class="run" id="freq">Count the combos</button>
+<div id="freqOut" class="hidden">
+  <table>
+    <caption>Chance of each combo</caption>
+    <thead><tr><th>Combo</th><th class="num">Pays</th><th class="num">4 dice</th><th class="num">5 dice</th></tr></thead>
+    <tbody id="freqBody"></tbody>
+  </table>
+</div>
+
+<footer>
+  <span class="pips">⚀ ⚁ ⚂ ⚃ ⚄ ⚅</span>
+  <span>POCKETS © Joel Pickard · the dice are honest</span>
+</footer>
+</div>
+
+<script>
+// ── The rules, exactly as the game plays them ──────────────────────────────
+function combo(dice){
+  const c={}; dice.forEach(d=>c[d]=(c[d]||0)+1);
+  const n=Object.values(c).sort((a,b)=>b-a);
+  const u=[...new Set(dice)].sort((a,b)=>a-b);
+  const straight = u.length===dice.length && u.length>=4 && u[u.length-1]-u[0]===u.length-1;
+  if(n[0]===5) return 10;
+  if(n[0]===4) return 6;
+  if(n[0]===3 && n[1]===2) return 4;
+  if(straight) return 5;
+  if(n[0]===3) return 3;
+  if(n[0]===2 && n[1]===2) return 2;
+  if(n[0]===2) return 1;
+  return 0;
+}
+const COMBO_NAMES=[['5 of a kind',10],['4 of a kind',6],['Straight',5],['Full house',4],['3 of a kind',3],['Two pair',2],['One pair',1],['Nothing',0]];
+const roll=()=>1+Math.floor(Math.random()*6);
+
+// ── Strategies. Each returns where the four dice go. ───────────────────────
+// oppDice = the opponent's unplaced dice — face-up in POCKETS, so reading them is legal.
+const STRATEGIES={
+  fightBest:{
+    name:'Always fight — send your best die',
+    blurb:'Contest the Take every round with your highest die. Crude, and very nearly right.',
+    play(d){const s=[...d].sort((a,b)=>b-a);return{keep:[s[1],s[2]],take:s[0],save:s[3]};}
+  },
+  fightCheap:{
+    name:'Fight cheaply — win with the smallest die that wins',
+    blurb:'Never concede. If a lesser die already beats everything they hold, send that and keep the 6 earning.',
+    play(d,o){
+      const asc=[...d].sort((a,b)=>a-b), tb=Math.max(...o);
+      const t=asc.find(x=>x>tb) ?? asc[asc.length-1];
+      const r=[...d]; r.splice(r.indexOf(t),1); r.sort((a,b)=>b-a);
+      return{keep:[r[0],r[1]],take:t,save:r[2]};
+    }
+  },
+  fightCheapBank:{
+    name:'Fight cheaply, and bank for the Rolldown',
+    blurb:'As above, but once someone passes 80 it stashes a 5 or 6 in Save for the finale.',
+    play(d,o,near){
+      const asc=[...d].sort((a,b)=>a-b), tb=Math.max(...o);
+      const t=asc.find(x=>x>tb) ?? asc[asc.length-1];
+      const r=[...d]; r.splice(r.indexOf(t),1); r.sort((a,b)=>b-a);
+      if(near && r[0]>=5) return{keep:[r[1],r[2]],take:t,save:r[0]};
+      return{keep:[r[0],r[1]],take:t,save:r[2]};
+    }
+  },
+  concede:{
+    name:'Concede — bank the big dice, throw the Take',
+    blurb:'The clever-sounding trap. Keep your two best, drop your worst into Take. Watch it lose.',
+    play(d){const s=[...d].sort((a,b)=>b-a);return{keep:[s[0],s[1]],take:s[3],save:s[2]};}
+  },
+  conditional:{
+    name:'Concede only when the Take looks unwinnable',
+    blurb:'Fights when it can win, folds when it cannot. Sounds disciplined. Still loses.',
+    play(d,o){
+      const r=[...d].sort((a,b)=>b-a), tb=Math.max(...o);
+      if(r[0]>tb) return{keep:[r[1],r[2]],take:r[0],save:r[3]};
+      return{keep:[r[0],r[1]],take:r[3],save:r[2]};
+    }
+  },
+  random:{
+    name:'Random — a control, not a strategy',
+    blurb:'Places dice with no thought at all. Anything worth playing must beat this comfortably.',
+    play(d){const s=[...d].sort(()=>Math.random()-.5);return{keep:[s[0],s[1]],take:s[2],save:s[3]};}
+  }
+};
+
+// ── One game ───────────────────────────────────────────────────────────────
+function playGame(A,B,st){
+  let a=0,b=0,aS=null,bS=null,rounds=0,aTake=0,bTake=0;
+  for(let r=0;r<60;r++){
+    rounds++;
+    const ad=[],bd=[];
+    for(let i=0;i<(aS===null?4:3);i++) ad.push(roll());
+    for(let i=0;i<(bS===null?4:3);i++) bd.push(roll());
+    if(aS!==null) ad.push(aS);
+    if(bS!==null) bd.push(bS);
+    const near=Math.max(a,b)>=80;
+    const ap=A.play(ad,bd,near), bp=B.play(bd,ad,near);
+    a+=ap.keep[0]+ap.keep[1];
+    b+=bp.keep[0]+bp.keep[1];
+    if(ap.take>bp.take){ a+=(ap.take-bp.take)+combo(ad); aTake++; }
+    else if(bp.take>ap.take){ b+=(bp.take-ap.take)+combo(bd); bTake++; }
+    aS=ap.save; bS=bp.save;
+    if(a>=100||b>=100){
+      const af=[aS],bf=[bS];
+      for(let i=0;i<4;i++){af.push(roll());bf.push(roll());}
+      a+=af.reduce((x,y)=>x+y,0)+combo(af);
+      b+=bf.reduce((x,y)=>x+y,0)+combo(bf);
+      break;
+    }
+  }
+  st.aScore+=a; st.bScore+=b; st.rounds+=rounds; st.aTake+=aTake; st.bTake+=bTake;
+  return a>b;
+}
+
+// ── Wiring ─────────────────────────────────────────────────────────────────
+const keys=Object.keys(STRATEGIES);
+const pa=document.getElementById('pa'), pb=document.getElementById('pb');
+keys.forEach(k=>{
+  pa.add(new Option(STRATEGIES[k].name,k));
+  pb.add(new Option(STRATEGIES[k].name,k));
+});
+pa.value='fightCheapBank'; pb.value='concede';
+
+document.getElementById('run').addEventListener('click',()=>{
+  const btn=document.getElementById('run');
+  btn.disabled=true; btn.textContent='Rolling…';
+  setTimeout(()=>{
+    const A=STRATEGIES[pa.value], B=STRATEGIES[pb.value];
+    const N=Math.max(200,Math.min(200000,+document.getElementById('n').value||5000));
+    const mirror=document.getElementById('seedy').value==='1';
+    const st={aScore:0,bScore:0,rounds:0,aTake:0,bTake:0};
+    let wins=0,games=0;
+    for(let i=0;i<N;i++){ if(playGame(A,B,st)) wins++; games++; }
+    if(mirror){ // run it the other way round and fold the results in
+      const st2={aScore:0,bScore:0,rounds:0,aTake:0,bTake:0};
+      let w2=0;
+      for(let i=0;i<N;i++){ if(!playGame(B,A,st2)) w2++; }
+      wins+=w2; games+=N;
+      st.aScore+=st2.bScore; st.bScore+=st2.aScore;
+      st.rounds+=st2.rounds; st.aTake+=st2.bTake; st.bTake+=st2.aTake;
+    }
+    const pct=100*wins/games;
+    document.getElementById('out').classList.remove('hidden');
+    document.getElementById('rate').textContent=pct.toFixed(1);
+    document.getElementById('barA').style.width=pct+'%';
+    document.getElementById('lblA').textContent='A · '+pct.toFixed(1)+'%';
+    document.getElementById('lblB').textContent=(100-pct).toFixed(1)+'% · B';
+    const g=games, rows=[
+      ['Final score',(st.aScore/g).toFixed(1),(st.bScore/g).toFixed(1)],
+      ['Take pockets won',(st.aTake/g).toFixed(2),(st.bTake/g).toFixed(2)],
+      ['Rounds per game',(st.rounds/g).toFixed(1),(st.rounds/g).toFixed(1)]
+    ];
+    document.getElementById('tbody').innerHTML=rows.map(r=>
+      `<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td></tr>`).join('');
+
+    const s=document.getElementById('stamp');
+    let word,sub;
+    if(pct>53){ word='A prevails'; sub=(pct-50).toFixed(1)+' pts clear'; }
+    else if(pct<47){ word='A is beaten'; sub=(50-pct).toFixed(1)+' pts adrift'; }
+    else { word='Too close to call'; sub='within the noise'; }
+    s.innerHTML=word+'<small>'+sub+'</small>';
+    s.classList.remove('show'); void s.offsetWidth; s.classList.add('show');
+    document.getElementById('verdictNote').innerHTML=
+      '<strong>A:</strong> '+A.blurb+'<br><strong>B:</strong> '+B.blurb+
+      '<br><em>'+games.toLocaleString()+' games'+(mirror?', mirrored to cancel any positional bias':'')+'.</em>';
+    btn.disabled=false; btn.textContent='Run the duel';
+  },30);
+});
+
+// ── Scoring audit ──────────────────────────────────────────────────────────
+document.getElementById('audit').addEventListener('click',()=>{
+  const rows=[];
+  const ref=d=>{ // an independent reading of the rules, written separately on purpose
+    const c={}; d.forEach(x=>c[x]=(c[x]||0)+1);
+    const n=Object.values(c).sort((a,b)=>b-a);
+    const u=[...new Set(d)].sort((a,b)=>a-b);
+    const st=u.length===d.length&&u.length>=4&&u[u.length-1]-u[0]===u.length-1;
+    if(n[0]===5)return 10; if(n[0]===4)return 6; if(n[0]===3&&n[1]===2)return 4;
+    if(st)return 5; if(n[0]===3)return 3; if(n[0]===2&&n[1]===2)return 2;
+    if(n[0]===2)return 1; return 0;
+  };
+  let bad=0,count=0,maxReg=0,minReg=99,maxRoll=0,minRoll=999;
+  for(let a=1;a<=6;a++)for(let b=1;b<=6;b++)for(let c=1;c<=6;c++)for(let d=1;d<=6;d++){
+    const h=[a,b,c,d]; count++;
+    if(combo(h)!==ref(h)) bad++;
+    const asc=[...h].sort((x,y)=>x-y), desc=[...h].sort((x,y)=>y-x);
+    const floor=asc[0]+asc[1];                                  // both Keeps, Take lost
+    const ceil=desc[0]+desc[1]+Math.min(5,desc[2]-1)+combo(h);  // Keeps + best Take win + combo
+    if(floor<minReg)minReg=floor;
+    if(ceil>maxReg)maxReg=ceil;
+  }
+  for(let a=1;a<=6;a++)for(let b=1;b<=6;b++)for(let c=1;c<=6;c++)for(let d=1;d<=6;d++)for(let e=1;e<=6;e++){
+    const h=[a,b,c,d,e]; count++;
+    if(combo(h)!==ref(h)) bad++;
+    const t=h.reduce((x,y)=>x+y,0)+combo(h);
+    if(t>maxRoll)maxRoll=t; if(t<minRoll)minRoll=t;
+  }
+  const ok=v=>`<span class="win">${v}</span>`, no=v=>`<span class="lose">${v}</span>`;
+  rows.push(['Hands checked',count.toLocaleString()]);
+  rows.push(['Combo mismatches',bad===0?ok('none'):no(bad)]);
+  rows.push(['Regular round — lowest possible',minReg===2?ok('2'):no(minReg)]);
+  rows.push(['Regular round — highest possible',maxReg===23?ok('23'):no(maxReg)]);
+  rows.push(['Rolldown — lowest possible',minRoll===11?ok('11'):no(minRoll)]);
+  rows.push(['Rolldown — highest possible',maxRoll===40?ok('40'):no(maxRoll)]);
+  document.getElementById('auditBody').innerHTML=rows.map(r=>
+    `<tr><td>${r[0]}</td><td class="num">${r[1]}</td></tr>`).join('');
+  document.getElementById('auditOut').classList.remove('hidden');
+});
+
+// ── Combo frequency ────────────────────────────────────────────────────────
+document.getElementById('freq').addEventListener('click',()=>{
+  const c4={},c5={};
+  let t4=0,t5=0;
+  for(let a=1;a<=6;a++)for(let b=1;b<=6;b++)for(let c=1;c<=6;c++)for(let d=1;d<=6;d++){
+    const v=combo([a,b,c,d]); c4[v]=(c4[v]||0)+1; t4++;
+  }
+  for(let a=1;a<=6;a++)for(let b=1;b<=6;b++)for(let c=1;c<=6;c++)for(let d=1;d<=6;d++)for(let e=1;e<=6;e++){
+    const v=combo([a,b,c,d,e]); c5[v]=(c5[v]||0)+1; t5++;
+  }
+  document.getElementById('freqBody').innerHTML=COMBO_NAMES.map(([nm,pts])=>{
+    const p4=((c4[pts]||0)/t4*100), p5=((c5[pts]||0)/t5*100);
+    const only5=(pts===10||pts===4);
+    return `<tr><td>${nm}</td><td class="num">${pts?'+'+pts:'—'}</td>`+
+           `<td class="num">${only5&&p4===0?'—':p4.toFixed(1)+'%'}</td>`+
+           `<td class="num">${p5.toFixed(1)+'%'}</td></tr>`;
+  }).join('');
+  document.getElementById('freqOut').classList.remove('hidden');
+});
+</script>
+</body>
+</html>
