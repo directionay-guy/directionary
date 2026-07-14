@@ -384,6 +384,19 @@ function restoreFinaleState() {
 // reconstructed here (see session notes) - the underlying scores/data are
 // still fully preserved either way, nothing is lost.
 function restoreGameFromSave(saved) {
+    // BELT AND BRACES. This function APPENDS dice into the pockets, so if it ever
+    // runs twice, every die is drawn twice — which is exactly the bug that showed
+    // up as two dice in every pocket after a page had been sitting for a while
+    // (a race between the 'load' handler and its DOMContentLoaded fallback, both
+    // of which called init). That race is fixed in index.html, but this function
+    // should not depend on being called exactly once. Wipe the board first, then
+    // rebuild it. Now a double call is merely wasteful instead of corrupting.
+    document.querySelectorAll('.pocket-dice').forEach(function(pd) { pd.innerHTML = ''; });
+    var _bda = document.getElementById('blueDiceArea');
+    var _rda = document.getElementById('redDiceArea');
+    if (_bda) { _bda.innerHTML = ''; }
+    if (_rda) { _rda.innerHTML = ''; }
+
     gameWasRestoredOnLoad = true;
     gameState = saved.gameState;
     gameMode  = saved.gameMode;
