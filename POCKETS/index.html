@@ -1898,7 +1898,19 @@ const themeSelector = document.getElementById('themeSelector');
                 .forEach(d => { d.style.opacity = '1'; });
         }
 
+        // The page has TWO ways of starting the game: window 'load', and a
+        // DOMContentLoaded fallback in case 'load' never fires. The fallback was
+        // guarded; 'load' was NOT — so whenever 'load' ran slowly (cold cache,
+        // tired phone, the analytics script dragging its feet), the 500ms fallback
+        // fired FIRST, and then 'load' fired anyway. Two inits. Two restores.
+        // Every die placed into its pocket twice, and the winner announced twice.
+        // This flag makes starting the game idempotent: whoever gets there first
+        // wins, and the loser quietly stands down.
+        let gameSystemStarted = false;
+
         function initializeGameSystem() {
+            if (gameSystemStarted) { return; }
+            gameSystemStarted = true;
             try {
                 loadSavedTheme();
                 if (typeof initializeGame === 'function') initializeGame();
@@ -2026,12 +2038,12 @@ const themeSelector = document.getElementById('themeSelector');
                 document.getElementById('loadingScreen').innerHTML = '❌ Game failed to load. Check all files are present.';
             }
         }
+        // Both of these are safe to fire now — initializeGameSystem() ignores the
+        // second caller. Keep both: 'load' is the normal path, and the fallback
+        // covers the case where a stalled resource means 'load' never arrives.
         window.addEventListener('load', () => setTimeout(initializeGameSystem, 100));
         document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                if (document.getElementById('loadingScreen').style.display !== 'none')
-                    initializeGameSystem();
-            }, 500);
+            setTimeout(initializeGameSystem, 800);
         });
     </script>
 </body>
