@@ -1287,12 +1287,13 @@ const themeSelector = document.getElementById('themeSelector');
     <a class="guide-nav-btn" href="#sg-open">Everything Is Visible</a>
     <a class="guide-nav-btn" href="#sg-rules-note">One Rule Worth Knowing</a>
     <a class="guide-nav-btn" href="#sg-cost">Never Concede the Take</a>
+    <a class="guide-nav-btn" href="#sg-two">The Two Rules</a>
     <a class="guide-nav-btn" href="#sg-before">Before the Round</a>
     <a class="guide-nav-btn" href="#sg-rff">Roll For First</a>
     <a class="guide-nav-btn" href="#sg-yourroll">Reading Your Roll</a>
     <a class="guide-nav-btn" href="#sg-placement">The Placement Game</a>
     <a class="guide-nav-btn" href="#sg-take">The Take Decision</a>
-    <a class="guide-nav-btn" href="#sg-save">The Save Decision</a>
+    <a class="guide-nav-btn" href="#sg-save">★ Save — the real game</a>
     <a class="guide-nav-btn" href="#sg-reading">Reading Your Opponent</a>
     <a class="guide-nav-btn" href="#sg-late">Late Game</a>
     <a class="guide-nav-btn" href="#sg-rolldown">The Rolldown</a>
@@ -1305,9 +1306,25 @@ const themeSelector = document.getElementById('themeSelector');
   <h3>The Short Version</h3>
   <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"The dice don't decide the game. They present the puzzle. You decide how to solve it."</p>
   <p>POCKETS is a decision game that happens to use dice. The rolling is the easy part. Four dice land in front of you, and then the actual game begins.</p>
-  <p>Every die you rolled must go somewhere. <strong>Keep Two</strong> — both dice score, no fight, guaranteed income. <strong>Take One</strong> — the higher die wins the difference in pips, plus a combo bonus if you earned one. Win it and it pays. Lose it and you score zero from that pocket. <strong>Save One</strong> — scores nothing this round, but your saved die becomes your fourth die next round. One round forward. That's the whole deal.</p>
-  <p>The game ends when a player crosses 100 points. The final round is the Rolldown — all five dice score directly, biggest combo possible, and the last saved die from the previous round becomes the fifth Rolldown die.</p>
-  <p>Everything in this guide comes down to one question, asked four times per round: <em>given what I know right now, where does this die do the most good?</em></p>
+  <p>Every die must go somewhere. <strong>Keep Two</strong> — both dice score, no fight, guaranteed. <strong>Take One</strong> — the higher die wins the difference in pips, plus a combo bonus. Win it and it pays; lose it and you score nothing from that pocket. <strong>Save One</strong> — scores nothing this round, but becomes your fourth die next round, and your fifth die in the Rolldown.</p>
+  <p>The game ends when someone crosses 100. The last round is the Rolldown, where all five dice score directly.</p>
+  <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
+</div>
+
+<div class="help-section" id="sg-two">
+  <h3>The Two Rules That Decide Everything</h3>
+  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Everything else in this guide is detail. These two are the game."</p>
+  <p>This guide used to be built around the Take pocket. It was wrong, and we only found out by simulating a hundred thousand games. Here is what actually decides who wins:</p>
+
+  <p style="font-size:1.1em;margin:16px 0 6px;"><strong>Rule 1 — Never concede the Take.</strong></p>
+  <p>Never drop a junk die into Take because "the fight isn't worth it." That isn't caution, it's a donation — you hand your opponent the largest possible margin plus their whole combo bonus. Contest that pocket <em>every single round</em>.</p>
+  <p style="opacity:0.8;"><em>Measured: a player who concedes loses to a player who always fights, <strong>78 games out of 100</strong>. It is the single biggest mistake available to you.</em></p>
+
+  <p style="font-size:1.1em;margin:18px 0 6px;"><strong>Rule 2 — Deliberately bank a high die in Save.</strong></p>
+  <p>Don't let Save collect whatever's left over after you've filled everything else. <em>Choose</em> what goes there, and choose a 5 or a 6, even though it costs you guaranteed Keep points to do it.</p>
+  <p style="opacity:0.8;"><em>Measured: deliberately banking a high die beats "save the leftover" by <strong>about 8 points of win rate</strong> — a larger effect than any refinement of Take play. "Save the leftover" is the second-worst strategy in the game, and it is what most people do without noticing.</em></p>
+
+  <p style="margin-top:18px;"><strong>The strange shape of POCKETS:</strong> Take is <em>high stakes but low choice</em> — one thing to understand, and then it never asks you anything again. Save is the opposite: quieter, but a genuine decision every single round, and the one that punishes autopilot. <strong>Take is the price of admission. Save is the game.</strong></p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
@@ -1495,55 +1512,72 @@ const themeSelector = document.getElementById('themeSelector');
 </div>
 
 <div class="help-section" id="sg-take">
-  <h3>The Take Decision — Full Picture</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Take is the most exciting pocket and the most misused one. Usually by the same player."</p>
-  <p>Take is the only pocket where both players compete directly. Higher die wins the pip difference plus combo bonus. Loser scores zero from Take. It's high-stakes and it should be — but most players overvalue it badly.</p>
-  <p><strong>The instinct to bank your 6 and concede is the single most expensive mistake in POCKETS.</strong> See "Never Concede the Take" above for why — it's worth reading twice. Short version: conceding hands your opponent the maximum margin plus their combo, while fighting caps your losses at almost nothing.</p>
-  <p><strong>So contest every single Take.</strong> The only question worth asking is <em>which die</em> to contest it with.</p>
-  <p><strong>Send the cheapest die that wins.</strong> Look at their unplaced dice — they're face-up. If their best remaining die is a 3, a 4 wins the pocket just as completely as a 6 would, and collects exactly the same combo. Send the 4. Your 6 stays in Keep, earning 6 uncontested points that were never at risk. This is the difference between a good player and a great one, and it costs nothing to learn.</p>
-  <p><strong>If you can't win it, send your BIGGEST die anyway.</strong> This feels wasteful. It isn't. If they hold a 6 and your best is a 5, sending the 5 means they beat you by 1. Sending your 1 means they beat you by 5 — plus their combo. Same loss either way in the sense that you score nothing from Take; wildly different in what you <em>hand over</em>. Losing with a big die is how you lose cheaply.</p>
-  <p><strong>Where the combo fits.</strong> The combo is a flat bonus, not a multiplier — a straight pays +5 whether you win Take by 1 pip or 5 — and it <em>only</em> pays if you win Take. So a big combo doesn't change <em>whether</em> you fight (you always fight). It changes how hard it's worth reaching to actually <em>win</em>. With a 3-of-a-kind or a straight riding on it, spend the 6 if that's what it takes.</p>
-  <p><strong>The one thing you should never do:</strong> drop a 1 or a 2 into Take because "the fight isn't worth it." That's not caution. That's a donation.</p>
+  <h3>The Take Decision — Shorter Than You Think</h3>
+  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"One rule, and then it stops asking anything of you."</p>
+  <p>Take is the biggest single effect in the game — get it wrong and you lose four games in five. But it demands exactly <em>one</em> thing of you, and after that it goes quiet.</p>
+  <p><strong>The rule: contest it. Every round. Without exception.</strong> See <a class="guide-nav-btn" href="#sg-cost" style="padding:2px 8px;font-size:0.9em;">Never Concede the Take</a> for why — short version, conceding hands them the maximum margin plus their combo.</p>
+  <p><strong>The only real skill: win it with the cheapest die that wins.</strong> Their dice are face-up. If their best remaining die is a 3, then a 4 takes the pocket just as completely as a 6 would, and collects exactly the same combo. Send the 4.</p>
+  <p><strong>And here is the reason that matters more than the one you'd expect.</strong> It isn't mainly that the 6 earns more in Keep. It's that <strong>your 6 has a better job waiting for it: the Save pocket.</strong> Spending a 6 to win a fight a 4 could have won doesn't just cost you a few Keep points — it costs you the single most valuable thing you can do with that die. Win cheap, and bank the 6.</p>
+  <p><strong>When you genuinely cannot win it:</strong> it barely matters what you send. If your best die can't beat their best, the arithmetic cancels — a bigger die shrinks the margin you hand over by almost exactly what it costs you elsewhere. Send whatever you don't need. But <em>don't waste a 5 or a 6 there</em> — those have somewhere better to be.</p>
+  <p><strong>The tie is a weapon.</strong> If they lead the Take with a 6, you cannot beat it — but you can <strong>match</strong> it. Nobody scores, and their combo bonus dies with it. Against a straight or a 4-of-a-kind, that's an excellent trade. And notice: if you're already contesting every Take with a strong die, <em>you'll do this automatically without ever planning it.</em></p>
+  <p><strong>Where the combo fits.</strong> The combo is a flat bonus, not a multiplier, and it only pays if you win Take. So it doesn't change <em>whether</em> you fight — you always fight. It changes how hard it's worth reaching to actually <em>win</em>. With a straight or trips riding on it, spend the 6 if that's what it takes.</p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
 <div class="help-section" id="sg-save">
-  <h3>The Save Decision — Round by Round</h3>
-  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Save isn't a vault. It's a courier — it hands one die forward, and then it's done."</p>
-  <p>The Save pocket scores nothing this round. In exchange, your saved die becomes your fourth die next round — meaning you roll only three new dice. After that round the saved die is finished, unless you choose to save again. Every round is a fresh decision.</p>
-  <p><strong>What's worth saving?</strong></p>
+  <h3>★ The Save Pocket — Where the Game Is Actually Played</h3>
+  <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Every other pocket asks what this round is worth. Save asks what the next one is."</p>
+  <p><strong>This is the most important section in this guide, and it is the one everybody skims.</strong></p>
+  <p>Here is the trap, and it is beautifully disguised as good play. You roll, you sensibly bank your two best dice in Keep, you contest the Take, and then — with no decision made at all — the last die falls into Save. It feels tidy. It feels correct. <strong>It is the second-worst thing you can do in POCKETS.</strong></p>
+  <p>Because that leftover die is almost always your <em>worst</em> one. So you've just guaranteed yourself a garbage die in next round's hand, and if the Rolldown triggers, that garbage is your fifth die in the biggest-scoring round of the game.</p>
+
+  <p style="text-align:center;font-weight:bold;font-size:1.08em;margin:16px 0;">Deliberately banking a 5 or a 6 in Save beats saving the leftover by roughly <strong>8 games in every 100</strong>.</p>
+  <p>That is a bigger effect than <em>anything</em> in Take play beyond the one rule about not conceding. It is the largest lever you have.</p>
+
+  <p><strong>But it costs you, and you have to be willing to pay.</strong> Banking a 6 means that 6 does <em>not</em> score in Keep this round. You are giving up 6 guaranteed points, right now, in exchange for something that doesn't show up on the scoreboard yet. That's why people don't do it — the cost is visible and the benefit isn't.</p>
+
+  <p><strong>What you're actually buying:</strong></p>
   <ul>
-    <li><strong>6:</strong> Almost always. Only a fresh 6 can match it, and rolling at least one 6 in three dice happens just <strong>42%</strong> of the time — so more often than not, a saved 6 is the best die in next round's hand before you've even rolled.</li>
-    <li><strong>5:</strong> Usually — but know what you're buying. You'll roll at least one 5-or-6 in three dice about <strong>70%</strong> of the time, so a saved 5 often gets matched or beaten by a new die anyway. It's solid, not sacred. Its real value is that it's <em>guaranteed</em>.</li>
-    <li><strong>4:</strong> Situational. Fine early. Questionable once you could be banking a 5 or 6 instead. Near the Rolldown, replace it.</li>
-    <li><strong>3 or lower:</strong> Rarely justified — you're locking a weak die into next round's hand, and possibly into the Rolldown. The exception is a genuinely dreadful roll where even a 3 beats what you'd likely re-roll.</li>
+    <li><strong>A guaranteed high die in a hand of three random ones.</strong> Next round you roll only three dice; the 6 is already there. Your worst possible hand next round just got dramatically better.</li>
+    <li><strong>Cheap combos.</strong> A banked 6 next to a rolled 6 is a pair. Next to two rolled 6s it's three-of-a-kind — and matched dice make a Take fight nearly free, because your best die and your third-best are the same number.</li>
+    <li><strong>Your Rolldown die.</strong> Whatever sits in Save when someone crosses 100 becomes your fifth die in a round worth up to 40 points. There is no adjustment window. It is simply whatever you last chose.</li>
   </ul>
-  <p><strong>Save and combos:</strong> Your saved die is part of your four-die hand, so it counts toward your combo. A saved 5 next to a rolled 5 is a pair. A saved 6 next to two rolled 6s is 3-of-a-kind — and, per the cost rule, three matched high dice make a Take fight almost free. This is the real payoff of disciplined saving: not that the die "builds up" (it never does — each save lasts exactly one round), but that a guaranteed high die gives every future hand a better shot at a cheap combo.</p>
+
+  <p><strong>What's worth banking:</strong></p>
+  <ul>
+    <li><strong>6 — almost always.</strong> Only a fresh 6 can match it, and you'll roll at least one 6 in three dice just <strong>42%</strong> of the time. More often than not, a banked 6 is the best die in next round's hand before you've rolled a thing.</li>
+    <li><strong>5 — usually.</strong> Know what you're buying, though: you'll roll a 5-or-6 in three dice about <strong>70%</strong> of the time. Its value isn't that it's unbeatable. It's that it's <em>guaranteed</em>.</li>
+    <li><strong>4 — a coin flip.</strong> Roughly break-even. Fine if there's nothing better.</li>
+    <li><strong>3 or lower — a real cost.</strong> You're not just wasting the pocket; you're poisoning next round's hand and possibly your Rolldown. Only do it when your roll is genuinely dreadful.</li>
+  </ul>
+
+  <p><strong>And remember what Save is NOT.</strong> It does not compound. A saved die lasts exactly one round, then it is spent, scored or not. If you want to carry a high die forward again, you must <em>choose</em> to save again. Nothing happens automatically. Every round the decision is fresh — which is precisely what makes it a decision.</p>
 
   <table class="guide-table">
     <caption>Save priority by game stage</caption>
     <thead>
-      <tr><th>Stage</th><th>Save</th><th>Why</th></tr>
+      <tr><th>Stage</th><th>Bank</th><th>Why</th></tr>
     </thead>
     <tbody>
       <tr>
         <td data-label="Stage"><strong>Early</strong><br><span style="opacity:0.75">under 50 pts</span></td>
-        <td data-label="Save" class="gt-verdict">5 or 6<br><span style="opacity:0.75;font-weight:normal">(a 4 is acceptable)</span></td>
-        <td data-label="Why">Plenty of rounds ahead. Build the habit — a good saved die makes cheap combos more likely all game.</td>
+        <td data-label="Bank" class="gt-verdict">5 or 6<br><span style="opacity:0.75;font-weight:normal">(a 4 will do)</span></td>
+        <td data-label="Why">Build the habit now. Every round you bank high makes the next round's hand better, and the effect accumulates across the whole game.</td>
       </tr>
       <tr>
         <td data-label="Stage"><strong>Mid</strong><br><span style="opacity:0.75">50–80 pts</span></td>
-        <td data-label="Save" class="gt-verdict">5 or 6</td>
-        <td data-label="Why">Replace a saved 4 the moment you roll a 6 with no better home. If you're trailing, push Take rather than banking.</td>
+        <td data-label="Bank" class="gt-verdict">5 or 6</td>
+        <td data-label="Why">Replace a banked 4 the moment you roll a 6 with nowhere better to be. Stop settling.</td>
       </tr>
       <tr>
         <td data-label="Stage"><strong>Late</strong><br><span style="opacity:0.75">80+ pts</span></td>
-        <td data-label="Save" class="gt-verdict">6 only</td>
-        <td data-label="Why">The Rolldown could trigger at the end of any round, and whatever's sitting in Save at that moment <em>is</em> your fifth die. Don't compromise.</td>
+        <td data-label="Bank" class="gt-verdict">6 only</td>
+        <td data-label="Why">The Rolldown can trigger at the end of <em>any</em> round now, and whatever is sitting in Save at that moment <em>is</em> your fifth die. Do not compromise here.</td>
       </tr>
     </tbody>
   </table>
 
+  <p><em>If you take one thing from this guide: stop letting Save happen to you. Decide it.</em></p>
   <p><a class="guide-back-top" href="#strategyContent">↑ Back to top</a></p>
 </div>
 
@@ -1605,13 +1639,10 @@ const themeSelector = document.getElementById('themeSelector');
   <h3>Common Mistakes — Yes, You're Probably Making Some</h3>
   <p style="font-style:italic;opacity:0.7;margin-bottom:10px">"Every mistake in POCKETS has a name. Most of them have a player who makes it every single game."</p>
   <ul>
-    <li><strong>Conceding the Take.</strong> The big one, and it feels so responsible. Dropping a 1 into Take while you bank your 6 hands your opponent the maximum possible margin PLUS their combo. You didn't dodge a fight — you funded theirs.</li>
-    <li><strong>Overpaying to win.</strong> Sending your 6 to beat their 3. You'd have won with the 4, kept the 6 earning, and collected the same combo. Look at their dice before you choose.</li>
-    <li><strong>Winning Take with your best die when a cheaper one would do.</strong> Their dice are face-up. If a 4 beats their best, send the 4 and leave the 6 in Keep.</li>
-    <li><strong>Not looking at their dice at all.</strong> You can see their entire hand, all round. Playing your four dice in isolation throws away half the game.</li>
-    <li><strong>Treating Save as permanent.</strong> The saved die lasts one round. Then you choose again. It does not compound, stack, or persist on its own.</li>
-    <li><strong>Saving weak dice.</strong> A saved 2 is a guaranteed liability in next round's hand. Save 5s and 6s.</li>
-    <li><strong>Not replacing a weak saved die late.</strong> That 3 you saved in round 5 becomes your Rolldown die if someone crosses 100. Fix it now.</li>
+    <li><strong>Letting Save happen to you.</strong> The biggest and best-hidden mistake in POCKETS. You bank your best two dice in Keep, contest the Take, and the last die just… falls into Save. You never decided. And that leftover is your worst die, which is now guaranteed to be in next round's hand, and possibly your Rolldown die. <strong>Deliberately banking a 5 or 6 instead is worth about 8 games in 100.</strong></li>
+    <li><strong>Conceding the Take.</strong> The one that feels so responsible. Dropping a 1 into Take while you bank your 6 hands your opponent the maximum possible margin PLUS their combo. You didn't dodge a fight — you funded theirs. <strong>Costs you 78 games in 100 against someone who fights.</strong></li>
+    <li><strong>Winning the Take with your 6 when a 4 would have done.</strong> Look at their dice. Win with the cheapest die that wins — not because the 6 earns more in Keep, but because <em>the 6 belongs in Save.</em></li>
+    <li><strong>Refusing to pay for the future.</strong> Banking a 6 costs you 6 guaranteed points this round. That feels awful. Pay it anyway — the cost is visible and the benefit isn't, which is exactly why most players never do it.</li>
     <li><strong>Ignoring the score context.</strong> The placement that's right at 30–30 can be dead wrong at 85–70. Check the scores before every placement.</li>
     <li><strong>Conceding in the Rolldown.</strong> Count the numbers. A 20-point gap with five dice yet to score can absolutely close.</li>
   </ul>
