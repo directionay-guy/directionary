@@ -139,7 +139,7 @@ footer{margin-top:38px;padding-top:14px;border-top:1px solid var(--rule);
 </header>
 
 <h2>Duel <span>Two strategies · many games</span></h2>
-<p class="note">Each side plays every round: roll, fill all four pockets, contest the Take. Games run to 100 points and then the Rolldown. Strategies differ only in <em>where the dice go</em>.</p>
+<p class="note">Played the way the real game is played: <strong>one die at a time, alternating</strong>, until all four pockets are full. That order matters — it is the only reason a player can watch a 6 go into Take and then <em>match it</em>. Games run to 100 and then the Rolldown.</p>
 
 <div class="controls">
   <div>
@@ -233,73 +233,180 @@ function combo(dice){
 const COMBO_NAMES=[['5 of a kind',10],['4 of a kind',6],['Straight',5],['Full house',4],['3 of a kind',3],['Two pair',2],['One pair',1],['Nothing',0]];
 const roll=()=>1+Math.floor(Math.random()*6);
 
-// ── Strategies. Each returns where the four dice go. ───────────────────────
-// oppDice = the opponent's unplaced dice — face-up in POCKETS, so reading them is legal.
+// ── TURN-BY-TURN ENGINE ────────────────────────────────────────────────────
+// The real game alternates: you place ONE die, then they place one, and so on
+// until all four pockets are filled. That order is not decoration — it is what
+// makes the spite-tie possible at all. You can only match a die AFTER you have
+// watched it go in.
+//
+// An earlier version of this lab had both sides commit a whole arrangement at
+// once. Faster, and quite wrong: it could never express "I saw your 6, so I am
+// matching it." Everything below plays it properly, turn by turn.
+//
+// A strategy is a function: given the live board, name ONE die and ONE pocket.
+//   me   = { dice:[unplaced], pockets:{keep1,keep2,take,save}, roll:[original 4] }
+//   them = { dice:[unplaced], pockets:{...},                   roll:[original 4] }
+// Return { die: <value>, pocket: 'keep1'|'keep2'|'take'|'save' }
+const POCKETS=['keep1','keep2','take','save'];
+const openPockets = p => POCKETS.filter(k => p[k]===null);
+const hi  = a => Math.max(...a);
+const lo  = a => Math.min(...a);
+// where a die goes when Take isn't the answer: best free Keep, else Save
+
+// Bank a die: best free Keep, else Save.
+function put(me, die){
+  if(me.pockets.keep1===null) return {die,pocket:'keep1'};
+  if(me.pockets.keep2===null) return {die,pocket:'keep2'};
+  if(me.pockets.save===null)  return {die,pocket:'save'};
+  return {die,pocket:'take'};
+}
+// Place a non-Take die, optionally HOLDING one die back in reserve.
+// (Reserving is the whole trick behind the spite-tie: you cannot match their 6
+//  if you have already spent yours in Keep.)
+function placeOther(me, reserve){
+  const open=openPockets(me.pockets);
+  if(open.length===1 && open[0]==='take') return {die:me.dice[0],pocket:'take'};
+  let pool=me.dice.filter(d=>d!==reserve);
+  if(!pool.length) pool=[...me.dice];                 // nothing else left; spend it
+  const keepsOpen = open.includes('keep1')||open.includes('keep2');
+  if(keepsOpen) return put(me, hi(pool));             // Keeps get your best
+  if(open.includes('save')) return {die:lo(pool),pocket:'save'};
+  return {die:pool[0],pocket:'take'};
+}
+// The smallest die that beats a given value — win the pocket, spend the least.
+const cheapestWinner=(dice,beat)=>[...dice].sort((a,b)=>a-b).find(d=>d>beat);
+
 const STRATEGIES={
   fightBest:{
     name:'Always fight — send your best die',
-    blurb:'Contest the Take every round with your highest die. Crude, and very nearly right.',
-    play(d){const s=[...d].sort((a,b)=>b-a);return{keep:[s[1],s[2]],take:s[0],save:s[3]};}
+    blurb:'Contests the Take with its highest die, first chance it gets. Crude, and very nearly right.',
+    move(me){
+      if(me.pockets.take===null) return {die:hi(me.dice),pocket:'take'};
+      return placeOther(me,null);
+    }
   },
   fightCheap:{
     name:'Fight cheaply — win with the smallest die that wins',
-    blurb:'Never concede. If a lesser die already beats everything they hold, send that and keep the 6 earning.',
-    play(d,o){
-      const asc=[...d].sort((a,b)=>a-b), tb=Math.max(...o);
-      const t=asc.find(x=>x>tb) ?? asc[asc.length-1];
-      const r=[...d]; r.splice(r.indexOf(t),1); r.sort((a,b)=>b-a);
-      return{keep:[r[0],r[1]],take:t,save:r[2]};
+    blurb:'Never concedes. Wins the Take with the least it can spare; if it cannot win, it sends its BIGGEST die anyway, so the margin it hands over stays small.',
+    move(me,them){
+      if(me.pockets.take===null){
+        const beat = them.pockets.take!==null ? them.pockets.take
+                   : (them.dice.length ? hi(them.dice) : 0);
+        const w=cheapestWinner(me.dice,beat);
+        if(w!==undefined) return {die:w,pocket:'take'};
+        return {die:hi(me.dice),pocket:'take'};   // can't win — contest anyway, and lose cheaply
+      }
+      return placeOther(me,null);
     }
   },
-  fightCheapBank:{
-    name:'Fight cheaply, and bank for the Rolldown',
-    blurb:'As above, but once someone passes 80 it stashes a 5 or 6 in Save for the finale.',
-    play(d,o,near){
-      const asc=[...d].sort((a,b)=>a-b), tb=Math.max(...o);
-      const t=asc.find(x=>x>tb) ?? asc[asc.length-1];
-      const r=[...d]; r.splice(r.indexOf(t),1); r.sort((a,b)=>b-a);
-      if(near && r[0]>=5) return{keep:[r[1],r[2]],take:t,save:r[0]};
-      return{keep:[r[0],r[1]],take:t,save:r[2]};
+  spiteTie:{
+    name:'Fight cheaply — AND spite-tie to deny a combo',
+    blurb:'As above, but it will HOLD a die back rather than bank it, so that when they lead the Take with a 6 it can match them. Nobody scores — and their combo dies with it. It only does this when the combo is actually worth killing.',
+    move(me,them){
+      const takeOpen = me.pockets.take===null;
+      const shown    = them.pockets.take;
+      const theirCombo = combo(them.roll);
+
+      if(takeOpen && shown!==null){
+        const w=cheapestWinner(me.dice,shown);
+        if(w!==undefined) return {die:w,pocket:'take'};          // win outright
+        if(theirCombo>=2 && me.dice.includes(shown)){
+          return {die:shown,pocket:'take'};                       // ── THE SPITE-TIE ──
+        }
+        return {die:hi(me.dice),pocket:'take'};                   // can't win: lose cheaply
+      }
+
+      if(takeOpen && shown===null && them.dice.length){
+        const tb=hi(them.dice);
+        const w=cheapestWinner(me.dice,tb);
+        if(w!==undefined) return {die:w,pocket:'take'};           // guaranteed win, commit
+        // Can't beat their best. If they hold a combo worth killing and we hold a
+        // matching die, RESERVE it — don't bank it — so we can tie them later.
+        if(theirCombo>=2 && me.dice.includes(tb)){
+          return placeOther(me, tb);            // HOLD the matching die. Wait for them.
+        }
+        return {die:hi(me.dice),pocket:'take'}; // no tie worth waiting for — contest now
+      }
+      return placeOther(me,null);
     }
   },
   concede:{
     name:'Concede — bank the big dice, throw the Take',
-    blurb:'The clever-sounding trap. Keep your two best, drop your worst into Take. Watch it lose.',
-    play(d){const s=[...d].sort((a,b)=>b-a);return{keep:[s[0],s[1]],take:s[3],save:s[2]};}
+    blurb:'The clever-sounding trap. Keeps its two best, drops its worst into Take. Watch it lose.',
+    move(me){
+      if(me.pockets.take===null) return {die:lo(me.dice),pocket:'take'};
+      return placeOther(me,null);
+    }
   },
-  conditional:{
-    name:'Concede only when the Take looks unwinnable',
-    blurb:'Fights when it can win, folds when it cannot. Sounds disciplined. Still loses.',
-    play(d,o){
-      const r=[...d].sort((a,b)=>b-a), tb=Math.max(...o);
-      if(r[0]>tb) return{keep:[r[1],r[2]],take:r[0],save:r[3]};
-      return{keep:[r[0],r[1]],take:r[3],save:r[2]};
+  waiter:{
+    name:'Wait and see — fill Keeps first, decide Take last',
+    blurb:'Reveals nothing early. Banks its best two, then contests the Take with whatever is left.',
+    move(me){
+      const open=openPockets(me.pockets);
+      if(open.includes('keep1')||open.includes('keep2')) return put(me,hi(me.dice));
+      if(open.includes('take')) return {die:hi(me.dice),pocket:'take'};
+      return {die:me.dice[0],pocket:'save'};
     }
   },
   random:{
     name:'Random — a control, not a strategy',
-    blurb:'Places dice with no thought at all. Anything worth playing must beat this comfortably.',
-    play(d){const s=[...d].sort(()=>Math.random()-.5);return{keep:[s[0],s[1]],take:s[2],save:s[3]};}
+    blurb:'No thought at all. Anything worth playing must beat this comfortably.',
+    move(me){
+      const open=openPockets(me.pockets);
+      return {die:me.dice[Math.floor(Math.random()*me.dice.length)],
+              pocket:open[Math.floor(Math.random()*open.length)]};
+    }
   }
 };
 
-// ── One game ───────────────────────────────────────────────────────────────
+// ── One round, played the way the game plays it ────────────────────────────
+function playRound(A,B,aDice,bDice,aFirst,st){
+  const a={dice:[...aDice],pockets:{keep1:null,keep2:null,take:null,save:null},roll:[...aDice]};
+  const b={dice:[...bDice],pockets:{keep1:null,keep2:null,take:null,save:null},roll:[...bDice]};
+  let turn = aFirst ? 'a' : 'b';
+  for(let i=0;i<8;i++){
+    const me   = turn==='a'?a:b;
+    const them = turn==='a'?b:a;
+    const S    = turn==='a'?A:B;
+    if(me.dice.length){
+      let mv;
+      try{ mv=S.move(me,them); }catch(e){ mv=null; }
+      // guard against a strategy naming a die it doesn't hold or a full pocket
+      if(!mv || !me.dice.includes(mv.die) || me.pockets[mv.pocket]!==null){
+        const open=openPockets(me.pockets);
+        mv={die:me.dice[0],pocket:open[0]};
+      }
+      me.pockets[mv.pocket]=mv.die;
+      me.dice.splice(me.dice.indexOf(mv.die),1);
+    }
+    turn = turn==='a'?'b':'a';
+  }
+  // ── score it ──
+  let aPts=a.pockets.keep1+a.pockets.keep2;
+  let bPts=b.pockets.keep1+b.pockets.keep2;
+  const at=a.pockets.take, bt=b.pockets.take;
+  if(at>bt){ aPts+=(at-bt)+combo(a.roll); st.aTake++; }
+  else if(bt>at){ bPts+=(bt-at)+combo(b.roll); st.bTake++; }
+  else {
+    st.ties++;
+    // was it a DENIAL? someone had a real combo and lost it to the tie
+    if(combo(a.roll)>=2 || combo(b.roll)>=2) st.deniedTies++;
+  }
+  return {aPts,bPts,aSave:a.pockets.save,bSave:b.pockets.save};
+}
+
 function playGame(A,B,st){
-  let a=0,b=0,aS=null,bS=null,rounds=0,aTake=0,bTake=0;
+  let a=0,b=0,aS=null,bS=null;
   for(let r=0;r<60;r++){
-    rounds++;
     const ad=[],bd=[];
     for(let i=0;i<(aS===null?4:3);i++) ad.push(roll());
     for(let i=0;i<(bS===null?4:3);i++) bd.push(roll());
     if(aS!==null) ad.push(aS);
     if(bS!==null) bd.push(bS);
-    const near=Math.max(a,b)>=80;
-    const ap=A.play(ad,bd,near), bp=B.play(bd,ad,near);
-    a+=ap.keep[0]+ap.keep[1];
-    b+=bp.keep[0]+bp.keep[1];
-    if(ap.take>bp.take){ a+=(ap.take-bp.take)+combo(ad); aTake++; }
-    else if(bp.take>ap.take){ b+=(bp.take-ap.take)+combo(bd); bTake++; }
-    aS=ap.save; bS=bp.save;
+    const aFirst = roll()>=roll();          // the Roll For First, near enough
+    const res=playRound(A,B,ad,bd,aFirst,st);
+    a+=res.aPts; b+=res.bPts; aS=res.aSave; bS=res.bSave;
+    st.rounds++;
     if(a>=100||b>=100){
       const af=[aS],bf=[bS];
       for(let i=0;i<4;i++){af.push(roll());bf.push(roll());}
@@ -308,7 +415,7 @@ function playGame(A,B,st){
       break;
     }
   }
-  st.aScore+=a; st.bScore+=b; st.rounds+=rounds; st.aTake+=aTake; st.bTake+=bTake;
+  st.aScore+=a; st.bScore+=b;
   return a>b;
 }
 
@@ -319,7 +426,7 @@ keys.forEach(k=>{
   pa.add(new Option(STRATEGIES[k].name,k));
   pb.add(new Option(STRATEGIES[k].name,k));
 });
-pa.value='fightCheapBank'; pb.value='concede';
+pa.value='spiteTie'; pb.value='concede';
 
 document.getElementById('run').addEventListener('click',()=>{
   const btn=document.getElementById('run');
@@ -328,16 +435,17 @@ document.getElementById('run').addEventListener('click',()=>{
     const A=STRATEGIES[pa.value], B=STRATEGIES[pb.value];
     const N=Math.max(200,Math.min(200000,+document.getElementById('n').value||5000));
     const mirror=document.getElementById('seedy').value==='1';
-    const st={aScore:0,bScore:0,rounds:0,aTake:0,bTake:0};
+    const st={aScore:0,bScore:0,rounds:0,aTake:0,bTake:0,ties:0,deniedTies:0};
     let wins=0,games=0;
     for(let i=0;i<N;i++){ if(playGame(A,B,st)) wins++; games++; }
     if(mirror){ // run it the other way round and fold the results in
-      const st2={aScore:0,bScore:0,rounds:0,aTake:0,bTake:0};
+      const st2={aScore:0,bScore:0,rounds:0,aTake:0,bTake:0,ties:0,deniedTies:0};
       let w2=0;
       for(let i=0;i<N;i++){ if(!playGame(B,A,st2)) w2++; }
       wins+=w2; games+=N;
       st.aScore+=st2.bScore; st.bScore+=st2.aScore;
       st.rounds+=st2.rounds; st.aTake+=st2.bTake; st.bTake+=st2.aTake;
+      st.ties+=st2.ties; st.deniedTies+=st2.deniedTies;
     }
     const pct=100*wins/games;
     document.getElementById('out').classList.remove('hidden');
@@ -348,7 +456,9 @@ document.getElementById('run').addEventListener('click',()=>{
     const g=games, rows=[
       ['Final score',(st.aScore/g).toFixed(1),(st.bScore/g).toFixed(1)],
       ['Take pockets won',(st.aTake/g).toFixed(2),(st.bTake/g).toFixed(2)],
-      ['Rounds per game',(st.rounds/g).toFixed(1),(st.rounds/g).toFixed(1)]
+      ['Rounds per game',(st.rounds/g).toFixed(1),(st.rounds/g).toFixed(1)],
+      ['Takes tied (nobody scored)',(100*st.ties/st.rounds).toFixed(1)+'% of rounds','—'],
+      ['…of which killed a real combo',(100*st.deniedTies/st.rounds).toFixed(1)+'% of rounds','—']
     ];
     document.getElementById('tbody').innerHTML=rows.map(r=>
       `<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td></tr>`).join('');
