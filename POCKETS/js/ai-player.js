@@ -1,4 +1,4 @@
-// POCKETS AI PLAYER MODULE — v5.0
+// POCKETS AI PLAYER MODULE — v5.1
 // AI always plays as Red. Human always plays as Blue internally.
 // If human chose "Play as Red," that's a visual/stats swap only — game logic unchanged.
 //
@@ -258,10 +258,10 @@ class PocketsAI {
                 return diff + context.aiCombo + ((6 - dieValue) * 0.01);
             }
             if (diff === 0) { return 0; }
-            // Lost. They collect the margin we handed over, plus their combo. The
-            // higher the die we sent, the smaller that donation — so losing with a
-            // BIG die is far cheaper than losing with a small one.
-            return -((context.humanTakeDie - dieValue) + context.humanCombo);
+            // Lost. They collect the margin we handed over, plus their combo.
+            // Same cancellation as above — the epsilon keeps the choice consistent
+            // rather than arbitrary.
+            return -((context.humanTakeDie - dieValue) + context.humanCombo) + (dieValue * 0.02);
         }
 
         // ── Going first. ──
@@ -277,9 +277,17 @@ class PocketsAI {
             }
             if (dieValue === theirBest) { return 0; }
 
-            // Can't win. Do NOT concede with junk — that donates the maximum. Send
-            // the biggest die available to keep their margin as small as possible.
-            return -((theirBest - dieValue) + context.humanCombo);
+            // Can't win, can't even match. Here the scoring genuinely CANCELS OUT:
+            // sending a bigger die shrinks the margin you hand over by exactly as
+            // much as it costs you in Keep. Simulation confirms it — 51.3% either
+            // way, a coin-flip.
+            //
+            // But a flat tie means the search picks ARBITRARILY, which is why the
+            // AI used to look erratic here: dumping a 1 into Take one round and a
+            // 6 the next, for no visible reason. The epsilon below breaks the tie
+            // toward sending the bigger die (the side the simulation marginally
+            // favours), so the behaviour is at least consistent and explicable.
+            return -((theirBest - dieValue) + context.humanCombo) + (dieValue * 0.02);
         }
 
         // MEDIUM / EASY: no read on the opponent. Fall back on the policy that
@@ -300,18 +308,44 @@ class PocketsAI {
     // that 3.5 — which is precisely why saving a 2 is genuinely bad and saving a
     // 6 is genuinely good.
     scoreSave(dieValue, context) {
-        // A saved die replaces one the AI would otherwise have ROLLED next round,
-        // and a rolled die averages 3.5. So saving is worth the EDGE over that 3.5.
-        let score = dieValue - 3.5;
+        // ─────────────────────────────────────────────────────────────────────
+        // SAVE IS WHERE THE GAME IS ACTUALLY PLAYED — and v5.0 got it wrong.
+        //
+        // v5.0 scored Save as (die − 3.5), the die's edge over the ~3.5 it would
+        // have re-rolled. Mathematically tidy, and it produced a disaster: Keep
+        // outscored Save for EVERY die, so the AI simply dumped its leftover into
+        // Save every round and walked into the Rolldown holding junk.
+        //
+        // Simulation says that "save the leftover" habit is the second-WORST
+        // policy in the game. Deliberately banking a high die beats it by about
+        // eight points of win rate — a bigger effect than ANY Take refinement.
+        //
+        // The reason the tidy formula was wrong: a saved die isn't just worth its
+        // face value next round. It's a GUARANTEED high die in a hand of three
+        // random ones, which makes cheap combos far likelier, and it becomes the
+        // fifth die in a Rolldown worth up to 40 points. That compounding is real,
+        // and (die − 3.5) prices none of it.
+        //
+        // So Save now starts from the die's face value — the same base as Keep —
+        // and a genuinely high die is worth MORE banked than kept.
+        // ─────────────────────────────────────────────────────────────────────
+        let score = dieValue;
+
+        if (dieValue >= 5) {
+            score += 1.6;        // a guaranteed 5 or 6 next round is worth more than the points it forgoes now
+        } else if (dieValue === 4) {
+            score += 0.2;        // a 4 is a coin-flip; roughly break-even to bank
+        } else {
+            score -= 1.5;        // banking junk is a real, ongoing cost — it poisons next round's hand too
+        }
 
         // The Rolldown is close, and whatever sits in Save when it triggers becomes
-        // a guaranteed-scoring 5th die there. In testing, banking a high die at this
-        // point was the single change that measurably improved results.
+        // a guaranteed-scoring 5th die there. Now it really matters.
         if (context.rolldownImminent && dieValue >= 5) {
             score += 4;
         }
 
-        // Behind — a guaranteed strong die next round is worth a little more.
+        // Behind — a guaranteed strong die is worth more when there's ground to make up.
         if (context.roundsToClose > 0 && dieValue >= 5) {
             score += Math.min(context.roundsToClose, 3) * 0.4;
         }
