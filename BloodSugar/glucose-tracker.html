@@ -322,23 +322,23 @@
         <div class="card-label">Key Numbers to Know</div>
         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
           <div style="background:var(--green-bg);border-radius:var(--radius-sm);padding:10px 12px;border:1px solid rgba(15,138,106,0.2);">
-            <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.5px;">Safe Zone</div>
-            <div style="font-size:20px;font-weight:800;color:var(--green);">60 – 140</div>
-            <div style="font-size:11px;color:var(--text2);margin-top:1px;">mg/dL target range</div>
+            <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.5px;">Target / In Range</div>
+            <div style="font-size:20px;font-weight:800;color:var(--green);" id="kn-safe"></div>
+            <div style="font-size:11px;color:var(--text2);margin-top:1px;">ADA safe zone mg/dL</div>
           </div>
           <div style="background:var(--amber-bg);border-radius:var(--radius-sm);padding:10px 12px;border:1px solid rgba(154,98,0,0.2);">
-            <div style="font-size:10px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:0.5px;">Dr. Flieg's Ideal</div>
-            <div style="font-size:20px;font-weight:800;color:var(--amber);">90 – 110</div>
-            <div style="font-size:11px;color:var(--text2);margin-top:1px;">mg/dL optimal target</div>
+            <div style="font-size:10px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:0.5px;">Watch Zone</div>
+            <div style="font-size:20px;font-weight:800;color:var(--amber);" id="kn-dr"></div>
+            <div style="font-size:11px;color:var(--text2);margin-top:1px;">Outside target — Dr. Flieg's ideal: 90–110</div>
           </div>
           <div style="background:var(--red-bg);border-radius:var(--radius-sm);padding:10px 12px;border:1px solid rgba(176,48,32,0.2);">
             <div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:0.5px;">Danger — High</div>
-            <div style="font-size:20px;font-weight:800;color:var(--red);">Above 180</div>
+            <div style="font-size:20px;font-weight:800;color:var(--red);" id="kn-danger-high"></div>
             <div style="font-size:11px;color:var(--text2);margin-top:1px;">Take action, recheck</div>
           </div>
           <div style="background:var(--blue-bg);border-radius:var(--radius-sm);padding:10px 12px;border:1px solid rgba(26,95,138,0.2);">
             <div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.5px;">Danger — Low</div>
-            <div style="font-size:20px;font-weight:800;color:var(--blue);">Below 70</div>
+            <div style="font-size:20px;font-weight:800;color:var(--blue);" id="kn-danger-low"></div>
             <div style="font-size:11px;color:var(--text2);margin-top:1px;">Eat immediately</div>
           </div>
         </div>
@@ -484,10 +484,10 @@
           <input type="text" id="hist-search" placeholder="Search date or value…" oninput="renderHistory()">
           <select id="hist-filter" onchange="renderHistory()">
             <option value="all">All</option>
-            <option value="high">High (&gt;180)</option>
-            <option value="watch">Watch (141–180)</option>
-            <option value="normal">Normal (70–140)</option>
-            <option value="low">Low (&lt;70)</option>
+            <option value="high" id="filter-high-label">High</option>
+            <option value="watch" id="filter-watch-label">Watch</option>
+            <option value="normal" id="filter-normal-label">Normal</option>
+            <option value="low" id="filter-low-label">Low</option>
           </select>
         </div>
         <div id="hist-count" style="font-size:12px;color:var(--text3);margin-bottom:8px;"></div>
@@ -514,34 +514,34 @@
     <!-- SETTINGS TAB -->
     <div class="panel" id="panel-settings">
       <div class="card">
-        <div class="card-label">Ranges</div>
+        <div class="card-label">Target Ranges</div>
         <div class="settings-row">
           <div>
-            <div class="settings-label">Safe zone low</div>
-            <div class="settings-sub">Below this = low alert</div>
+            <div class="settings-label">Target low (ADA safe zone)</div>
+            <div class="settings-sub">Bottom of in-range — green zone on charts</div>
           </div>
-          <input class="settings-input" type="number" id="set-safe-low" value="60">
+          <input class="settings-input" type="number" id="set-target-low" value="80">
         </div>
         <div class="settings-row">
           <div>
-            <div class="settings-label">Safe zone high</div>
-            <div class="settings-sub">Above this = watch zone</div>
+            <div class="settings-label">Target high (ADA safe zone)</div>
+            <div class="settings-sub">Top of in-range — green zone on charts</div>
           </div>
-          <input class="settings-input" type="number" id="set-safe-high" value="140">
+          <input class="settings-input" type="number" id="set-target-high" value="140">
         </div>
         <div class="settings-row">
           <div>
-            <div class="settings-label">Doctor's target low</div>
-            <div class="settings-sub">Dr. Flieg's ideal range</div>
+            <div class="settings-label">Danger high</div>
+            <div class="settings-sub">Above this = red — take action immediately</div>
           </div>
-          <input class="settings-input" type="number" id="set-dr-low" value="90">
+          <input class="settings-input" type="number" id="set-danger-high" value="180">
         </div>
         <div class="settings-row">
           <div>
-            <div class="settings-label">Doctor's target high</div>
-            <div class="settings-sub">Dr. Flieg's ideal range</div>
+            <div class="settings-label">Danger low</div>
+            <div class="settings-sub">Below this = blue — eat immediately</div>
           </div>
-          <input class="settings-input" type="number" id="set-dr-high" value="110">
+          <input class="settings-input" type="number" id="set-danger-low" value="70">
         </div>
         <button onclick="saveSettings()" style="margin-top:14px;width:100%;padding:13px;background:linear-gradient(135deg,var(--teal-3),var(--teal-5));color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;cursor:pointer;">Save Settings</button>
       </div>
@@ -1346,16 +1346,20 @@ function getAllReadings() {
 }
 
 function valClass(v) {
-  if (v > 180) return 'val-high';
-  if (v > 140) return 'val-watch';
-  if (v < 70) return 'val-low';
-  return 'val-normal';
+  const s = getSettings();
+  if (v > s.dangerHigh) return 'val-high';
+  if (v > s.targetHigh) return 'val-watch';
+  if (v >= s.targetLow) return 'val-normal';
+  if (v >= s.dangerLow) return 'val-watch';
+  return 'val-low';
 }
 function valLabel(v) {
-  if (v > 180) return {color:'var(--red)', dot:'var(--red)', label:'High'};
-  if (v > 140) return {color:'var(--amber)', dot:'var(--amber)', label:'Watch'};
-  if (v < 70) return {color:'var(--blue)', dot:'var(--blue)', label:'Low'};
-  return {color:'var(--green)', dot:'var(--green)', label:'In range'};
+  const s = getSettings();
+  if (v > s.dangerHigh)  return {color:'var(--red)',   dot:'var(--red)',   label:'High'};
+  if (v > s.targetHigh)  return {color:'var(--amber)', dot:'var(--amber)', label:'Watch'};
+  if (v >= s.targetLow)  return {color:'var(--green)', dot:'var(--green)', label:'In range'};
+  if (v >= s.dangerLow)  return {color:'var(--amber)', dot:'var(--amber)', label:'Watch'};
+  return                         {color:'var(--blue)',  dot:'var(--blue)',  label:'Low'};
 }
 function fmtDate(d) {
   const [y,m,day] = d.split('-');
@@ -1411,6 +1415,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('a1c-date')?.addEventListener('change', e => e.target.dataset.userSet = '1');
 
   renderRecent();
+  updateKeyNumbers();
   initCloudSync();
 });
 
@@ -1418,22 +1423,63 @@ window.addEventListener('DOMContentLoaded', () => {
 // SETTINGS
 // ============================================================
 function getSettings() {
-  try { return JSON.parse(localStorage.getItem('glucose_settings') || 'null') || {safeLow:60,safeHigh:140,drLow:90,drHigh:110}; } catch(e) { return {safeLow:60,safeHigh:140,drLow:90,drHigh:110}; }
+  try {
+    const stored = JSON.parse(localStorage.getItem('glucose_settings') || 'null');
+    if (stored) {
+      // Migrate old settings keys to new consolidated ones if needed
+      if (!stored.targetLow && stored.drLow) stored.targetLow = stored.drLow;
+      if (!stored.targetHigh && stored.drHigh) stored.targetHigh = stored.drHigh;
+      if (!stored.dangerLow && stored.safeLow) stored.dangerLow = 70;
+      if (!stored.dangerHigh) stored.dangerHigh = 180;
+      return {
+        targetLow:  stored.targetLow  || 90,
+        targetHigh: stored.targetHigh || 110,
+        dangerLow:  stored.dangerLow  || 70,
+        dangerHigh: stored.dangerHigh || 180
+      };
+    }
+  } catch(e) {}
+  return {targetLow:80, targetHigh:140, dangerLow:70, dangerHigh:180};
 }
 function saveSettings() {
-  const s = { safeLow: parseInt(document.getElementById('set-safe-low').value)||60,
-    safeHigh: parseInt(document.getElementById('set-safe-high').value)||140,
-    drLow: parseInt(document.getElementById('set-dr-low').value)||90,
-    drHigh: parseInt(document.getElementById('set-dr-high').value)||110 };
+  const s = {
+    targetLow:  parseInt(document.getElementById('set-target-low').value)  || 90,
+    targetHigh: parseInt(document.getElementById('set-target-high').value) || 110,
+    dangerLow:  parseInt(document.getElementById('set-danger-low').value)  || 70,
+    dangerHigh: parseInt(document.getElementById('set-danger-high').value) || 180
+  };
   localStorage.setItem('glucose_settings', JSON.stringify(s));
+  updateKeyNumbers();
+  renderRecent();
   alert('Settings saved!');
+}
+function updateKeyNumbers() {
+  const s = getSettings();
+  const safe = document.getElementById('kn-safe');
+  const dr = document.getElementById('kn-dr');
+  const dh = document.getElementById('kn-danger-high');
+  const dl = document.getElementById('kn-danger-low');
+  if (safe) safe.textContent = `${s.targetLow} – ${s.targetHigh}`;
+  if (dr) dr.textContent = `${s.dangerLow}–${s.targetLow-1} or ${s.targetHigh+1}–${s.dangerHigh}`;
+  if (dh) dh.textContent = `Above ${s.dangerHigh}`;
+  if (dl) dl.textContent = `Below ${s.dangerLow}`;
+  // Update History filter dropdown labels
+  const fh = document.getElementById('filter-high-label');
+  const fw = document.getElementById('filter-watch-label');
+  const fn = document.getElementById('filter-normal-label');
+  const fl = document.getElementById('filter-low-label');
+  if (fh) fh.textContent = `High (>${s.dangerHigh})`;
+  if (fw) fw.textContent = `Watch (outside ${s.targetLow}–${s.targetHigh})`;
+  if (fn) fn.textContent = `In Range (${s.targetLow}–${s.targetHigh})`;
+  if (fl) fl.textContent = `Low (<${s.dangerLow})`;
 }
 function loadSettingsUI() {
   const s = getSettings();
-  document.getElementById('set-safe-low').value = s.safeLow;
-  document.getElementById('set-safe-high').value = s.safeHigh;
-  document.getElementById('set-dr-low').value = s.drLow;
-  document.getElementById('set-dr-high').value = s.drHigh;
+  document.getElementById('set-target-low').value = s.targetLow;
+  document.getElementById('set-target-high').value = s.targetHigh;
+  document.getElementById('set-danger-low').value = s.dangerLow;
+  document.getElementById('set-danger-high').value = s.dangerHigh;
+  updateKeyNumbers();
 }
 
 // ============================================================
@@ -1495,9 +1541,9 @@ function makeTrendDataset(data, label) {
 function makeSafeZoneDataset(length) {
   const s = getSettings();
   return [
-    { label:'Safe high', data: Array(length).fill(s.safeHigh), borderColor:'rgba(29,160,120,0.35)',
+    { label:'Target high', data: Array(length).fill(s.targetHigh), borderColor:'rgba(29,160,120,0.35)',
       borderWidth:1, borderDash:[2,4], pointRadius:0, type:'line', fill:'+1', backgroundColor:'rgba(29,160,120,0.07)', order:1 },
-    { label:'Safe low', data: Array(length).fill(s.safeLow), borderColor:'rgba(29,160,120,0.35)',
+    { label:'Target low', data: Array(length).fill(s.targetLow), borderColor:'rgba(29,160,120,0.35)',
       borderWidth:1, borderDash:[2,4], pointRadius:0, type:'line', fill:false, order:1 }
   ];
 }
@@ -1583,8 +1629,9 @@ function renderWeekChart() {
     dayData.push(entry || null);
   }
 
+  const _s = getSettings();
   const zoneColor = (v, alpha) => {
-    const base = v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'30,150,120';
+    const base = v>_s.dangerHigh?'200,60,40':v>=_s.targetLow&&v<=_s.targetHigh?'30,150,120':v<_s.dangerLow?'30,100,170':'185,120,20';
     return `rgba(${base},${alpha})`;
   };
 
@@ -1722,16 +1769,16 @@ function initGraph() {
   const avg = avgs.length ? Math.round(avgs.reduce((a,b)=>a+b,0)/avgs.length) : 0;
   const high = avgs.length ? Math.max(...avgs) : 0;
   const low = avgs.length ? Math.min(...avgs) : 0;
-  const inRange = avgs.filter(v=>v>=s.safeLow&&v<=s.safeHigh).length;
+  const inRange = avgs.filter(v=>v>=s.targetLow&&v<=s.targetHigh).length;
   const pct = avgs.length ? Math.round(inRange/avgs.length*100) : 0;
 
   document.getElementById('graph-stats').innerHTML = [
     {sv:avg, sl:'Avg mg/dL', color:'var(--text)'},
-    {sv:high, sl:'High', color:'var(--red)'},
-    {sv:low, sl:'Low', color:'var(--green)'},
+    {sv:high, sl:'High Avg', color:'var(--red)'},
+    {sv:low, sl:'Low Avg', color:'var(--green)'},
     {sv:avgs.length, sl:'Days', color:'var(--text)'},
     {sv:pct+'%', sl:'In safe zone', color:'var(--teal-4)'},
-    {sv:s.safeLow+'–'+s.safeHigh, sl:'Safe zone', color:'var(--teal-5)'}
+    {sv:s.targetLow+'–'+s.targetHigh, sl:'Target zone', color:'var(--teal-5)'}
   ].map(s=>`<div class="stat-box"><div class="sv" style="color:${s.color}">${s.sv}</div><div class="sl">${s.sl}</div></div>`).join('');
 
   // thin for perf
@@ -1747,8 +1794,9 @@ function initGraph() {
   let mainDatasets;
   let graphMaxLayers = 1;
   if (isBar) {
+    const _s2 = getSettings();
     const zoneColor = (v, alpha) => {
-      const base = v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'26,122,110';
+      const base = v>_s2.dangerHigh?'200,60,40':v>=_s2.targetLow&&v<=_s2.targetHigh?'26,122,110':v<_s2.dangerLow?'30,100,170':'185,120,20';
       return `rgba(${base},${alpha})`;
     };
     graphMaxLayers = Math.max(1, ...disp.map(d => d.readings.length));
@@ -2002,10 +2050,11 @@ function renderHistory() {
   const search = document.getElementById('hist-search').value.toLowerCase();
   const filter = document.getElementById('hist-filter').value;
   let filtered = all.filter(r => {
-    if(filter==='high'&&r[2]<=180) return false;
-    if(filter==='watch'&&(r[2]<141||r[2]>180)) return false;
-    if(filter==='normal'&&(r[2]<70||r[2]>140)) return false;
-    if(filter==='low'&&r[2]>=70) return false;
+    const s = getSettings();
+    if(filter==='high'  && r[2]<=s.dangerHigh) return false;
+    if(filter==='watch' && !(r[2]>s.targetHigh&&r[2]<=s.dangerHigh) && !(r[2]>=s.dangerLow&&r[2]<s.targetLow)) return false;
+    if(filter==='normal'&& (r[2]<s.targetLow||r[2]>s.targetHigh)) return false;
+    if(filter==='low'   && r[2]>=s.dangerLow) return false;
     return true;
   });
   // search runs WITHIN whatever the dropdown already narrowed down to
@@ -2242,8 +2291,8 @@ function renderMonthly(){
   const high=avgs.length?Math.max(...avgs):0, low=avgs.length?Math.min(...avgs):0;
   document.getElementById('month-stats').innerHTML=[
     {sv:avg||'—',sl:'Average',color:'var(--text)'},
-    {sv:high||'—',sl:'High',color:'var(--red)'},
-    {sv:low||'—',sl:'Low',color:'var(--green)'}
+    {sv:high||'—',sl:'High Avg',color:'var(--red)'},
+    {sv:low||'—',sl:'Low Avg',color:'var(--green)'}
   ].map(s=>`<div class="stat-box"><div class="sv" style="color:${s.color}">${s.sv}</div><div class="sl">${s.sl}</div></div>`).join('');
   if(monthlyChartInst){monthlyChartInst.destroy();monthlyChartInst=null;}
   if(!mData.length)return;
@@ -2255,8 +2304,9 @@ function renderMonthly(){
   const safeDS=makeSafeZoneDataset(mData.length);
 
   // Layered bars per day, height-sorted highest-to-lowest, each its own zone color
+  const _s3 = getSettings();
   const zoneColor = (v, alpha) => {
-    const base = v>180?'200,60,40':v>140?'185,120,20':v<70?'30,100,170':'26,122,110';
+    const base = v>_s3.dangerHigh?'200,60,40':v>=_s3.targetLow&&v<=_s3.targetHigh?'26,122,110':v<_s3.dangerLow?'30,100,170':'185,120,20';
     return `rgba(${base},${alpha})`;
   };
   const maxLayers = Math.max(1, ...mData.map(d => d.readings.length));
