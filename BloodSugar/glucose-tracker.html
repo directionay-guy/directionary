@@ -427,47 +427,6 @@
           <canvas id="weekChart" role="img" aria-label="This week's blood sugar readings"></canvas>
         </div>
       </div>
-
-      <!-- MEDICATIONS -->
-      <div class="card" style="margin-top:12px;">
-        <div class="card-label" style="display:flex;align-items:center;justify-content:space-between;">
-          <span>Medications</span>
-          <button onclick="showAddMed()" style="font-size:11px;padding:4px 10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;">+ Add</button>
-        </div>
-        <div id="med-add-form" style="display:none;padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:4px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Drug Name</label>
-              <input id="med-name" type="text" placeholder="e.g. Metformin" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);"></div>
-            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Dose</label>
-              <input id="med-dose" type="text" placeholder="e.g. 500mg" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);"></div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Frequency</label>
-              <input id="med-freq" type="text" placeholder="e.g. Twice daily" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);"></div>
-            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Prescribing Doctor</label>
-              <input id="med-dr" type="text" placeholder="e.g. Dr. Flieg" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);"></div>
-          </div>
-          <div style="margin-bottom:8px;">
-            <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Type</label>
-            <select id="med-type" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);">
-              <option value="diabetes">Diabetes</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <button onclick="saveMed()" style="flex:2;padding:10px;background:linear-gradient(135deg,#22c497,#158a6a);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;">✓ Save</button>
-            <button onclick="cancelMed()" style="flex:1;padding:10px;background:linear-gradient(135deg,#e05040,#b02818);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;">✕</button>
-          </div>
-        </div>
-        <div style="margin-bottom:6px;">
-          <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;padding:6px 0 2px;">Diabetes</div>
-          <div id="med-list-diabetes"></div>
-        </div>
-        <div>
-          <div style="font-size:10px;font-weight:700;color:#7aa0c0;text-transform:uppercase;letter-spacing:1px;padding:6px 0 2px;">Other Medications</div>
-          <div id="med-list-other"></div>
-        </div>
-      </div>
     </div>
 
     <!-- CHARTS TAB -->
@@ -594,7 +553,7 @@
       </div>
     </div>
 
-    <!-- HEALTH TAB — Blood Pressure + Allergies -->
+    <!-- HEALTH TAB — Allergies + Medications + Blood Pressure -->
     <div class="panel" id="panel-health">
 
       <!-- ALLERGIES -->
@@ -605,7 +564,7 @@
         </div>
         <div id="allergy-add-form" style="display:none;padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:4px;">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Medication</label>
+            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Allergy</label>
               <input id="allergy-name" type="text" placeholder="e.g. Penicillin, Bees, Peanuts" style="width:100%;padding:8px;border-radius:6px;border:2px solid rgba(210,60,50,0.5);background:var(--surface);font-size:13px;color:var(--text);"></div>
             <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Reaction</label>
               <input id="allergy-reaction" type="text" placeholder="e.g. Hives, anaphylaxis" style="width:100%;padding:8px;border-radius:6px;border:2px solid rgba(210,60,50,0.5);background:var(--surface);font-size:13px;color:var(--text);"></div>
@@ -616,6 +575,45 @@
           </div>
         </div>
         <div id="allergy-list"><div style="font-size:13px;color:var(--text3);padding:8px 0;">No allergies recorded — tap + Add to add one.</div></div>
+      </div>
+
+      <!-- MEDICATIONS -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-label" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>Medications</span>
+          <button onclick="showAddMed()" style="font-size:11px;padding:4px 10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;">+ Add</button>
+        </div>
+        <div id="med-add-form" style="display:none;padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:4px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Drug Name</label>
+              <input id="med-name" type="text" placeholder="e.g. Metformin" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);"></div>
+            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Dose</label>
+              <input id="med-dose" type="text" placeholder="e.g. 500mg" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Frequency</label>
+              <input id="med-freq" type="text" placeholder="e.g. Twice daily" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);"></div>
+            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Prescribing Doctor</label>
+              <input id="med-dr" type="text" placeholder="e.g. Dr. Flieg" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);"></div>
+          </div>
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Type</label>
+            <select id="med-type" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);">
+              <option value="diabetes">Diabetes</option>
+              <option value="bloodpressure">Blood Pressure</option>
+              <option value="cholesterol">Cholesterol</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="saveMed()" style="flex:2;padding:10px;background:linear-gradient(135deg,#22c497,#158a6a);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;">✓ Save</button>
+            <button onclick="cancelMed()" style="flex:1;padding:10px;background:linear-gradient(135deg,#e05040,#b02818);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;">✕</button>
+          </div>
+        </div>
+        <div style="margin-bottom:6px;"><div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;padding:6px 0 2px;">Diabetes</div><div id="med-list-diabetes"></div></div>
+        <div style="margin-bottom:6px;"><div style="font-size:10px;font-weight:700;color:#7aa0c0;text-transform:uppercase;letter-spacing:1px;padding:6px 0 2px;">Blood Pressure</div><div id="med-list-bloodpressure"></div></div>
+        <div style="margin-bottom:6px;"><div style="font-size:10px;font-weight:700;color:#c0a070;text-transform:uppercase;letter-spacing:1px;padding:6px 0 2px;">Cholesterol</div><div id="med-list-cholesterol"></div></div>
+        <div><div style="font-size:10px;font-weight:700;color:#a0a0b0;text-transform:uppercase;letter-spacing:1px;padding:6px 0 2px;">Other</div><div id="med-list-other"></div></div>
       </div>
 
       <!-- BP ENTRY -->
@@ -1591,7 +1589,6 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('a1c-date')?.addEventListener('change', e => e.target.dataset.userSet = '1');
 
   renderRecent();
-  renderMeds();
   updateKeyNumbers();
   initCloudSync();
 
@@ -2414,19 +2411,22 @@ function saveMedEdit(id) {
 }
 function renderMeds() {
   const meds = getMeds();
-  ['diabetes','other'].forEach(type => {
-    const el = document.getElementById('med-list-'+type);
+  const categories = [
+    { type:'diabetes',     id:'med-list-diabetes' },
+    { type:'bloodpressure',id:'med-list-bloodpressure' },
+    { type:'cholesterol',  id:'med-list-cholesterol' },
+    { type:'other',        id:'med-list-other' },
+  ];
+  categories.forEach(cat => {
+    const el = document.getElementById(cat.id);
     if (!el) return;
-    const list = meds.filter(m => m.type === type);
-    if (!list.length) {
-      el.innerHTML = `<div style="font-size:13px;color:var(--text3);padding:6px 0;">None recorded.</div>`;
-      return;
-    }
+    const list = meds.filter(m => m.type === cat.type);
+    if (!list.length) { el.innerHTML = `<div style="font-size:13px;color:var(--text3);padding:6px 0;">None recorded.</div>`; return; }
     el.innerHTML = list.map(m => `
       <div class="med-item" id="med-row-${m.id}">
         <div class="med-main">
-          <div class="med-name">${m.name}${m.dose ? ' <span style="font-weight:400;color:var(--text3);">'+m.dose+'</span>' : ''}</div>
-          <div class="med-detail">${[m.freq, m.dr ? 'Dr. '+m.dr : ''].filter(Boolean).join(' · ')}</div>
+          <div class="med-name">${m.name}${m.dose?' <span style="font-weight:400;color:var(--text3);">'+m.dose+'</span>':''}</div>
+          <div class="med-detail">${[m.freq,m.dr?'Dr. '+m.dr:''].filter(Boolean).join(' · ')}</div>
         </div>
         <div class="med-btns">
           <button class="edit-btn" onclick="startMedEdit(${m.id})">✎</button>
