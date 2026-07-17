@@ -1361,6 +1361,7 @@ async function initCloudSync() {
     if (document.getElementById('panel-graph')?.classList.contains('active')) initGraph();
     if (document.getElementById('panel-charts')?.classList.contains('active')) initChartsTab();
     if (document.getElementById('panel-a1c')?.classList.contains('active')) initA1C();
+    initHealthSync();
   } catch (err) {
     console.error('Supabase init failed, falling back to local storage:', err);
     _cloudReady = false;
@@ -2353,8 +2354,86 @@ function nextPage(){histPage++;renderHistory();}
 // ============================================================
 // MEDICATIONS
 // ============================================================
-function getMeds() { try { return JSON.parse(localStorage.getItem('glucoselog_meds')||'[]'); } catch(e){ return []; } }
-function saveMeds(arr) { localStorage.setItem('glucoselog_meds', JSON.stringify(arr)); }
+// ── in-memory caches for the three new tables ──
+let _medsCache = null;
+let _allergiesCache = null;
+let _bpCache = null;
+
+// Called from initCloudSync after glucose tables load
+async function initHealthSync() {
+  if (!sb) return;
+  try {
+    const [{data:meds,error:me},{data:allergies,error:ae},{data:bp,error:be}] = await Promise.all([
+      sb.from('medications').select('*').order('created_at'),
+      sb.from('allergies').select('*').order('created_at'),
+      sb.from('bp_readings').select('*').order('date',{ascending:false}).order('time',{ascending:false})
+    ]);
+    if (me||ae||be) throw me||ae||be;
+    _medsCache      = meds      || [];
+    _allergiesCache = allergies || [];
+    _bpCache        = bp        || [];
+    // one-time migration from localStorage
+    await migrateHealthToCloud();
+    renderMeds(); renderAllergies(); renderBP();
+  } catch(e) { console.error('Health sync failed:', e); }
+}
+
+async function migrateHealthToCloud() {
+  // Medications
+  const localMeds = JSON.parse(localStorage.getItem('glucoselog_meds')||'[]');
+  for (const m of localMeds) {
+    if (!_medsCache.find(c=>c.id===m.id)) {
+      const {data,error} = await sb.from('medications').insert({id:m.id,name:m.name,type:m.type,dose:m.dose||'',freq:m.freq||'',dr:m.dr||''}).select().single();
+      if (!error&&data) _medsCache.push(data);
+    }
+  }
+  // Allergies
+  const localAllergies = JSON.parse(localStorage.getItem('glucoselog_allergies')||'[]');
+  for (const a of localAllergies) {
+    if (!_allergiesCache.find(c=>c.id===a.id)) {
+      const {data,error} = await sb.from('allergies').insert({id:a.id,name:a.name,reaction:a.reaction||''}).select().single();
+      if (!error&&data) _allergiesCache.push(data);
+    }
+  }
+  // BP
+  const localBP = JSON.parse(localStorage.getItem('glucoselog_bp')||'[]');
+  for (const r of localBP) {
+    if (!_bpCache.find(c=>c.id===r.id)) {
+      const {data,error} = await sb.from('bp_readings').insert({id:r.id,date:r.date,time:r.time,sys:r.sys,dia:r.dia,session:r.session||'morning'}).select().single();
+      if (!error&&data) _bpCache.push(data);
+    }
+  }
+}
+
+// ── MEDICATIONS ──
+function getMeds() {
+  if (_medsCache) return _medsCache;
+  try { return JSON.parse(localStorage.getItem('glucoselog_meds')||'[]'); } catch(e){ return []; }
+}
+function saveMeds(arr) {
+  localStorage.setItem('glucoselog_meds', JSON.stringify(arr));
+  if (_medsCache !== null) _medsCache = arr;
+}
+
+// ── ALLERGIES ──
+function getAllergies() {
+  if (_allergiesCache) return _allergiesCache;
+  try { return JSON.parse(localStorage.getItem('glucoselog_allergies')||'[]'); } catch(e){ return []; }
+}
+function saveAllergies(arr) {
+  localStorage.setItem('glucoselog_allergies', JSON.stringify(arr));
+  if (_allergiesCache !== null) _allergiesCache = arr;
+}
+
+// ── BP ──
+function getBPReadings() {
+  if (_bpCache) return _bpCache;
+  try { return JSON.parse(localStorage.getItem('glucoselog_bp')||'[]'); } catch(e){ return []; }
+}
+function saveBPReadings(arr) {
+  localStorage.setItem('glucoselog_bp', JSON.stringify(arr));
+  if (_bpCache !== null) _bpCache = arr;
+}
 
 function showAddMed() {
   document.getElementById('med-add-form').style.display = 'block';
@@ -2369,18 +2448,19 @@ function saveMed() {
   const name = document.getElementById('med-name').value.trim();
   if (!name) { alert('Enter a drug name.'); return; }
   const med = {
-    id: Date.now(),
-    name, type: document.getElementById('med-type').value,
+    id: Date.now(), name, type: document.getElementById('med-type').value,
     dose: document.getElementById('med-dose').value.trim(),
     freq: document.getElementById('med-freq').value.trim(),
     dr: document.getElementById('med-dr').value.trim()
   };
   const arr = getMeds(); arr.push(med); saveMeds(arr);
+  if (sb) sb.from('medications').insert({id:med.id,name:med.name,type:med.type,dose:med.dose,freq:med.freq,dr:med.dr}).then(({error})=>{ if(error) console.error('Med save failed:',error); });
   cancelMed(); renderMeds();
 }
 function deleteMed(id) {
   if (!confirm('Remove this medication?')) return;
   saveMeds(getMeds().filter(m => m.id !== id));
+  if (sb) sb.from('medications').delete().eq('id',id).then(({error})=>{ if(error) console.error('Med delete failed:',error); });
   renderMeds();
 }
 function startMedEdit(id) {
@@ -2407,7 +2487,9 @@ function saveMedEdit(id) {
   arr[idx].dose = document.getElementById('medit-dose-'+id).value.trim();
   arr[idx].freq = document.getElementById('medit-freq-'+id).value.trim();
   arr[idx].dr   = document.getElementById('medit-dr-'+id).value.trim();
-  saveMeds(arr); renderMeds();
+  saveMeds(arr);
+  if (sb) sb.from('medications').update({name:arr[idx].name,dose:arr[idx].dose,freq:arr[idx].freq,dr:arr[idx].dr}).eq('id',id).then(({error})=>{ if(error) console.error('Med update failed:',error); });
+  renderMeds();
 }
 function renderMeds() {
   const meds = getMeds();
@@ -2439,9 +2521,6 @@ function renderMeds() {
 // ============================================================
 // ALLERGIES
 // ============================================================
-function getAllergies() { try { return JSON.parse(localStorage.getItem('glucoselog_allergies')||'[]'); } catch(e){ return []; } }
-function saveAllergies(arr) { localStorage.setItem('glucoselog_allergies', JSON.stringify(arr)); }
-
 function showAddAllergy() {
   document.getElementById('allergy-add-form').style.display = 'block';
   document.getElementById('allergy-name').focus();
@@ -2453,14 +2532,16 @@ function cancelAllergy() {
 }
 function saveAllergy() {
   const name = document.getElementById('allergy-name').value.trim();
-  if (!name) { alert('Enter a medication name.'); return; }
+  if (!name) { alert('Enter an allergy name.'); return; }
   const allergy = { id: Date.now(), name, reaction: document.getElementById('allergy-reaction').value.trim() };
   const arr = getAllergies(); arr.push(allergy); saveAllergies(arr);
+  if (sb) sb.from('allergies').insert({id:allergy.id,name:allergy.name,reaction:allergy.reaction}).then(({error})=>{ if(error) console.error('Allergy save failed:',error); });
   cancelAllergy(); renderAllergies();
 }
 function deleteAllergy(id) {
   if (!confirm('Remove this allergy entry?')) return;
   saveAllergies(getAllergies().filter(a => a.id !== id));
+  if (sb) sb.from('allergies').delete().eq('id',id).then(({error})=>{ if(error) console.error('Allergy delete failed:',error); });
   renderAllergies();
 }
 function renderAllergies() {
@@ -2484,9 +2565,6 @@ function renderAllergies() {
 // ============================================================
 // BLOOD PRESSURE
 // ============================================================
-function getBPReadings() { try { return JSON.parse(localStorage.getItem('glucoselog_bp')||'[]'); } catch(e){ return []; } }
-function saveBPReadings(arr) { localStorage.setItem('glucoselog_bp', JSON.stringify(arr)); }
-
 const BP_SYS_MIN=130, BP_SYS_MAX=140, BP_DIA_MIN=70, BP_DIA_MAX=90;
 
 function bpInRange(sys, dia) {
@@ -2540,10 +2618,12 @@ function saveBP() {
   const time = document.getElementById('bp-time').value;
   const session = document.getElementById('bp-session').value;
   if (isNaN(sys)||isNaN(dia)||!date||!time) { alert('Please fill in all fields.'); return; }
+  const r = { id: Date.now(), date, time, sys, dia, session };
   const arr = getBPReadings();
-  arr.push({ id: Date.now(), date, time, sys, dia, session });
+  arr.push(r);
   arr.sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
   saveBPReadings(arr);
+  if (sb) sb.from('bp_readings').insert({id:r.id,date:r.date,time:r.time,sys:r.sys,dia:r.dia,session:r.session}).then(({error})=>{ if(error) console.error('BP save failed:',error); });
   const btn = document.getElementById('bp-confirm-btn');
   btn.textContent = '✓ Saved!';
   setTimeout(() => { btn.textContent = '✓ Confirm BP'; clearBP(); }, 1500);
@@ -2552,6 +2632,7 @@ function saveBP() {
 function deleteBPReading(id) {
   if (!confirm('Delete this BP reading?')) return;
   saveBPReadings(getBPReadings().filter(r => r.id !== id));
+  if (sb) sb.from('bp_readings').delete().eq('id',id).then(({error})=>{ if(error) console.error('BP delete failed:',error); });
   renderBP();
 }
 function renderBP() {
