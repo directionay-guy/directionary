@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="GlucoseLog">
@@ -68,26 +68,27 @@
   .today-time { font-size: 13px; color: var(--teal-5); font-weight: 700; font-family: monospace; letter-spacing: 0.5px; }
 
   /* TABS — raised teal gradient, light→dark */
-  .tabs { display: flex; align-items: flex-end; gap: 3px; padding: 0 8px; margin-top: 6px; }
-  .tab-btn { flex: 1; padding: 8px 2px 9px; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.82);
+  .tabs { display: flex; align-items: flex-end; gap: 2px; padding: 0 4px; margin-top: 6px; }
+  .tab-btn { flex: 1; padding: 7px 1px 8px; font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.82);
     border: 1px solid rgba(0,0,0,0.18); border-bottom: none;
     border-radius: 8px 8px 0 0; cursor: pointer; transition: all 0.13s;
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
     position: relative; top: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.18);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.22); }
-  .tab-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .tab-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
   /* per-tab colors light→dark */
   .tab-log    { background: linear-gradient(180deg,#4db89e,#2d9e88); }
   .tab-graph  { background: linear-gradient(180deg,#3aa88e,#228a76); }
   .tab-charts { background: linear-gradient(180deg,#228a76,#166a5c); }
   .tab-a1c    { background: linear-gradient(180deg,#166a5c,#0f5044); }
-  .tab-hist   { background: linear-gradient(180deg,#0f5044,#083830); }
+  .tab-health { background: linear-gradient(180deg,#0f5044,#083830); }
+  .tab-hist   { background: linear-gradient(180deg,#083830,#041c14); }
   .tab-cog    { background: linear-gradient(180deg,#0a3830,#061e18);
-    margin-left: auto; flex: none; padding: 8px 12px 9px; border-radius: 8px 8px 0 0; }
+    margin-left: auto; flex: none; padding: 7px 10px 8px; border-radius: 8px 8px 0 0; }
   .tab-btn:hover:not(.active) { filter: brightness(1.1); }
   .tab-btn.active { background: linear-gradient(180deg,#ffffff,#f0faf7) !important;
     color: var(--accent) !important; border-color: var(--border-strong);
-    border-bottom-color: var(--bg); z-index: 2; padding-bottom: 10px;
+    border-bottom-color: var(--bg); z-index: 2; padding-bottom: 9px;
     text-shadow: none; box-shadow: 0 -2px 6px rgba(0,80,60,0.08); }
   .tab-btn.active svg { stroke: var(--accent); }
 
@@ -95,6 +96,43 @@
   .content { flex: 1; padding: 16px; overflow-y: auto; }
   .panel { display: none; }
   .panel.active { display: block; }
+
+  /* MEDICATIONS */
+  .med-item { display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
+  .med-item:last-child { border-bottom:none; }
+  .med-main { flex:1; }
+  .med-name { font-size:14px; font-weight:700; color:var(--text); }
+  .med-detail { font-size:12px; color:var(--text3); margin-top:2px; }
+  .med-tag { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; margin-right:4px; }
+  .med-tag-diabetes { background:rgba(29,160,120,0.15); color:var(--accent); border:1px solid rgba(29,160,120,0.3); }
+  .med-tag-other { background:rgba(96,130,160,0.15); color:#7aa0c0; border:1px solid rgba(96,130,160,0.3); }
+  .med-btns { display:flex; gap:6px; flex-shrink:0; }
+
+  /* BLOOD PRESSURE */
+  .bp-entry-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+  .bp-big { display:flex; align-items:center; justify-content:center; gap:8px;
+    background:linear-gradient(135deg,#1a3a5c,#0f2540); border-radius:var(--radius-sm);
+    padding:18px 12px; margin-bottom:12px; }
+  .bp-num { font-size:42px; font-weight:800; color:#a8d4ff; font-family:monospace; letter-spacing:-1px; line-height:1; }
+  .bp-slash { font-size:32px; color:rgba(168,212,255,0.5); font-weight:300; }
+  .bp-unit { font-size:11px; color:rgba(168,212,255,0.5); margin-top:4px; text-align:center; }
+  .bp-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); font-size:14px; }
+  .bp-row:last-child { border-bottom:none; }
+  .bp-val { font-size:16px; font-weight:800; font-family:monospace; }
+  .bp-in  { color:var(--green); }
+  .bp-out { color:var(--red); }
+  .bp-watch { color:var(--amber); }
+  .bp-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .bp-meta { flex:1; font-size:12px; color:var(--text3); }
+  .bp-session { font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; }
+  .bp-am { background:rgba(29,160,120,0.15); color:var(--accent); border:1px solid rgba(29,160,120,0.3); }
+  .bp-pm { background:rgba(120,80,200,0.15); color:#a080e0; border:1px solid rgba(120,80,200,0.3); }
+
+  /* ALLERGIES */
+  .allergy-item { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
+  .allergy-item:last-child { border-bottom:none; }
+  .allergy-name { font-size:14px; font-weight:700; color:var(--red); flex:1; }
+  .allergy-reaction { font-size:12px; color:var(--text3); margin-top:2px; }
 
   /* CARDS — subtle inner shadow + teal tint */
   .card { background: linear-gradient(160deg, #ffffff 0%, #f4fdfb 100%);
@@ -305,6 +343,10 @@
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         History
       </button>
+      <button class="tab-btn tab-health" onclick="showTab('health',this)">
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        Health
+      </button>
       <button class="tab-btn tab-cog" onclick="showTab('settings',this)" title="Settings">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
       </button>
@@ -383,6 +425,47 @@
         <div class="card-label">This week</div>
         <div style="position:relative;width:100%;height:150px;">
           <canvas id="weekChart" role="img" aria-label="This week's blood sugar readings"></canvas>
+        </div>
+      </div>
+
+      <!-- MEDICATIONS -->
+      <div class="card" style="margin-top:12px;">
+        <div class="card-label" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>Medications</span>
+          <button onclick="showAddMed()" style="font-size:11px;padding:4px 10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;">+ Add</button>
+        </div>
+        <div id="med-add-form" style="display:none;padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:4px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Drug Name</label>
+              <input id="med-name" type="text" placeholder="e.g. Metformin" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);"></div>
+            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Dose</label>
+              <input id="med-dose" type="text" placeholder="e.g. 500mg" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Frequency</label>
+              <input id="med-freq" type="text" placeholder="e.g. Twice daily" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);"></div>
+            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Prescribing Doctor</label>
+              <input id="med-dr" type="text" placeholder="e.g. Dr. Flieg" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);"></div>
+          </div>
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Type</label>
+            <select id="med-type" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);">
+              <option value="diabetes">Diabetes</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="saveMed()" style="flex:2;padding:10px;background:linear-gradient(135deg,#22c497,#158a6a);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;">✓ Save</button>
+            <button onclick="cancelMed()" style="flex:1;padding:10px;background:linear-gradient(135deg,#e05040,#b02818);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;">✕</button>
+          </div>
+        </div>
+        <div style="margin-bottom:6px;">
+          <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;padding:6px 0 2px;">Diabetes</div>
+          <div id="med-list-diabetes"></div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#7aa0c0;text-transform:uppercase;letter-spacing:1px;padding:6px 0 2px;">Other Medications</div>
+          <div id="med-list-other"></div>
         </div>
       </div>
     </div>
@@ -509,6 +592,99 @@
           <button onclick="nextPage()" id="next-btn">Next →</button>
         </div>
       </div>
+    </div>
+
+    <!-- HEALTH TAB — Blood Pressure + Allergies -->
+    <div class="panel" id="panel-health">
+
+      <!-- ALLERGIES -->
+      <div class="card" style="margin-bottom:12px;border:2px solid rgba(210,60,50,0.3);background:rgba(210,60,50,0.05);">
+        <div class="card-label" style="color:var(--red);display:flex;align-items:center;justify-content:space-between;">
+          <span>⚠ Allergies</span>
+          <button onclick="showAddAllergy()" style="font-size:11px;padding:4px 10px;background:var(--red);color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;">+ Add</button>
+        </div>
+        <div id="allergy-add-form" style="display:none;padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:4px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Medication</label>
+              <input id="allergy-name" type="text" placeholder="e.g. Penicillin, Bees, Peanuts" style="width:100%;padding:8px;border-radius:6px;border:2px solid rgba(210,60,50,0.5);background:var(--surface);font-size:13px;color:var(--text);"></div>
+            <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Reaction</label>
+              <input id="allergy-reaction" type="text" placeholder="e.g. Hives, anaphylaxis" style="width:100%;padding:8px;border-radius:6px;border:2px solid rgba(210,60,50,0.5);background:var(--surface);font-size:13px;color:var(--text);"></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="saveAllergy()" style="flex:2;padding:10px;background:linear-gradient(135deg,#22c497,#158a6a);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;">✓ Save</button>
+            <button onclick="cancelAllergy()" style="flex:1;padding:10px;background:linear-gradient(135deg,#e05040,#b02818);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;">✕</button>
+          </div>
+        </div>
+        <div id="allergy-list"><div style="font-size:13px;color:var(--text3);padding:8px 0;">No allergies recorded — tap + Add to add one.</div></div>
+      </div>
+
+      <!-- BP ENTRY -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-label">Blood Pressure — New Reading</div>
+        <div class="bp-big" id="bp-display">
+          <div style="text-align:center;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div class="bp-num" id="bp-sys-display">—</div>
+              <div class="bp-slash">/</div>
+              <div class="bp-num" id="bp-dia-display">—</div>
+            </div>
+            <div class="bp-unit">mmHg · enter a reading</div>
+          </div>
+        </div>
+        <div class="bp-entry-row">
+          <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Systolic (top)</label>
+            <input type="number" id="bp-sys" placeholder="e.g. 135" inputmode="numeric" min="60" max="250"
+              oninput="updateBPDisplay()" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:2px solid var(--border-strong);background:var(--surface);font-size:18px;font-weight:700;color:var(--text);text-align:center;"></div>
+          <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Diastolic (bottom)</label>
+            <input type="number" id="bp-dia" placeholder="e.g. 82" inputmode="numeric" min="40" max="150"
+              oninput="updateBPDisplay()" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:2px solid var(--border-strong);background:var(--surface);font-size:18px;font-weight:700;color:var(--text);text-align:center;"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+          <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Date</label>
+            <input type="date" id="bp-date" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:12px;color:var(--text);"></div>
+          <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Time</label>
+            <input type="time" id="bp-time" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:12px;color:var(--text);"></div>
+          <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Session</label>
+            <select id="bp-session" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:12px;color:var(--text);">
+              <option value="morning">Morning</option>
+              <option value="evening">Evening</option>
+            </select></div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button id="bp-confirm-btn" onclick="saveBP()"
+            style="flex:2;padding:12px;background:linear-gradient(135deg,#22c497,#158a6a);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;cursor:pointer;opacity:0.4;pointer-events:none;transition:all 0.15s;">
+            ✓ Confirm BP
+          </button>
+          <button onclick="clearBP()"
+            style="flex:1;padding:12px;background:linear-gradient(135deg,#e05040,#b02818);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;cursor:pointer;">
+            ✕ Clear
+          </button>
+        </div>
+      </div>
+
+      <!-- BP TARGET INFO -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-label">Your BP Target</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:var(--green-bg);border-radius:var(--radius-sm);padding:10px 12px;border:1px solid rgba(15,138,106,0.2);text-align:center;">
+            <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.5px;">Target Range</div>
+            <div style="font-size:18px;font-weight:800;color:var(--green);">130–140</div>
+            <div style="font-size:11px;color:var(--text2);">/ 70–90 mmHg</div>
+          </div>
+          <div style="background:var(--red-bg);border-radius:var(--radius-sm);padding:10px 12px;border:1px solid rgba(176,48,32,0.2);text-align:center;">
+            <div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:0.5px;">Out of Range</div>
+            <div style="font-size:18px;font-weight:800;color:var(--red);">Above 140</div>
+            <div style="font-size:11px;color:var(--text2);">/ 90 or below 70</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BP LOG -->
+      <div class="card">
+        <div class="card-label">Blood Pressure Log</div>
+        <div id="bp-list"><div style="font-size:13px;color:var(--text3);padding:8px 0;">No readings yet — add one above.</div></div>
+      </div>
+
     </div>
 
     <!-- SETTINGS TAB -->
@@ -1415,8 +1591,20 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('a1c-date')?.addEventListener('change', e => e.target.dataset.userSet = '1');
 
   renderRecent();
+  renderMeds();
   updateKeyNumbers();
   initCloudSync();
+
+  // iOS standalone mode keyboard fix — explicitly focus inputs on touchend
+  // since standalone PWAs sometimes suppress keyboard on tap without this
+  if (navigator.standalone) {
+    document.addEventListener('touchend', e => {
+      const el = e.target;
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+        setTimeout(() => el.focus(), 50);
+      }
+    }, false);
+  }
 });
 
 // ============================================================
@@ -1495,6 +1683,8 @@ function showTab(name, btn) {
   if (name === 'a1c') initA1C();
   if (name === 'history') { histPage = 0; renderHistory(); }
   if (name === 'settings') loadSettingsUI();
+  if (name === 'health') initHealthTab();
+  if (name === 'log') renderMeds();
 }
 
 // ============================================================
@@ -2163,6 +2353,243 @@ function nextPage(){histPage++;renderHistory();}
 // ============================================================
 // EXPORT CSV
 // ============================================================
+// ============================================================
+// MEDICATIONS
+// ============================================================
+function getMeds() { try { return JSON.parse(localStorage.getItem('glucoselog_meds')||'[]'); } catch(e){ return []; } }
+function saveMeds(arr) { localStorage.setItem('glucoselog_meds', JSON.stringify(arr)); }
+
+function showAddMed() {
+  document.getElementById('med-add-form').style.display = 'block';
+  document.getElementById('med-name').focus();
+}
+function cancelMed() {
+  document.getElementById('med-add-form').style.display = 'none';
+  ['med-name','med-dose','med-freq','med-dr'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('med-type').value = 'diabetes';
+}
+function saveMed() {
+  const name = document.getElementById('med-name').value.trim();
+  if (!name) { alert('Enter a drug name.'); return; }
+  const med = {
+    id: Date.now(),
+    name, type: document.getElementById('med-type').value,
+    dose: document.getElementById('med-dose').value.trim(),
+    freq: document.getElementById('med-freq').value.trim(),
+    dr: document.getElementById('med-dr').value.trim()
+  };
+  const arr = getMeds(); arr.push(med); saveMeds(arr);
+  cancelMed(); renderMeds();
+}
+function deleteMed(id) {
+  if (!confirm('Remove this medication?')) return;
+  saveMeds(getMeds().filter(m => m.id !== id));
+  renderMeds();
+}
+function startMedEdit(id) {
+  const meds = getMeds(); const m = meds.find(x => x.id === id);
+  if (!m) return;
+  const row = document.getElementById('med-row-'+id);
+  if (!row) return;
+  row.innerHTML = `
+    <div style="width:100%;display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+      <input id="medit-name-${id}" value="${m.name}" placeholder="Drug name" style="padding:6px;border-radius:6px;border:2px solid var(--accent);background:var(--surface2);font-size:13px;color:var(--text);">
+      <input id="medit-dose-${id}" value="${m.dose}" placeholder="Dose" style="padding:6px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface2);font-size:13px;color:var(--text);">
+      <input id="medit-freq-${id}" value="${m.freq}" placeholder="Frequency" style="padding:6px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface2);font-size:13px;color:var(--text);">
+      <input id="medit-dr-${id}" value="${m.dr}" placeholder="Doctor" style="padding:6px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface2);font-size:13px;color:var(--text);">
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button class="edit-save-btn" onclick="saveMedEdit(${id})">✓ Save</button>
+      <button class="edit-cancel-btn" onclick="renderMeds()">✕</button>
+    </div>`;
+}
+function saveMedEdit(id) {
+  const arr = getMeds(); const idx = arr.findIndex(m => m.id === id);
+  if (idx < 0) return;
+  arr[idx].name = document.getElementById('medit-name-'+id).value.trim() || arr[idx].name;
+  arr[idx].dose = document.getElementById('medit-dose-'+id).value.trim();
+  arr[idx].freq = document.getElementById('medit-freq-'+id).value.trim();
+  arr[idx].dr   = document.getElementById('medit-dr-'+id).value.trim();
+  saveMeds(arr); renderMeds();
+}
+function renderMeds() {
+  const meds = getMeds();
+  ['diabetes','other'].forEach(type => {
+    const el = document.getElementById('med-list-'+type);
+    if (!el) return;
+    const list = meds.filter(m => m.type === type);
+    if (!list.length) {
+      el.innerHTML = `<div style="font-size:13px;color:var(--text3);padding:6px 0;">None recorded.</div>`;
+      return;
+    }
+    el.innerHTML = list.map(m => `
+      <div class="med-item" id="med-row-${m.id}">
+        <div class="med-main">
+          <div class="med-name">${m.name}${m.dose ? ' <span style="font-weight:400;color:var(--text3);">'+m.dose+'</span>' : ''}</div>
+          <div class="med-detail">${[m.freq, m.dr ? 'Dr. '+m.dr : ''].filter(Boolean).join(' · ')}</div>
+        </div>
+        <div class="med-btns">
+          <button class="edit-btn" onclick="startMedEdit(${m.id})">✎</button>
+          <button class="edit-btn" style="color:#b03020;border-color:#b03020;" onclick="deleteMed(${m.id})">✕</button>
+        </div>
+      </div>`).join('');
+  });
+}
+
+// ============================================================
+// ALLERGIES
+// ============================================================
+function getAllergies() { try { return JSON.parse(localStorage.getItem('glucoselog_allergies')||'[]'); } catch(e){ return []; } }
+function saveAllergies(arr) { localStorage.setItem('glucoselog_allergies', JSON.stringify(arr)); }
+
+function showAddAllergy() {
+  document.getElementById('allergy-add-form').style.display = 'block';
+  document.getElementById('allergy-name').focus();
+}
+function cancelAllergy() {
+  document.getElementById('allergy-add-form').style.display = 'none';
+  document.getElementById('allergy-name').value = '';
+  document.getElementById('allergy-reaction').value = '';
+}
+function saveAllergy() {
+  const name = document.getElementById('allergy-name').value.trim();
+  if (!name) { alert('Enter a medication name.'); return; }
+  const allergy = { id: Date.now(), name, reaction: document.getElementById('allergy-reaction').value.trim() };
+  const arr = getAllergies(); arr.push(allergy); saveAllergies(arr);
+  cancelAllergy(); renderAllergies();
+}
+function deleteAllergy(id) {
+  if (!confirm('Remove this allergy entry?')) return;
+  saveAllergies(getAllergies().filter(a => a.id !== id));
+  renderAllergies();
+}
+function renderAllergies() {
+  const el = document.getElementById('allergy-list');
+  if (!el) return;
+  const list = getAllergies();
+  if (!list.length) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:8px 0;">No allergies recorded — tap + Add to add one.</div>';
+    return;
+  }
+  el.innerHTML = list.map(a => `
+    <div class="allergy-item">
+      <div style="flex:1;">
+        <div class="allergy-name">⚠ ${a.name}</div>
+        ${a.reaction ? '<div class="allergy-reaction">Reaction: '+a.reaction+'</div>' : ''}
+      </div>
+      <button class="edit-btn" style="color:#b03020;border-color:#b03020;" onclick="deleteAllergy(${a.id})">✕</button>
+    </div>`).join('');
+}
+
+// ============================================================
+// BLOOD PRESSURE
+// ============================================================
+function getBPReadings() { try { return JSON.parse(localStorage.getItem('glucoselog_bp')||'[]'); } catch(e){ return []; } }
+function saveBPReadings(arr) { localStorage.setItem('glucoselog_bp', JSON.stringify(arr)); }
+
+const BP_SYS_MIN=130, BP_SYS_MAX=140, BP_DIA_MIN=70, BP_DIA_MAX=90;
+
+function bpInRange(sys, dia) {
+  return sys >= BP_SYS_MIN && sys <= BP_SYS_MAX && dia >= BP_DIA_MIN && dia <= BP_DIA_MAX;
+}
+function bpClass(sys, dia) {
+  if (sys > BP_SYS_MAX || dia > BP_DIA_MAX) return 'bp-out';
+  if (sys < BP_SYS_MIN || dia < BP_DIA_MIN) return 'bp-watch';
+  return 'bp-in';
+}
+function bpDotColor(sys, dia) {
+  if (sys > BP_SYS_MAX || dia > BP_DIA_MAX) return 'var(--red)';
+  if (sys < BP_SYS_MIN || dia < BP_DIA_MIN) return 'var(--amber)';
+  return 'var(--green)';
+}
+
+function updateBPDisplay() {
+  const sys = parseInt(document.getElementById('bp-sys').value);
+  const dia = parseInt(document.getElementById('bp-dia').value);
+  const sysEl = document.getElementById('bp-sys-display');
+  const diaEl = document.getElementById('bp-dia-display');
+  const btn = document.getElementById('bp-confirm-btn');
+  if (!isNaN(sys)) sysEl.textContent = sys; else sysEl.textContent = '—';
+  if (!isNaN(dia)) diaEl.textContent = dia; else diaEl.textContent = '—';
+  if (!isNaN(sys) && !isNaN(dia)) {
+    const cls = bpClass(sys, dia);
+    sysEl.style.color = diaEl.style.color = cls === 'bp-in' ? 'var(--green)' : cls === 'bp-out' ? '#ff9090' : 'var(--amber)';
+    btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
+  } else {
+    sysEl.style.color = diaEl.style.color = '#a8d4ff';
+    btn.style.opacity = '0.4'; btn.style.pointerEvents = 'none';
+  }
+}
+function clearBP() {
+  document.getElementById('bp-sys').value = '';
+  document.getElementById('bp-dia').value = '';
+  document.getElementById('bp-sys-display').textContent = '—';
+  document.getElementById('bp-dia-display').textContent = '—';
+  document.getElementById('bp-sys-display').style.color = document.getElementById('bp-dia-display').style.color = '#a8d4ff';
+  document.getElementById('bp-confirm-btn').style.opacity = '0.4';
+  document.getElementById('bp-confirm-btn').style.pointerEvents = 'none';
+  // Reset date/time to now
+  const now = new Date();
+  document.getElementById('bp-date').value = localDateStr(now);
+  document.getElementById('bp-time').value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+}
+function saveBP() {
+  const sys = parseInt(document.getElementById('bp-sys').value);
+  const dia = parseInt(document.getElementById('bp-dia').value);
+  const date = document.getElementById('bp-date').value;
+  const time = document.getElementById('bp-time').value;
+  const session = document.getElementById('bp-session').value;
+  if (isNaN(sys)||isNaN(dia)||!date||!time) { alert('Please fill in all fields.'); return; }
+  const arr = getBPReadings();
+  arr.push({ id: Date.now(), date, time, sys, dia, session });
+  arr.sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
+  saveBPReadings(arr);
+  const btn = document.getElementById('bp-confirm-btn');
+  btn.textContent = '✓ Saved!';
+  setTimeout(() => { btn.textContent = '✓ Confirm BP'; clearBP(); }, 1500);
+  renderBP();
+}
+function deleteBPReading(id) {
+  if (!confirm('Delete this BP reading?')) return;
+  saveBPReadings(getBPReadings().filter(r => r.id !== id));
+  renderBP();
+}
+function renderBP() {
+  const el = document.getElementById('bp-list');
+  if (!el) return;
+  const readings = getBPReadings();
+  if (!readings.length) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:8px 0;">No readings yet — add one above.</div>';
+    return;
+  }
+  el.innerHTML = readings.map(r => {
+    const cls = bpClass(r.sys, r.dia);
+    const dot = bpDotColor(r.sys, r.dia);
+    const label = cls==='bp-in'?'In range':cls==='bp-out'?'High':'Watch';
+    return `<div class="bp-row">
+      <span class="bp-dot" style="background:${dot}"></span>
+      <div style="flex:1;">
+        <span class="${cls} bp-val">${r.sys}/${r.dia}</span>
+        <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;margin-left:6px;background:${dot}22;color:${dot};border:1px solid ${dot}44;">${label}</span>
+        <span class="bp-session ${r.session==='morning'?'bp-am':'bp-pm'}" style="margin-left:4px;">${r.session==='morning'?'AM':'PM'}</span>
+        <div class="bp-meta">${fmtDate(r.date)} · ${fmtTime(r.time)}</div>
+      </div>
+      <button class="edit-btn" style="color:#b03020;border-color:#b03020;" onclick="deleteBPReading(${r.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function initHealthTab() {
+  const now = new Date();
+  const bpDate = document.getElementById('bp-date');
+  const bpTime = document.getElementById('bp-time');
+  if (bpDate && !bpDate.value) bpDate.value = localDateStr(now);
+  if (bpTime && !bpTime.value) bpTime.value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  renderAllergies();
+  renderBP();
+  renderMeds();
+}
+
 function exportCSV() {
   const all = getAllReadings();
   const rows = ['Date,Time,Value,Notes', ...all.map(r=>`${r[0]},${r[1]},${r[2]},"${(r[3]||'').replace(/"/g,'""')}"`)];
@@ -2229,7 +2656,7 @@ function renderYearly() {
   const daily=getDailyData();
   const byYear={};
   daily.forEach(d=>{const y=d.date.split('-')[0];if(!byYear[y])byYear[y]=[];byYear[y].push(d.avg);});
-  const years=Object.keys(byYear).sort().reverse(); // most recent year first
+  const years=Object.keys(byYear).sort(); // oldest year first (left to right)
   const avgs=years.map(y=>Math.round(byYear[y].reduce((a,b)=>a+b,0)/byYear[y].length));
   const trendDS=makeTrendDataset(avgs,'Trend');
   const avgDS=makeAvgDataset(Math.round(avgs.reduce((a,b)=>a+b,0)/avgs.length),avgs.length,'Average');
@@ -2251,7 +2678,8 @@ function renderYearly() {
   daily.forEach(d=>{const ym=d.date.slice(0,7);if(!byYM[ym])byYM[ym]=[];byYM[ym].push(d.avg);});
   const container=document.getElementById('yearly-months-container');
   let html='';
-  years.forEach(y=>{
+  const yearsDesc = [...years].reverse(); // newest first for monthly cards
+  yearsDesc.forEach(y=>{
     const mks=Object.keys(byYM).filter(k=>k.startsWith(y)).sort();
     window['_ym_'+y]={
       labels:mks.map(m=>MONTHS[parseInt(m.split('-')[1])-1]),
@@ -2259,8 +2687,8 @@ function renderYearly() {
     };
     html+=`<div class="card"><div class="card-label">${y} monthly</div><div style="position:relative;width:100%;height:140px;"><canvas id="ym-${y}"></canvas></div></div>`;
   });
-  container.innerHTML=html; // years already newest-first, so cards render newest-first too
-  years.forEach(y=>{
+  container.innerHTML=html;
+  yearsDesc.forEach(y=>{
     const d=window['_ym_'+y];
     const avg2=Math.round(d.avgs.reduce((a,b)=>a+b,0)/d.avgs.length);
     new Chart(document.getElementById('ym-'+y),{
