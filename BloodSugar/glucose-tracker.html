@@ -1976,7 +1976,7 @@ function initGraph() {
   const labels = disp.map(d=>{ const [y,m,dy]=d.date.split('-'); return `${m}/${dy}`; });
   const data = disp.map(d=>d.avg);
   const ptColors = data.map(v=>v>180?'#c0392b':v<70?'#1a5f8a':'#1a7a6e');
-  const isBar = currentRange === 7 || disp.length > 60;
+  const isBar = true;
 
   // Layered bars per day at the daily AVERAGE for line mode, or height-sorted overlapping layers in bar mode
   let mainDatasets;
