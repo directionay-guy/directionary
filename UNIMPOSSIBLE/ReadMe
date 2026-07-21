@@ -1,1 +1,9 @@
+Place your contact-email image here as:  email.png
 
+The About modal loads it via:  <img src="images/email.png">  (see game.js aboutBody()).
+You mentioned using an image for your email because Cloudflare blocks the
+text version — drop that PNG (or JPG, but then update the filename in game.js)
+right here and it will appear under "Contact & bug reports" in the About modal.
+
+Recommended: transparent or bone-colored background, ~300-400px wide, so it
+sits cleanly on the dark modal card.
