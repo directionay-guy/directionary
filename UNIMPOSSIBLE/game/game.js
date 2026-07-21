@@ -659,7 +659,12 @@
 
   function shareResult() {
     const text = buildShareText();
-    if (navigator.share) {
+    // Native share sheet only on real touch/mobile devices — on desktop it
+    // triggers the clunky OS panel (e.g. Windows "add contacts"), so there we
+    // always use our own clean copy modal instead.
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+      && (('ontouchstart' in window) || navigator.maxTouchPoints > 0);
+    if (isMobile && navigator.share) {
       navigator.share({ title: 'Unimpossible - Daily Word Puzzle', text }).catch(() => openModal('share'));
     } else {
       openModal('share');
