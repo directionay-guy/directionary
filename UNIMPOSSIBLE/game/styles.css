@@ -220,10 +220,11 @@ button:disabled { cursor: not-allowed; }
   margin-bottom: 8px;
 }
 /* Note sits UNDER the button (not beside it) so the long wording can never
-   wrap and change the panel height. The panel is a fixed 320px on every
-   screen, so this has to hold at all widths — not just narrow ones. */
-.hint-row { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+   wrap and change the panel height. Button is full-width to match the Share
+   button and the Unimpossible banner, so both modes look structurally alike. */
+.hint-row { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
 .btn-hint {
+  width: 100%;
   background: var(--green);
   color: var(--bone);
   border: none;
@@ -233,7 +234,7 @@ button:disabled { cursor: not-allowed; }
   white-space: nowrap;
 }
 .btn-hint.is-disabled { background: rgba(157,153,181,0.2); color: var(--bone-dim); }
-.hint-note { font-size: 0.72rem; color: var(--green-text); white-space: nowrap; }
+.hint-note { font-size: 0.72rem; color: var(--green-text); white-space: nowrap; text-align: center; }
 .hardest-banner {
   width: 100%;
   text-align: center;
