@@ -12,6 +12,29 @@
   el('dev-new').addEventListener('click', () => {
     window.UNIMP_DEV.loadRandom();
     el('dev-result').textContent = 'Loaded a fresh random puzzle.';
+    // keep answers in sync if they're currently showing
+    if (answersShown) renderAnswers();
+  });
+
+  // ---- show / hide the four answer words ----
+  let answersShown = false;
+
+  function renderAnswers() {
+    const w = window.UNIMP_DEV.getWords();
+    const out = el('dev-answers-out');
+    if (!w) { out.textContent = 'no puzzle loaded'; return; }
+    out.innerHTML =
+      `<div style="color:#7FB0F5">&uarr; UP &nbsp; ${w.topWord}</div>` +
+      `<div style="color:#74D69B">&larr; LEFT &nbsp; ${w.leftWord}</div>` +
+      `<div style="color:#F7B25E">&darr; DOWN &nbsp; ${w.bottomWord}</div>` +
+      `<div style="color:#F58FC2">&rarr; RIGHT &nbsp; ${w.rightWord}</div>`;
+  }
+
+  el('dev-answers').addEventListener('click', () => {
+    answersShown = !answersShown;
+    el('dev-answers').textContent = answersShown ? 'Hide Answers' : 'Show Answers';
+    if (answersShown) renderAnswers();
+    else el('dev-answers-out').innerHTML = '';
   });
 
   el('dev-test').addEventListener('click', () => {
