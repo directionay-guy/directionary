@@ -1005,5 +1005,7 @@
     generate: generatePuzzle,
     isTrapFree: isTrapFree,
     validateWinnable: validateWinnable,
+    getWords: () => S.words,
+    getPuzzleNumber: () => S.puzzleNumber,
   };
 })();
