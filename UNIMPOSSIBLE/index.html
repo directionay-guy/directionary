@@ -30,22 +30,27 @@
     </div>
   </div>
 
-  <!-- board: top lane / [left | grid | right] / bottom lane -->
-  <div class="board">
-    <div class="lane-h" id="lane-top"></div>
-    <div class="mid-row">
-      <div class="lane-v" id="lane-left"></div>
-      <div class="grid" id="grid"></div>
-      <div class="lane-v" id="lane-right"></div>
-    </div>
-    <div class="lane-h" id="lane-bottom"></div>
-  </div>
+  <!-- board + panel share a column so the panel matches the board's width -->
+  <div class="stack">
 
-  <!-- score panel -->
-  <div class="panel">
-    <div class="moves-line">Moves Remaining: <span class="c" id="score-value">100</span></div>
-    <div id="middle-slot"></div>
-    <button class="btn-panel-share rise" id="panel-share">&#128228; Share</button>
+    <!-- board: top lane / [left | grid | right] / bottom lane -->
+    <div class="board">
+      <div class="lane-h" id="lane-top"></div>
+      <div class="mid-row">
+        <div class="lane-v" id="lane-left"></div>
+        <div class="grid" id="grid"></div>
+        <div class="lane-v" id="lane-right"></div>
+      </div>
+      <div class="lane-h" id="lane-bottom"></div>
+    </div>
+
+    <!-- score panel -->
+    <div class="panel">
+      <div class="moves-line">Moves Remaining: <span class="c" id="score-value">100</span></div>
+      <div id="middle-slot"></div>
+      <button class="btn-panel-share rise" id="panel-share">&#128228; Share</button>
+    </div>
+
   </div>
 
   <!-- daily note — sits above the pills so it reads as information, not boilerplate -->
