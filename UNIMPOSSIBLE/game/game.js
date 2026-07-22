@@ -365,7 +365,7 @@
     renderScore();
   }
 
-  function laneSlotStyle(laneKey, filled, confirmed, isAnchor, isVerified, isTgt, isSel, isQuiet) {
+  function laneSlotStyle(laneKey, filled, confirmed, isAnchor, isVerified, isTgt, isSel) {
     const c = LANE[laneKey];
     // Permanent states speak in BORDERS; transient states speak in FILL/motion.
     const deep = confirmed || isAnchor || isVerified;
@@ -375,11 +375,11 @@
       // the destination to act on: full lane colour, scaled, pulsing
       bg = c.mid;
       extra = 'transform:scale(1.06);';
-    } else if (isQuiet) {
-      // still a legal destination, but the hint points elsewhere — stay calm
-      bg = c.soft;
-      extra = 'opacity:0.55;';
     }
+    // NOTE: when a hint points at one destination, the other legal targets get
+    // NO special treatment at all — they render exactly like ordinary empty
+    // slots. Dimming them made them stand out in a different way rather than
+    // standing down, which defeats the point of the hint.
     if (isSel) {
       // selected placed letter: invert
       bg = 'var(--ink)';
@@ -408,9 +408,8 @@
       // shouts — the other legal targets stay quiet (still tappable).
       const isPrimary = tgt && hintActive && hs && hs.lane === lane && hs.idx === i;
       const loud = tgt && (!hintActive || isPrimary);
-      const quiet = tgt && hintActive && !isPrimary;
       const sel = !!(S.selected && S.selected.source === lane && S.selected.index === i);
-      const style = laneSlotStyle(lane, !!letter, confirmed, isAnchor, isVerified, loud, sel, quiet);
+      const style = laneSlotStyle(lane, !!letter, confirmed, isAnchor, isVerified, loud, sel);
       const pulse = loud ? ' target-pulse' : '';
       html += `<div class="slot${pulse}" data-lane="${lane}" data-idx="${i}" style="${style}">${letter || ''}</div>`;
     }
