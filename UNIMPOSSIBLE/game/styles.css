@@ -124,6 +124,7 @@ button:disabled { cursor: not-allowed; }
   background: transparent;
   color: var(--lav);
   border: none;
+  white-space: nowrap;
   transition: background 0.15s, color 0.15s;
 }
 #mode-possible.active { background: var(--green); color: var(--bone); }
@@ -469,4 +470,7 @@ button:disabled { cursor: not-allowed; }
   /* stack the hint note under the button so it can't wrap mid-phrase */
   .hint-row { flex-direction: column; align-items: flex-start; gap: 4px; }
   #middle-slot { min-height: 64px; }
+  /* keep both toggle halves on a single line */
+  .toggle button { padding: 6px 10px; font-size: 0.78rem; }
+  .mode-label { font-size: 0.6rem; letter-spacing: 0.12em; }
 }
