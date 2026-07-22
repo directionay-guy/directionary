@@ -190,9 +190,15 @@ button:disabled { cursor: not-allowed; }
 .slot { transition: transform 0.12s ease, background 0.12s ease; }
 
 /* ---- score panel -------------------------------------------------------- */
+/* board + panel column: the board sets the width, the panel stretches to match */
+.stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
 .panel {
   width: 100%;
-  max-width: 320px;
   background: var(--ink-soft);
   border: 1px solid rgba(157,153,181,0.2);
   border-radius: 12px;
