@@ -365,16 +365,20 @@
     renderScore();
   }
 
-  function laneSlotStyle(laneKey, filled, confirmed, isAnchor, isVerified, isTgt, isSel) {
+  function laneSlotStyle(laneKey, filled, confirmed, isAnchor, isVerified, isTgt, isSel, isQuiet) {
     const c = LANE[laneKey];
     // Permanent states speak in BORDERS; transient states speak in FILL/motion.
     const deep = confirmed || isAnchor || isVerified;
     let bg = filled ? 'var(--ivory)' : c.soft;
     let extra = '';
     if (isTgt) {
-      // valid destination right now: brighten to full lane colour (fill, not border)
+      // the destination to act on: full lane colour, scaled, pulsing
       bg = c.mid;
       extra = 'transform:scale(1.06);';
+    } else if (isQuiet) {
+      // still a legal destination, but the hint points elsewhere — stay calm
+      bg = c.soft;
+      extra = 'opacity:0.55;';
     }
     if (isSel) {
       // selected placed letter: invert
@@ -391,6 +395,8 @@
   function renderLane(lane) {
     const container = el('lane-' + lane);
     const confirmed = laneConfirmed(lane);
+    const hs = hintedSlot();
+    const hintActive = selectedIsHinted();
     let html = '';
     for (let i = 0; i < 6; i++) {
       const letter = S.lanes[lane][i];
@@ -398,9 +404,14 @@
       const isAnchor = S.anchorKey === key;
       const isVerified = S.verified.has(key);
       const tgt = isTarget(lane, i);
+      // When the selected tile is the hinted one, only the hinted destination
+      // shouts — the other legal targets stay quiet (still tappable).
+      const isPrimary = tgt && hintActive && hs && hs.lane === lane && hs.idx === i;
+      const loud = tgt && (!hintActive || isPrimary);
+      const quiet = tgt && hintActive && !isPrimary;
       const sel = !!(S.selected && S.selected.source === lane && S.selected.index === i);
-      const style = laneSlotStyle(lane, !!letter, confirmed, isAnchor, isVerified, tgt, sel);
-      const pulse = tgt ? ' target-pulse' : '';
+      const style = laneSlotStyle(lane, !!letter, confirmed, isAnchor, isVerified, loud, sel, quiet);
+      const pulse = loud ? ' target-pulse' : '';
       html += `<div class="slot${pulse}" data-lane="${lane}" data-idx="${i}" style="${style}">${letter || ''}</div>`;
     }
     container.innerHTML = html;
@@ -521,6 +532,22 @@
   function isTarget(lane, idx) {
     if (!S.selected || S.selected.source !== 'grid') return false;
     return S.selected.targets.some((t) => t.lane === lane && t.idx === idx);
+  }
+
+  // The exact slot a hint points at: the hint gives a grid tile + a direction,
+  // and that pair determines one slot (column lanes use col, row lanes use row).
+  function hintedSlot() {
+    if (!S.highlight) return null;
+    const lane = dirToLane(S.highlight.dir);
+    const idx = (lane === 'top' || lane === 'bottom') ? S.highlight.col : S.highlight.row;
+    return { lane, idx };
+  }
+
+  // True when the currently selected tile is the hinted one — in that case only
+  // the hinted destination should shout; the other legal targets stay quiet.
+  function selectedIsHinted() {
+    return !!(S.selected && S.selected.source === 'grid' && S.highlight
+      && S.selected.row === S.highlight.row && S.selected.col === S.highlight.col);
   }
   // When a lane tile is selected for return, its origin grid cell is the target.
   function isHomeTarget(row, col) {
