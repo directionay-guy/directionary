@@ -404,10 +404,15 @@
       const isAnchor = S.anchorKey === key;
       const isVerified = S.verified.has(key);
       const tgt = isTarget(lane, i);
-      // When the selected tile is the hinted one, only the hinted destination
-      // shouts — the other legal targets stay quiet (still tappable).
-      const isPrimary = tgt && hintActive && hs && hs.lane === lane && hs.idx === i;
-      const loud = tgt && (!hintActive || isPrimary);
+      // The hint knows BOTH ends, so light the destination the moment the hint
+      // fires — no need to pick up the tile first to see where it goes. It
+      // calms down if you pick up some other tile, so it never competes.
+      const isHintDest = !!(hs && hs.lane === lane && hs.idx === i);
+      const hintDestLit = isHintDest && (!S.selected || hintActive);
+      // When the hinted tile is the selected one, only its destination shouts;
+      // the other legal targets render as ordinary empty slots.
+      const isPrimary = tgt && hintActive && isHintDest;
+      const loud = (tgt && (!hintActive || isPrimary)) || hintDestLit;
       const sel = !!(S.selected && S.selected.source === lane && S.selected.index === i);
       const style = laneSlotStyle(lane, !!letter, confirmed, isAnchor, isVerified, loud, sel);
       const pulse = loud ? ' target-pulse' : '';
@@ -435,17 +440,18 @@
             // selected AND hinted: invert, but in the destination lane colour so
             // the tile keeps its directional identity while picked up
             bg = hintLane.deep; fg = 'var(--ivory)';
-            shadow = `box-shadow:0 0 0 4px ${hintLane.mid};`;
-            border = `1px solid ${hintLane.deep}`;
+            shadow = 'box-shadow:0 2px 6px rgba(22,20,31,0.45);';
+            border = `2px solid ${hintLane.mid}`;
           } else if (isSel) {
             bg = 'var(--ink)'; fg = 'var(--ivory)';
             shadow = 'box-shadow:0 2px 6px rgba(22,20,31,0.45);';
             border = '1px solid rgba(22,20,31,0.13)';
           } else if (hintLane) {
-            // hinted, not selected: lane-coloured face + thick ring
+            // hinted, not selected: the lane-coloured face does the marking, so
+            // the outline just needs to define the edge — not shout.
             bg = hintLane.soft; fg = 'var(--ink)';
-            shadow = `box-shadow:0 0 0 5px ${hintLane.deep};`;
-            border = `1px solid ${hintLane.deep}`;
+            shadow = 'box-shadow:0 2px 4px rgba(22,20,31,0.28);';
+            border = `2px solid ${hintLane.deep}`;
           } else {
             bg = 'var(--ivory)'; fg = 'var(--ink)';
             shadow = 'box-shadow:0 2px 4px rgba(22,20,31,0.28);';
