@@ -214,27 +214,34 @@ button:disabled { cursor: not-allowed; }
 }
 .moves-line .c { color: var(--coral); }
 #middle-slot {
-  min-height: 62px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   margin-bottom: 8px;
 }
-/* Note sits UNDER the button (not beside it) so the long wording can never
-   wrap and change the panel height. Button is full-width to match the Share
-   button and the Unimpossible banner, so both modes look structurally alike. */
-.hint-row { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
-.btn-hint {
+/* Button and note sit side by side on one line. The panel is now board-width
+   (334px desktop / 302px mobile inner) and the pair needs ~243px, so it fits
+   with ~20% to spare. Both are nowrap so the panel height can never change. */
+.hint-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
+}
+.btn-hint {
   background: var(--green);
   color: var(--bone);
   border: none;
   border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 0.9rem;
+  padding: 8px 10px;
+  font-size: 0.85rem;
   white-space: nowrap;
+  flex: 0 0 auto;
 }
 .btn-hint.is-disabled { background: rgba(157,153,181,0.2); color: var(--bone-dim); }
-.hint-note { font-size: 0.72rem; color: var(--green-text); white-space: nowrap; text-align: center; }
+.hint-note { font-size: 0.68rem; color: var(--green-text); white-space: nowrap; flex: 0 0 auto; }
 .hardest-banner {
   width: 100%;
   text-align: center;
@@ -472,6 +479,12 @@ button:disabled { cursor: not-allowed; }
   margin: 2px;
 }
 #dev-result { font-size: 0.7rem; color: var(--green-text); margin-top: 8px; white-space: pre-line; }
+#dev-answers-out {
+  font-size: 0.78rem;
+  margin-top: 8px;
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+}
 
 @media (max-width: 420px) {
   .slot, .cell, .grid-tile, .lane-letter, .ghost, .cell.empty { width: 30px; height: 30px; font-size: 0.85rem; }
