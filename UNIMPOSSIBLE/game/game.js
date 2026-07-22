@@ -258,7 +258,9 @@
     highlight: null,          // { row, col, dir } hinted tile
     puzzleNumber: 0,
     dayKey: null,
-    dragged: null,            // { letter, source, index?, row?, col? }
+    selected: null,           // { source:'grid'|lane, letter, row/col or index, targets/home }
+    verified: new Set(),      // lane keys the game itself confirmed (anchor, hinted placements)
+    hintedCells: new Set(),   // grid cells a hint has revealed, as "row-col"
   };
 
   const gameStarted = () => S.moveCount > 0 || S.hintsUsed > 0;
@@ -284,11 +286,15 @@
     S.moved = moved;
     S.anchorKey = anchorKey;
     S.highlight = null;
+    S.selected = null;
+    S.verified = new Set(anchorKey ? [anchorKey] : []);
+    S.hintedCells = new Set();
     if (fullReset) {
       S.hasWon = false; S.hasLost = false;
       S.score = START_MOVES; S.moveCount = 0; S.hintsUsed = 0;
     }
     render();
+    saveGame();
   }
 
   function loadDailyPuzzle() {
@@ -301,8 +307,11 @@
     S.words = puzzle.words;
     S.pristineGrid = puzzle.grid.map((r) => [...r]);
     S.anchorChoice = chooseAnchor(puzzle.grid, puzzle.words);
-    applyBoard(puzzle.grid, S.anchorChoice, S.assistMode, true);
     updateHeader();
+    // If there's a saved game for today, restore it; otherwise start fresh.
+    if (!restoreGame()) {
+      applyBoard(puzzle.grid, S.anchorChoice, S.assistMode, true);
+    }
   }
 
   // Dev / Shift+N: fresh RANDOM puzzle (not seeded).
@@ -347,13 +356,6 @@
     return S.lanes[lane].join('') === target;
   }
 
-  function tileHTML(letter, opts) {
-    // opts: { cls, style, draggable, data }
-    const d = opts.data || {};
-    const dataAttr = Object.keys(d).map((k) => `data-${k}="${d[k]}"`).join(' ');
-    return `<div class="${opts.cls}" style="${opts.style || ''}" ${opts.draggable ? 'draggable="true"' : ''} ${dataAttr}>${letter}</div>`;
-  }
-
   function render() {
     renderLane('top');
     renderLane('left');
@@ -363,14 +365,27 @@
     renderScore();
   }
 
-  function laneSlotStyle(laneKey, filled, confirmed, isAnchor) {
+  function laneSlotStyle(laneKey, filled, confirmed, isAnchor, isVerified, isTgt, isSel) {
     const c = LANE[laneKey];
-    const bg = filled ? 'var(--ivory)' : c.soft;
-    const border = (confirmed || isAnchor) ? `3px solid ${c.deep}`
+    // Permanent states speak in BORDERS; transient states speak in FILL/motion.
+    const deep = confirmed || isAnchor || isVerified;
+    let bg = filled ? 'var(--ivory)' : c.soft;
+    let extra = '';
+    if (isTgt) {
+      // valid destination right now: brighten to full lane colour (fill, not border)
+      bg = c.mid;
+      extra = 'transform:scale(1.06);';
+    }
+    if (isSel) {
+      // selected placed letter: invert
+      bg = 'var(--ink)';
+    }
+    const color = isSel ? 'var(--ivory)' : 'var(--ink)';
+    const border = deep ? `3px solid ${c.deep}`
       : filled ? `2px solid ${c.mid}` : `2px solid rgba(22,20,31,0.13)`;
     const shadow = filled ? 'box-shadow:0 2px 4px rgba(22,20,31,0.28);' : '';
-    const cursor = isAnchor ? 'cursor:default;' : '';
-    return `background:${bg};color:var(--ink);border-radius:4px;border:${border};${shadow}${cursor}`;
+    const cursor = isAnchor ? 'cursor:default;' : 'cursor:pointer;';
+    return `background:${bg};color:${color};border-radius:4px;border:${border};${shadow}${cursor}${extra}`;
   }
 
   function renderLane(lane) {
@@ -379,12 +394,14 @@
     let html = '';
     for (let i = 0; i < 6; i++) {
       const letter = S.lanes[lane][i];
-      const isAnchor = S.anchorKey === `${lane}-${i}`;
-      const style = laneSlotStyle(lane, !!letter, confirmed, isAnchor);
-      const inner = letter
-        ? `<div class="lane-letter" ${isAnchor ? '' : 'draggable="true"'} data-src="${lane}" data-idx="${i}" style="${isAnchor ? 'cursor:default' : 'cursor:grab'}">${letter}</div>`
-        : '';
-      html += `<div class="slot" data-lane="${lane}" data-idx="${i}" style="${style}">${inner}</div>`;
+      const key = `${lane}-${i}`;
+      const isAnchor = S.anchorKey === key;
+      const isVerified = S.verified.has(key);
+      const tgt = isTarget(lane, i);
+      const sel = !!(S.selected && S.selected.source === lane && S.selected.index === i);
+      const style = laneSlotStyle(lane, !!letter, confirmed, isAnchor, isVerified, tgt, sel);
+      const pulse = tgt ? ' target-pulse' : '';
+      html += `<div class="slot${pulse}" data-lane="${lane}" data-idx="${i}" style="${style}">${letter || ''}</div>`;
     }
     container.innerHTML = html;
   }
@@ -399,17 +416,23 @@
         const key = `${r}-${c}`;
         const ghost = ghosts.get(key);
         const isHi = S.highlight && S.highlight.row === r && S.highlight.col === c;
+        const isSel = !!(S.selected && S.selected.source === 'grid' && S.selected.row === r && S.selected.col === c);
+        const homeTgt = isHomeTarget(r, c);
         if (cell) {
           const hiColor = isHi ? LANE[dirToLane(S.highlight.dir)].mid : null;
           const shadow = hiColor ? `box-shadow:0 0 0 4px ${hiColor};` : 'box-shadow:0 2px 4px rgba(22,20,31,0.28);';
-          const pulse = isHi ? 'grid-pulse' : '';
+          const bg = isSel ? 'var(--ink)' : 'var(--ivory)';
+          const fg = isSel ? 'var(--ivory)' : 'var(--ink)';
+          const pulse = isHi ? ' grid-pulse' : '';
           html += `<div class="cell" data-row="${r}" data-col="${c}">
-            <div class="grid-tile ${pulse}" draggable="true" data-row="${r}" data-col="${c}"
-              style="background:var(--ivory);color:var(--ink);font-family:var(--font-mark);border:1px solid rgba(22,20,31,0.13);${shadow}">${cell}</div>
+            <div class="grid-tile${pulse}" data-row="${r}" data-col="${c}"
+              style="background:${bg};color:${fg};font-family:var(--font-mark);border:1px solid rgba(22,20,31,0.13);${shadow}cursor:pointer;">${cell}</div>
           </div>`;
         } else if (ghost) {
-          html += `<div class="cell" data-row="${r}" data-col="${c}">
-            <div class="ghost">${ghost}</div>
+          const tgtStyle = homeTgt ? 'background:rgba(255,90,60,0.25);border:2px solid var(--coral);' : '';
+          const pulse = homeTgt ? ' target-pulse' : '';
+          html += `<div class="cell${pulse}" data-row="${r}" data-col="${c}">
+            <div class="ghost" style="${tgtStyle}">${ghost}</div>
           </div>`;
         } else {
           html += `<div class="cell empty" data-row="${r}" data-col="${c}"></div>`;
@@ -458,64 +481,103 @@
     el('puzzle-number').textContent = S.puzzleNumber;
   }
 
-  /* ---- 8. drag & drop ----------------------------------------------------- */
-  function onDragStart(e) {
-    const gt = e.target.closest('.grid-tile');
-    const ll = e.target.closest('.lane-letter');
-    if (gt) {
-      const row = +gt.dataset.row, col = +gt.dataset.col;
-      S.dragged = { source: 'grid', letter: S.grid[row][col], row, col };
-      e.dataTransfer.setData('text/plain', 'grid');
-      // clear hint if this is the hinted tile
-      if (S.highlight && S.highlight.row === row && S.highlight.col === col) {
-        S.highlight = null; renderGrid();
-      }
-    } else if (ll) {
-      const src = ll.dataset.src, idx = +ll.dataset.idx;
-      if (S.anchorKey === `${src}-${idx}`) { e.preventDefault(); return; } // locked anchor
-      S.dragged = { source: src, letter: S.lanes[src][idx], index: idx };
-      e.dataTransfer.setData('text/plain', 'lane');
-    }
+  /* ---- 8. tap interaction (tap to select, tap to place) ------------------- */
+  // Touch drag-and-drop fights the OS (scroll, text-selection, long-press), so
+  // the game is tap-only on every device: tap a tile to pick it up, tap a lit
+  // target to place it. Selecting costs nothing; only placing/returning costs
+  // a move. This also teaches the rule — selecting shows exactly where a tile
+  // is allowed to go.
+
+  // Valid destinations for a grid tile at (row,col): its column's top/bottom
+  // slots and its row's left/right slots, minus any already filled.
+  function targetsForGridTile(row, col) {
+    const t = [];
+    if (!S.lanes.top[col]) t.push({ lane: 'top', idx: col });
+    if (!S.lanes.bottom[col]) t.push({ lane: 'bottom', idx: col });
+    if (!S.lanes.left[row]) t.push({ lane: 'left', idx: row });
+    if (!S.lanes.right[row]) t.push({ lane: 'right', idx: row });
+    return t;
   }
 
-  function allowDrop(e) { e.preventDefault(); }
+  function isTarget(lane, idx) {
+    if (!S.selected || S.selected.source !== 'grid') return false;
+    return S.selected.targets.some((t) => t.lane === lane && t.idx === idx);
+  }
+  // When a lane tile is selected for return, its origin grid cell is the target.
+  function isHomeTarget(row, col) {
+    if (!S.selected || S.selected.source === 'grid') return false;
+    return S.selected.home === `${row}-${col}`;
+  }
 
-  function onDropLane(e, lane, idx) {
-    e.preventDefault();
-    const d = S.dragged; if (!d) return;
-    // tile must belong to this lane's line: top/bottom => col must equal idx;
-    // left/right => row must equal idx. Enforced by origin.
-    if (d.source === 'grid') {
-      const okCol = (lane === 'top' || lane === 'bottom') && d.col === idx;
-      const okRow = (lane === 'left' || lane === 'right') && d.row === idx;
-      if (!okCol && !okRow) return;
-      if (S.lanes[lane][idx]) return; // slot occupied
-      // place
-      S.lanes[lane][idx] = d.letter;
-      S.grid[d.row][d.col] = '';
-      S.moved.set(`${lane}-${idx}`, `${d.row}-${d.col}`);
-      registerMove();
+  function clearSelection() {
+    S.selected = null;
+    render();
+  }
+
+  function tapGridTile(row, col) {
+    // tapping the selected tile again deselects (free)
+    if (S.selected && S.selected.source === 'grid' && S.selected.row === row && S.selected.col === col) {
+      clearSelection();
+      return;
     }
-    S.dragged = null;
+    // if a lane tile is selected and this is its home cell -> return it there
+    if (S.selected && S.selected.source !== 'grid' && S.selected.home === `${row}-${col}`) {
+      returnToGrid(row, col);
+      return;
+    }
+    const letter = S.grid[row][col];
+    if (!letter) return;
+    S.selected = { source: 'grid', letter, row, col, targets: targetsForGridTile(row, col) };
+    // using a hinted tile clears its highlight
+    if (S.highlight && S.highlight.row === row && S.highlight.col === col) S.highlight = null;
+    render();
+  }
+
+  function tapLaneSlot(lane, idx) {
+    // placing a selected grid tile into a lit target
+    if (S.selected && S.selected.source === 'grid' && isTarget(lane, idx)) {
+      placeIntoLane(lane, idx);
+      return;
+    }
+    const letter = S.lanes[lane][idx];
+    if (!letter) return;
+    const key = `${lane}-${idx}`;
+    if (S.anchorKey === key) return;            // locked free letter
+    // tapping the selected lane tile again deselects
+    if (S.selected && S.selected.source === lane && S.selected.index === idx) {
+      clearSelection();
+      return;
+    }
+    // select this placed letter for return; its home cell becomes the target
+    const home = S.moved.get(key);
+    if (!home) return;
+    S.selected = { source: lane, letter, index: idx, home };
+    render();
+  }
+
+  function placeIntoLane(lane, idx) {
+    const sel = S.selected;
+    S.lanes[lane][idx] = sel.letter;
+    S.grid[sel.row][sel.col] = '';
+    const key = `${lane}-${idx}`;
+    S.moved.set(key, `${sel.row}-${sel.col}`);
+    // If this tile was the current hint target, the placement is game-verified.
+    if (S.hintedCells.has(`${sel.row}-${sel.col}`)) S.verified.add(key);
+    S.selected = null;
+    registerMove();
     checkWin();
     render();
   }
 
-  function onDropGrid(e, row, col) {
-    e.preventDefault();
-    const d = S.dragged; if (!d) return;
-    if (d.source === 'grid') { S.dragged = null; return; }
-    // returning a lane tile to its ORIGINAL cell only
-    const laneKey = `${d.source}-${d.index}`;
-    const origin = S.moved.get(laneKey);
-    if (!origin) { S.dragged = null; return; }
-    if (origin !== `${row}-${col}`) { S.dragged = null; return; } // must be home cell
-    if (S.grid[row][col] !== '') { S.dragged = null; return; }
-    S.grid[row][col] = d.letter;
-    S.lanes[d.source][d.index] = '';
-    S.moved.delete(laneKey);
+  function returnToGrid(row, col) {
+    const sel = S.selected;
+    const key = `${sel.source}-${sel.index}`;
+    S.grid[row][col] = sel.letter;
+    S.lanes[sel.source][sel.index] = '';
+    S.moved.delete(key);
+    S.verified.delete(key);
+    S.selected = null;
     registerMove();
-    S.dragged = null;
     render();
   }
 
@@ -524,6 +586,7 @@
     S.moveCount++;
     S.score = Math.max(0, S.score - 1);
     if (S.score <= 0 && !S.hasWon) triggerLoss();
+    saveGame();
   }
 
   function checkWin() {
@@ -563,10 +626,12 @@
     check('right', S.words.rightWord.split(''), false);
     if (!candidates.length) return;
     S.highlight = candidates[Math.floor(Math.random() * candidates.length)];
+    S.hintedCells.add(`${S.highlight.row}-${S.highlight.col}`);
     S.hintsUsed++;
     S.score = Math.max(0, S.score - 1);
     if (S.score <= 0 && !S.hasWon) triggerLoss();
     render();
+    saveGame();
   }
 
   /* ---- 10. modals --------------------------------------------------------- */
@@ -598,10 +663,11 @@
   function helpBody() {
     return `
       <h2 class="modal-title">How to play</h2>
-      <p>Drag the scattered letters UP (blue), LEFT (green), DOWN (orange), or RIGHT (pink) to form today's four words. Letters only move along their own row or column, and can be dragged back to their original grid cell. The grid is packed with decoy letters that look correct but belong to none of the target words. <strong>Discover all four words to win.</strong></p>
-      <p>You start with 100 moves. Every move costs one — placing a letter, returning it to the grid, or using a hint. Your <strong>remaining moves are your score</strong>: solve it in as few as you can, and don't hit zero.</p>
-      <p><strong class="g">Getting started:</strong> look at a colored lane, pick a slot, and find the one tile in that row or column that fits — then check whether it also works for the crossing word. That cross-check is the whole game.</p>
-      <p><strong class="g">Possible</strong> — 5 hints and one free starting letter, and each word lights up once it's correct.</p>
+      <p><strong>Tap a letter</strong> in the grid to pick it up — the squares it can legally move to will light up. <strong>Tap a lit square</strong> to place it. Tap the letter again to put it down without spending a move.</p>
+      <p>Letters only travel along their own row or column: UP (blue), LEFT (green), DOWN (orange), or RIGHT (pink). Tap a letter you've already placed to send it back to its home square in the grid.</p>
+      <p>The grid is packed with decoy letters that look correct but belong to none of the target words. <strong>Find all four words to win.</strong></p>
+      <p>You start with 100 moves. Every move costs one — placing a letter, sending it back, or using a hint. Your <strong>remaining moves are your score</strong>: solve it in as few as you can, and don't hit zero.</p>
+      <p><strong class="g">Possible</strong> — 5 hints and one free starting letter, and each word lights up once it's complete and correct.</p>
       <p><strong class="c">&#128293; Unimpossible</strong> — no hints, no free letter, no confirmation. Pure deduction. This is the default.</p>
       <p><strong class="g">The free letter:</strong> in Possible mode, one correct letter is already locked into its lane to give you a foothold — a way in, so the board isn't a cold start. It's free and doesn't cost a move.</p>
       <p><strong>The words:</strong> everyday words, including some slang. No proper nouns, no swears, no obscure jargon.</p>
@@ -612,9 +678,9 @@
     return `
       <h2 class="wordmark-sm"><span class="c">unim</span><span class="bone">possible</span></h2>
       <p class="muted"><span class="strike">unwinnable</span>, but not really.</p>
-      <p>A daily word puzzle for people who like it hard. Four words hide around the edges of one shared grid, tangled together and buried in decoys. Slide the right letters to their lanes and solve all four.</p>
+      <p>A daily word puzzle for people who like it hard. Four words hide around the edges of one shared grid, tangled together and buried in decoys. Move the correct letters into their lanes and solve all four.</p>
       <p>The name is a wink: <em>un-im-possible</em> — two negatives that cancel out. It looks unwinnable. It isn't. <strong>Probably the hardest word puzzle in the whole wide world.</strong></p>
-      <p class="muted">Which Way To Words? &nbsp;<strong>#WW2W</strong></p>
+      <p class="muted">Which Way To Words?&trade; &nbsp;<strong>#WW2W</strong></p>
       <div class="contact">
         <div class="contact-label">Contact &amp; bug reports</div>
         <img src="images/email-designasaur.png" alt="contact email" class="email-img">
@@ -649,12 +715,12 @@
   function buildShareText() {
     const hintsEmoji = S.hintsUsed === 0 ? '\u2B50' : '\uD83D\uDCA1'.repeat(Math.min(S.hintsUsed, 5));
     const scoreEmoji = S.score >= 90 ? '\uD83C\uDFC6' : S.score >= 70 ? '\uD83E\uDD48' : S.score >= 50 ? '\uD83E\uDD49' : S.hasWon ? '\u2705' : '\u274C';
-    const badge = S.assistMode ? '' : ' \uD83D\uDD25';
+    const badge = S.assistMode ? ' — Possible mode' : ' — \uD83D\uDD25 Unimpossible mode';
     let line;
     if (S.hasWon) line = `${S.score}/100 ${scoreEmoji}\nHints: ${S.hintsUsed}/5 ${hintsEmoji}`;
     else if (S.hasLost) line = `DNF ${scoreEmoji}\nHints: ${S.hintsUsed}/5 ${hintsEmoji}`;
     else line = `${S.score}/100 so far\nHints: ${S.hintsUsed}/5 ${hintsEmoji}`;
-    return `Unimpossible #${S.puzzleNumber}${badge}\n${line}\n\nunimpossible.game`;
+    return `Unimpossible #${S.puzzleNumber}${badge}\n${line}\n\nunimpossible.game #WW2W`;
   }
 
   function shareResult() {
@@ -730,7 +796,58 @@
     mode: 'unimpossible.mode',
     stats: 'unimpossible.stats',
     lastPlayed: 'unimpossible.lastPlayedDay',
+    game: 'unimpossible.gameState',
   };
+
+  // ---- in-progress game save/restore ----
+  // Keyed to the day, so a reload mid-game restores exactly where you were, but
+  // a stale (previous-day) save is discarded in favour of today's fresh puzzle.
+  function saveGame() {
+    if (!S.dayKey || !S.words) return;
+    try {
+      localStorage.setItem(LS.game, JSON.stringify({
+        dayKey: S.dayKey,
+        grid: S.grid,
+        lanes: S.lanes,
+        moved: [...S.moved.entries()],
+        verified: [...S.verified],
+        hintedCells: [...S.hintedCells],
+        anchorKey: S.anchorKey,
+        score: S.score,
+        moveCount: S.moveCount,
+        hintsUsed: S.hintsUsed,
+        hasWon: S.hasWon,
+        hasLost: S.hasLost,
+        assistMode: S.assistMode,
+      }));
+    } catch (e) {}
+  }
+
+  function restoreGame() {
+    try {
+      const raw = localStorage.getItem(LS.game);
+      if (!raw) return false;
+      const g = JSON.parse(raw);
+      if (!g || g.dayKey !== S.dayKey) return false;   // stale day -> ignore
+      S.grid = g.grid;
+      S.lanes = g.lanes;
+      S.moved = new Map(g.moved);
+      S.verified = new Set(g.verified || []);
+      S.hintedCells = new Set(g.hintedCells || []);
+      S.anchorKey = g.anchorKey;
+      S.score = g.score;
+      S.moveCount = g.moveCount;
+      S.hintsUsed = g.hintsUsed;
+      S.hasWon = g.hasWon;
+      S.hasLost = g.hasLost;
+      S.assistMode = g.assistMode;
+      S.selected = null;
+      S.highlight = null;
+      render();
+      return true;
+    } catch (e) { return false; }
+  }
+
   function saveMode(assist) { try { localStorage.setItem(LS.mode, assist ? 'possible' : 'unimpossible'); } catch (e) {} }
   function loadMode() {
     try { const v = localStorage.getItem(LS.mode); if (v === 'possible') return true; if (v === 'unimpossible') return false; } catch (e) {}
@@ -772,16 +889,16 @@
     el('foot-help').addEventListener('click', () => openModal('help'));
     el('panel-share').addEventListener('click', shareResult);
 
-    // delegated drag/drop
-    document.addEventListener('dragstart', onDragStart);
-    document.addEventListener('dragover', (e) => {
-      if (e.target.closest('.slot') || e.target.closest('.cell')) allowDrop(e);
-    });
-    document.addEventListener('drop', (e) => {
-      const slot = e.target.closest('.slot');
+    // tap interaction (works for mouse click and touch tap alike)
+    document.addEventListener('click', (e) => {
+      const gt = e.target.closest('.grid-tile');
       const cell = e.target.closest('.cell');
-      if (slot) onDropLane(e, slot.dataset.lane, +slot.dataset.idx);
-      else if (cell) onDropGrid(e, +cell.dataset.row, +cell.dataset.col);
+      const slot = e.target.closest('.slot');
+      if (gt) { tapGridTile(+gt.dataset.row, +gt.dataset.col); return; }
+      if (slot) { tapLaneSlot(slot.dataset.lane, +slot.dataset.idx); return; }
+      if (cell) { tapGridTile(+cell.dataset.row, +cell.dataset.col); return; }
+      // tapping the board background clears any selection (free)
+      if (S.selected && !e.target.closest('.panel') && !e.target.closest('.footer')) clearSelection();
     });
 
     // Escape closes modals; Shift+N loads a fresh random puzzle.
