@@ -466,4 +466,7 @@ button:disabled { cursor: not-allowed; }
   .slot, .cell, .grid-tile, .lane-letter, .ghost, .cell.empty { width: 30px; height: 30px; font-size: 0.85rem; }
   .grid { grid-template-columns: repeat(6, 30px); grid-template-rows: repeat(6, 30px); }
   .wordmark { font-size: 2.1rem; }
+  /* stack the hint note under the button so it can't wrap mid-phrase */
+  .hint-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+  #middle-slot { min-height: 64px; }
 }
