@@ -183,6 +183,11 @@ button:disabled { cursor: not-allowed; }
 .grid-pulse { animation: pulse 1s ease-in-out infinite; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
 
+/* valid tap destinations: gentle breathing so they read as "alive and waiting" */
+.target-pulse { animation: target-breathe 1.2s ease-in-out infinite; }
+@keyframes target-breathe { 0%,100% { opacity: 1; } 50% { opacity: 0.72; } }
+.slot { transition: transform 0.12s ease, background 0.12s ease; }
+
 /* ---- score panel -------------------------------------------------------- */
 .panel {
   width: 100%;
@@ -273,8 +278,25 @@ button:disabled { cursor: not-allowed; }
 .pill.about .badge { background: var(--green); }
 .pill.help .badge { background: var(--lav); }
 
-.subnote {
-  margin-top: 16px;
+/* daily note — above the pills, given weight so it reads as real information */
+.daily-note {
+  margin-top: 24px;
+  font-size: 0.82rem;
+  color: var(--bone-dim);
+  letter-spacing: 0.02em;
+}
+
+/* page footer / copyright */
+.page-footer {
+  margin-top: 28px;
+  text-align: center;
+  line-height: 1.6;
+}
+.footer-mark {
+  font-size: 0.75rem;
+  color: var(--bone-dim);
+}
+.footer-copy {
   font-size: 0.7rem;
   color: var(--lav);
 }
