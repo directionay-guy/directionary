@@ -419,14 +419,33 @@
         const isSel = !!(S.selected && S.selected.source === 'grid' && S.selected.row === r && S.selected.col === c);
         const homeTgt = isHomeTarget(r, c);
         if (cell) {
-          const hiColor = isHi ? LANE[dirToLane(S.highlight.dir)].mid : null;
-          const shadow = hiColor ? `box-shadow:0 0 0 4px ${hiColor};` : 'box-shadow:0 2px 4px rgba(22,20,31,0.28);';
-          const bg = isSel ? 'var(--ink)' : 'var(--ivory)';
-          const fg = isSel ? 'var(--ivory)' : 'var(--ink)';
-          const pulse = isHi ? ' grid-pulse' : '';
+          const hintLane = isHi ? LANE[dirToLane(S.highlight.dir)] : null;
+          let bg, fg, shadow, border;
+          if (isSel && hintLane) {
+            // selected AND hinted: invert, but in the destination lane colour so
+            // the tile keeps its directional identity while picked up
+            bg = hintLane.deep; fg = 'var(--ivory)';
+            shadow = `box-shadow:0 0 0 4px ${hintLane.mid};`;
+            border = `1px solid ${hintLane.deep}`;
+          } else if (isSel) {
+            bg = 'var(--ink)'; fg = 'var(--ivory)';
+            shadow = 'box-shadow:0 2px 6px rgba(22,20,31,0.45);';
+            border = '1px solid rgba(22,20,31,0.13)';
+          } else if (hintLane) {
+            // hinted, not selected: lane-coloured face + thick ring
+            bg = hintLane.soft; fg = 'var(--ink)';
+            shadow = `box-shadow:0 0 0 5px ${hintLane.deep};`;
+            border = `1px solid ${hintLane.deep}`;
+          } else {
+            bg = 'var(--ivory)'; fg = 'var(--ink)';
+            shadow = 'box-shadow:0 2px 4px rgba(22,20,31,0.28);';
+            border = '1px solid rgba(22,20,31,0.13)';
+          }
+          // hint holds steady while something is selected — only one thing moves
+          const pulse = (isHi && !S.selected) ? ' grid-pulse' : '';
           html += `<div class="cell" data-row="${r}" data-col="${c}">
             <div class="grid-tile${pulse}" data-row="${r}" data-col="${c}"
-              style="background:${bg};color:${fg};font-family:var(--font-mark);border:1px solid rgba(22,20,31,0.13);${shadow}cursor:pointer;">${cell}</div>
+              style="background:${bg};color:${fg};font-family:var(--font-mark);border:${border};${shadow}cursor:pointer;">${cell}</div>
           </div>`;
         } else if (ghost) {
           const tgtStyle = homeTgt ? 'background:rgba(255,90,60,0.25);border:2px solid var(--coral);' : '';
@@ -528,8 +547,8 @@
     const letter = S.grid[row][col];
     if (!letter) return;
     S.selected = { source: 'grid', letter, row, col, targets: targetsForGridTile(row, col) };
-    // using a hinted tile clears its highlight
-    if (S.highlight && S.highlight.row === row && S.highlight.col === col) S.highlight = null;
+    // NOTE: the hint is NOT cleared here. Tapping only selects — you may change
+    // your mind. The hint you paid for survives until the tile is actually placed.
     render();
   }
 
@@ -561,8 +580,10 @@
     S.grid[sel.row][sel.col] = '';
     const key = `${lane}-${idx}`;
     S.moved.set(key, `${sel.row}-${sel.col}`);
-    // If this tile was the current hint target, the placement is game-verified.
+    // If this tile was hint-revealed, the placement is game-verified.
     if (S.hintedCells.has(`${sel.row}-${sel.col}`)) S.verified.add(key);
+    // The hint has now been acted on — clear it.
+    if (S.highlight && S.highlight.row === sel.row && S.highlight.col === sel.col) S.highlight = null;
     S.selected = null;
     registerMove();
     checkWin();
