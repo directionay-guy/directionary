@@ -299,6 +299,14 @@
     saveGame();
   }
 
+
+  // Tell the dev panel (if present) that the board changed.
+  function notifyPuzzleLoad() {
+    if (window.UNIMP_DEV && typeof window.UNIMP_DEV.onPuzzleLoad === 'function') {
+      window.UNIMP_DEV.onPuzzleLoad();
+    }
+  }
+
   function loadDailyPuzzle() {
     const dayKey = getTodayKey();
     rng = mulberry32(hashStr('UNIMPOSSIBLE-' + dayKey));
@@ -314,6 +322,7 @@
     if (!restoreGame()) {
       applyBoard(puzzle.grid, S.anchorChoice, S.assistMode, true);
     }
+    notifyPuzzleLoad();
   }
 
   // Dev / Shift+N: fresh RANDOM puzzle (not seeded).
@@ -326,6 +335,7 @@
     S.anchorChoice = chooseAnchor(puzzle.grid, puzzle.words);
     applyBoard(puzzle.grid, S.anchorChoice, S.assistMode, true);
     updateHeader();
+    notifyPuzzleLoad();
   }
 
   function applyModeAnchor(newAssist) {
@@ -383,11 +393,11 @@
     // slots. Dimming them made them stand out in a different way rather than
     // standing down, which defeats the point of the hint.
     if (isSel) {
-      // picked up: lift + scale + shadow rather than a colour change
-      bg = 'var(--ink-soft)';
-      extra = 'transform:translateY(-3px) scale(1.08);box-shadow:0 6px 12px rgba(0,0,0,0.55);z-index:5;position:relative;';
+      // picked up: lift only, no colour change
+      bg = 'var(--ivory)';
+      extra = 'transform:translateY(-4px) scale(1.12);box-shadow:0 8px 14px rgba(0,0,0,0.6);z-index:5;position:relative;';
     }
-    const color = isSel ? 'var(--bone)' : 'var(--ink)';
+    const color = 'var(--ink)';
     const border = deep ? `3px solid ${c.deep}`
       : filled ? `2px solid ${c.mid}` : `2px solid rgba(22,20,31,0.13)`;
     const shadow = filled ? 'box-shadow:0 2px 4px rgba(22,20,31,0.28);' : '';
@@ -519,12 +529,11 @@
             shadow = 'transform:translateY(-3px) scale(1.08);box-shadow:0 6px 12px rgba(0,0,0,0.55);z-index:5;position:relative;';
             border = `2px solid ${hintLane.mid}`;
           } else if (isSel) {
-            // selected: reads as physically picked UP — lift, scale and a real
-            // shadow do the work, so no new colour is introduced that a player
-            // might mistake for a directional clue. Softer than pure black.
-            bg = 'var(--ink-soft)'; fg = 'var(--bone)';
-            shadow = 'transform:translateY(-3px) scale(1.08);box-shadow:0 6px 12px rgba(0,0,0,0.55);z-index:5;position:relative;';
-            border = '1px solid rgba(236,231,218,0.35)';
+            // selected: signalled ONLY by physically lifting off the board —
+            // no colour change at all, so nothing can be mistaken for a clue.
+            bg = 'var(--ivory)'; fg = 'var(--ink)';
+            shadow = 'transform:translateY(-4px) scale(1.12);box-shadow:0 8px 14px rgba(0,0,0,0.6);z-index:5;position:relative;';
+            border = '2px solid var(--ink)';
           } else if (hintLane) {
             // hinted, not selected: the lane-coloured face does the marking, so
             // the outline just needs to define the edge — not shout.
@@ -1105,5 +1114,8 @@
     validateWinnable: validateWinnable,
     getWords: () => S.words,
     getPuzzleNumber: () => S.puzzleNumber,
+    // dev.js registers a function here; it fires after ANY puzzle load
+    // (daily, dev button, or Shift+N) so the panel can refresh itself.
+    onPuzzleLoad: null,
   };
 })();
