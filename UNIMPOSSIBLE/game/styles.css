@@ -220,13 +220,19 @@ button:disabled { cursor: not-allowed; }
   align-items: stretch;
 }
 
-/* inline instruction between the board and the panel */
+/* inline instruction between the board and the panel.
+   width:0 + min-width:100% is the trick that stops this long line from
+   *setting* the column width — it takes the board's width and wraps inside it,
+   instead of stretching the board and panel out to fit one long line. */
 .how-line {
+  width: 0;
+  min-width: 100%;
   margin-top: 14px;
   text-align: center;
   font-size: 0.74rem;
   color: var(--lav);
   letter-spacing: 0.02em;
+  line-height: 1.5;
 }
 
 .panel {
