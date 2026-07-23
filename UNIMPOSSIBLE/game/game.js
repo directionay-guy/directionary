@@ -725,8 +725,12 @@
 
   function giveHint() {
     if (!S.assistMode || S.hintsUsed >= MAX_HINTS) return;
-    // find a correct tile still in the grid that isn't yet placed
-    const candidates = [];
+    // Gather candidate tiles PER LANE, then pick a lane first and a tile within
+    // it. Pooling every candidate together would bias toward whichever lane has
+    // the most empty slots — so a barely-started word would hog the hints.
+    // Choosing the lane first makes the odds genuinely even, which is what the
+    // Help text promises.
+    const byLane = { top: [], bottom: [], left: [], right: [] };
     const check = (lane, letters, isCol) => {
       for (let i = 0; i < 6; i++) {
         if (S.lanes[lane][i]) continue; // already placed
@@ -734,7 +738,7 @@
         for (let k = 0; k < 6; k++) {
           const r = isCol ? k : i, c = isCol ? i : k;
           if (S.grid[r][c] === target) {
-            candidates.push({ row: r, col: c, dir: LANE[lane].dir });
+            byLane[lane].push({ row: r, col: c, dir: LANE[lane].dir });
           }
         }
       }
@@ -743,8 +747,13 @@
     check('bottom', S.words.bottomWord.split(''), true);
     check('left', S.words.leftWord.split(''), false);
     check('right', S.words.rightWord.split(''), false);
-    if (!candidates.length) return;
-    S.highlight = candidates[Math.floor(Math.random() * candidates.length)];
+
+    const lanesWithOptions = Object.keys(byLane).filter((l) => byLane[l].length > 0);
+    if (!lanesWithOptions.length) return;
+    const lane = lanesWithOptions[Math.floor(Math.random() * lanesWithOptions.length)];
+    const pool = byLane[lane];
+
+    S.highlight = pool[Math.floor(Math.random() * pool.length)];
     S.hintedCells.add(`${S.highlight.row}-${S.highlight.col}`);
     S.hintsUsed++;
     S.score = Math.max(0, S.score - 1);
@@ -789,7 +798,8 @@
       <p><strong class="g">Possible</strong> — 5 hints and one free starting letter, and each word lights up once it's complete and correct.</p>
       <p><strong class="c">&#128293; Unimpossible</strong> — no hints, no free letter, no confirmation. Pure deduction. This is the default.</p>
       <p><strong class="g">The free letter:</strong> in Possible mode, one correct letter is already locked into its lane to give you a foothold — a way in, so the board isn't a cold start. It's free and doesn't cost a move.</p>
-      <p><strong>The words:</strong> everyday words, plurals, some slang — and the occasional one you'll want to look up. No proper nouns, no swears.</p>
+      <p><strong>The words:</strong> everyday words — plurals and past tense are fair game, along with some slang and the occasional one you'll want to look up. No proper nouns, no swears.</p>
+      <p><strong class="g">What a hint does:</strong> it reveals one correct letter and lights up the square it belongs in. The letter is picked at random from anywhere on the board, so hints won't necessarily help the word you're stuck on.</p>
       <p class="muted">Pick your mode before your first move; it locks once you start. New puzzle every day at midnight.</p>`;
   }
 
@@ -889,13 +899,15 @@
         <div class="muted small">Come back tomorrow for a new puzzle!</div>
       </div>`;
     el('win-x').addEventListener('click', () => { el('endgame').style.display = 'none'; });
-    el('win-share').addEventListener('click', shareResult);
+    // step aside before opening share — same fixed layer, so it would cover it
+    el('win-share').addEventListener('click', () => { el('endgame').style.display = 'none'; shareResult(); });
   }
 
   function showLossModal() {
     el('endgame').style.display = 'flex';
     el('endgame').innerHTML = `
       <div class="modal loss">
+        <button class="modal-x rise" id="loss-x" aria-label="Close">&times;</button>
         <div class="big-emoji">\uD83D\uDE14</div>
         <div class="win-title">Out of Moves</div>
         <div class="muted">Unwinnable this time — but not really. Try again tomorrow.</div>
@@ -906,8 +918,10 @@
           <div style="color:${LANE.right.soft}">&rarr; ${S.words.rightWord}</div>
         </div>
         <div class="modal-foot"><button class="btn-share rise" id="loss-share">Share Result</button></div>
-        <div class="muted small">Come back tomorrow for a new puzzle!</div>`;
-    el('loss-share').addEventListener('click', shareResult);
+        <div class="muted small">Come back tomorrow for a new puzzle!</div>
+      </div>`;
+    el('loss-x').addEventListener('click', () => { el('endgame').style.display = 'none'; });
+    el('loss-share').addEventListener('click', () => { el('endgame').style.display = 'none'; shareResult(); });
   }
 
   /* ---- 11. stats + prefs (localStorage) ---------------------------------- */
