@@ -360,31 +360,6 @@
       <div class="supabase-notice" id="sync-indicator" style="margin-bottom:12px;">
         ☁️ Connecting…
       </div>
-      <div class="card" style="margin-bottom:12px;">
-        <div class="card-label">Key Numbers to Know</div>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
-          <div style="background:var(--green-bg);border-radius:var(--radius-sm);padding:10px 12px;border:1px solid rgba(15,138,106,0.2);">
-            <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.5px;">Target / In Range</div>
-            <div style="font-size:20px;font-weight:800;color:var(--green);" id="kn-safe"></div>
-            <div style="font-size:11px;color:var(--text2);margin-top:1px;">ADA safe zone mg/dL</div>
-          </div>
-          <div style="background:var(--amber-bg);border-radius:var(--radius-sm);padding:10px 12px;border:1px solid rgba(154,98,0,0.2);">
-            <div style="font-size:10px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:0.5px;">Watch Zone</div>
-            <div style="font-size:20px;font-weight:800;color:var(--amber);" id="kn-dr"></div>
-            <div style="font-size:11px;color:var(--text2);margin-top:1px;">Outside target — Dr. Flieg's ideal: 90–110</div>
-          </div>
-          <div style="background:var(--red-bg);border-radius:var(--radius-sm);padding:10px 12px;border:1px solid rgba(176,48,32,0.2);">
-            <div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:0.5px;">Danger — High</div>
-            <div style="font-size:20px;font-weight:800;color:var(--red);" id="kn-danger-high"></div>
-            <div style="font-size:11px;color:var(--text2);margin-top:1px;">Take action, recheck</div>
-          </div>
-          <div style="background:var(--blue-bg);border-radius:var(--radius-sm);padding:10px 12px;border:1px solid rgba(26,95,138,0.2);">
-            <div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.5px;">Danger — Low</div>
-            <div style="font-size:20px;font-weight:800;color:var(--blue);" id="kn-danger-low"></div>
-            <div style="font-size:11px;color:var(--text2);margin-top:1px;">Eat immediately</div>
-          </div>
-        </div>
-      </div>
       <div class="card">
         <div class="card-label">New Reading</div>
         <div class="reading-zone">
@@ -413,6 +388,32 @@
         <div class="confirm-row">
           <button class="btn-confirm" id="btn-confirm" onclick="saveReading()">✓ Confirm</button>
           <button class="btn-clear" onclick="clearEntry()">✕ Clear</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:12px;margin-top:12px;">
+        <div class="card-label">Key Numbers to Know</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+          <div style="background:var(--green-bg);border-radius:var(--radius-sm);padding:10px 12px;border:1px solid rgba(15,138,106,0.2);">
+            <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.5px;">Target / In Range</div>
+            <div style="font-size:20px;font-weight:800;color:var(--green);" id="kn-safe"></div>
+            <div style="font-size:11px;color:var(--text2);margin-top:1px;">Doctor's recommended range</div>
+          </div>
+          <div style="background:var(--amber-bg);border-radius:var(--radius-sm);padding:10px 12px;border:1px solid rgba(154,98,0,0.2);">
+            <div style="font-size:10px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:0.5px;">Watch Zone</div>
+            <div style="font-size:20px;font-weight:800;color:var(--amber);" id="kn-dr"></div>
+            <div style="font-size:11px;color:var(--text2);margin-top:1px;">Outside target range</div>
+          </div>
+          <div style="background:var(--red-bg);border-radius:var(--radius-sm);padding:10px 12px;border:1px solid rgba(176,48,32,0.2);">
+            <div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:0.5px;">Danger — High</div>
+            <div style="font-size:20px;font-weight:800;color:var(--red);" id="kn-danger-high"></div>
+            <div style="font-size:11px;color:var(--text2);margin-top:1px;">Take action, recheck</div>
+          </div>
+          <div style="background:var(--blue-bg);border-radius:var(--radius-sm);padding:10px 12px;border:1px solid rgba(26,95,138,0.2);">
+            <div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.5px;">Danger — Low</div>
+            <div style="font-size:20px;font-weight:800;color:var(--blue);" id="kn-danger-low"></div>
+            <div style="font-size:11px;color:var(--text2);margin-top:1px;">Eat immediately</div>
+          </div>
         </div>
       </div>
 
@@ -594,7 +595,7 @@
             <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Frequency</label>
               <input id="med-freq" type="text" placeholder="e.g. Twice daily" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);"></div>
             <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Prescribing Doctor</label>
-              <input id="med-dr" type="text" placeholder="e.g. Dr. Flieg" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);"></div>
+              <input id="med-dr" type="text" placeholder="e.g. Dr. Smith" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);"></div>
           </div>
           <div style="margin-bottom:8px;">
             <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Type</label>
@@ -691,15 +692,15 @@
         <div class="card-label">Target Ranges</div>
         <div class="settings-row">
           <div>
-            <div class="settings-label">Target low (ADA safe zone)</div>
-            <div class="settings-sub">Bottom of in-range — green zone on charts</div>
+            <div class="settings-label">Doctor's Target Low</div>
+            <div class="settings-sub">Bottom of your safe zone — green band on charts</div>
           </div>
           <input class="settings-input" type="number" id="set-target-low" value="80">
         </div>
         <div class="settings-row">
           <div>
-            <div class="settings-label">Target high (ADA safe zone)</div>
-            <div class="settings-sub">Top of in-range — green zone on charts</div>
+            <div class="settings-label">Doctor's Target High</div>
+            <div class="settings-sub">Top of your safe zone — green band on charts</div>
           </div>
           <input class="settings-input" type="number" id="set-target-high" value="140">
         </div>
@@ -1362,6 +1363,7 @@ async function initCloudSync() {
     if (document.getElementById('panel-charts')?.classList.contains('active')) initChartsTab();
     if (document.getElementById('panel-a1c')?.classList.contains('active')) initA1C();
     initHealthSync();
+    loadSettingsFromCloud();
   } catch (err) {
     console.error('Supabase init failed, falling back to local storage:', err);
     _cloudReady = false;
@@ -1608,33 +1610,61 @@ window.addEventListener('DOMContentLoaded', () => {
 // ============================================================
 // SETTINGS
 // ============================================================
+let _settingsCache = null;
+
 function getSettings() {
+  if (_settingsCache) return _settingsCache;
   try {
     const stored = JSON.parse(localStorage.getItem('glucose_settings') || 'null');
     if (stored) {
-      // Migrate old settings keys to new consolidated ones if needed
       if (!stored.targetLow && stored.drLow) stored.targetLow = stored.drLow;
       if (!stored.targetHigh && stored.drHigh) stored.targetHigh = stored.drHigh;
       if (!stored.dangerLow && stored.safeLow) stored.dangerLow = 70;
       if (!stored.dangerHigh) stored.dangerHigh = 180;
-      return {
-        targetLow:  stored.targetLow  || 90,
-        targetHigh: stored.targetHigh || 110,
+      return _settingsCache = {
+        targetLow:  stored.targetLow  || 80,
+        targetHigh: stored.targetHigh || 140,
         dangerLow:  stored.dangerLow  || 70,
         dangerHigh: stored.dangerHigh || 180
       };
     }
   } catch(e) {}
-  return {targetLow:80, targetHigh:140, dangerLow:70, dangerHigh:180};
+  return _settingsCache = {targetLow:80, targetHigh:140, dangerLow:70, dangerHigh:180};
 }
+
+async function loadSettingsFromCloud() {
+  if (!sb) return;
+  try {
+    const {data, error} = await sb.from('settings').select('*').eq('id',1).single();
+    if (error || !data) return;
+    _settingsCache = {
+      targetLow:  data.target_low  || 80,
+      targetHigh: data.target_high || 140,
+      dangerLow:  data.danger_low  || 70,
+      dangerHigh: data.danger_high || 180
+    };
+    localStorage.setItem('glucose_settings', JSON.stringify(_settingsCache));
+    updateKeyNumbers();
+    renderRecent();
+    loadSettingsUI();
+  } catch(e) { console.error('Settings load failed:', e); }
+}
+
 function saveSettings() {
   const s = {
-    targetLow:  parseInt(document.getElementById('set-target-low').value)  || 90,
-    targetHigh: parseInt(document.getElementById('set-target-high').value) || 110,
+    targetLow:  parseInt(document.getElementById('set-target-low').value)  || 80,
+    targetHigh: parseInt(document.getElementById('set-target-high').value) || 140,
     dangerLow:  parseInt(document.getElementById('set-danger-low').value)  || 70,
     dangerHigh: parseInt(document.getElementById('set-danger-high').value) || 180
   };
+  _settingsCache = s;
   localStorage.setItem('glucose_settings', JSON.stringify(s));
+  if (sb) {
+    sb.from('settings').upsert({
+      id:1, target_low:s.targetLow, target_high:s.targetHigh,
+      danger_low:s.dangerLow, danger_high:s.dangerHigh
+    }).then(({error}) => { if(error) console.error('Settings save failed:',error); });
+  }
   updateKeyNumbers();
   renderRecent();
   alert('Settings saved!');
