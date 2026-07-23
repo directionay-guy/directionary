@@ -292,6 +292,7 @@
     if (fullReset) {
       S.hasWon = false; S.hasLost = false;
       S.score = START_MOVES; S.moveCount = 0; S.hintsUsed = 0;
+      previewCountdown = false;   // never leave a fresh board showing the clock
       stopCountdown();
     }
     render();
@@ -382,10 +383,11 @@
     // slots. Dimming them made them stand out in a different way rather than
     // standing down, which defeats the point of the hint.
     if (isSel) {
-      // selected placed letter: invert
-      bg = 'var(--ink)';
+      // picked up: lift + scale + shadow rather than a colour change
+      bg = 'var(--ink-soft)';
+      extra = 'transform:translateY(-3px) scale(1.08);box-shadow:0 6px 12px rgba(0,0,0,0.55);z-index:5;position:relative;';
     }
-    const color = isSel ? 'var(--ivory)' : 'var(--ink)';
+    const color = isSel ? 'var(--bone)' : 'var(--ink)';
     const border = deep ? `3px solid ${c.deep}`
       : filled ? `2px solid ${c.mid}` : `2px solid rgba(22,20,31,0.13)`;
     const shadow = filled ? 'box-shadow:0 2px 4px rgba(22,20,31,0.28);' : '';
@@ -458,7 +460,7 @@
   function startCountdown() {
     stopCountdown();
     countdownTimer = setInterval(() => {
-      if (!isGameOver()) { stopCountdown(); return; }
+      if (!showCountdownGrid()) { stopCountdown(); return; }
       renderGrid();
     }, 1000);
   }
@@ -468,6 +470,16 @@
   }
 
   function isGameOver() { return S.hasWon || S.hasLost; }
+
+  // Secret playtest preview (Shift+T): show the countdown without having to
+  // finish a game. Purely visual — it doesn't touch score or game state.
+  let previewCountdown = false;
+  function showCountdownGrid() { return isGameOver() || previewCountdown; }
+  function toggleCountdownPreview() {
+    previewCountdown = !previewCountdown;
+    if (previewCountdown) startCountdown(); else stopCountdown();
+    renderGrid();
+  }
 
   function renderCountdownGrid() {
     const container = el('grid');
@@ -485,7 +497,7 @@
   }
 
   function renderGrid() {
-    if (isGameOver()) { renderCountdownGrid(); return; }
+    if (showCountdownGrid()) { renderCountdownGrid(); return; }
     const container = el('grid');
     const ghosts = ghostMap();
     let html = '';
@@ -501,15 +513,18 @@
           const hintLane = isHi ? LANE[dirToLane(S.highlight.dir)] : null;
           let bg, fg, shadow, border;
           if (isSel && hintLane) {
-            // selected AND hinted: invert, but in the destination lane colour so
-            // the tile keeps its directional identity while picked up
-            bg = hintLane.deep; fg = 'var(--ivory)';
-            shadow = 'box-shadow:0 2px 6px rgba(22,20,31,0.45);';
+            // selected AND hinted: lifted, in the destination lane colour so the
+            // tile keeps its directional identity while picked up
+            bg = hintLane.deep; fg = 'var(--bone)';
+            shadow = 'transform:translateY(-3px) scale(1.08);box-shadow:0 6px 12px rgba(0,0,0,0.55);z-index:5;position:relative;';
             border = `2px solid ${hintLane.mid}`;
           } else if (isSel) {
-            bg = 'var(--ink)'; fg = 'var(--ivory)';
-            shadow = 'box-shadow:0 2px 6px rgba(22,20,31,0.45);';
-            border = '1px solid rgba(22,20,31,0.13)';
+            // selected: reads as physically picked UP — lift, scale and a real
+            // shadow do the work, so no new colour is introduced that a player
+            // might mistake for a directional clue. Softer than pure black.
+            bg = 'var(--ink-soft)'; fg = 'var(--bone)';
+            shadow = 'transform:translateY(-3px) scale(1.08);box-shadow:0 6px 12px rgba(0,0,0,0.55);z-index:5;position:relative;';
+            border = '1px solid rgba(236,231,218,0.35)';
           } else if (hintLane) {
             // hinted, not selected: the lane-coloured face does the marking, so
             // the outline just needs to define the edge — not shout.
@@ -1043,6 +1058,7 @@
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
       if (activeModal) return;
       if (e.shiftKey && (e.key === 'N' || e.key === 'n')) { e.preventDefault(); loadRandomPuzzle(); }
+      if (e.shiftKey && (e.key === 'T' || e.key === 't')) { e.preventDefault(); toggleCountdownPreview(); }
     });
 
     // click-off to close footer modals
