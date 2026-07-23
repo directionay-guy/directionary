@@ -12,8 +12,6 @@
   el('dev-new').addEventListener('click', () => {
     window.UNIMP_DEV.loadRandom();
     el('dev-result').textContent = 'Loaded a fresh random puzzle.';
-    // keep answers in sync if they're currently showing
-    if (answersShown) renderAnswers();
   });
 
   // ---- show / hide the four answer words ----
@@ -29,6 +27,12 @@
       `<div style="color:#F7B25E">&darr; DOWN &nbsp; ${w.bottomWord}</div>` +
       `<div style="color:#F58FC2">&rarr; RIGHT &nbsp; ${w.rightWord}</div>`;
   }
+
+  // Fires after ANY puzzle load — the dev button, Shift+N, or the daily load —
+  // so the shown answers can never go stale.
+  window.UNIMP_DEV.onPuzzleLoad = () => {
+    if (answersShown) renderAnswers();
+  };
 
   el('dev-answers').addEventListener('click', () => {
     answersShown = !answersShown;
