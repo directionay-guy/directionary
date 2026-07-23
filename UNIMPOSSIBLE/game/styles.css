@@ -56,15 +56,18 @@ button:disabled { cursor: not-allowed; }
 .wordmark .bone { color: var(--bone); }
 
 .tagline {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: var(--bone-dim);
   margin-bottom: 12px;
 }
+/* The strike is drawn manually (not text-decoration) so its thickness and
+   height can be controlled. Thickness is in em so it SCALES with the text —
+   a fixed px line becomes overwhelming at small sizes and swallows the word. */
 .strike {
-  color: var(--lav);
+  color: var(--bone-dim);
   background-image: linear-gradient(var(--coral), var(--coral));
-  background-size: 100% 3px;
-  background-position: 0 60%;
+  background-size: 100% 0.12em;
+  background-position: 0 62%;
   background-repeat: no-repeat;
 }
 
@@ -181,6 +184,22 @@ button:disabled { cursor: not-allowed; }
   border: 1px solid rgba(22,20,31,0.10);
   border-radius: 4px;
 }
+/* countdown tiles: inverted from play tiles (ink face, ivory letters) so the
+   finished board is unmistakably a different state from an active game */
+.countdown-tile {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink);
+  color: var(--ivory);
+  font-family: var(--font-mark);
+  font-weight: 800;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(22,20,31,0.28);
+}
+
 .grid-pulse { animation: pulse 1s ease-in-out infinite; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
 
@@ -499,6 +518,8 @@ button:disabled { cursor: not-allowed; }
   .slot, .cell, .grid-tile, .lane-letter, .ghost, .cell.empty { width: 30px; height: 30px; font-size: 0.85rem; }
   .grid { grid-template-columns: repeat(6, 30px); grid-template-rows: repeat(6, 30px); }
   .wordmark { font-size: 2.1rem; }
+  /* keep the tagline legible — the struck word gets illegible if this shrinks */
+  .tagline { font-size: 0.82rem; }
   /* keep both toggle halves on a single line */
   .toggle button { padding: 6px 10px; font-size: 0.78rem; }
   .mode-label { font-size: 0.6rem; letter-spacing: 0.12em; }
