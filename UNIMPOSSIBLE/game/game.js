@@ -479,6 +479,19 @@
     stopCountdown();
     countdownTimer = setInterval(() => {
       if (!showCountdownGrid()) { stopCountdown(); return; }
+      // Auto-advance: if the day has actually rolled over while the finished
+      // board is on screen, silently load the new day's puzzle — the countdown
+      // becomes the changeover. This fires at most ONCE: loadDailyPuzzle sets a
+      // new dayKey and clears hasWon/hasLost, and stopCountdown() kills this
+      // timer, so the conditions that triggered it are gone before any next
+      // tick. (That once-and-done property is what prevents the repeated-reload
+      // bug.) The day check uses the single getTodayKey() source of truth.
+      if (isGameOver() && getTodayKey() !== S.dayKey) {
+        stopCountdown();
+        previewCountdown = false;
+        loadDailyPuzzle();
+        return;
+      }
       renderGrid();
     }, 1000);
   }
