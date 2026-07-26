@@ -362,10 +362,18 @@
     return m;
   }
 
+  // A horizontal word (top OR bottom) is valid in EITHER horizontal lane; a
+  // vertical word (left OR right) is valid in EITHER vertical lane. There's no
+  // information on the board distinguishing near from far, so forcing a specific
+  // lane was a pure coin-flip — a correct solver failed 3 times out of 4. So a
+  // lane "confirms" when it holds either word of its orientation.
   function laneConfirmed(lane) {
     if (!S.words) return false;
-    const target = { top: S.words.topWord, left: S.words.leftWord, bottom: S.words.bottomWord, right: S.words.rightWord }[lane];
-    return S.lanes[lane].join('') === target;
+    const filled = S.lanes[lane].join('');
+    if (lane === 'top' || lane === 'bottom') {
+      return filled === S.words.topWord || filled === S.words.bottomWord;
+    }
+    return filled === S.words.leftWord || filled === S.words.rightWord;
   }
 
   function render() {
@@ -732,7 +740,15 @@
 
   function checkWin() {
     if (!S.words) return;
-    if (laneConfirmed('top') && laneConfirmed('left') && laneConfirmed('bottom') && laneConfirmed('right')) {
+    // Each orientation's two words must occupy its two lanes — each word used
+    // exactly once, but in EITHER order. So the horizontal pair {top,bottom}
+    // must equal the set of placed horizontal words, and likewise vertical.
+    const horiz = [S.lanes.top.join(''), S.lanes.bottom.join('')].sort();
+    const vert = [S.lanes.left.join(''), S.lanes.right.join('')].sort();
+    const horizTargets = [S.words.topWord, S.words.bottomWord].sort();
+    const vertTargets = [S.words.leftWord, S.words.rightWord].sort();
+    const match = (a, b) => a[0] === b[0] && a[1] === b[1];
+    if (match(horiz, horizTargets) && match(vert, vertTargets)) {
       S.hasWon = true;
       recordStat(true);
       startCountdown();
@@ -818,6 +834,7 @@
       <p><strong>Tap a letter</strong> in the grid to pick it up — the squares it can legally move to will light up. <strong>Tap a lit square</strong> to place it. Tap the letter again to put it down without spending a move.</p>
       <p>Letters only travel along their own row or column: UP (blue), LEFT (green), DOWN (orange), or RIGHT (pink). Tap a letter you've already placed to send it back to its home square in the grid.</p>
       <p>The grid is packed with decoy letters that look correct but belong to none of the target words. <strong>Find all four words to win.</strong></p>
+      <p>The two across words can go in either the top or bottom lane, and the two down words in either the left or right lane — so you only have to find each word and point it the right way, not guess which side it belongs on.</p>
       <p>You start with 100 moves. Every move costs one — placing a letter, sending it back, or using a hint. Your <strong>remaining moves are your score</strong>: solve it in as few as you can, and don't hit zero.</p>
       <p><strong class="g">Possible</strong> — 5 hints and one free starting letter, and each word lights up once it's complete and correct.</p>
       <p><strong class="c">&#128293; Unimpossible</strong> — no hints, no free letter, no confirmation. Pure deduction. This is the default.</p>
@@ -936,10 +953,8 @@
         <div class="win-title">Out of Moves</div>
         <div class="muted">Unwinnable this time — but not really. Try again tomorrow.</div>
         <div class="answer">
-          <div style="color:${LANE.top.soft}">&uarr; ${S.words.topWord}</div>
-          <div style="color:${LANE.left.soft}">&larr; ${S.words.leftWord}</div>
-          <div style="color:${LANE.bottom.soft}">&darr; ${S.words.bottomWord}</div>
-          <div style="color:${LANE.right.soft}">&rarr; ${S.words.rightWord}</div>
+          <div style="color:${LANE.top.soft}">&updownarrow; ${S.words.topWord} &nbsp;&amp;&nbsp; ${S.words.bottomWord}</div>
+          <div style="color:${LANE.left.soft}">&leftrightarrow; ${S.words.leftWord} &nbsp;&amp;&nbsp; ${S.words.rightWord}</div>
         </div>
         <div class="modal-foot"><button class="btn-share rise" id="loss-share">Share Result</button></div>
         <div class="muted small">Come back tomorrow for a new puzzle!</div>
