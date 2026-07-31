@@ -43,7 +43,7 @@
     /* trend/avg line colors */
     --trend-line: #e6c800;
     --avg-line: #e03020;
-    --safe-fill: rgba(29,180,140,0.08);
+    --safe-fill: rgba(29,180,140,0.18);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
@@ -599,22 +599,14 @@
           </div>
           <div style="margin-bottom:8px;">
             <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:3px;">Type</label>
-            <select id="med-type" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);">
-              <option value="diabetes">Diabetes</option>
-              <option value="bloodpressure">Blood Pressure</option>
-              <option value="cholesterol">Cholesterol</option>
-              <option value="other">Other</option>
-            </select>
+            <select id="med-type" onchange="handleCategorySelect(this)" style="width:100%;padding:8px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface);font-size:13px;color:var(--text);"></select>
           </div>
           <div style="display:flex;gap:8px;">
             <button onclick="saveMed()" style="flex:2;padding:10px;background:linear-gradient(135deg,#22c497,#158a6a);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;">✓ Save</button>
             <button onclick="cancelMed()" style="flex:1;padding:10px;background:linear-gradient(135deg,#e05040,#b02818);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;">✕</button>
           </div>
         </div>
-        <div style="margin-bottom:6px;"><div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;padding:6px 0 2px;">Diabetes</div><div id="med-list-diabetes"></div></div>
-        <div style="margin-bottom:6px;"><div style="font-size:10px;font-weight:700;color:#7aa0c0;text-transform:uppercase;letter-spacing:1px;padding:6px 0 2px;">Blood Pressure</div><div id="med-list-bloodpressure"></div></div>
-        <div style="margin-bottom:6px;"><div style="font-size:10px;font-weight:700;color:#c0a070;text-transform:uppercase;letter-spacing:1px;padding:6px 0 2px;">Cholesterol</div><div id="med-list-cholesterol"></div></div>
-        <div><div style="font-size:10px;font-weight:700;color:#a0a0b0;text-transform:uppercase;letter-spacing:1px;padding:6px 0 2px;">Other</div><div id="med-list-other"></div></div>
+        <div id="med-categories-container"></div>
       </div>
 
       <!-- BP ENTRY -->
@@ -1760,7 +1752,7 @@ function makeSafeZoneDataset(length) {
   const s = getSettings();
   return [
     { label:'Target high', data: Array(length).fill(s.targetHigh), borderColor:'rgba(29,160,120,0.35)',
-      borderWidth:1, borderDash:[2,4], pointRadius:0, type:'line', fill:'+1', backgroundColor:'rgba(29,160,120,0.07)', order:1 },
+      borderWidth:1, borderDash:[2,4], pointRadius:0, type:'line', fill:'+1', backgroundColor:'rgba(29,160,120,0.18)', order:1 },
     { label:'Target low', data: Array(length).fill(s.targetLow), borderColor:'rgba(29,160,120,0.35)',
       borderWidth:1, borderDash:[2,4], pointRadius:0, type:'line', fill:false, order:1 }
   ];
@@ -2388,20 +2380,88 @@ function nextPage(){histPage++;renderHistory();}
 let _medsCache = null;
 let _allergiesCache = null;
 let _bpCache = null;
+let _catsCache = null;
+
+// ── MEDICATION CATEGORIES ──
+const BUILTIN_CATEGORIES = [
+  { type:'diabetes',      label:'Diabetes',       color:'#1a7a6e' },
+  { type:'bloodpressure', label:'Blood Pressure', color:'#5a7fa8' },
+  { type:'cholesterol',   label:'Cholesterol',    color:'#b08a40' },
+  { type:'allergy',       label:'Allergy',        color:'#b0454a' },
+  { type:'copd',          label:'COPD',           color:'#7a5aa8' },
+];
+const CUSTOM_CAT_PALETTE = ['#c0703a','#4a8fb0','#8a6fc0','#4fa896','#b0507a','#6a9e40','#a05a70','#5a7a9e'];
+
+function slugifyCategory(name) {
+  const s = name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+  return s || ('cat_'+Date.now());
+}
+function getCustomCategories() {
+  if (_catsCache) return _catsCache;
+  try { return JSON.parse(localStorage.getItem('glucoselog_categories')||'[]'); } catch(e){ return []; }
+}
+function saveCustomCategoriesLocal(arr) {
+  localStorage.setItem('glucoselog_categories', JSON.stringify(arr));
+  if (_catsCache !== null) _catsCache = arr;
+}
+function allCategories() {
+  return [...BUILTIN_CATEGORIES, ...getCustomCategories()];
+}
+function colorForCategory(type) {
+  const built = BUILTIN_CATEGORIES.find(c => c.type === type);
+  if (built) return built.color;
+  const custom = getCustomCategories();
+  const idx = custom.findIndex(c => c.type === type);
+  if (idx < 0) return '#a0a0b0';
+  return CUSTOM_CAT_PALETTE[idx % CUSTOM_CAT_PALETTE.length];
+}
+function addCustomCategory(name) {
+  const type = slugifyCategory(name);
+  const already = allCategories().find(c => c.type === type);
+  if (already) return already.type;
+  const cats = getCustomCategories();
+  cats.push({ type, label: name.trim() });
+  saveCustomCategoriesLocal(cats);
+  if (sb) sb.from('categories').insert({ name: name.trim() }).then(({error}) => { if (error) console.error('Category save failed:', error); });
+  return type;
+}
+function categoryOptionsHTML(selected) {
+  return allCategories().map(c => `<option value="${c.type}"${c.type===selected?' selected':''}>${c.label}</option>`).join('')
+    + `<option value="__other__">Other (add new category…)</option>`;
+}
+function populateCategorySelect(selectEl, selected) {
+  if (!selectEl) return;
+  const val = selected || 'diabetes';
+  selectEl.innerHTML = categoryOptionsHTML(val);
+  selectEl.dataset.prevValue = val;
+}
+function handleCategorySelect(selectEl) {
+  if (selectEl.value === '__other__') {
+    const name = prompt('Name the new medication category (e.g. Kidney, Heart):');
+    if (!name || !name.trim()) { populateCategorySelect(selectEl, selectEl.dataset.prevValue || 'diabetes'); return; }
+    const type = addCustomCategory(name);
+    populateCategorySelect(selectEl, type);
+  } else {
+    selectEl.dataset.prevValue = selectEl.value;
+  }
+}
 
 // Called from initCloudSync after glucose tables load
 async function initHealthSync() {
   if (!sb) return;
   try {
-    const [{data:meds,error:me},{data:allergies,error:ae},{data:bp,error:be}] = await Promise.all([
+    const [{data:meds,error:me},{data:allergies,error:ae},{data:bp,error:be},{data:cats,error:ce}] = await Promise.all([
       sb.from('medications').select('*').order('created_at'),
       sb.from('allergies').select('*').order('created_at'),
-      sb.from('bp_readings').select('*').order('date',{ascending:false}).order('time',{ascending:false})
+      sb.from('bp_readings').select('*').order('date',{ascending:false}).order('time',{ascending:false}),
+      sb.from('categories').select('*').order('created_at')
     ]);
     if (me||ae||be) throw me||ae||be;
     _medsCache      = meds      || [];
     _allergiesCache = allergies || [];
     _bpCache        = bp        || [];
+    // categories table is optional (may not exist yet) — don't fail sync if it's missing
+    _catsCache = (!ce && cats) ? cats.map(c => ({ type: slugifyCategory(c.name), label: c.name })) : (_catsCache || []);
     // one-time migration from localStorage
     await migrateHealthToCloud();
     renderMeds(); renderAllergies(); renderBP();
@@ -2431,6 +2491,14 @@ async function migrateHealthToCloud() {
     if (!_bpCache.find(c=>c.id===r.id)) {
       const {data,error} = await sb.from('bp_readings').insert({id:r.id,date:r.date,time:r.time,sys:r.sys,dia:r.dia,session:r.session||'morning'}).select().single();
       if (!error&&data) _bpCache.push(data);
+    }
+  }
+  // Custom categories
+  const localCats = JSON.parse(localStorage.getItem('glucoselog_categories')||'[]');
+  for (const c of localCats) {
+    if (!_catsCache.find(x=>x.type===c.type)) {
+      const {data,error} = await sb.from('categories').insert({name:c.label}).select().single();
+      if (!error&&data) _catsCache.push({type:slugifyCategory(data.name), label:data.name});
     }
   }
 }
@@ -2466,19 +2534,22 @@ function saveBPReadings(arr) {
 }
 
 function showAddMed() {
+  populateCategorySelect(document.getElementById('med-type'), 'diabetes');
   document.getElementById('med-add-form').style.display = 'block';
   document.getElementById('med-name').focus();
 }
 function cancelMed() {
   document.getElementById('med-add-form').style.display = 'none';
   ['med-name','med-dose','med-freq','med-dr'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('med-type').value = 'diabetes';
+  populateCategorySelect(document.getElementById('med-type'), 'diabetes');
 }
 function saveMed() {
   const name = document.getElementById('med-name').value.trim();
   if (!name) { alert('Enter a drug name.'); return; }
+  const typeVal = document.getElementById('med-type').value;
+  if (!typeVal || typeVal === '__other__') { alert('Pick a category for this medication.'); return; }
   const med = {
-    id: Date.now(), name, type: document.getElementById('med-type').value,
+    id: Date.now(), name, type: typeVal,
     dose: document.getElementById('med-dose').value.trim(),
     freq: document.getElementById('med-freq').value.trim(),
     dr: document.getElementById('med-dr').value.trim()
@@ -2504,11 +2575,13 @@ function startMedEdit(id) {
       <input id="medit-dose-${id}" value="${m.dose}" placeholder="Dose" style="padding:6px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface2);font-size:13px;color:var(--text);">
       <input id="medit-freq-${id}" value="${m.freq}" placeholder="Frequency" style="padding:6px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface2);font-size:13px;color:var(--text);">
       <input id="medit-dr-${id}" value="${m.dr}" placeholder="Doctor" style="padding:6px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface2);font-size:13px;color:var(--text);">
+      <select id="medit-type-${id}" onchange="handleCategorySelect(this)" style="grid-column:1/-1;padding:6px;border-radius:6px;border:2px solid var(--border-strong);background:var(--surface2);font-size:13px;color:var(--text);"></select>
     </div>
     <div style="display:flex;gap:6px;">
       <button class="edit-save-btn" onclick="saveMedEdit(${id})">✓ Save</button>
       <button class="edit-cancel-btn" onclick="renderMeds()">✕</button>
     </div>`;
+  populateCategorySelect(document.getElementById('medit-type-'+id), m.type);
 }
 function saveMedEdit(id) {
   const arr = getMeds(); const idx = arr.findIndex(m => m.id === id);
@@ -2517,35 +2590,48 @@ function saveMedEdit(id) {
   arr[idx].dose = document.getElementById('medit-dose-'+id).value.trim();
   arr[idx].freq = document.getElementById('medit-freq-'+id).value.trim();
   arr[idx].dr   = document.getElementById('medit-dr-'+id).value.trim();
+  const typeEl = document.getElementById('medit-type-'+id);
+  if (typeEl && typeEl.value && typeEl.value !== '__other__') arr[idx].type = typeEl.value;
   saveMeds(arr);
-  if (sb) sb.from('medications').update({name:arr[idx].name,dose:arr[idx].dose,freq:arr[idx].freq,dr:arr[idx].dr}).eq('id',id).then(({error})=>{ if(error) console.error('Med update failed:',error); });
+  if (sb) sb.from('medications').update({name:arr[idx].name,dose:arr[idx].dose,freq:arr[idx].freq,dr:arr[idx].dr,type:arr[idx].type}).eq('id',id).then(({error})=>{ if(error) console.error('Med update failed:',error); });
   renderMeds();
 }
 function renderMeds() {
   const meds = getMeds();
-  const categories = [
-    { type:'diabetes',     id:'med-list-diabetes' },
-    { type:'bloodpressure',id:'med-list-bloodpressure' },
-    { type:'cholesterol',  id:'med-list-cholesterol' },
-    { type:'other',        id:'med-list-other' },
-  ];
-  categories.forEach(cat => {
-    const el = document.getElementById(cat.id);
-    if (!el) return;
-    const list = meds.filter(m => m.type === cat.type);
-    if (!list.length) { el.innerHTML = `<div style="font-size:13px;color:var(--text3);padding:6px 0;">None recorded.</div>`; return; }
-    el.innerHTML = list.map(m => `
-      <div class="med-item" id="med-row-${m.id}">
-        <div class="med-main">
-          <div class="med-name">${m.name}${m.dose?' <span style="font-weight:400;color:var(--text3);">'+m.dose+'</span>':''}</div>
-          <div class="med-detail">${[m.freq,m.dr?'Dr. '+m.dr:''].filter(Boolean).join(' · ')}</div>
-        </div>
-        <div class="med-btns">
-          <button class="edit-btn" onclick="startMedEdit(${m.id})">✎</button>
-          <button class="edit-btn" style="color:#b03020;border-color:#b03020;" onclick="deleteMed(${m.id})">✕</button>
-        </div>
-      </div>`).join('');
-  });
+  const container = document.getElementById('med-categories-container');
+  if (!container) return;
+  const cats = allCategories();
+  const knownTypes = new Set(cats.map(c => c.type));
+  // legacy data saved before categories existed (type:'other') gets its own fallback section
+  // rather than being hidden, so nothing old disappears
+  const hasLegacy = meds.some(m => !knownTypes.has(m.type));
+  const sections = cats.map(c => ({ type:c.type, label:c.label, color:c.color || colorForCategory(c.type) }));
+  if (hasLegacy) sections.push({ type:'__legacy__', label:'Other', color:'#a0a0b0' });
+
+  const sectionsWithMeds = sections
+    .map(s => ({ ...s, list: meds.filter(m => s.type === '__legacy__' ? !knownTypes.has(m.type) : m.type === s.type) }))
+    .filter(s => s.list.length);
+
+  if (!sectionsWithMeds.length) {
+    container.innerHTML = `<div style="font-size:13px;color:var(--text3);padding:6px 0;">No medications recorded — tap + Add to add one.</div>`;
+    return;
+  }
+
+  container.innerHTML = sectionsWithMeds.map(s => `
+    <div style="margin-bottom:6px;">
+      <div style="font-size:10px;font-weight:700;color:${s.color};text-transform:uppercase;letter-spacing:1px;padding:6px 0 2px;">${s.label}</div>
+      <div>${s.list.map(m => `
+        <div class="med-item" id="med-row-${m.id}">
+          <div class="med-main">
+            <div class="med-name">${m.name}${m.dose?' <span style="font-weight:400;color:var(--text3);">'+m.dose+'</span>':''}</div>
+            <div class="med-detail">${[m.freq,m.dr?'Dr. '+m.dr:''].filter(Boolean).join(' · ')}</div>
+          </div>
+          <div class="med-btns">
+            <button class="edit-btn" onclick="startMedEdit(${m.id})">✎</button>
+            <button class="edit-btn" style="color:#b03020;border-color:#b03020;" onclick="deleteMed(${m.id})">✕</button>
+          </div>
+        </div>`).join('')}</div>
+    </div>`).join('');
 }
 
 // ============================================================
@@ -2699,6 +2785,7 @@ function initHealthTab() {
   renderAllergies();
   renderBP();
   renderMeds();
+  populateCategorySelect(document.getElementById('med-type'), 'diabetes');
 }
 
 function exportCSV() {
