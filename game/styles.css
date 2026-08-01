@@ -973,52 +973,24 @@ body.keyboard-active { padding-bottom: 200px; }
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
 }
 
-/* ===== "Waiting for you" hint on the guess field ===== */
-/* Your custom keyboard is up on load and the native caret is    */
-/* suppressed (inputmode=none + force-blur), so these hints are  */
-/* the only "type here" cue. They show ONLY while the field is   */
-/* empty (:placeholder-shown) and the custom keyboard is active, */
-/* and disappear the instant a letter is entered. No native      */
-/* caret exists to collide with.                                 */
-
-/* --- OPTION A (default): the field gently breathes --- */
+/* ===== "Your turn" blink on the guess field ===== */
+/* Zero structural change: this only animates border/shadow on   */
+/* the existing input. Shows while the field is empty            */
+/* (:placeholder-shown) and the custom keyboard is up            */
+/* (body.keyboard-active), and stops the moment a letter lands.  */
+/* Cannot affect layout/width, so it's safe on iPhone SE.        */
 body.keyboard-active #guessInput:placeholder-shown {
-    animation: guessBreathe 1.6s ease-in-out infinite;
+    animation: guessTurnBlink 1.1s ease-in-out infinite;
 }
-@keyframes guessBreathe {
-    0%, 100% { box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.10); }
-    50%      { box-shadow: 0 0 0 5px rgba(102, 126, 234, 0.28); }
-}
-
-/* --- OPTION B: a blinking I-beam caret in the field --- */
-/* Off by default. To use it instead of the glow, add class      */
-/* "use-caret" to the <body> (or swap the selector) and it will  */
-/* show while empty. Positioned at the centre of the centred     */
-/* placeholder; nudge 'left' if your font sits it off.           */
-.guess-input-wrap .fake-caret {
-    display: none;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 2px;
-    height: 1.3em;
-    background: #667eea;
-    pointer-events: none;
-    z-index: 2;
-}
-body.keyboard-active.use-caret #guessInput:placeholder-shown ~ .fake-caret {
-    display: block;
-    animation: caretBlink 1s step-end infinite;
-}
-/* when using the caret, turn the breathing glow off so they    */
-/* don't run at once */
-body.keyboard-active.use-caret #guessInput:placeholder-shown {
-    animation: none;
-}
-@keyframes caretBlink {
-    0%, 50%  { opacity: 1; }
-    51%, 100% { opacity: 0; }
+@keyframes guessTurnBlink {
+    0%, 100% {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.10);
+    }
+    50% {
+        border-color: #a9b8f5;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.30);
+    }
 }
 
 @media (min-width: 400px) {
