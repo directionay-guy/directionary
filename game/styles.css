@@ -883,15 +883,6 @@ body {
             .success-modal { padding-top: 15px; }
             .success-content { padding: 15px 12px; font-size: 0.9em; }
             .success-title { font-size: 1.3em; }
-
-            /* SE-and-smaller: keep the placeholder on one line and
-               tighten the GUESS demo row so nothing crowds/truncates */
-            #guessInput { font-size: 0.95em; }
-            #guessInput::placeholder { font-size: 0.82em; letter-spacing: 0; }
-            .feedback-word { font-size: 0.9em; }
-            .symbol-with-letter { width: 23px; height: 25px; }
-            .background-letter { font-size: 21px !important; }
-            .overlay-symbol { font-size: 0.9em; }
         }
 
         @media (min-width: 768px) {
@@ -980,34 +971,6 @@ body.keyboard-active { padding-bottom: 200px; }
 .keyboard-focus {
     border: 2px solid #667eea !important;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
-}
-
-/* ===== "Your turn" blink on the guess field ===== */
-/* Zero structural change: this only animates border/shadow on   */
-/* the existing input. Shows while the field is empty            */
-/* (:placeholder-shown) and the custom keyboard is up            */
-/* (body.keyboard-active), and stops the moment a letter lands.  */
-/* Cannot affect layout/width, so it's safe on iPhone SE.        */
-/* ===== "Your turn" blink on the guess field ===== */
-/* Zero structural change: animates only border/shadow on the    */
-/* existing input. Shows while empty (:placeholder-shown) with    */
-/* the custom keyboard up (body.keyboard-active); stops once a    */
-/* letter lands. Must out-specify .keyboard-focus (which sets     */
-/* border/box-shadow with !important), hence the stacked          */
-/* selector + !important in the keyframes.                        */
-body.keyboard-active #guessInput.keyboard-focus:placeholder-shown,
-body.keyboard-active #guessInput:placeholder-shown {
-    animation: guessTurnBlink 1.1s ease-in-out infinite;
-}
-@keyframes guessTurnBlink {
-    0%, 100% {
-        border-color: #667eea !important;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.10) !important;
-    }
-    50% {
-        border-color: #a9b8f5 !important;
-        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.35) !important;
-    }
 }
 
 @media (min-width: 400px) {
