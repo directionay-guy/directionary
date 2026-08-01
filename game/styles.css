@@ -887,7 +887,7 @@ body {
             /* SE-and-smaller: keep the placeholder on one line and
                tighten the GUESS demo row so nothing crowds/truncates */
             #guessInput { font-size: 0.95em; }
-            #guessInput::placeholder { font-size: 0.9em; letter-spacing: 0; }
+            #guessInput::placeholder { font-size: 0.82em; letter-spacing: 0; }
             .feedback-word { font-size: 0.9em; }
             .symbol-with-letter { width: 23px; height: 25px; }
             .background-letter { font-size: 21px !important; }
