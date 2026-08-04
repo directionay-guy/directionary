@@ -324,8 +324,8 @@ body.theme-bitmap {
 .theme-bitmap .rolloff-die.spinning-right                   { animation: bitmapSpinRight        0.65s ease-out forwards; }
 .theme-bitmap .rolloff-die.parked-left.spinning-in-place    { animation: bitmapSpinInPlaceLeft   0.65s ease-out forwards; }
 .theme-bitmap .rolloff-die.parked-right.spinning-in-place   { animation: bitmapSpinInPlaceRight  0.65s ease-out forwards; }
-.theme-bitmap .rolloff-die.parked-left  { transform: translateX(-45px); }
-.theme-bitmap .rolloff-die.parked-right { transform: translateX( 45px); }
+.theme-bitmap .rolloff-die.parked-left  { transform: translateX(-45px) rotate(0deg); }
+.theme-bitmap .rolloff-die.parked-right { transform: translateX( 45px) rotate(0deg); }
 .theme-bitmap .rolloff-die:disabled { opacity: 1 !important; }
 
 /* Same parked-position-aware wobble fix as the base styles, matching
@@ -785,8 +785,11 @@ body.has-css-fullscreen { overflow: hidden; }
 .game-container.playing-as-red #redScoreArea  { background: var(--bm-blue-panel) !important; }
 /* ── Narrow phone fixes (≤390px) ── */
 @media (max-width: 390px) {
-    /* Force 2×2 dice wrap in dice bay */
+    /* Force 2×2 dice wrap in dice bay using grid */
     .theme-bitmap .dice-area {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        justify-items: center !important;
         height: 78px !important;
         min-height: 78px !important;
         max-height: 78px !important;
@@ -808,4 +811,26 @@ body.has-css-fullscreen { overflow: hidden; }
         min-height: 58px !important;
         max-height: 58px !important;
     }
+
+    /* Rolloff dice: smaller size and reduced travel to stay on-screen */
+    .theme-bitmap .rolloff-die {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    .theme-bitmap .rolloff-die svg.dice {
+        width: 34px !important;
+        height: 34px !important;
+    }
+    .theme-bitmap .rolloff-die.parked-left  { transform: translateX(-28px) rotate(0deg) !important; }
+    .theme-bitmap .rolloff-die.parked-right { transform: translateX( 28px) rotate(0deg) !important; }
+
+    @keyframes bitmapNarrowSpinLeft        { 0%{transform:translateX(0) rotate(0deg);}     100%{transform:translateX(-28px) rotate(-720deg);} }
+    @keyframes bitmapNarrowSpinRight       { 0%{transform:translateX(0) rotate(0deg);}     100%{transform:translateX( 28px) rotate( 720deg);} }
+    @keyframes bitmapNarrowSpinInPlaceLeft  { 0%{transform:translateX(-28px) rotate(0deg);} 100%{transform:translateX(-28px) rotate(-720deg);} }
+    @keyframes bitmapNarrowSpinInPlaceRight { 0%{transform:translateX( 28px) rotate(0deg);} 100%{transform:translateX( 28px) rotate( 720deg);} }
+
+    .theme-bitmap .rolloff-die.spinning-left                 { animation: bitmapNarrowSpinLeft          0.65s ease-out forwards !important; }
+    .theme-bitmap .rolloff-die.spinning-right                { animation: bitmapNarrowSpinRight         0.65s ease-out forwards !important; }
+    .theme-bitmap .rolloff-die.parked-left.spinning-in-place  { animation: bitmapNarrowSpinInPlaceLeft  0.65s ease-out forwards !important; }
+    .theme-bitmap .rolloff-die.parked-right.spinning-in-place { animation: bitmapNarrowSpinInPlaceRight 0.65s ease-out forwards !important; }
 }
