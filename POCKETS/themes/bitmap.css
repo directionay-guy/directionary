@@ -769,83 +769,43 @@ body.has-css-fullscreen { overflow: hidden; }
    PLAYING AS RED — swap blue/red panels
    ========================================================== */
 
-/* When playing as Red: the human is internally Blue and stays on the LEFT.
-   Nothing moves — only colour swaps. The human's (.blue) side becomes the red
-   panel, the AI's (.red) side becomes the blue panel, across areas, headers,
-   dice, scores and the two roll buttons (#blueRoll = human, #redRoll = AI).
-   Pockets are deliberately left alone — they are always plain white.
-   The rolloff dice are recoloured by the game engine, not here. */
 
-/* Player area panels */
-.theme-bitmap .playing-as-red .player-area.blue { background: var(--bm-red-panel); }
-.theme-bitmap .playing-as-red .player-area.red  { background: var(--bm-blue-panel); }
-
-/* Player headers / names */
-.theme-bitmap .playing-as-red .player-area.blue .player-header,
-.theme-bitmap .playing-as-red .player-area.blue .player-name { color: var(--bm-red); }
-.theme-bitmap .playing-as-red .player-area.red  .player-header,
-.theme-bitmap .playing-as-red .player-area.red  .player-name { color: var(--bm-blue); }
-
-/* Board dice — faces, strokes and pips follow the swapped side */
-.theme-bitmap .playing-as-red .player-area.blue svg.dice .dice-face {
-    fill: var(--bm-red-panel); stroke: var(--bm-red); stroke-width: 1.5;
-}
-.theme-bitmap .playing-as-red .player-area.blue svg.dice .dice-dot { fill: var(--bm-red); }
-.theme-bitmap .playing-as-red .player-area.red  svg.dice .dice-face {
-    fill: var(--bm-blue-panel); stroke: var(--bm-blue); stroke-width: 1.5;
-}
-.theme-bitmap .playing-as-red .player-area.red  svg.dice .dice-dot { fill: var(--bm-blue); }
-
-/* Saved die — same swap, keeping the bolder stroke that marks it as saved */
-.theme-bitmap .playing-as-red .player-area.blue .dice.saved-tint .dice-face { fill: var(--bm-red-panel);  stroke: var(--bm-red);  stroke-width: 2.5; }
-.theme-bitmap .playing-as-red .player-area.red  .dice.saved-tint .dice-face { fill: var(--bm-blue-panel); stroke: var(--bm-blue); stroke-width: 2.5; }
-.theme-bitmap .playing-as-red .player-area.blue .dice.saved-tint .dice-dot  { fill: var(--bm-red); }
-.theme-bitmap .playing-as-red .player-area.red  .dice.saved-tint .dice-dot  { fill: var(--bm-blue); }
-
-/* Score panels */
-.theme-bitmap .playing-as-red #blueScoreArea { background: var(--bm-red-panel); }
-.theme-bitmap .playing-as-red #redScoreArea  { background: var(--bm-blue-panel); }
-.theme-bitmap .playing-as-red .blue-player { color: var(--bm-red); }
-.theme-bitmap .playing-as-red .red-player  { color: var(--bm-blue); }
-
-/* Roll buttons — #blueRoll is the human, #redRoll is the AI */
-.theme-bitmap .playing-as-red #blueRoll { border-color: var(--bm-red);  color: var(--bm-red);  }
-.theme-bitmap .playing-as-red #redRoll  { border-color: var(--bm-blue); color: var(--bm-blue); }
-
-/* ================================================================
-   RESPONSIVE DICE — phones keep the compact 30px dice; tablets and
-   desktops, which have room to spare, get larger ones.
-
-   The dice tray is a FIXED height with overflow:hidden, so the tray
-   has to grow with the dice or they'd simply be clipped. Both are
-   stepped up together at each breakpoint.
-
-   Phones (default, under 700px) are deliberately left exactly as
-   they were: 30px dice in a 68px tray.
-   ================================================================ */
-
-/* ── Tablets — iPad portrait and up ─────────────────────────────── */
-@media (min-width: 700px) {
+.game-container.playing-as-red .player-area.blue { background: var(--bm-red-panel) !important; }
+.game-container.playing-as-red .player-area.red  { background: var(--bm-blue-panel) !important; }
+.game-container.playing-as-red .player-area.blue .player-header,
+.game-container.playing-as-red .player-area.blue .player-name { color: var(--bm-red) !important; }
+.game-container.playing-as-red .player-area.red  .player-header,
+.game-container.playing-as-red .player-area.red  .player-name { color: var(--bm-blue) !important; }
+/* Small dice color swap */
+.game-container.playing-as-red .player-area.blue svg.dice .dice-face { fill: var(--bm-red-panel) !important; stroke: var(--bm-red) !important; }
+.game-container.playing-as-red .player-area.blue svg.dice .dice-dot  { fill: var(--bm-red) !important; }
+.game-container.playing-as-red .player-area.red  svg.dice .dice-face { fill: var(--bm-blue-panel) !important; stroke: var(--bm-blue) !important; }
+.game-container.playing-as-red .player-area.red  svg.dice .dice-dot  { fill: var(--bm-blue) !important; }
+.game-container.playing-as-red #blueScoreArea { background: var(--bm-red-panel) !important; }
+.game-container.playing-as-red #redScoreArea  { background: var(--bm-blue-panel) !important; }
+/* ── Narrow phone fixes (≤390px) ── */
+@media (max-width: 390px) {
+    /* Force 2×2 dice wrap in dice bay */
     .theme-bitmap .dice-area {
-        height: 80px;
-        min-height: 80px;
-        max-height: 80px;
+        height: 78px !important;
+        min-height: 78px !important;
+        max-height: 78px !important;
     }
     .theme-bitmap .dice-area svg.dice {
-        width: 38px !important;
-        height: 38px !important;
+        width: 28px !important;
+        height: 28px !important;
     }
-}
 
-/* ── Desktop / large tablet landscape ───────────────────────────── */
-@media (min-width: 1000px) {
-    .theme-bitmap .dice-area {
-        height: 88px;
-        min-height: 88px;
-        max-height: 88px;
+    /* Smaller pocket label so KEEP TWO #1 fits in 2 lines not 3 */
+    .theme-bitmap .pocket-label {
+        font-size: 0.70em !important;
+        letter-spacing: 0.03em !important;
     }
-    .theme-bitmap .dice-area svg.dice {
-        width: 44px !important;
-        height: 44px !important;
+
+    /* Give pocket-dice a bit more room since label is smaller */
+    .theme-bitmap .pocket-dice {
+        height: 58px !important;
+        min-height: 58px !important;
+        max-height: 58px !important;
     }
 }
