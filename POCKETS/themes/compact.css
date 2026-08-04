@@ -24,16 +24,6 @@ body.theme-compact {
     --ink:            #2a1508;
     --cream:          #f5f0e4;
 
-    /* Rolloff dice colours when PLAYING AS RED. The game engine repaints the
-       rolloff dice in JS; without these it guesses, and the pips came out gold
-       instead of cream. Human = burgundy face, AI = navy face, cream pips on
-       both, and the gold outline is preserved via --rolloff-stroke. */
-    --rolloff-human-face: #6e3030;
-    --rolloff-ai-face:    #243258;
-    --rolloff-human-dot:  #f5f0e4;
-    --rolloff-ai-dot:     #f5f0e4;
-    --rolloff-stroke:     #c8a84b;
-
     background: var(--navy);
     color: var(--ink);
     font-family: Georgia, 'Times New Roman', serif;
@@ -707,59 +697,73 @@ body.has-css-fullscreen { overflow: hidden; }
    PLAYING AS RED
    ========================================================== */
 
-/* When playing as Red: the human is internally Blue and stays on the LEFT.
-   Nothing moves — only colour swaps. The human's (.blue) side becomes
-   burgundy, the AI's (.red) side becomes navy, across areas, dice, saved
-   dice, active pockets, score panels and the two roll buttons
-   (#blueRoll = human, #redRoll = AI).
-   Pips are cream on BOTH sides in this theme, so they need no swap.
-   The rolloff dice are recoloured by the game engine, using the
-   --rolloff-* variables declared at the top of this file. */
 
-/* Player areas */
-.theme-compact .playing-as-red .player-area.blue {
-    background: linear-gradient(180deg, var(--burgundy-deep) 0%, #3a1818 100%);
-}
-.theme-compact .playing-as-red .player-area.red {
-    background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy) 100%);
-}
+/* Saved die - playing-as-red swapped state */
+.game-container.playing-as-red .player-area.blue .dice.saved-tint .dice-face { fill: #874949 !important; }
+.game-container.playing-as-red .player-area.red  .dice.saved-tint .dice-face { fill: #3d4b71 !important; }
 
-/* Board dice faces (pips stay cream on both sides) */
-.theme-compact .playing-as-red .player-area.blue svg.dice .dice-face {
-    fill: var(--burgundy); stroke: var(--gold); stroke-width: 1.5;
+.game-container.playing-as-red .player-area.blue {
+    background: linear-gradient(180deg, var(--burgundy-deep) 0%, #3a1818 100%) !important;
 }
-.theme-compact .playing-as-red .player-area.red  svg.dice .dice-face {
-    fill: var(--navy-light); stroke: var(--gold); stroke-width: 1.5;
+.game-container.playing-as-red .player-area.red {
+    background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy) 100%) !important;
 }
+.game-container.playing-as-red #blueScoreArea {
+    background: linear-gradient(180deg, var(--burgundy-deep) 0%, #3a1818 100%) !important;
+}
+.game-container.playing-as-red #redScoreArea {
+    background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy) 100%) !important;
+}
+.game-container.playing-as-red .player-header.blue-player,
+.game-container.playing-as-red .blue-player {
+    color: #e07070 !important;
+}
+.game-container.playing-as-red .player-header.red-player,
+.game-container.playing-as-red .red-player {
+    color: #7090e0 !important;
+}
+.game-container.playing-as-red .player-area.blue svg.dice .dice-face {
+    fill: var(--burgundy) !important;
+}
+.game-container.playing-as-red .player-area.red svg.dice .dice-face {
+    fill: var(--navy-mid) !important;
+}
+.game-container.playing-as-red .player-area.blue .pocket.active {
+    background: rgba(180,60,60,0.25) !important;
+    border-color: #cc6666 !important;
+}
+.game-container.playing-as-red .player-area.red .pocket.active {
+    background: rgba(100,130,220,0.25) !important;
+    border-color: #6699dd !important;
+}
+/* ── Compact rolloff die: reduced travel distance to stay on-screen ── */
+/* Base uses ±70px which overflows on narrow phones. Compact uses ±40px. */
+@keyframes compactSpinLeft       { 0%{transform:translateX(0) rotate(0deg);}     100%{transform:translateX(-40px) rotate(-720deg);} }
+@keyframes compactSpinRight      { 0%{transform:translateX(0) rotate(0deg);}     100%{transform:translateX( 40px) rotate( 720deg);} }
+@keyframes compactSpinInPlaceLeft  { 0%{transform:translateX(-40px) rotate(0deg);} 100%{transform:translateX(-40px) rotate(-720deg);} }
+@keyframes compactSpinInPlaceRight { 0%{transform:translateX( 40px) rotate(0deg);} 100%{transform:translateX( 40px) rotate( 720deg);} }
 
-/* Saved die — the slightly lighter face follows the swap */
-.theme-compact .playing-as-red .player-area.blue .dice.saved-tint .dice-face { fill: #874949 !important; }
-.theme-compact .playing-as-red .player-area.red  .dice.saved-tint .dice-face { fill: #3d4b71 !important; }
+.theme-compact .rolloff-die.spinning-left               { animation: compactSpinLeft          0.65s ease-out forwards !important; }
+.theme-compact .rolloff-die.spinning-right              { animation: compactSpinRight         0.65s ease-out forwards !important; }
+.theme-compact .rolloff-die.parked-left                 { transform: translateX(-40px) rotate(0deg) !important; }
+.theme-compact .rolloff-die.parked-right                { transform: translateX( 40px) rotate(0deg) !important; }
+.theme-compact .rolloff-die.parked-left.spinning-in-place  { animation: compactSpinInPlaceLeft  0.65s ease-out forwards !important; }
+.theme-compact .rolloff-die.parked-right.spinning-in-place { animation: compactSpinInPlaceRight 0.65s ease-out forwards !important; }
 
-/* Active pocket highlight */
-.theme-compact .playing-as-red .player-area.blue .pocket.active {
-    background: rgba(180,60,60,0.25);
-    border-color: #cc6666;
+/* Matching parked-position invite wobble at ±40px */
+@keyframes compactRolloffInviteParkedLeft {
+    0%, 80%, 100% { transform: translateX(-40px) scale(1) rotate(0deg); }
+    5%            { transform: translateX(-40px) scale(1.08) rotate(-4deg); }
+    10%           { transform: translateX(-40px) scale(1.08) rotate(4deg); }
+    15%           { transform: translateX(-40px) scale(1) rotate(-2deg); }
+    20%           { transform: translateX(-40px) scale(1) rotate(0deg); }
 }
-.theme-compact .playing-as-red .player-area.red .pocket.active {
-    background: rgba(100,130,220,0.25);
-    border-color: #6699dd;
+@keyframes compactRolloffInviteParkedRight {
+    0%, 80%, 100% { transform: translateX(40px) scale(1) rotate(0deg); }
+    5%            { transform: translateX(40px) scale(1.08) rotate(-4deg); }
+    10%           { transform: translateX(40px) scale(1.08) rotate(4deg); }
+    15%           { transform: translateX(40px) scale(1) rotate(-2deg); }
+    20%           { transform: translateX(40px) scale(1) rotate(0deg); }
 }
-
-/* Score panels */
-.theme-compact .playing-as-red #blueScoreArea {
-    background: linear-gradient(180deg, #8a3838 0%, #6e2828 100%);
-}
-.theme-compact .playing-as-red #redScoreArea {
-    background: linear-gradient(180deg, #3a4e7a 0%, #2e4068 100%);
-}
-.theme-compact .playing-as-red .blue-player { color: #e07070; }
-.theme-compact .playing-as-red .red-player  { color: #7090e0; }
-
-/* Roll buttons — #blueRoll is the human, #redRoll is the AI */
-.theme-compact .playing-as-red #blueRoll {
-    background: linear-gradient(180deg, var(--burgundy) 0%, var(--burgundy-deep) 100%);
-}
-.theme-compact .playing-as-red #redRoll {
-    background: linear-gradient(180deg, #2a3a6a 0%, #1a2550 100%);
-}
+.theme-compact .rolloff-die.parked-left:not(.faded):not(:disabled)  { animation: compactRolloffInviteParkedLeft  3s ease-in-out infinite !important; }
+.theme-compact .rolloff-die.parked-right:not(.faded):not(:disabled) { animation: compactRolloffInviteParkedRight 3s ease-in-out infinite !important; }
