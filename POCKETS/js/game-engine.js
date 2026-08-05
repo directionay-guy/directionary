@@ -1461,32 +1461,42 @@ function displayRoundScores(blueKeep, blueBonus, blueCombo,
 
     var blueDiv = document.createElement('div');
     blueDiv.className = 'round-score-display';
-    var blueText = 'Round Score: ' + (blueKeep + blueBonus) + ' pts';
-    if (blueBonus > 0) {
-        blueText += '<br>Keep: ' + blueKeep + ', Take: ' + (blueBonus - blueCombo);
-        if (blueCombo > 0 && isBitmap)  { blueText += '<br>Bonus: ' + blueCombo; }
-        else if (blueCombo > 0)          { blueText += ', Bonus: ' + blueCombo; }
-        else if (isBitmap)               { blueText += '<br>Bonus: 0'; }
+    if (isBitmap) {
+        var blueTake = blueBonus > 0 ? (blueBonus - blueCombo) : 0;
+        var blueText = 'Score: ' + (blueKeep + blueBonus) + ' pts';
+        blueText += '<br>Keep: ' + blueKeep + ' | Take: ' + blueTake;
+        blueText += '<br>Bonus: ' + (blueCombo > 0 ? blueCombo : 0);
+        blueDiv.innerHTML = blueText;
     } else {
-        blueText += '<br>Keep: ' + blueKeep;
-        if (isBitmap) { blueText += '<br>Bonus: 0'; }
+        var blueText = 'Round Score: ' + (blueKeep + blueBonus) + ' pts';
+        if (blueBonus > 0) {
+            blueText += '<br>Keep: ' + blueKeep + ', Take: ' + (blueBonus - blueCombo);
+            if (blueCombo > 0) { blueText += ', Bonus: ' + blueCombo; }
+        } else {
+            blueText += '<br>Keep: ' + blueKeep;
+        }
+        blueDiv.innerHTML = blueText;
     }
-    blueDiv.innerHTML = blueText;
     blueDiceArea.appendChild(blueDiv);
 
     var redDiv = document.createElement('div');
     redDiv.className = 'round-score-display';
-    var redText = 'Round Score: ' + (redKeep + redBonus) + ' pts';
-    if (redBonus > 0) {
-        redText += '<br>Keep: ' + redKeep + ', Take: ' + (redBonus - redCombo);
-        if (redCombo > 0 && isBitmap)  { redText += '<br>Bonus: ' + redCombo; }
-        else if (redCombo > 0)          { redText += ', Bonus: ' + redCombo; }
-        else if (isBitmap)              { redText += '<br>Bonus: 0'; }
+    if (isBitmap) {
+        var redTake = redBonus > 0 ? (redBonus - redCombo) : 0;
+        var redText = 'Score: ' + (redKeep + redBonus) + ' pts';
+        redText += '<br>Keep: ' + redKeep + ' | Take: ' + redTake;
+        redText += '<br>Bonus: ' + (redCombo > 0 ? redCombo : 0);
+        redDiv.innerHTML = redText;
     } else {
-        redText += '<br>Keep: ' + redKeep;
-        if (isBitmap) { redText += '<br>Bonus: 0'; }
+        var redText = 'Round Score: ' + (redKeep + redBonus) + ' pts';
+        if (redBonus > 0) {
+            redText += '<br>Keep: ' + redKeep + ', Take: ' + (redBonus - redCombo);
+            if (redCombo > 0) { redText += ', Bonus: ' + redCombo; }
+        } else {
+            redText += '<br>Keep: ' + redKeep;
+        }
+        redDiv.innerHTML = redText;
     }
-    redDiv.innerHTML = redText;
     redDiceArea.appendChild(redDiv);
 }
 
