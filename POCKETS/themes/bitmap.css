@@ -404,13 +404,11 @@ body.theme-bitmap {
     justify-content: center;
     align-items: center;
     padding: 6px 0;
-    height: 76px;
     min-height: 76px;
-    max-height: 76px;
     background: var(--mac-grey-hi);
     border: var(--bm-line);
     margin-bottom: 6px;
-    overflow: hidden;
+    overflow: visible;
 }
 .theme-bitmap .round-score-display {
     font-size: 0.72em; line-height: 1.5; text-align: left;
@@ -790,9 +788,8 @@ body.has-css-fullscreen { overflow: hidden; }
         display: grid !important;
         grid-template-columns: 1fr 1fr !important;
         justify-items: center !important;
-        height: 78px !important;
         min-height: 78px !important;
-        max-height: 78px !important;
+        overflow: visible !important;
     }
     .theme-bitmap .dice-area svg.dice {
         width: 28px !important;
