@@ -1463,7 +1463,7 @@ function displayRoundScores(blueKeep, blueBonus, blueCombo,
     blueDiv.className = 'round-score-display';
     if (isBitmap) {
         var blueTake = blueBonus > 0 ? (blueBonus - blueCombo) : 0;
-        var blueText = 'Score: ' + (blueKeep + blueBonus) + 'pts';
+        var blueText = (blueKeep + blueBonus) + ' pts';
         blueText += '<br>Keep: ' + blueKeep + ' | Take: ' + blueTake;
         blueText += '<br>Bonus: ' + (blueCombo > 0 ? blueCombo : 0);
         blueDiv.innerHTML = blueText;
@@ -1483,7 +1483,7 @@ function displayRoundScores(blueKeep, blueBonus, blueCombo,
     redDiv.className = 'round-score-display';
     if (isBitmap) {
         var redTake = redBonus > 0 ? (redBonus - redCombo) : 0;
-        var redText = 'Score: ' + (redKeep + redBonus) + 'pts';
+        var redText = (redKeep + redBonus) + ' pts';
         redText += '<br>Keep: ' + redKeep + ' | Take: ' + redTake;
         redText += '<br>Bonus: ' + (redCombo > 0 ? redCombo : 0);
         redDiv.innerHTML = redText;
