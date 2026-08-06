@@ -891,8 +891,11 @@
   function helpBody() {
     return `
       <h2 class="modal-title">How to play</h2>
+      <p><strong>Four six-letter words are hidden in the grid</strong> — two that read across and two that read down. Their letters are scattered among the squares, mixed in with decoys that belong to no word. Your job is to move the right letters out to the four edges to spell all four words.</p>
+      <p>You do this by moving letters into the coloured lanes around the grid. Here's how:</p>
       <p><strong>Tap a letter</strong> in the grid to pick it up — the squares it can legally move to will light up. <strong>Tap a lit square</strong> to place it. Tap the letter again to put it down without spending a move.</p>
-      <p>Letters only travel along their own row or column: UP (blue), LEFT (green), DOWN (orange), or RIGHT (pink). Tap a letter you've already placed to send it back to its home square in the grid.</p>
+      <p>Letters only travel along their own row or column — never diagonally. A letter in a row can go to the left or right edge; a letter in a column can go to the top or bottom edge. The four lanes are colour-coded: top (blue), left (green), bottom (orange), right (pink).</p>
+      <p>Tap a letter you've already placed in a lane to lift it — its home square in the grid lights up — then tap that square to send it back.</p>
       <p>The grid is packed with decoy letters that look correct but belong to none of the target words. <strong>Find all four words to win.</strong></p>
       <p>The two across words can go in either the top or bottom lane, and the two down words in either the left or right lane — so you only have to find each word and point it the right way, not guess which side it belongs on.</p>
       <p>You start with 100 moves. Every move costs one — placing a letter, sending it back, or using a hint. Your <strong>remaining moves are your score</strong>: solve it in as few as you can, and don't hit zero.</p>
