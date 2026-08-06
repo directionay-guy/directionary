@@ -5,6 +5,32 @@
   const toggle = el('dev-toggle');
   if (!toggle) return;
 
+  // ---- secret unlock: 3 quick taps/clicks on "Daily Puzzle" ----
+  // Works the same by touch or mouse. Taps must land within 1.5s of each other
+  // so an ordinary stray tap never accumulates. Unlocking reveals the Dev Panel
+  // button; unlocking again hides the button AND collapses the panel, so it
+  // fully disappears for sharing a clean link to beta testers.
+  const unlock = el('dev-unlock');
+  if (unlock) {
+    let taps = 0, timer = null;
+    const bump = (e) => {
+      e.preventDefault();
+      taps++;
+      clearTimeout(timer);
+      timer = setTimeout(() => { taps = 0; }, 1500);
+      if (taps >= 3) {
+        taps = 0;
+        clearTimeout(timer);
+        const nowHidden = !toggle.hidden;   // about to hide?
+        toggle.hidden = nowHidden;
+        if (nowHidden) el('dev-panel').classList.remove('open');
+      }
+    };
+    unlock.addEventListener('click', bump);
+    unlock.style.cursor = 'default';        // don't hint that it's tappable
+    unlock.style.userSelect = 'none';       // avoid selecting the text on rapid taps
+  }
+
   toggle.addEventListener('click', () => {
     el('dev-panel').classList.toggle('open');
   });
