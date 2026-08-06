@@ -235,6 +235,18 @@ button:disabled { cursor: not-allowed; }
   line-height: 1.5;
 }
 
+/* goal line: what you're trying to do, above the board. Sits in normal page
+   flow (outside .stack) so it centres on the page without stretching anything. */
+.goal-line {
+  max-width: 340px;
+  margin: 0 auto 12px;
+  text-align: center;
+  font-size: 0.74rem;
+  color: var(--lav);
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+}
+
 .panel {
   width: 100%;
   background: var(--ink-soft);
