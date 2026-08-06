@@ -508,6 +508,7 @@ button:disabled { cursor: not-allowed; }
 }
 
 /* ---- dev panel ---------------------------------------------------------- */
+.dev-toggle[hidden] { display: none !important; }
 .dev-toggle {
   margin-top: 16px;
   background: var(--ink-soft);
