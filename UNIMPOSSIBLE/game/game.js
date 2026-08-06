@@ -776,32 +776,79 @@
     showLossModal();
   }
 
+  // Which lane is a given word currently being built in? Since the lane-swap
+  // fix lets a horizontal word live in EITHER horizontal lane (and vertical in
+  // either vertical lane), a hint must aim at the lane the player is actually
+  // using — not the word's original "home" lane. Precedence:
+  //   1. a lane already matches THIS word's letters (and not its partner's)
+  //   2. else the partner word has claimed a lane -> use the other one
+  //   3. else nothing committed -> fall back to the word's home lane
+  // Returns { lane, isCol }.
+  function laneForWord(which) {
+    const home = { top: ['top', 'bottom', true], bottom: ['bottom', 'top', true],
+                   left: ['left', 'right', false], right: ['right', 'left', false] }[which];
+    const [homeLane, partnerLane, isCol] = home;
+    const wordOf = (l) => ({ top: S.words.topWord, bottom: S.words.bottomWord,
+                             left: S.words.leftWord, right: S.words.rightWord }[l]);
+    const thisWord = wordOf(which);
+    const partnerWord = wordOf(partnerLane);
+
+    // Does a lane's placed letters agree with `word` so far (ignoring blanks)?
+    const consistent = (laneArr, word) => {
+      for (let i = 0; i < 6; i++) if (laneArr[i] && laneArr[i] !== word[i]) return false;
+      return true;
+    };
+    const hasAny = (laneArr) => laneArr.some((x) => x);
+
+    const a = S.lanes[homeLane], b = S.lanes[partnerLane];
+
+    // 1. a lane that fits THIS word but not the partner word = committed to us
+    const aFitsThis = hasAny(a) && consistent(a, thisWord);
+    const aFitsPartnerOnly = hasAny(a) && consistent(a, partnerWord) && !consistent(a, thisWord);
+    const bFitsThis = hasAny(b) && consistent(b, thisWord);
+    const bFitsPartnerOnly = hasAny(b) && consistent(b, partnerWord) && !consistent(b, thisWord);
+
+    if (aFitsThis && !consistent(a, partnerWord)) return { lane: homeLane, isCol };
+    if (bFitsThis && !consistent(b, partnerWord)) return { lane: partnerLane, isCol };
+
+    // 2. partner clearly owns a lane -> this word takes the other
+    if (aFitsPartnerOnly) return { lane: partnerLane, isCol };
+    if (bFitsPartnerOnly) return { lane: homeLane, isCol };
+
+    // 2b. this word is started in exactly one lane (ambiguous letters) -> use it
+    if (aFitsThis && !bFitsThis) return { lane: homeLane, isCol };
+    if (bFitsThis && !aFitsThis) return { lane: partnerLane, isCol };
+
+    // 3. nothing committed -> home lane
+    return { lane: homeLane, isCol };
+  }
+
   function giveHint() {
     if (!S.assistMode || S.hintsUsed >= MAX_HINTS) return;
-    // Gather candidate tiles PER LANE, then pick a lane first and a tile within
-    // it. Pooling every candidate together would bias toward whichever lane has
-    // the most empty slots — so a barely-started word would hog the hints.
-    // Choosing the lane first makes the odds genuinely even, which is what the
-    // Help text promises.
-    const byLane = { top: [], bottom: [], left: [], right: [] };
-    const check = (lane, letters, isCol) => {
+    // For each of the four target words, resolve the lane the player is actually
+    // building it in, then gather candidate tiles for the still-empty slots of
+    // THAT lane. Picking a lane first (evenly) keeps hint distribution fair.
+    const words = { top: S.words.topWord, bottom: S.words.bottomWord,
+                    left: S.words.leftWord, right: S.words.rightWord };
+    const byLane = {};
+    for (const which of ['top', 'bottom', 'left', 'right']) {
+      const { lane, isCol } = laneForWord(which);
+      // if two words resolved to the same lane (shouldn't, but guard), skip dupes
+      if (byLane[lane]) continue;
+      const letters = words[which].split('');
+      const pool = [];
       for (let i = 0; i < 6; i++) {
-        if (S.lanes[lane][i]) continue; // already placed
+        if (S.lanes[lane][i]) continue;             // slot already filled
         const target = letters[i];
         for (let k = 0; k < 6; k++) {
           const r = isCol ? k : i, c = isCol ? i : k;
-          if (S.grid[r][c] === target) {
-            byLane[lane].push({ row: r, col: c, dir: LANE[lane].dir });
-          }
+          if (S.grid[r][c] === target) pool.push({ row: r, col: c, dir: LANE[lane].dir });
         }
       }
-    };
-    check('top', S.words.topWord.split(''), true);
-    check('bottom', S.words.bottomWord.split(''), true);
-    check('left', S.words.leftWord.split(''), false);
-    check('right', S.words.rightWord.split(''), false);
+      if (pool.length) byLane[lane] = pool;
+    }
 
-    const lanesWithOptions = Object.keys(byLane).filter((l) => byLane[l].length > 0);
+    const lanesWithOptions = Object.keys(byLane);
     if (!lanesWithOptions.length) return;
     const lane = lanesWithOptions[Math.floor(Math.random() * lanesWithOptions.length)];
     const pool = byLane[lane];
