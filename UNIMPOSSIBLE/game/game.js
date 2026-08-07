@@ -1042,6 +1042,9 @@
     try {
       localStorage.setItem(LS.game, JSON.stringify({
         dayKey: S.dayKey,
+        words: S.words,               // save the puzzle's words so restore can't
+        anchorChoice: S.anchorChoice, // desync from the grid (e.g. after a word-
+        pristineGrid: S.pristineGrid, // list swap, which reseeds to a new puzzle)
         grid: S.grid,
         lanes: S.lanes,
         moved: [...S.moved.entries()],
@@ -1064,6 +1067,14 @@
       if (!raw) return false;
       const g = JSON.parse(raw);
       if (!g || g.dayKey !== S.dayKey) return false;   // stale day -> ignore
+      // Saves written before the puzzle identity was stored can't be trusted to
+      // match the freshly generated S.words (a word-list change makes the same
+      // seed yield a different puzzle). Discard them and start fresh rather than
+      // show a board whose answers/anchor/hints don't match.
+      if (!g.words) { localStorage.removeItem(LS.game); return false; }
+      S.words = g.words;
+      if (g.anchorChoice) S.anchorChoice = g.anchorChoice;
+      if (g.pristineGrid) S.pristineGrid = g.pristineGrid;
       S.grid = g.grid;
       S.lanes = g.lanes;
       S.moved = new Map(g.moved);
