@@ -430,6 +430,7 @@ body {
             z-index: 2;
             font-weight: bold;
             line-height: 1;
+            top: 4px;
         }
         
         .overlay-symbol.hint-constraint {
