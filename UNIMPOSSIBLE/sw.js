@@ -16,7 +16,7 @@
    index.html.
    ============================================================================ */
 
-const CACHE = 'unimpossible-v9';
+const CACHE = 'unimpossible-v10';
 
 const ASSETS = [
   './',
