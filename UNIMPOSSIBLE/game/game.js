@@ -893,7 +893,7 @@
       <h2 class="modal-title">How to play</h2>
       <p><strong>Four six-letter words are hidden in the grid</strong> — two that read across and two that read down. Their letters are scattered among the squares, mixed in with decoys that belong to no word. Your job is to move the right letters out to the four edges to spell all four words.</p>
       <p>You do this by moving letters into the coloured lanes around the grid. Here's how:</p>
-      <p><strong>Tap a letter</strong> in the grid to pick it up — the squares it can legally move to will light up. <strong>Tap a lit square</strong> to place it. Tap the letter again to put it down without spending a move.</p>
+      <p><strong>Tap a letter</strong> in the grid to pick it up — the squares it can legally move to will light up. <strong>Tap a lit square</strong> to place it. Tap the letter again to put it back down without spending a move.</p>
       <p>Letters only travel along their own row or column — never diagonally. A letter in a row can go to the left or right edge; a letter in a column can go to the top or bottom edge. The four lanes are colour-coded: top (blue), left (green), bottom (orange), right (pink).</p>
       <p>Tap a letter you've already placed in a lane to lift it — its home square in the grid lights up — then tap that square to send it back.</p>
       <p>The grid is packed with decoy letters that look correct but belong to none of the target words. <strong>Find all four words to win.</strong></p>
@@ -902,8 +902,8 @@
       <p><strong class="g">Possible</strong> — 5 hints and one free starting letter, and each word lights up once it's complete and correct.</p>
       <p><strong class="c">&#128293; Unimpossible</strong> — no hints, no free letter, no confirmation. Pure deduction. This is the default.</p>
       <p><strong class="g">The free letter:</strong> in Possible mode, one correct letter is already locked into its lane to give you a foothold — a way in, so the board isn't a cold start. It's free and doesn't cost a move.</p>
-      <p><strong>The words:</strong> everyday words — plurals and past tense are fair game, along with some slang and the occasional one you'll want to look up. No proper nouns, no swears.</p>
       <p><strong class="g">What a hint does:</strong> it reveals one correct letter and lights up the square it belongs in. The letter is picked at random from anywhere on the board, so hints won't necessarily help the word you're stuck on.</p>
+      <p><strong>The words:</strong> everyday words — plurals and past tense are fair game, along with some slang and the occasional one you'll want to look up. No proper nouns, no swears.</p>
       <p class="muted">Pick your mode before your first move; it locks once you start. New puzzle every day at midnight.</p>`;
   }
 
