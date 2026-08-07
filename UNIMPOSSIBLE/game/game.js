@@ -415,7 +415,10 @@
 
   function renderLane(lane) {
     const container = el('lane-' + lane);
-    const confirmed = laneConfirmed(lane);
+    // Only Possible mode confirms a finished word (thick outline). Unimpossible
+    // is pure deduction — a completed word looks identical to an unfinished one,
+    // and you only learn you're right when all four click and you win.
+    const confirmed = S.assistMode && laneConfirmed(lane);
     const hs = hintedSlot();
     const hintActive = selectedIsHinted();
     let html = '';
