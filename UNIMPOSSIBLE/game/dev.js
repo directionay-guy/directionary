@@ -47,11 +47,14 @@
     const w = window.UNIMP_DEV.getWords();
     const out = el('dev-answers-out');
     if (!w) { out.textContent = 'no puzzle loaded'; return; }
+    // Group by ORIENTATION, not fixed lane. Since the lane-swap fix, a horizontal
+    // word can occupy either the top OR bottom lane (and vertical either left or
+    // right), and the free letter / hints follow the player — so labelling a word
+    // "UP" would be a lie the game itself doesn't honour. Each pair is "either
+    // word, either lane of that orientation".
     out.innerHTML =
-      `<div style="color:#7FB0F5">&uarr; UP &nbsp; ${w.topWord}</div>` +
-      `<div style="color:#74D69B">&larr; LEFT &nbsp; ${w.leftWord}</div>` +
-      `<div style="color:#F7B25E">&darr; DOWN &nbsp; ${w.bottomWord}</div>` +
-      `<div style="color:#F58FC2">&rarr; RIGHT &nbsp; ${w.rightWord}</div>`;
+      `<div style="color:#F7B25E">&harr; ACROSS &nbsp; ${w.topWord} &middot; ${w.bottomWord}</div>` +
+      `<div style="color:#7FB0F5">&varr; DOWN &nbsp; ${w.leftWord} &middot; ${w.rightWord}</div>`;
   }
 
   // Fires after ANY puzzle load — the dev button, Shift+N, or the daily load —
