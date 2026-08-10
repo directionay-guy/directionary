@@ -891,6 +891,17 @@ body {
             .success-modal { padding-top: 15px; }
             .success-content { padding: 15px 12px; font-size: 0.9em; }
             .success-title { font-size: 1.3em; }
+            /* Input row — smaller on tiny screens */
+            #guessInput { height: 42px; font-size: 0.95em; padding: 8px; }
+            #submitBtn { height: 42px; font-size: 0.95em; padding: 8px 10px; }
+            input::placeholder { font-size: 0.9em; }
+            /* Feedback guess lines — tighter on tiny screens */
+            .feedback-line { font-size: 0.85em; padding: 6px 4px; margin: 4px 0; }
+            .feedback-arrows { width: 120px; font-size: 0.95em; gap: 1px; }
+            .symbol-with-letter { width: 22px; height: 24px; }
+            .background-letter { font-size: 20px; }
+            .overlay-symbol { font-size: 18px; top: 3px; }
+            input:not(:placeholder-shown) { letter-spacing: 4px; }
         }
 
         @media (min-width: 768px) {
