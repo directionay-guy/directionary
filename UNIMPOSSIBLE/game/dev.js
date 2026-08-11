@@ -71,17 +71,40 @@
   });
 
   el('dev-test').addEventListener('click', () => {
+    const btn = el('dev-test');
+    if (btn.dataset.running === '1') return;   // ignore double-clicks while running
+    btn.dataset.running = '1';
     const N = 20;
-    let win = 0, trap = 0, bad = 0;
-    for (let i = 0; i < N; i++) {
+    const DEADLINE = Date.now() + 8000;   // hard 8s budget — never hang the page
+    let win = 0, trap = 0, bad = 0, i = 0;
+    el('dev-result').textContent = 'Testing… 0/' + N;
+
+    // One puzzle per tick so the page stays responsive, AND a wall-clock cap so a
+    // rare pathological word-combo (which can make one generate() grind through
+    // all its retries) can't freeze the tab. If time runs out we report what we
+    // finished rather than spinning forever.
+    function step() {
+      if (i >= N || Date.now() > DEADLINE) {
+        const done = i;
+        const note = i < N ? `\n(stopped at ${done}/${N} — 8s cap)` : '';
+        el('dev-result').textContent =
+          `Winnable: ${win}/${done}\nTrap-free: ${trap}/${done}\nProblems: ${bad}${note}`;
+        btn.dataset.running = '0';
+        return;
+      }
       const p = window.UNIMP_DEV.generate();
-      if (!p) { bad++; continue; }
-      const T = p.words.topWord.split(''), L = p.words.leftWord.split('');
-      const B = p.words.bottomWord.split(''), R = p.words.rightWord.split('');
-      if (window.UNIMP_DEV.validateWinnable(p.grid, T, L, B, R)) win++;
-      if (window.UNIMP_DEV.isTrapFree(p.grid, T, L, B, R)) trap++; else bad++;
+      if (!p) {
+        bad++;
+      } else {
+        const T = p.words.topWord.split(''), L = p.words.leftWord.split('');
+        const B = p.words.bottomWord.split(''), R = p.words.rightWord.split('');
+        if (window.UNIMP_DEV.validateWinnable(p.grid, T, L, B, R)) win++;
+        if (window.UNIMP_DEV.isTrapFree(p.grid, T, L, B, R)) trap++; else bad++;
+      }
+      i++;
+      el('dev-result').textContent = `Testing… ${i}/${N}`;
+      setTimeout(step, 0);
     }
-    el('dev-result').textContent =
-      `Winnable: ${win}/${N}\nTrap-free: ${trap}/${N}\nProblems: ${bad}`;
+    setTimeout(step, 0);
   });
 })();
