@@ -182,6 +182,7 @@ button:disabled { cursor: not-allowed; }
 .grid-tile:active { cursor: grabbing; }
 .ghost {
   width: 100%; height: 100%;
+  font-family: var(--font-mark);   /* match the real tiles, not the default font */
   color: rgba(22,20,31,0.28);
   border: 1px solid rgba(22,20,31,0.10);
   border-radius: 4px;
@@ -403,6 +404,15 @@ button:disabled { cursor: not-allowed; }
   font-size: 1.4rem;
   color: var(--coral);
   margin-bottom: 12px;
+}
+/* section headers inside the rules modal */
+.rules-h {
+  font-family: var(--font-mark);
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--bone);
+  margin: 18px 0 6px;
+  letter-spacing: 0.02em;
 }
 .modal-x {
   position: absolute;
