@@ -22,7 +22,7 @@
   'use strict';
 
   /* ---- constants ---------------------------------------------------------- */
-  const LAUNCH_DATE = '2025-01-01';   // puzzle #1 = this date (adjust at launch)
+  const LAUNCH_DATE = '2026-08-11';   // puzzle #1 = this date (adjust at launch)
   const START_MOVES = 100;
   const MAX_HINTS = 5;
   const WORD_TRIES = 60;
@@ -894,20 +894,34 @@
   function helpBody() {
     return `
       <h2 class="modal-title">How to play</h2>
-      <p><strong>Four six-letter words are hidden in the grid</strong> — two that read across and two that read down. Their letters are scattered among the squares, mixed in with decoys that belong to no word. Your job is to move the right letters out to the four edges to spell all four words.</p>
-      <p>You do this by moving letters into the coloured lanes around the grid. Here's how:</p>
-      <p><strong>Tap a letter</strong> in the grid to pick it up — the squares it can legally move to will light up. <strong>Tap a lit square</strong> to place it. Tap the letter again to put it back down without spending a move.</p>
-      <p>Letters only travel along their own row or column — never diagonally. A letter in a row can go to the left or right edge; a letter in a column can go to the top or bottom edge. The four lanes are colour-coded: top (blue), left (green), bottom (orange), right (pink).</p>
-      <p>Tap a letter you've already placed in a lane to lift it — its home square in the grid lights up — then tap that square to send it back.</p>
-      <p>The grid is packed with decoy letters that look correct but belong to none of the target words. <strong>Find all four words to win.</strong></p>
-      <p>The two across words can go in either the top or bottom lane, and the two down words in either the left or right lane — so you only have to find each word and point it the right way, not guess which side it belongs on.</p>
-      <p>You start with 100 moves. Every move costs one — placing a letter, sending it back, or using a hint. Your <strong>remaining moves are your score</strong>: solve it in as few as you can, and don't hit zero.</p>
-      <p><strong class="g">Possible</strong> — 5 hints and one free starting letter, and each word lights up once it's complete and correct.</p>
-      <p><strong class="c">&#128293; Unimpossible</strong> — no hints, no free letter, no confirmation. Pure deduction. This is the default.</p>
-      <p><strong class="g">The free letter:</strong> in Possible mode, one correct letter is already locked into its lane to give you a foothold — a way in, so the board isn't a cold start. It's free and doesn't cost a move.</p>
-      <p><strong class="g">What a hint does:</strong> it reveals one correct letter and lights up the square it belongs in. The letter is picked at random from anywhere on the board, so hints won't necessarily help the word you're stuck on.</p>
-      <p><strong>The words:</strong> everyday words — plurals and past tense are fair game, along with some slang and the occasional one you'll want to look up. No proper nouns, no swears.</p>
-      <p class="muted">Pick your mode before your first move; it locks once you start. New puzzle every day at midnight.</p>`;
+
+      <div class="rules-h">The goal</div>
+      <p>Four six-letter words are hidden in the grid — two read <strong>across</strong>, two read <strong>down</strong>. Their letters are scattered among the squares and mixed with decoys that belong to no word. Move the right letters out to the edges to spell all four, and you win.</p>
+
+      <div class="rules-h">Placing a letter</div>
+      <p>Tap a letter in the grid to pick it up — the squares it can legally move to light up. Tap a lit square to drop it there. Letters travel only along their own row or column, never diagonally.</p>
+
+      <div class="rules-h">Taking a letter back</div>
+      <p>Tap a letter you've already placed to lift it — its home square lights up — then tap that square to send it back. Or tap a letter you've just picked up a second time to set it down where it was, free.</p>
+
+      <div class="rules-h">Across and down</div>
+      <p>The two across words can sit in <em>either</em> the top or bottom edge, and the two down words in <em>either</em> the left or right edge. You just have to find each word and run it the right way — you never have to guess which side it belongs on.</p>
+
+      <div class="rules-h">Score</div>
+      <p>You start with 100 moves. Every placement, take-back, or hint costs one. Your <strong>remaining moves are your score</strong> — solve it in as few as you can, and don't hit zero.</p>
+
+      <div class="rules-h">The two modes</div>
+      <p><strong class="g">Possible</strong> — one correct letter starts locked in as a foothold, you get 5 hints, and each word lights up once it's complete and correct.</p>
+      <p><strong class="c">&#128293; Unimpossible</strong> — no free letter, no hints, no confirmation. Nothing lights up; you only find out you're right when you win. Pure deduction, and the default.</p>
+      <p class="muted">Pick your mode before your first move — it locks once you start.</p>
+
+      <div class="rules-h">Hints &amp; the free letter</div>
+      <p>The <strong>free letter</strong> (Possible only) is one correct letter already placed for you — a way in, and it costs nothing. A <strong>hint</strong> reveals one correct letter and lights up its square; it's picked at random from anywhere on the board, so it won't always help the word you're stuck on. Each hint costs one move.</p>
+
+      <div class="rules-h">The words</div>
+      <p>Everyday words — plurals and past tense are fair game, along with some slang and the occasional one you'll want to look up. No proper nouns, no swears.</p>
+
+      <p class="muted">New puzzle every day at midnight.</p>`;
   }
 
   function aboutBody() {
