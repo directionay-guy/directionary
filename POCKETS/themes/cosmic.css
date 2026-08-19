@@ -1467,7 +1467,11 @@ body.theme-cosmic::after {
     background: var(--bg-mid);
     border: 1px solid rgba(245, 233, 208, 0.18);
     border-radius: 12px;
+    position: relative;      /* host for the inward warp-star layer */
+    overflow: hidden;        /* stars clip to the rounded box */
 }
+/* keep the score text/content above the warp layer */
+.theme-cosmic .player-final-score > * { position: relative; z-index: 1; }
 .theme-cosmic .player-final-score.blue {
     border-color: var(--teal);
     background: linear-gradient(180deg,
@@ -1748,7 +1752,7 @@ body.has-css-fullscreen { overflow: hidden; }
     position: absolute;
     inset: 0;
     pointer-events: none;
-    z-index: 0;
+    z-index: -2;
     background:
         /* Teal planet — left side, sphere-shaded */
         radial-gradient(circle 18px at 7% 52%,
@@ -1777,7 +1781,7 @@ body.has-css-fullscreen { overflow: hidden; }
     position: absolute;
     inset: 0;
     pointer-events: none;
-    z-index: 0;
+    z-index: -1;
     background:
         /* White stars — varied opacities for depth */
         radial-gradient(circle, rgba(255,255,255,0.95) 0.5px, transparent 0.5px)  4%  28% / 2px 2px no-repeat,
@@ -1868,7 +1872,10 @@ body.has-css-fullscreen { overflow: hidden; }
     inset: 0;
     pointer-events: none;
     overflow: hidden;      /* comets clip to the panel; the dice are siblings, so they never clip */
-    z-index: 0;
+    z-index: 0;            /* FIX: background layers moved to -1/-2, so z:0 now sits
+                              ABOVE the starfield but below the z:1 game content.
+                              Previously the comets tied the starfield at z:0 and
+                              lost the paint order — flying, but hidden underneath. */
     display: none;         /* hidden in every non-cosmic theme */
 }
 .theme-cosmic .cosmic-comets { display: block; }
@@ -1959,4 +1966,89 @@ body.has-css-fullscreen { overflow: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
     .c-comet { animation: none !important; opacity: 0; }
+}
+
+
+/* ==========================================================
+   ROLLDOWN WARP STARS
+   The two Rolldown score boxes (#blueFinalCard / #redFinalCard) get a slow
+   INWARD star drift: points begin near the edges and stream toward a vanishing
+   point at the box centre, shrinking and fading as they go — like stars receding
+   out a rear window. Reads as gravity pulling everything toward the finish.
+   Cosmic only (these selectors are all .theme-cosmic-scoped). Blue box = teal
+   stars, red box = orange, matching the theme's player colours.
+   ========================================================== */
+
+.theme-cosmic .player-final-score::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    /* a handful of tiny star dots scattered across the box */
+    background-image:
+        radial-gradient(circle, rgba(255,255,255,0.95) 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(255,255,255,0.75) 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(255,255,255,0.85) 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(255,255,255,0.65) 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(255,255,255,0.90) 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(255,255,255,0.70) 1px, transparent 1.5px);
+    background-repeat: no-repeat;
+    background-position:
+         8% 18%,  86% 24%,  22% 82%,
+        78% 76%,  50%  6%,  94% 58%;
+    background-size: 3px 3px, 3px 3px, 3px 3px, 3px 3px, 3px 3px, 3px 3px;
+    /* the inward pull: scale the whole field DOWN toward the centre and fade */
+    transform-origin: 50% 50%;
+    animation: warp-inward 5.5s ease-in infinite;
+    opacity: 0;
+}
+
+/* a second, offset layer so the stream feels continuous rather than pulsed */
+.theme-cosmic .player-final-score::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+        radial-gradient(circle, rgba(255,255,255,0.90) 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(255,255,255,0.65) 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(255,255,255,0.85) 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(255,255,255,0.75) 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(255,255,255,0.95) 1px, transparent 1.5px);
+    background-repeat: no-repeat;
+    background-position:
+        34% 12%,  66% 40%,  14% 54%,  90% 88%,  46% 92%;
+    background-size: 3px 3px, 3px 3px, 3px 3px, 3px 3px, 3px 3px;
+    transform-origin: 50% 50%;
+    animation: warp-inward 5.5s ease-in infinite;
+    animation-delay: 2.75s;   /* half-cycle offset from ::after */
+    opacity: 0;
+}
+
+@keyframes warp-inward {
+    0%   { transform: scale(1.15); opacity: 0; }
+    15%  { opacity: 0.9; }
+    85%  { opacity: 0.5; }
+    100% { transform: scale(0.02); opacity: 0; }  /* vanish at the centre */
+}
+
+/* tint the stars per player: a soft coloured glow under the white points */
+.theme-cosmic .player-final-score.blue::before,
+.theme-cosmic .player-final-score.blue::after {
+    filter: drop-shadow(0 0 2px var(--teal-glow));
+}
+.theme-cosmic .player-final-score.red::before,
+.theme-cosmic .player-final-score.red::after {
+    filter: drop-shadow(0 0 2px var(--orange-glow));
+}
+
+/* the warp only runs during the Rolldown finale; if you'd rather it always run
+   in Cosmic, delete this block. As written it's always-on in Cosmic since these
+   boxes only appear during the Rolldown anyway. */
+
+@media (prefers-reduced-motion: reduce) {
+    .theme-cosmic .player-final-score::before,
+    .theme-cosmic .player-final-score::after { animation: none !important; opacity: 0; }
 }
