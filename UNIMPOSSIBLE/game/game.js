@@ -261,6 +261,7 @@
     selected: null,           // { source:'grid'|lane, letter, row/col or index, targets/home }
     verified: new Set(),      // lane keys the game itself confirmed (anchor, hinted placements)
     hintedCells: new Set(),   // grid cells a hint has revealed, as "row-col"
+    refunded: new Set(),      // words already credited their +6 (by word string)
   };
 
   const gameStarted = () => S.moveCount > 0 || S.hintsUsed > 0;
@@ -292,6 +293,7 @@
     if (fullReset) {
       S.hasWon = false; S.hasLost = false;
       S.score = START_MOVES; S.moveCount = 0; S.hintsUsed = 0;
+      S.refunded = new Set();
       previewCountdown = false;   // never leave a fresh board showing the clock
       stopCountdown();
     }
@@ -706,6 +708,9 @@
     if (!letter) return;
     const key = `${lane}-${idx}`;
     if (S.anchorKey === key) return;            // locked free letter
+    if (S.verified.has(key)) return;            // locked hinted letter — it's a
+                                                // paid, guaranteed-correct tile;
+                                                // taking it back only loses info
     // tapping the selected lane tile again deselects
     if (S.selected && S.selected.source === lane && S.selected.index === idx) {
       clearSelection();
@@ -730,6 +735,7 @@
     if (S.highlight && S.highlight.row === sel.row && S.highlight.col === sel.col) S.highlight = null;
     S.selected = null;
     registerMove();
+    if (S.assistMode) refundCorrectWords(true);   // live +6 per word in Possible
     checkWin();
     render();
   }
@@ -754,6 +760,41 @@
     saveGame();
   }
 
+  const WORD_REFUND = 6;   // a correctly-built word gives back the 6 moves it cost
+
+  // Credit +6 for each correctly-placed word not yet credited. In Possible mode
+  // this runs live (words already light up when correct, so a "+6" popup fits and
+  // leaks nothing). In Unimpossible we must NOT credit per-word — that would
+  // reveal a word is right, which the mode deliberately hides — so there we only
+  // call this at the win, when everything is revealed anyway.
+  function refundCorrectWords(showPopup) {
+    if (!S.words) return;
+    const all = [S.words.topWord, S.words.bottomWord, S.words.leftWord, S.words.rightWord];
+    const horiz = [S.lanes.top.join(''), S.lanes.bottom.join('')];
+    const vert = [S.lanes.left.join(''), S.lanes.right.join('')];
+    const placed = new Set([...horiz, ...vert].filter(Boolean));
+    for (const word of all) {
+      if (!S.refunded.has(word) && placed.has(word)) {
+        S.refunded.add(word);
+        S.score = Math.min(START_MOVES, S.score + WORD_REFUND);
+        if (showPopup) flashRefund(WORD_REFUND);
+      }
+    }
+    const sv = el('score-value');
+    if (sv) sv.textContent = S.score;
+  }
+
+  // Brief "+6" celebration near the score.
+  function flashRefund(pts) {
+    const host = el('score-value');
+    if (!host || !host.parentElement) return;
+    const pop = document.createElement('span');
+    pop.className = 'refund-pop';
+    pop.textContent = '+' + pts;
+    host.parentElement.appendChild(pop);
+    setTimeout(() => { pop.remove(); }, 1400);
+  }
+
   function checkWin() {
     if (!S.words) return;
     // Each orientation's two words must occupy its two lanes — each word used
@@ -766,9 +807,14 @@
     const match = (a, b) => a[0] === b[0] && a[1] === b[1];
     if (match(horiz, horizTargets) && match(vert, vertTargets)) {
       S.hasWon = true;
+      // Credit any words not yet refunded. In Unimpossible nothing was credited
+      // during play (to keep it silent), so all four land here at once — no popup,
+      // the win itself is the reveal. In Possible most are already credited.
+      refundCorrectWords(false);
       recordStat(true);
       startCountdown();
-      showWinModal();
+      saveGame();          // persist the WIN — registerMove saved before this ran,
+      showWinModal();      // so without this a reload restores the pre-win board
     }
   }
 
@@ -776,6 +822,7 @@
     S.hasLost = true;
     recordStat(false);
     startCountdown();
+    saveGame();            // persist the loss for the same reason
     showLossModal();
   }
 
@@ -974,17 +1021,12 @@
   }
 
   function shareResult() {
-    const text = buildShareText();
-    // Native share sheet only on real touch/mobile devices — on desktop it
-    // triggers the clunky OS panel (e.g. Windows "add contacts"), so there we
-    // always use our own clean copy modal instead.
-    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
-      && (('ontouchstart' in window) || navigator.maxTouchPoints > 0);
-    if (isMobile && navigator.share) {
-      navigator.share({ title: 'Unimpossible - Daily Word Puzzle', text }).catch(() => openModal('share'));
-    } else {
-      openModal('share');
-    }
+    // Always use our own share modal, on every device. The native navigator.share
+    // sheet is inconsistent — present on some browsers/devices and not others,
+    // which made sharing behave differently for different players. Our modal is
+    // consistent, branded, and the whole reason we built it. (The modal builds
+    // its own share text when it renders.)
+    openModal('share');
   }
 
   function copyShare() {
@@ -1067,6 +1109,7 @@
         moved: [...S.moved.entries()],
         verified: [...S.verified],
         hintedCells: [...S.hintedCells],
+        refunded: [...S.refunded],
         anchorKey: S.anchorKey,
         score: S.score,
         moveCount: S.moveCount,
@@ -1097,6 +1140,7 @@
       S.moved = new Map(g.moved);
       S.verified = new Set(g.verified || []);
       S.hintedCells = new Set(g.hintedCells || []);
+      S.refunded = new Set(g.refunded || []);
       S.anchorKey = g.anchorKey;
       S.score = g.score;
       S.moveCount = g.moveCount;
