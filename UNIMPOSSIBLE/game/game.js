@@ -408,8 +408,11 @@
       extra = 'transform:translateY(-4px) scale(1.12);box-shadow:0 8px 14px rgba(0,0,0,0.6);z-index:5;position:relative;';
     }
     const color = 'var(--ink)';
-    const border = deep ? `3px solid ${c.deep}`
-      : filled ? `2px solid ${c.mid}` : `2px solid rgba(22,20,31,0.13)`;
+    // Widen the gap between confirmed and unconfirmed so a bold (correct) word
+    // reads clearly even on a small phone: default lanes get a thin 1px edge,
+    // a filled-but-unconfirmed tile 2px, and a confirmed word a bold 3px.
+    const border = deep ? `4px solid ${c.deep}`
+      : filled ? `2px solid ${c.mid}` : `1px solid rgba(22,20,31,0.13)`;
     const shadow = filled ? 'box-shadow:0 2px 4px rgba(22,20,31,0.28);' : '';
     const cursor = isAnchor ? 'cursor:default;' : 'cursor:pointer;';
     return `background:${bg};color:${color};border-radius:4px;border:${border};${shadow}${cursor}${extra}`;
@@ -735,7 +738,7 @@
     if (S.highlight && S.highlight.row === sel.row && S.highlight.col === sel.col) S.highlight = null;
     S.selected = null;
     registerMove();
-    if (S.assistMode) refundCorrectWords(true);   // live +6 per word in Possible
+    if (S.assistMode) refundCorrectWords('each');   // live +6 per word in Possible
     checkWin();
     render();
   }
@@ -767,19 +770,24 @@
   // leaks nothing). In Unimpossible we must NOT credit per-word — that would
   // reveal a word is right, which the mode deliberately hides — so there we only
   // call this at the win, when everything is revealed anyway.
-  function refundCorrectWords(showPopup) {
+  function refundCorrectWords(popupMode) {   // 'each' | 'lump' | 'none'
     if (!S.words) return;
     const all = [S.words.topWord, S.words.bottomWord, S.words.leftWord, S.words.rightWord];
     const horiz = [S.lanes.top.join(''), S.lanes.bottom.join('')];
     const vert = [S.lanes.left.join(''), S.lanes.right.join('')];
     const placed = new Set([...horiz, ...vert].filter(Boolean));
+    let credited = 0;
     for (const word of all) {
       if (!S.refunded.has(word) && placed.has(word)) {
         S.refunded.add(word);
         S.score = Math.min(START_MOVES, S.score + WORD_REFUND);
-        if (showPopup) flashRefund(WORD_REFUND);
+        credited += WORD_REFUND;
+        if (popupMode === 'each') flashRefund(WORD_REFUND);
       }
     }
+    // 'lump' shows one combined popup for everything credited at once (the win
+    // moment in Unimpossible, where per-word popups were suppressed during play).
+    if (popupMode === 'lump' && credited > 0) flashRefund(credited);
     const sv = el('score-value');
     if (sv) sv.textContent = S.score;
   }
@@ -810,7 +818,9 @@
       // Credit any words not yet refunded. In Unimpossible nothing was credited
       // during play (to keep it silent), so all four land here at once — no popup,
       // the win itself is the reveal. In Possible most are already credited.
-      refundCorrectWords(false);
+      // win: credit whatever isn't yet credited, as one lump '+N' celebration
+      // (in Unimpossible that's all four words at once; in Possible, any stragglers)
+      refundCorrectWords('lump');
       recordStat(true);
       startCountdown();
       saveGame();          // persist the WIN — registerMove saved before this ran,
@@ -955,7 +965,8 @@
       <p>The two across words can sit in <em>either</em> the top or bottom edge, and the two down words in <em>either</em> the left or right edge. You just have to find each word and run it the right way — you never have to guess which side it belongs on.</p>
 
       <div class="rules-h">Score</div>
-      <p>You start with 100 moves. Every placement, take-back, or hint costs one. Your <strong>remaining moves are your score</strong> — solve it in as few as you can, and don't hit zero.</p>
+      <p>You start with <strong>100</strong>. Placing a letter, taking one back, or using a hint each costs a move. But every word you get right <strong>refunds the 6 moves it cost</strong> — so a flawless game scores a perfect <strong>100</strong>. Your remaining moves are your score; don't hit zero.</p>
+      <p class="muted">In Possible mode the refund lands the moment a word is correct. In Unimpossible it all comes back at the win — the mode never tells you a word is right until you've won.</p>
 
       <div class="rules-h">The two modes</div>
       <p><strong class="g">Possible</strong> — one correct letter starts locked in as a foothold, you get 5 hints, and each word lights up once it's complete and correct.</p>
@@ -964,6 +975,7 @@
 
       <div class="rules-h">Hints &amp; the free letter</div>
       <p>The <strong>free letter</strong> (Possible only) is one correct letter already placed for you — a way in, and it costs nothing. A <strong>hint</strong> reveals one correct letter and lights up its square; it's picked at random from anywhere on the board, so it won't always help the word you're stuck on. Each hint costs one move.</p>
+      <p class="muted">The free letter and any hinted letters are locked in place — since they're guaranteed correct, you can't pick them back up.</p>
 
       <div class="rules-h">The words</div>
       <p>Everyday words — plurals and past tense are fair game, along with some slang and the occasional one you'll want to look up. No proper nouns, no swears.</p>
@@ -1016,7 +1028,8 @@
     let line;
     if (S.hasWon) line = `${S.score}/100 ${scoreEmoji}\nHints: ${S.hintsUsed}/5 ${hintsEmoji}`;
     else if (S.hasLost) line = `DNF ${scoreEmoji}\nHints: ${S.hintsUsed}/5 ${hintsEmoji}`;
-    else line = `${S.score}/100 so far\nHints: ${S.hintsUsed}/5 ${hintsEmoji}`;
+    else if (!gameStarted()) line = `not started yet`;   // don't show a phantom 100/100
+    else line = `in progress — ${S.score}/100 so far\nHints: ${S.hintsUsed}/5 ${hintsEmoji}`;
     return `Unimpossible #${S.puzzleNumber}${badge}\n${line}\n\nunimpossible.game #WW2W`;
   }
 
