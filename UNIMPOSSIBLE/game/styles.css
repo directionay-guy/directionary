@@ -262,8 +262,28 @@ button:disabled { cursor: not-allowed; }
   font-weight: 800;
   font-size: 1.4rem;
   margin-bottom: 12px;
+  position: relative;   /* anchor for the +6 refund popup */
 }
 .moves-line .c { color: var(--coral); }
+/* "+6" celebration that floats up and fades when a word is completed */
+.refund-pop {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  transform: translateX(-50%);
+  color: var(--green-text);
+  font-family: var(--font-mark);
+  font-weight: 800;
+  font-size: 1.1rem;
+  pointer-events: none;
+  animation: refund-float 1.4s ease-out forwards;
+}
+@keyframes refund-float {
+  0%   { opacity: 0; transform: translate(-50%, 4px); }
+  15%  { opacity: 1; transform: translate(-50%, -2px); }
+  70%  { opacity: 1; transform: translate(-50%, -14px); }
+  100% { opacity: 0; transform: translate(-50%, -26px); }
+}
 #middle-slot {
   min-height: 44px;
   display: flex;
